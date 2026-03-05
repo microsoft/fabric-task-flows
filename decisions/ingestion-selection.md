@@ -1,7 +1,7 @@
 ---
 id: ingestion-selection
 title: Ingestion Method Selection
-description: Choose the right data ingestion method based on data arrival pattern, transformation needs, and orchestration requirements
+description: Choose the right data ingestion method based on the 4 V's — Volume, Velocity, Variety, and Versatility — plus transformation needs and orchestration requirements
 triggers:
   - "copy job vs pipeline"
   - "dataflow vs pipeline"
@@ -9,6 +9,9 @@ triggers:
   - "eventstream vs copy job"
   - "batch vs streaming"
   - "data ingestion"
+  - "4 V's"
+  - "data movement strategy"
+  - "volume velocity variety"
 options:
   - id: copy-job
     label: Copy Job
@@ -17,6 +20,7 @@ options:
       transformation: none (copy as-is)
       skillset: low-code
       orchestration: standalone or pipeline
+      volume: small to large
       best_for: ["simple data movement", "scheduled refresh", "one-to-one copy"]
   - id: dataflow-gen2
     label: Dataflow Gen2
@@ -25,6 +29,7 @@ options:
       transformation: Power Query (M)
       skillset: low-code
       orchestration: standalone or pipeline
+      volume: small to medium
       best_for: ["visual transformations", "data cleansing", "business user ETL"]
   - id: pipeline
     label: Data Pipeline
@@ -33,6 +38,7 @@ options:
       transformation: orchestration (calls other items)
       skillset: low-code and code-first
       orchestration: full orchestration engine
+      volume: any
       best_for: ["complex workflows", "conditional logic", "multi-step ETL"]
   - id: eventstream
     label: Eventstream
@@ -41,6 +47,7 @@ options:
       transformation: stream processing
       skillset: low-code
       orchestration: continuous
+      volume: any (streaming)
       best_for: ["IoT", "logs", "real-time events", "Kafka"]
   - id: mirroring
     label: Mirroring
@@ -49,12 +56,35 @@ options:
       transformation: none (replicate as-is)
       skillset: low-code
       orchestration: automatic
+      volume: any
       best_for: ["database replication", "CDC", "operational data sync"]
 ---
 
 # Ingestion Method Selection
 
-> Choose the right method to get data into Microsoft Fabric based on your data arrival pattern, transformation needs, and orchestration requirements.
+> Choose the right method to get data into Microsoft Fabric. Start with the **4 V's assessment** to understand your data profile, then use the decision tree and comparison table to pick the right tool.
+
+## The 4 V's Assessment
+
+Before choosing an ingestion method, assess your project across four dimensions:
+
+| Dimension | Question | Options | Guides To |
+|-----------|----------|---------|-----------|
+| **Volume** | How much data? | Small–medium (< 1 GB) → Dataflow Gen2 · Large–very large (> 1 GB) → Notebooks, Copy Job, Pipeline (Copy activity) | Tool selection below |
+| **Velocity** | How fast? | Real-time → Eventstream, Mirroring · Batch → Pipeline, Dataflow Gen2, Copy Job | Decision tree below |
+| **Variety** | What types? | Sources: DBs, files, APIs, SaaS · Shapes: structured, semi-structured (CSV/JSON), unstructured (logs/media) · Landing: see [Storage Selection](storage-selection.md) | Variety section below |
+| **Versatility** | What skills? | Low-code: Pipelines, Dataflow Gen2, Eventstream, Copy Job · Code-first: Notebooks | [Skillset Selection](skillset-selection.md) |
+
+### 4 V's Quick-Reference Matrix
+
+| Tool | Volume | Velocity | Variety (Sources) | Versatility |
+|------|--------|----------|-------------------|-------------|
+| **Copy Job** | Small → Large | Batch | 100+ connectors (DBs, files, APIs) | Low-code [LC] |
+| **Dataflow Gen2** | Small → Medium | Batch | 150+ connectors (DBs, files, SaaS) | Low-code [LC] |
+| **Pipeline** | Any | Batch | Activities + connectors + Notebooks | Low-code + Code [LC/CF] |
+| **Notebook** | Large → Very Large | Batch | Custom code (any source) | Code-first [CF] |
+| **Eventstream** | Any (streaming) | Real-time | Event Hubs, Kafka, custom apps | Low-code [LC] |
+| **Mirroring** | Any | Continuous CDC | Azure SQL, Cosmos DB, Snowflake, SQL Server 2025 | Low-code [LC] |
 
 ## Quick Decision Tree
 
@@ -71,31 +101,40 @@ Is your data arriving in REAL-TIME (streaming)?
     │
     └─► NO
         │
-        ├─► Do you need TRANSFORMATIONS during ingestion?
+        ├─► What VOLUME of data?
         │   │
-        │   ├─► YES, visual/Power Query ──────► DATAFLOW GEN2
+        │   ├─► Small–medium (< 1 GB per load)
+        │   │   │
+        │   │   ├─► Need transformations? ───► DATAFLOW GEN2
+        │   │   │
+        │   │   └─► No transforms needed ───► COPY JOB
         │   │
-        │   └─► YES, complex/code-based ──────► PIPELINE + Notebook
+        │   └─► Large–very large (> 1 GB per load)
+        │       │
+        │       ├─► Code-first team ────────► PIPELINE + Notebook
+        │       │
+        │       ├─► Need orchestration ─────► PIPELINE (with Copy activity)
+        │       │
+        │       └─► Simple one-to-one copy ─► COPY JOB
         │
-        └─► NO, just copy data as-is
+        └─► Need COMPLEX ORCHESTRATION regardless of volume?
             │
-            ├─► Simple one-to-one copy ───────► COPY JOB
-            │
-            └─► Need orchestration/conditions ► PIPELINE (with Copy activity)
+            └─► YES ────────────────────────► PIPELINE
 ```
 
 ## Comparison Table
 
-| Criteria | Copy Job | Dataflow Gen2 | Pipeline | Eventstream | Mirroring |
-|----------|----------|---------------|----------|-------------|-----------|
-| **Data Pattern** | Batch | Batch | Batch | Real-time streaming | Continuous CDC |
-| **Transformation** | None | Power Query (M) | Orchestrates others | Stream processing | None |
-| **Skillset** | Low-Code [LC] | Low-Code [LC] | Low-Code + Code [LC/CF] | Low-Code [LC] | Low-Code [LC] |
-| **Scheduling** | Built-in schedule | Built-in schedule | Advanced scheduling | Continuous | Automatic |
-| **Connectors** | 100+ sources | 150+ sources | Activities + connectors | Event sources | Database-specific |
-| **Error Handling** | Basic retry | Basic retry | Advanced (conditions, retry) | Dead-letter queues | Automatic retry |
-| **Incremental Load** | ✅ Supported | ✅ Supported | ✅ Advanced patterns | N/A (streaming) | ✅ Built-in CDC |
-| **Complexity** | Low | Low-Medium | Medium-High | Medium | Low |
+| Criteria | Copy Job | Dataflow Gen2 | Pipeline | Notebook | Eventstream | Mirroring |
+|----------|----------|---------------|----------|----------|-------------|-----------|
+| **Volume** | Small → Large | Small → Medium | Any | Large → Very Large | Any (streaming) | Any |
+| **Velocity** | Batch | Batch | Batch | Batch | Real-time streaming | Continuous CDC |
+| **Variety** | 100+ connectors | 150+ connectors | Activities + connectors | Custom code (any) | Event sources | Database-specific |
+| **Versatility** | Low-Code [LC] | Low-Code [LC] | Low-Code + Code [LC/CF] | Code-First [CF] | Low-Code [LC] | Low-Code [LC] |
+| **Transformation** | None | Power Query (M) | Orchestrates others | Full code (Python/Spark) | Stream processing | None |
+| **Scheduling** | Built-in schedule | Built-in schedule | Advanced scheduling | Via Pipeline | Continuous | Automatic |
+| **Error Handling** | Basic retry | Basic retry | Advanced (conditions, retry) | Custom code | Dead-letter queues | Automatic retry |
+| **Incremental Load** | ✅ Supported | ✅ Supported | ✅ Advanced patterns | ✅ Custom code | N/A (streaming) | ✅ Built-in CDC |
+| **Complexity** | Low | Low-Medium | Medium-High | High | Medium | Low |
 
 ## When to Choose Each
 
@@ -195,15 +234,79 @@ Pipeline: Medallion_ETL
 └─ Activity 4: Semantic Model refresh (optional)
 ```
 
-## Destination Compatibility
+## Variety — What Types of Data?
 
-| Ingestion Method | Lakehouse | Warehouse | Eventhouse | SQL Database |
-|------------------|-----------|-----------|------------|--------------|
-| **Copy Job** | ✅ | ✅ | ❌ | ✅ |
-| **Dataflow Gen2** | ✅ | ✅ | ❌ | ✅ |
-| **Pipeline** | ✅ | ✅ | ✅ (via activities) | ✅ |
-| **Eventstream** | ✅ | ❌ | ✅ | ❌ |
-| **Mirroring** | ✅ (output) | ❌ | ❌ | Source only |
+Understanding the **variety** of your data sources, shapes, and landing targets helps narrow down which tools fit.
+
+### Source Types
+
+| Source Category | Examples | Best Tool |
+|----------------|----------|-----------|
+| **Databases** | SQL Server, Oracle, MySQL, PostgreSQL | Copy Job, Pipeline, Mirroring |
+| **Files** | CSV, Parquet, JSON, Excel, XML | Copy Job, Dataflow Gen2 |
+| **APIs** | REST endpoints, OData feeds | Dataflow Gen2, Pipeline + Notebook |
+| **SaaS Apps** | Salesforce, Dynamics 365, SharePoint | Dataflow Gen2 (built-in connectors) |
+| **Streaming** | Event Hubs, Kafka, IoT Hub, custom apps | Eventstream |
+
+### Data Shapes
+
+| Shape | Examples | Considerations |
+|-------|----------|---------------|
+| **Structured** | Relational tables, typed CSV | Any tool works — Copy Job is simplest |
+| **Semi-structured** | JSON, CSV with variable schemas, XML | Dataflow Gen2 (flatten/parse) or Notebook (schema-on-read) |
+| **Unstructured** | Logs, media, documents | Notebook (custom parsing) or Pipeline + Notebook |
+
+### Landing Targets
+
+Where data lands determines which ingestion tools are compatible:
+
+| Ingestion Method | Lakehouse | Warehouse | Eventhouse | SQL Database | CosmosDB |
+|------------------|-----------|-----------|------------|--------------|----------|
+| **Copy Job** | ✅ | ✅ | ❌ | ✅ | ❌ |
+| **Dataflow Gen2** | ✅ | ✅ | ❌ | ✅ | ❌ |
+| **Pipeline** | ✅ | ✅ | ✅ (via activities) | ✅ | ✅ (via activities) |
+| **Notebook** | ✅ | ✅ (via T-SQL) | ❌ | ✅ (via T-SQL) | ✅ (via SDK) |
+| **Eventstream** | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Mirroring** | ✅ (output) | ❌ | ❌ | Source only | Source only |
+
+See [Storage Selection](storage-selection.md) for choosing the right landing target based on your use case.
+
+## Guiding Principles
+
+### No One-Size-Fits-All
+
+Every project has a unique combination of Volume, Velocity, Variety, and Versatility. Choose ingestion tools based on **your specific requirements** — not industry trends or tool preferences. A Copy Job that solves the problem is better than a Notebook that impresses nobody.
+
+### Keep it Simple
+
+Start with the **simplest tool** that meets requirements. Add complexity only when justified:
+
+| If this works... | Don't use this instead... | Unless you need... |
+|------------------|--------------------------|-------------------|
+| Copy Job | Pipeline with Copy Activity | Conditional logic, error routing, multi-step |
+| Dataflow Gen2 | Notebook with Spark | > 1 GB transforms, custom code, ML features |
+| Built-in schedule | Pipeline scheduling | Dependencies between multiple items |
+| Mirroring | Pipeline + CDC patterns | Transformation during replication |
+
+### Consider Team Skills
+
+Match tools to your team's capabilities and invest in training strategically:
+
+- **T-SQL team** → Pipeline + Copy Activity + Warehouse stored procs (leverage existing skills)
+- **Python/Spark team** → Pipeline + Notebook (maximum flexibility)
+- **Business analysts** → Dataflow Gen2 (Power Query is familiar from Excel/Power BI)
+- **Mixed team** → Pipeline as orchestrator, with Dataflow Gen2 AND Notebook activities
+
+See [Skillset Selection](skillset-selection.md) for the full Versatility assessment.
+
+### Optimize and Monitor
+
+Build observability into your ingestion from day one — don't bolt it on later:
+
+- **Measure** — Track ingestion duration, row counts, and data freshness per run
+- **Alert** — Use Activator or Pipeline failure notifications to catch issues early
+- **Diagnose** — Log source-to-destination lineage so you can trace data quality issues
+- **Baseline** — Establish normal run times before optimizing; you can't improve what you don't measure
 
 ## Anti-Patterns
 
@@ -211,11 +314,15 @@ Pipeline: Medallion_ETL
 |---------------|-----|-----------------|
 | Use Eventstream for batch data | Overhead, complexity for batch | Use Copy Job or Dataflow Gen2 |
 | Build transformations in Pipeline activities | Hard to maintain | Use Dataflow Gen2 or Notebook |
+| Use Dataflow Gen2 for > 1 GB transforms | Performance limits at scale | Use Notebook or Pipeline + Copy |
 | Use Copy Job when need complex joins | No transformation support | Use Dataflow Gen2 |
 | Skip Pipeline for multi-step ETL | Error handling, dependencies | Use Pipeline for orchestration |
+| Over-engineer small data with Notebooks | Unnecessary complexity | Use Dataflow Gen2 or Copy Job |
+| Skip monitoring setup | Silent failures, data freshness drift | Add Activator alerts from day one |
 
 ## Related Decisions
 
-- [Storage Selection](storage-selection.md) - Choose destination storage type
-- [Processing Selection](processing-selection.md) - Transform data after ingestion
-- [Skillset Selection](skillset-selection.md) - Code-First vs Low-Code capabilities
+- [Storage Selection](storage-selection.md) — Choose landing target (Variety dimension)
+- [Processing Selection](processing-selection.md) — Transform data after ingestion
+- [Skillset Selection](skillset-selection.md) — Code-First vs Low-Code (Versatility dimension)
+- [Visualization Selection](visualization-selection.md) — How to present ingested data
