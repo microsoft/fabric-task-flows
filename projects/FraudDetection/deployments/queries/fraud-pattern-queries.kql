@@ -1,0 +1,136 @@
+// FraudPatternQueries - KQL Queries for Credit Card Fraud Detection
+// Import these queries into FraudPatternQueries.KQLQueryset
+
+// ═══════════════════════════════════════════════════════════════════
+// TABLE SCHEMA (execute once in Eventhouse)
+// ═══════════════════════════════════════════════════════════════════
+
+.create table Transactions (
+    transaction_id: string,
+    amount: real,
+    merchant_id: string,
+    fraud_score: real,
+    timestamp: datetime
+)
+
+// Set retention policy (30+ days)
+.alter database FraudTransactions policy retention softdelete = 30d
+
+// ═══════════════════════════════════════════════════════════════════
+// REAL-TIME FRAUD DETECTION QUERIES
+// ═══════════════════════════════════════════════════════════════════
+
+// Query 1: High-Risk Transactions (fraud_score > 0.85)
+// Used by: FraudAlerts Activator, FraudMonitoringDashboard
+Transactions
+| where fraud_score > 0.85
+| project transaction_id, amount, merchant_id, fraud_score, timestamp
+| order by timestamp desc
+| take 100
+
+// Query 2: Fraud Rate Over Time (1-hour bins)
+// Used by: Dashboard - Fraud Rate tile
+Transactions
+| where timestamp > ago(24h)
+| summarize 
+    Total = count(), 
+    Fraud = countif(fraud_score > 0.85) 
+    by bin(timestamp, 1h)
+| extend FraudRate = round(todouble(Fraud) / Total * 100, 2)
+| order by timestamp desc
+
+// Query 3: Transaction Volume (1-minute bins)
+// Used by: Dashboard - Transaction Volume tile
+Transactions
+| where timestamp > ago(1h)
+| summarize TxnCount = count() by bin(timestamp, 1m)
+| order by timestamp desc
+
+// Query 4: Top Risk Merchants
+// Used by: Dashboard - Top Risk Merchants tile
+Transactions
+| where timestamp > ago(24h)
+| where fraud_score > 0.7
+| summarize 
+    RiskScore = round(avg(fraud_score), 3), 
+    TxnCount = count(),
+    TotalAmount = round(sum(amount), 2)
+    by merchant_id
+| top 10 by RiskScore desc
+
+// Query 5: Fraud Score Distribution
+// Used by: Dashboard - Fraud Score Distribution tile
+Transactions
+| where timestamp > ago(1h)
+| summarize Count = count() by ScoreBucket = case(
+    fraud_score < 0.2, "0.0-0.2 (Low)",
+    fraud_score < 0.5, "0.2-0.5 (Medium)",
+    fraud_score < 0.85, "0.5-0.85 (High)",
+    "0.85+ (Critical)")
+| order by ScoreBucket asc
+
+// Query 6: Real-Time Alerts Feed (last 5 minutes)
+// Used by: Dashboard - Live alerts
+Transactions
+| where timestamp > ago(5m)
+| where fraud_score > 0.85
+| project 
+    transaction_id, 
+    amount, 
+    merchant_id, 
+    fraud_score,
+    AlertTime = timestamp
+| order by AlertTime desc
+
+// Query 7: Hourly Summary
+// Used by: Reporting
+Transactions
+| where timestamp > ago(24h)
+| summarize 
+    Transactions = count(),
+    FraudulentTxns = countif(fraud_score > 0.85),
+    AvgFraudScore = round(avg(fraud_score), 3),
+    MaxAmount = max(amount),
+    TotalVolume = round(sum(amount), 2)
+    by bin(timestamp, 1h)
+| extend FraudRate = round(todouble(FraudulentTxns) / Transactions * 100, 2)
+| order by timestamp desc
+
+// ═══════════════════════════════════════════════════════════════════
+// ANOMALY DETECTION QUERIES
+// ═══════════════════════════════════════════════════════════════════
+
+// Query 8: Sudden Spike Detection
+Transactions
+| where timestamp > ago(1h)
+| summarize TxnCount = count() by bin(timestamp, 1m)
+| extend Baseline = avg_of(TxnCount) over (timestamp, 10)
+| where TxnCount > Baseline * 2
+| project timestamp, TxnCount, Baseline, SpikeRatio = round(todouble(TxnCount) / Baseline, 2)
+
+// Query 9: Merchant with Increasing Fraud Rate
+Transactions
+| where timestamp > ago(24h)
+| summarize FraudRate = countif(fraud_score > 0.85) * 100.0 / count() by merchant_id, bin(timestamp, 1h)
+| partition by merchant_id (
+    order by timestamp asc
+    | extend PrevRate = prev(FraudRate)
+    | where FraudRate > PrevRate * 1.5
+)
+| project merchant_id, timestamp, FraudRate, PrevRate
+
+// ═══════════════════════════════════════════════════════════════════
+// ACTIVATOR TRIGGER QUERY
+// ═══════════════════════════════════════════════════════════════════
+
+// This query should be used as the Activator data source
+// Trigger condition: fraud_score > 0.85
+Transactions
+| where fraud_score > 0.85
+| project 
+    transaction_id,
+    amount,
+    merchant_id,
+    fraud_score,
+    timestamp,
+    AlertMessage = strcat("🚨 High-risk transaction detected: $", tostring(round(amount, 2)), " at ", merchant_id, " (Score: ", tostring(round(fraud_score, 2)), ")")

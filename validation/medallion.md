@@ -1,0 +1,53 @@
+# Validation Checklist
+
+Post-deployment validation for Medallion task flow.
+
+## Post-Deployment Manual Steps
+
+| Item Type | Manual Action Required |
+|-----------|------------------------|
+| Lakehouse (Bronze/Silver) | Verify permissions per layer |
+| Gold Layer (Lakehouse OR Warehouse) | Verify permissions; configure based on chosen type |
+| Environment | Configure Spark settings; publish environment |
+| Copy Job | Configure source connections |
+| Eventstream | Configure event source; start stream |
+| Notebook | Set default lakehouse; verify environment attachment |
+| Spark Job Def | Set default lakehouse; configure schedule |
+| Semantic Model | Bind to Gold layer (Lakehouse or Warehouse); configure Direct Lake (recommended) or Import/DirectQuery |
+| Report | Verify semantic model binding |
+
+## Checklist
+
+### Phase 1: Foundation
+
+- [ ] Bronze Lakehouse created
+- [ ] Silver Lakehouse created
+- [ ] Gold layer created (choose ONE):
+  - [ ] OPTION A: Lakehouse Gold (for Spark, ML, Delta Lake, read-only via SQL)
+  - [ ] OPTION B: Warehouse Gold (for T-SQL read/write, BI, stored procedures)
+
+### Phase 2: Environment
+
+- [ ] Environment created and published
+- [ ] Libraries installed
+
+### Phase 3: Ingestion
+
+- [ ] Ingestion items configured
+- [ ] Data flowing to Bronze layer
+
+### Phase 4: Transformation
+
+- [ ] Bronze → Silver notebook working
+- [ ] Silver → Gold notebook working
+- [ ] Data quality validated per layer
+
+### Phase 5: Visualization
+
+- [ ] Semantic Model bound to Gold
+- [ ] Reports rendering correctly
+
+### Phase 6: ML (optional)
+
+- [ ] Experiment runs successfully
+- [ ] Model registered
