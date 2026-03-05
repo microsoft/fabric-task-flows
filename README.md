@@ -2,44 +2,51 @@
 
 > Technical architecture guidance for Microsoft Fabric projects.
 
-Task Flows is a knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes four GitHub Copilot custom agents that work as a pipeline: **Architect** → **Tester** (Test Plan) → **Engineer** (Deploy) → **Tester** (Validate) → **Documenter** (ADRs).
+Task Flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes four GitHub Copilot custom agents that work as a pipeline:
+
+```
+@fabric-architect → @fabric-tester (Test Plan) → @fabric-engineer (Deploy) → @fabric-tester (Validate) → @fabric-documenter
+```
 
 ## 📁 Repository Structure
 
 ```
 task-flows/
-├── .github/agents/             # GitHub Copilot custom agents
-│   ├── fabric-architect.agent.md   # Architecture decisions
-│   ├── fabric-engineer.agent.md    # Deployment execution
-│   ├── fabric-tester.agent.md      # Validation & testing
-│   └── fabric-documenter.agent.md  # Wiki & ADR generation
-├── task-flows.md               # All 10 task flows (consolidated)
-├── decisions/                  # Decision guides (5 guides)
-│   ├── storage-selection.md
-│   ├── ingestion-selection.md
-│   ├── processing-selection.md
-│   ├── visualization-selection.md
-│   └── skillset-selection.md
-├── diagrams/                   # Deployment diagrams per task flow
-│   └── {task-flow}.md           # Flow, order, architecture
-├── validation/                 # Post-deployment checklists
-│   └── {task-flow}.md           # Phase-by-phase validation
-├── projects/                   # Per-project documentation & deployments
+├── .github/
+│   ├── agents/                     # GitHub Copilot custom agents
+│   │   ├── fabric-architect.agent.md   # Architecture decisions (core/advanced prompting)
+│   │   ├── fabric-engineer.agent.md    # Deployment execution (parallel waves, CI/CD)
+│   │   ├── fabric-tester.agent.md      # Validation & testing (2 modes)
+│   │   └── fabric-documenter.agent.md  # Wiki & ADR generation
+│   └── copilot-instructions.md     # System-level agent context
+├── task-flows.md                   # All 10 task flow patterns (consolidated)
+├── decisions/                      # Decision guides (5 guides)
+│   ├── storage-selection.md            # Lakehouse vs Warehouse vs Eventhouse vs SQL DB
+│   ├── ingestion-selection.md          # Copy Job vs Dataflow vs Pipeline vs Eventstream
+│   ├── processing-selection.md         # Notebook vs Spark Job vs Dataflow
+│   ├── visualization-selection.md      # Report vs Dashboard vs Paginated + Direct Lake guidance
+│   └── skillset-selection.md           # Code-First [CF] vs Low-Code [LC]
+├── diagrams/                       # Deployment diagrams per task flow
+│   └── {task-flow}.md                  # Phased deployment flow, dependency order, OR blocks
+├── validation/                     # Post-deployment checklists
+│   └── {task-flow}.md                  # Phase-by-phase validation with Direct Lake guidance
+├── projects/                       # Per-project documentation & deployments
 │   └── {workspace-name}/
-│       ├── docs/               # Architecture docs & ADRs
-│       │   ├── README.md
+│       ├── docs/                       # Architecture docs, test plans, ADRs
+│       │   ├── test-plan.md
 │       │   ├── architecture.md
 │       │   ├── deployment-log.md
-│       │   └── decisions/      # ADR files
-│       └── deployments/        # Scripts, notebooks, queries
+│       │   └── decisions/              # ADR files (001-task-flow.md, 002-storage.md, etc.)
+│       └── deployments/                # Handoff, scripts, notebooks, queries
 │           ├── handoff.md
-│           ├── deploy.sh
-│           ├── notebooks/
-│           └── queries/
-├── _shared/                    # Shared reference content
-│   ├── legend.md               # Diagram symbols
-│   ├── prerequisites.md        # Common prerequisites
-│   └── adr-template.md         # ADR template
+│           └── ...
+├── _shared/                        # Shared reference content
+│   ├── legend.md                       # Diagram symbols ([LC], [CF], ──►, OR)
+│   ├── prerequisites.md                # Setup: Fabric CLI, fabric-cicd, capacity, connections
+│   ├── adr-template.md                 # Architecture Decision Record template
+│   ├── cicd-practices.md               # CI/CD reference: fabric-cicd, parameter.yml, gotchas
+│   ├── parallel-deployment.md          # Dependency-wave analysis, bash template, timing
+│   └── fabric-cli-commands.md          # fab CLI command reference
 └── README.md
 ```
 
@@ -47,202 +54,187 @@ task-flows/
 
 ### Using the Agents
 
-From VS Code with GitHub Copilot, select an agent from the dropdown:
+From VS Code / GitHub.com with GitHub Copilot, mention an agent in chat:
 
-1. **@fabric-architect** - Describe your requirements, get task flow recommendation
-2. **@fabric-tester** (Mode 1) - Receive architecture, produce Test Plan
-3. **@fabric-engineer** - Deploy items using diagrams + Test Plan awareness
-4. **@fabric-tester** (Mode 2) - Validate deployment against checklist
-5. **@fabric-documenter** - Generate wiki-style ADRs explaining the "why"
+1. **@fabric-architect** — Describe your requirements → get a task flow recommendation and Architecture Handoff
+2. **@fabric-tester** (Mode 1) — Receive the handoff → produce a Test Plan with acceptance criteria and pre-deployment blockers
+3. **@fabric-engineer** — Deploy items using dependency-wave parallelism with `fab` CLI or `fabric-cicd`
+4. **@fabric-tester** (Mode 2) — Validate the deployment against the task flow checklist
+5. **@fabric-documenter** — Generate wiki-style ADRs explaining the "why" behind each decision
+
+### Core vs Advanced Mode
+
+The **@fabric-architect** uses a two-tier prompting model:
+
+- **Core** (5 questions, always asked): Project name, development velocity, skillset + language follow-up, primary use case, workspace (existing or new)
+- **Advanced** (opt-in): Capacity pools, environment names, Event Hub config, source connections, alert thresholds
+
+Values not collected by the architect are prompted just-in-time by the **@fabric-engineer** at deployment time, with sensible defaults.
 
 ### Agent Pipeline
 
 ```
-Architect → Tester (Test Plan) → Engineer (Deploy) → Tester (Validate) → Documenter
-                                      ↑                                       ↑
-                          Receives both inputs              Receives all handoffs
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌──────────────┐
+│  Architect   │───►│   Tester    │───►│  Engineer   │───►│   Tester    │───►│  Documenter  │
+│  (Decisions) │    │ (Test Plan) │    │  (Deploy)   │    │ (Validate)  │    │  (ADRs/Wiki) │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └──────────────┘
+       │                  │                  │                  │                   │
+  Architecture        Test Plan         Deployment         Validation           Wiki Docs
+    Handoff                               Handoff            Report            + ADRs
 ```
 
-The **Documenter** generates human-readable wiki documentation in `docs/[workspace]/` with:
-- Architecture Decision Records (ADRs) explaining the "why" behind each choice
-- System architecture diagram with item relationships
-- Deployment log with configuration rationale
-
-### Example: Medallion Architecture
-
-```
-User: I need a medallion architecture with Bronze, Silver, Gold layers 
-      for batch data engineering. Team uses Spark/Python.
-
-@fabric-architect:
-  Task flow: Medallion
-  Storage: Lakehouse (Gold can be Warehouse for BI)
-  Ingestion: Pipeline (batch orchestration)
-  Processing: Notebook (Spark/Python)
-  
-  [Architecture Handoff document]
-
-@fabric-tester (Mode 1):
-  [Test Plan with acceptance criteria]
-
-@fabric-engineer:
-  [Deploys items per diagrams/medallion.md]
-  [Deployment Handoff document]
-
-@fabric-tester (Mode 2):
-  [Validation Report - PASSED/FAILED]
-
-@fabric-documenter:
-  [Generates docs/FraudDetection/ wiki with ADRs]
-```
+Each agent produces a structured **handoff document** consumed by the next agent in the pipeline.
 
 ## 📋 Available Task Flows
 
 | ID | Name | Pattern | Description |
 |----|------|---------|-------------|
+| `basic-data-analytics` | Basic Data Analytics | Batch | Simple 4-item analytics (Warehouse → Pipeline → Semantic Model → Report) |
 | `medallion` | Medallion | Batch | Progressive data quality (Bronze → Silver → Gold) |
+| `lambda` | Lambda | Hybrid | Batch + real-time combined paths |
+| `event-analytics` | Event Analytics | Streaming | Real-time IoT/logs with Eventhouse |
+| `event-medallion` | Event Medallion | Streaming | Real-time medallion layers |
+| `data-analytics-sql-endpoint` | SQL Endpoint | Batch | Lakehouse with SQL analytics endpoint |
+| `basic-machine-learning-models` | Basic ML | Batch | ML training, experiment tracking, prediction |
+| `sensitive-data-insights` | Sensitive Data | Batch | RLS/OLS/CLS for compliant processing |
+| `translytical` | Translytical | Transactional | Operational BI with SQL Database writeback |
 | `general` | General | All | Comprehensive reference architecture |
-| `basic-data-analytics` | Basic Data Analytics | Batch | Simple 4-task analytics |
-| `basic-machine-learning-models` | Basic ML | Batch | ML training and prediction |
-| `lambda` | Lambda | Hybrid | Batch + real-time combined |
-| `event-analytics` | Event Analytics | Streaming | Real-time IoT/logs |
-| `event-medallion` | Event Medallion | Streaming | Real-time medallion |
-| `data-analytics-sql-endpoint` | SQL Endpoint | Batch | Lakehouse with SQL |
-| `sensitive-data-insights` | Sensitive Data | Batch | Secure/compliant processing |
-| `translytical` | Translytical | Transactional | Operational BI with writeback |
 
 ## 📊 Decision Guides
 
-Each decision guide provides comparison tables, decision trees, and "when to use" guidance:
+| Guide | Key Decision | Options |
+|-------|-------------|---------|
+| [Storage](decisions/storage-selection.md) | Where to store data | Lakehouse, Warehouse, Eventhouse, SQL Database, PostgreSQL |
+| [Ingestion](decisions/ingestion-selection.md) | How data arrives | Copy Job, Dataflow Gen2, Pipeline, Eventstream |
+| [Processing](decisions/processing-selection.md) | How to transform | Notebook, Spark Job Definition, Dataflow Gen2 |
+| [Visualization](decisions/visualization-selection.md) | How to present | Report, Dashboard, Paginated, Scorecard, Real-Time Dashboard |
+| [Skillset](decisions/skillset-selection.md) | Team capability | Code-First `[CF]` vs Low-Code `[LC]` |
 
-| Guide | Compares |
-|-------|----------|
-| [Storage Selection](decisions/storage-selection.md) | Lakehouse vs Warehouse vs Eventhouse vs SQL Database |
-| [Ingestion Selection](decisions/ingestion-selection.md) | Copy Job vs Dataflow Gen2 vs Pipeline vs Eventstream |
-| [Processing Selection](decisions/processing-selection.md) | Notebook vs Spark Job Definition vs Dataflow Gen2 |
-| [Visualization Selection](decisions/visualization-selection.md) | Report vs Dashboard vs Paginated vs Scorecard vs Real-Time |
-| [Skillset Selection](decisions/skillset-selection.md) | Code-First [CF] vs Low-Code [LC] |
+### Direct Lake Guidance
+
+The [Visualization Selection](decisions/visualization-selection.md) guide includes comprehensive **Direct Lake** guidance — the recommended Semantic Model query mode for any Fabric source with Delta tables in OneLake:
+
+| Fabric Source | Direct Lake Support | How Data Reaches OneLake |
+|--------------|-------------------|--------------------------|
+| Lakehouse | ✅ Native | Delta tables stored directly |
+| Warehouse | ✅ Native | Tables stored as Delta/Parquet |
+| SQL Database | ✅ Via mirroring | Automatic mirroring to Delta format |
+| Eventhouse / KQL Database | ✅ Via OneLake availability | Enable OneLake availability |
+| Mirrored Databases | ✅ Via mirroring | Fabric mirroring from external sources |
 
 ## 🤖 Custom Agents
 
-### fabric-architect
+### @fabric-architect
 
 **Purpose:** Guide architecture decisions before deployment
 
-**Tools:** `read`, `search` (read-only)
-
 **Responsibilities:**
-- Ask clarifying questions about requirements
-- Recommend appropriate task flow
-- Walk through relevant decision guides
-- Produce Architecture Handoff document
+- Ask core questions (5) with optional advanced deep-dive
+- Follow up on code-first language (T-SQL, Python/PySpark, Spark/Scala, Mixed)
+- Recommend task flow + walk through decision guides
+- Recommend Semantic Model query mode (Direct Lake by default)
+- Produce Architecture Handoff with decisions, items, deployment order, acceptance criteria, alternatives considered, and trade-offs
 
-### fabric-tester
+### @fabric-tester
 
-**Purpose:** Test planning and validation (shift-left testing)
-
-**Tools:** `read`, `search` (read-only)
+**Purpose:** Test planning (pre-deployment) and validation (post-deployment)
 
 **Mode 1 (Pre-Deployment):**
-- Receive Architecture Handoff from Architect
-- Map acceptance criteria to validation checklist
-- Produce Test Plan for Engineer awareness
+- Receive Architecture Handoff → produce Test Plan
+- Map acceptance criteria to validation checklist phases
+- Identify pre-deployment blockers and edge cases
 
 **Mode 2 (Post-Deployment):**
-- Receive Deployment Handoff from Engineer
-- Execute validation checklist from `validation/{task-flow}.md`
-- Report validation status (PASSED/PARTIAL/FAILED)
+- Receive Deployment Handoff → execute validation checklist from `validation/{task-flow}.md`
+- Verify items with `fab exists`, `fab ls`, `fab get`
+- Report validation status (PASSED / PARTIAL / FAILED)
 
-### fabric-engineer
+### @fabric-engineer
 
 **Purpose:** Deploy Fabric items based on architecture
 
-**Tools:** `read`, `edit`, `execute`, `search` (full access)
+**Key capabilities:**
+- **Parallel deployment** — Analyzes dependency graph and deploys items in concurrent waves (see `_shared/parallel-deployment.md`)
+- **Sub-agent delegation** — Orchestrates waves sequentially but delegates items within a wave to parallel sub-agents
+- **Dual tooling** — Supports `fab` CLI (interactive) and `fabric-cicd` library (automated CI/CD)
+- **Direct Lake configuration** — Configures optimal query mode for all Fabric sources
+- **Rollback & error recovery** — Wave failure protocol with cleanup decision table
+- **Just-in-time prompting** — Only asks for values when needed per item, with sensible defaults
 
-**Responsibilities:**
-- Review Architecture Handoff + Test Plan
-- Follow deployment order from `diagrams/{task-flow}.md`
-- Configure items per architecture decisions
-- Produce Deployment Handoff document
+### @fabric-documenter
 
-## 📂 Routing Reference
+**Purpose:** Synthesize all pipeline handoffs into wiki-style documentation
 
-| Content Type | Path | Format |
-|--------------|------|--------|
-| Task flow overview | `task-flows.md#{task-flow}` | H2 anchor |
-| Architecture diagrams | `diagrams/{task-flow}.md` | Deployment flow, order |
-| Decision guides | `decisions/{decision-id}.md` | YAML frontmatter + markdown |
-| Validation checklists | `validation/{task-flow}.md` | Phase-by-phase checklist |
-| Shared content | `_shared/{file}.md` | Legend, prerequisites |
+**Produces in `projects/{workspace}/docs/`:**
+- Architecture Decision Records (ADRs) explaining the "why" behind each choice
+- System architecture overview with item relationships
+- Deployment log with configuration rationale
+- CI/CD ADR (006-cicd.md) when multi-environment
 
-### Task Flow IDs
+## ⚡ Deployment & CI/CD
 
-| ID | Section in task-flows.md |
-|----|---------------------|
-| `basic-data-analytics` | ## Basic Data Analytics |
-| `basic-machine-learning-models` | ## Basic Machine Learning Models |
-| `data-analytics-sql-endpoint` | ## Data Analytics SQL Endpoint |
-| `event-analytics` | ## Event Analytics |
-| `event-medallion` | ## Event Medallion |
-| `general` | ## General |
-| `lambda` | ## Lambda |
-| `medallion` | ## Medallion |
-| `sensitive-data-insights` | ## Sensitive Data Insights |
-| `translytical` | ## Translytical |
+### Deployment Tooling
 
-## 🏗️ Decision Logic
+| Tool | Best For | Install |
+|------|---------|---------|
+| **Fabric CLI** (`fab`) | Interactive, ad-hoc, learning | `pip install ms-fabric-cli` |
+| **fabric-cicd** library | Automated CI/CD pipelines | `pip install fabric-cicd` (v0.1.23+) |
 
-### Task Flow Selection
+### Parallel Deployment
 
-| If you need... | Use |
-|----------------|-----|
-| Simple batch analytics | `basic-data-analytics` |
-| Progressive quality layers | `medallion` |
-| Real-time event processing | `event-analytics` |
-| Streaming + batch combined | `lambda` |
-| Machine learning | `basic-machine-learning-models` |
-| Sensitive/compliant data | `sensitive-data-insights` |
-| Operational writeback | `translytical` |
+The engineer agent groups items into **dependency waves** based on the "Depends On" column in deployment diagrams. Items within a wave deploy concurrently; waves execute sequentially:
 
-### Storage Selection
+```
+Wave 1: Foundation items (no dependencies)     ─── parallel ───►
+Wave 2: Items depending only on Wave 1         ─── parallel ───►
+Wave 3: Items depending on Wave 2              ─── parallel ───►
+```
 
-| If you use... | Choose |
-|---------------|--------|
-| Spark/Python | Lakehouse |
-| T-SQL analytics | Warehouse |
-| KQL/time-series | Eventhouse |
-| Transactional OLTP | SQL Database |
+### CI/CD Practices
 
-### Ingestion Selection
+See `_shared/cicd-practices.md` for the full reference:
+- Workspace strategy presented as a user choice (single vs multi-workspace)
+- `fabric-cicd` integration with `parameter.yml` for environment-specific values
+- Per-item deployment gotchas (Notebook lakehouse binding, Environment publish time, Semantic Model manual connection)
+- Connection management and capacity pool configuration
+- Autoscale Billing as alternative to fixed capacity SKUs
 
-| If data arrives... | Choose |
-|-------------------|--------|
-| Real-time streaming | Eventstream |
-| Batch, no transform | Copy Job |
-| Batch, visual ETL | Dataflow Gen2 |
-| Batch, complex logic | Pipeline |
+## 📂 Content Routing
+
+All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-analytics`):
+
+| Content Type | Path Pattern |
+|--------------|-------------|
+| Task flow overview | `task-flows.md` → H2 anchor (`## Medallion`) |
+| Deployment diagram | `diagrams/{task-flow-id}.md` |
+| Validation checklist | `validation/{task-flow-id}.md` |
+| Project docs | `projects/{workspace}/docs/` |
+| Project deployments | `projects/{workspace}/deployments/` |
+| Decision guides | `decisions/{decision-id}.md` |
+| Shared references | `_shared/{file}.md` |
 
 ## 📝 Contributing
 
 ### Adding a New Task Flow
 
 1. Add H2 section to `task-flows.md` with standard structure
-2. Create `diagrams/{task-flow-id}.md` with deployment flow/order
-3. Create `validation/{task-flow-id}.md` with phase checklist
-4. Add Decision Guides references in the task-flows.md section
+2. Create `diagrams/{task-flow-id}.md` with phased deployment flow
+3. Create `validation/{task-flow-id}.md` with phase-by-phase checklist
+4. Reference decision guides in the task-flows.md section
 
-### Adding a New Decision Guide
+### Terminology Rules
 
-1. Create `decisions/{decision-id}.md` with YAML frontmatter
-2. Include comparison table, decision tree, and "when to use" sections
-3. Reference from relevant task flow sections in `task-flows.md`
+- **"Direct Lake"** — Always two words with space (never "DirectLake")
+- **"task flow"** — Always two words with space (never "taskflow")
+- Path templates use hyphenated form: `{task-flow-id}`
 
 ### Updating Agents
 
-Agent prompts are in `.github/agents/`. Update:
-- `fabric-architect.agent.md` for architecture guidance changes
-- `fabric-engineer.agent.md` for deployment patterns
-- `fabric-tester.agent.md` for validation criteria
+Agent files are in `.github/agents/`. Each includes:
+- Three-tier boundaries (✅ Always / ⚠️ Ask first / 🚫 Never)
+- Signs of Drift (role-specific indicators)
+- Quality Checklists (pre-handoff self-review)
+- Structured handoff templates
 
 ## 📄 License
 
