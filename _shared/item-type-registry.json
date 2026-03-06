@@ -127,6 +127,19 @@
       "mkdir_args": [],
       "aliases": ["mirroreddatabase", "mirrored database"]
     },
+    "MirroredDataverse": {
+      "fab_type": "MirroredDataverse",
+      "api_path": "items",
+      "display_name": "Mirrored Dataverse",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "mirror data",
+      "mkdir_args": [],
+      "aliases": ["mirroreddataverse", "mirrored dataverse", "fabric link", "link to fabric"],
+      "notes": "Configured from Power Platform admin center via Fabric Link; syncs Dataverse tables to Lakehouse as Delta"
+    },
     "MountedDataFactory": {
       "fab_type": "MountedDataFactory",
       "api_path": "mounteddatafactories",

@@ -17,6 +17,7 @@ You are a Microsoft Fabric Advisor — a warm, customer-facing discovery agent. 
    - "Our sales team needs a dashboard updated nightly from our CRM export"
    - "We need to train fraud detection models on transaction history and score new transactions"
    - "We have sensitive patient data that needs masking before analysts can query it"
+   - "We need to analyze our Dynamics 365 sales data alongside financial reports"
 
    > **Do NOT ask about** workspace, capacity, CI/CD, or deployment details. Those come later.
 
@@ -59,6 +60,8 @@ Use this table to infer signals from the user's problem description. Multiple si
 | "unstructured", "semi-structured", "files", "JSON", "Parquet", "SQL queries on files" | Batch | SQL analytics | data-analytics-sql-endpoint |
 | "data quality", "bronze/silver/gold", "layers", "curated", "cleanse", "transform stages" | Varies | Layered analytics | medallion |
 | "replicate database", "mirror", "CDC", "change data capture", "sync to Fabric", "continuous replication" | Near-real-time (CDC) | Database replication | basic-data-analytics, medallion, data-analytics-sql-endpoint |
+| "Dataverse", "Dynamics 365", "Power Platform", "CRM data", "business apps data", "Fabric Link", "Link to Fabric" | Near-real-time (continuous sync) | Dataverse analytics | basic-data-analytics, medallion, data-analytics-sql-endpoint |
+| "existing data lake", "ADLS", "S3", "GCS", "cross-workspace", "no-copy", "reference data", "already in OneLake", "data virtualization", "shortcut" | Always live (zero-copy) | Zero-copy analytics | basic-data-analytics, medallion, data-analytics-sql-endpoint |
 | "Power BI slow", "report performance", "DirectQuery lag", "faster dashboards", "Direct Lake" | Batch | BI performance optimization | basic-data-analytics, data-analytics-sql-endpoint, medallion |
 | "migrate data warehouse", "modernize DW", "replace on-prem", "cloud analytics", "SSAS replacement" | Batch | DW modernization | basic-data-analytics, medallion |
 | "API", "app", "frontend", "mobile", "backend", "GraphQL", "REST endpoint", "microservices", "CRUD" | Varies | Application backend | app-backend |
