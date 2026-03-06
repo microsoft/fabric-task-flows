@@ -25,7 +25,7 @@ task-flows/
 │   │   ├── fabric-tester.agent.md      # Validation & testing (3 modes)
 │   │   └── fabric-documenter.agent.md  # Wiki & ADR generation
 │   └── copilot-instructions.md         # System-level agent context
-├── task-flows.md                       # All 10 task flow patterns (consolidated)
+├── task-flows.md                       # All 13 task flow patterns (consolidated)
 ├── decisions/                          # Decision guides (7 guides)
 │   ├── _index.md                       # Routing table — agents read this first
 │   ├── storage-selection.md            # Lakehouse vs Warehouse vs Eventhouse vs SQL DB vs Cosmos DB
@@ -69,6 +69,7 @@ task-flows/
 │   ├── test-plan-prefill.py            # Prefills test plan from acceptance criteria
 │   ├── taskflow-gen.py                 # Generates task flow Markdown sections
 │   ├── fabric-logo.py                  # ASCII logo generator for banners
+│   ├── check-drift.py                  # Documentation drift detection (cross-reference checks)
 │   ├── sync-item-types.py              # Syncs item-type-registry.json against Fabric CLI
 │   ├── generate-ps1-types.py           # Regenerates PowerShell item-type constants from registry
 │   ├── registry_loader.py              # Shared module — all scripts import item type metadata from here
@@ -86,6 +87,7 @@ task-flows/
 │   ├── validation-patterns.md          # Item-type verification commands
 │   ├── validation-report-template.md   # Validation Report output template
 │   ├── documentation-templates.md      # Wiki output templates (README, architecture, deploy log)
+│   ├── item-type-registry.json         # Single source of truth for all Fabric item type metadata
 │   ├── workflow-guide.md               # Pipeline orchestration, design-only mode, pipeline runner
 │   ├── script-banner.md                # Canonical Fabric Task Flows brand banner for all scripts
 │   ├── script-template.ps1             # PowerShell deploy script template (idempotency, retry, summary)
@@ -196,6 +198,8 @@ Use `scripts/run-pipeline.py` to manage the full pipeline lifecycle — it track
 | `sensitive-data-insights` | Sensitive Data | Batch | RLS/OLS/CLS for compliant processing |
 | `translytical` | Translytical | Transactional | Operational BI with SQL Database writeback |
 | `app-backend` | App Backend | API | Application APIs + serverless logic on SQL Database / Cosmos DB |
+| `conversational-analytics` | Conversational Analytics | AI | Self-service analytics via Data Agents + Semantic Models |
+| `semantic-governance` | Semantic Governance | Governance | Enterprise vocabulary, knowledge graph, Ontology |
 | `general` | General | All | Comprehensive reference architecture |
 
 ## 📊 Decision Guides
@@ -203,7 +207,7 @@ Use `scripts/run-pipeline.py` to manage the full pipeline lifecycle — it track
 | Guide | Key Decision | Options |
 |-------|-------------|---------|
 | [Storage](decisions/storage-selection.md) | Where to store data | Lakehouse, Warehouse, Eventhouse, SQL Database, Cosmos DB, PostgreSQL |
-| [Ingestion](decisions/ingestion-selection.md) | How data arrives | Copy Job, Dataflow Gen2, Pipeline, Eventstream, Mirroring |
+| [Ingestion](decisions/ingestion-selection.md) | How data arrives | Copy Job, Dataflow Gen2, Pipeline, Eventstream, Mirroring, Shortcuts, Fabric Link, Notebook |
 | [Processing](decisions/processing-selection.md) | How to transform | Notebook, Spark Job Definition, Dataflow Gen2, KQL Queryset |
 | [Visualization](decisions/visualization-selection.md) | How to present | Report, Dashboard, Paginated, Real-Time Dashboard |
 | [Skillset](decisions/skillset-selection.md) | Team capability | Code-First `[CF]` vs Low-Code `[LC]` |
