@@ -18,6 +18,8 @@ You are a Microsoft Fabric Advisor — a warm, customer-facing discovery agent. 
    - "We need to train fraud detection models on transaction history and score new transactions"
    - "We have sensitive patient data that needs masking before analysts can query it"
    - "We need to analyze our Dynamics 365 sales data alongside financial reports"
+   - "We want to consolidate our Synapse and on-prem SQL analytics into one platform"
+   - "Our team uses Databricks for ML but we want Power BI reporting through Fabric"
 
    > **Do NOT ask about** workspace, capacity, CI/CD, or deployment details. Those come later.
 
@@ -70,6 +72,19 @@ Use this table to infer signals from the user's problem description. Multiple si
 | "PostgreSQL", "Postgres", "open-source database", "geospatial", "PostGIS" | Varies | Open-source / Geospatial | app-backend |
 | "cross-domain", "unified vocabulary", "knowledge graph", "enterprise semantics", "ontology", "business terms" | Varies | Semantic governance | (any — ontology is an optional layer) |
 | "conversational", "chat", "ask questions", "natural language", "non-technical users", "self-service" | Varies | AI interaction | (any — data agent is an optional consumption layer) |
+| "data mesh", "domain ownership", "data products", "federated governance", "decentralized", "self-serve data platform" | Varies | Data mesh / federated analytics | medallion (multi-workspace with Shortcuts) |
+| "lakehouse", "lakehouse architecture", "unified analytics", "delta lake", "one platform", "consolidate analytics" | Varies | Enterprise lakehouse | medallion, data-analytics-sql-endpoint |
+| "migrate from Synapse", "Synapse to Fabric", "consolidate data platforms", "replace Synapse", "modernize analytics platform" | Batch | Platform migration | basic-data-analytics, medallion |
+| "existing Databricks", "Unity Catalog", "Databricks workspace", "use Fabric with Databricks", "shared lakehouse" | Varies | Databricks + Fabric (Better Together) | medallion, data-analytics-sql-endpoint |
+| "multi-cloud", "AWS data", "GCP data", "cross-cloud", "data from multiple clouds" | Varies | Multi-cloud analytics | basic-data-analytics, medallion (via Shortcuts) |
+| "Azure AI", "cognitive services", "document intelligence", "AI enrichment", "enrich with AI", "Azure OpenAI" | Batch (typically) | AI-enriched analytics | medallion, basic-machine-learning-models |
+| "data governance", "Purview", "lineage", "data catalog", "classification", "data stewardship" | Varies | Data governance | (any — governance is a cross-cutting concern) |
+| "healthcare", "FHIR", "clinical data", "patient analytics", "health records", "HL7" | Varies | Healthcare analytics | sensitive-data-insights, medallion |
+| "retail", "customer 360", "demand forecasting", "inventory", "point of sale", "recommendation engine" | Batch | Retail analytics | medallion, basic-machine-learning-models |
+| "financial", "risk analytics", "regulatory reporting", "AML", "anti-money laundering", "fraud detection" | Varies | Financial services analytics | sensitive-data-insights, basic-machine-learning-models |
+| "supply chain", "logistics", "fleet", "warehouse operations", "inventory optimization", "demand planning" | Batch or real-time | Supply chain analytics | medallion, lambda, event-analytics |
+| "manufacturing", "plant floor", "OPC-UA", "production quality", "downtime", "predictive maintenance" | Real-time + batch | Manufacturing analytics | lambda, event-analytics, basic-machine-learning-models |
+| "energy", "utilities", "smart grid", "meter data", "consumption analytics", "sustainability" | Batch or real-time | Energy / Utilities analytics | medallion, event-analytics |
 
 **When signals are ambiguous:** Present the top 2-3 candidates with a one-line explanation of each, and ask the user which resonates most. Do not pick for them.
 

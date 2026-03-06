@@ -124,7 +124,7 @@ Before choosing an ingestion method, assess your project across four dimensions:
 | **Pipeline** | Any | Batch | Activities + connectors + Notebooks | Low-code + Code [LC/CF] |
 | **Notebook** | Large → Very Large | Batch | Custom code (any source) | Code-first [CF] |
 | **Eventstream** | Any (streaming) | Real-time | Event Hubs, Kafka, custom apps | Low-code [LC] |
-| **Mirroring** | Any | Continuous CDC | Azure SQL, Cosmos DB, Snowflake, SQL Server 2025 | Low-code [LC] |
+| **Mirroring** | Any | Continuous CDC | Azure SQL, Cosmos DB, Snowflake, Databricks, SQL Server 2025 | Low-code [LC] |
 | **Shortcut** | Any | Always live (zero-copy) | ADLS Gen2, S3, GCS, cross-workspace Fabric items | Low-code [LC] |
 | **Fabric Link** | Any | Continuous sync | Dataverse (Dynamics 365, Power Platform) | Low-code [LC] |
 
@@ -252,7 +252,7 @@ Is your data ALREADY in a cloud store or another Fabric workspace?
 ### Choose MIRRORING when:
 
 - ✅ You need to **replicate an entire database** to OneLake
-- ✅ Source is Azure SQL, Cosmos DB, Snowflake, or SQL Server 2025
+- ✅ Source is Azure SQL, Cosmos DB, Snowflake, SQL Server 2025, or Azure Databricks (Unity Catalog)
 - ✅ You want **CDC (Change Data Capture)** without custom code
 - ✅ **Near real-time sync** of operational data
 - ✅ No transformation needed (raw replication)
@@ -261,6 +261,7 @@ Is your data ALREADY in a cloud store or another Fabric workspace?
 - Sync Azure SQL Database to Lakehouse for analytics
 - Replicate Cosmos DB for cross-region or analytics
 - Mirror Snowflake data into Fabric
+- Mirror Azure Databricks Unity Catalog for cross-platform collaboration
 
 ### Choose SHORTCUT when:
 
@@ -275,6 +276,8 @@ Is your data ALREADY in a cloud store or another Fabric workspace?
 - Share a Gold layer across multiple consumer workspaces
 - Access S3 Parquet files without copying into OneLake
 - Create a Bronze layer that points to an external data lake
+- Access Databricks-managed Delta tables via Unity Catalog shortcut
+- Multi-cloud analytics: reference AWS S3 or GCS data alongside Azure sources
 
 ### Choose FABRIC LINK when:
 
@@ -317,6 +320,9 @@ Is your data ALREADY in a cloud store or another Fabric workspace?
 | **Zero-copy data lake access** | Shortcut | None (always live) |
 | **Dataverse / Dynamics 365** | Fabric Link | Automatic |
 | **Custom source (no connector)** | Notebook (standalone) | Via Pipeline or manual |
+| **Databricks collaboration** | Mirrored Databricks Catalog or Shortcut | Automatic or always live |
+| **Multi-cloud data access** | Shortcut (S3, GCS) | None (always live) |
+| **Platform migration** | Copy Job + Pipeline (phased cutover) | Pipeline schedule |
 
 ### Pipeline Orchestration Example
 
@@ -348,6 +354,8 @@ Understanding the **variety** of your data sources, shapes, and landing targets 
 | **Cloud Storage** | ADLS Gen2, S3, GCS | Shortcut (zero-copy) or Copy Job |
 | **Dataverse** | Dynamics 365, Power Platform apps | Fabric Link |
 | **Cross-workspace** | Other Fabric Lakehouses | Shortcut |
+| **Databricks** | Unity Catalog, Delta tables | Mirrored Databricks Catalog or Shortcut |
+| **Multi-cloud** | AWS S3, GCS, Azure Blob | Shortcut (zero-copy) |
 
 ### Data Shapes
 
