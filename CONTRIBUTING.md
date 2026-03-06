@@ -38,6 +38,8 @@ The `scripts/` directory contains pipeline utilities. Key scripts:
 | `validate-items.ps1/.sh` | Runs `fab exists` per deployed item, outputs validation YAML |
 | `taskflow-gen.py` | Generates Fabric workspace task flow JSON for import |
 | `run-pipeline.py` | Pipeline orchestrator — manages state, pre-compute, transitions |
+| `sync-item-types.py` | Syncs `_shared/item-type-registry.json` against installed Fabric CLI |
+| `registry_loader.py` | Shared module — all scripts import item type metadata from here |
 
 > ⚠️ **Enforcement:** These scripts are NOT optional helpers — they are mandatory pre-compute steps. See `_shared/agent-boundaries.md` for the MUST/MUST NOT rules that govern when and how agents use each script.
 

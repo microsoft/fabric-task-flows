@@ -134,3 +134,28 @@ Tools produce a **starting point**. The LLM is expected to **augment**, not repl
 - ❌ Rewrite the YAML structure the tool produced
 - ❌ Replace tool output with free-form prose
 - ❌ Skip the tool and write everything from scratch
+
+## Item Type Registry Rules
+
+All Fabric item type metadata lives in `_shared/item-type-registry.json`. This is the **single source of truth**.
+
+### MUST
+
+1. **MUST** use `_shared/item-type-registry.json` as the canonical source for all item type metadata
+2. **MUST** import from `scripts/registry_loader.py` — not maintain separate dicts per script
+3. **MUST** run `python scripts/sync-item-types.py --check` to detect drift from the Fabric CLI
+4. **MUST** run `python scripts/sync-item-types.py --update` when upgrading `ms-fabric-cli`
+5. **MUST** fill in `phase` and `task_type` for any auto-added stubs before merging
+
+### MUST NOT
+
+1. **MUST NOT** add item type dicts to individual scripts — all metadata comes from the registry
+2. **MUST NOT** hard-code item type names in scripts — use registry aliases for fuzzy matching
+3. **MUST NOT** assume CLI support without checking the registry's `cli_supported` and `mkdir_supported` fields
+4. **MUST NOT** use the name "Activator" in new code — the CLI canonical name is "Reflex" (display name remains "Activator")
+
+### Adding a New Item Type
+
+1. Add the entry to `_shared/item-type-registry.json` with all required fields
+2. Run `python scripts/sync-item-types.py --diff` to verify alignment
+3. All scripts automatically pick up the new type via `registry_loader.py` — no other changes needed
