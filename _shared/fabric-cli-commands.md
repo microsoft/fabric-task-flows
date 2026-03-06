@@ -28,6 +28,9 @@ fab mkdir <workspace>.Workspace/<name>.Warehouse
 fab mkdir <workspace>.Workspace/<name>.Eventhouse
 fab mkdir <workspace>.Workspace/<name>.KQLDatabase -P eventhouseId=<id>
 fab mkdir <workspace>.Workspace/<name>.SQLDatabase
+
+# Cosmos DB — portal only (no fab mkdir support)
+# Create via Portal → + New Item → Cosmos DB database
 ```
 
 ### Ingestion
@@ -44,6 +47,13 @@ fab mkdir <workspace>.Workspace/<name>.Eventstream
 fab mkdir <workspace>.Workspace/<name>.Environment
 fab mkdir <workspace>.Workspace/<name>.Notebook
 fab mkdir <workspace>.Workspace/<name>.SparkJobDefinition
+```
+
+### ML
+
+```bash
+fab mkdir <workspace>.Workspace/<name>.MLExperiment
+fab mkdir <workspace>.Workspace/<name>.MLModel
 ```
 
 ### Serving
@@ -154,3 +164,21 @@ fab get <ws>.Workspace/<item>.Type -q properties
 # Inspect table schema
 fab table schema Tables/<table_name>
 ```
+
+## Portal-Only Items (No CLI Support)
+
+The following Fabric item types cannot be created with `fab mkdir`. Use the Fabric Portal or REST API.
+
+| Item Type | Status | Creation Method | Notes |
+|-----------|--------|----------------|-------|
+| GraphQL API | GA | Portal → + New Item → API for GraphQL | Auto-generates schema from data sources |
+| User Data Functions | Preview | Portal → + New Item → User Data Functions | Python functions with `@udf.function()` decorator |
+| Variable Library | GA | Portal → + New Item → Variable Library | Git-syncable JSON definition |
+| Data Agent | Preview | Portal → + New Item → Fabric Data Agent | Up to 5 data sources, NL2SQL/DAX/KQL |
+| Ontology | Preview | Portal → + New Item → Ontology | IQ workload, requires tenant settings |
+| Cosmos DB Database (native) | Preview | Portal → + New Item → Cosmos DB database | AI-optimized NoSQL, auto-mirrors to OneLake |
+| Cosmos DB Mirroring (external) | GA | Portal → + New Item → Mirrored Azure Cosmos DB | Requires continuous backup on Cosmos account |
+| Real-Time Dashboard | GA | Portal → + New Item → Real-Time Dashboard | Backed by Eventhouse/KQL |
+| Activator | GA | Portal → + New Item → Activator | Rules-based alerting |
+
+> **Deployment impact:** The `@fabric-engineer` agent should document these as manual portal steps in the deployment handoff. Use `fab exists` and `fab get` to verify after manual creation where item types are supported.

@@ -42,27 +42,27 @@ DISPLAY_NAMES: dict[str, str] = build_display_names()
 TASK_FLOW_PROMPTS: dict[str, list[tuple[str, str, str, str, bool]]] = {
     # (env_var, prompt_text, default, description, optional)
     "event-analytics": [
-        ("EVENT_HUB_NAMESPACE", "Event Hub namespace", "", "Azure Event Hub namespace for streaming", True),
-        ("EVENT_HUB_CONSUMER_GROUP", "Consumer group", "$Default", "Event Hub consumer group", False),
+        ("EVENT_HUB_NAMESPACE", "Event Hub namespace (Azure Event Hubs that streams events into Fabric)", "", "Azure Event Hub namespace for streaming", True),
+        ("EVENT_HUB_CONSUMER_GROUP", "Event Hub consumer group (isolates this pipeline's read position — use $Default if unsure)", "$Default", "Consumer group controls which reader offset Eventstream uses", False),
     ],
     "event-medallion": [
-        ("EVENT_HUB_NAMESPACE", "Event Hub namespace", "", "Azure Event Hub namespace for streaming", True),
-        ("EVENT_HUB_CONSUMER_GROUP", "Consumer group", "$Default", "Event Hub consumer group", False),
+        ("EVENT_HUB_NAMESPACE", "Event Hub namespace (Azure Event Hubs that streams events into Fabric)", "", "Azure Event Hub namespace for streaming", True),
+        ("EVENT_HUB_CONSUMER_GROUP", "Event Hub consumer group (isolates this pipeline's read position — use $Default if unsure)", "$Default", "Consumer group controls which reader offset Eventstream uses", False),
     ],
     "medallion": [
-        ("SOURCE_CONNECTION_STRING", "Source database connection string", "", "Connection to source database", True),
+        ("SOURCE_CONNECTION_STRING", "Source database connection string (e.g., SQL Server, PostgreSQL — used by Copy Job)", "", "Connection to source database", True),
     ],
     "lambda": [
-        ("SOURCE_CONNECTION_STRING", "Source database connection string", "", "Connection to source database", True),
-        ("EVENT_HUB_NAMESPACE", "Event Hub namespace", "", "Azure Event Hub namespace for streaming", True),
-        ("EVENT_HUB_CONSUMER_GROUP", "Consumer group", "$Default", "Event Hub consumer group", False),
+        ("SOURCE_CONNECTION_STRING", "Source database connection string (e.g., SQL Server, PostgreSQL — used by Copy Job)", "", "Connection to source database", True),
+        ("EVENT_HUB_NAMESPACE", "Event Hub namespace (Azure Event Hubs that streams events into Fabric)", "", "Azure Event Hub namespace for streaming", True),
+        ("EVENT_HUB_CONSUMER_GROUP", "Event Hub consumer group (isolates this pipeline's read position — use $Default if unsure)", "$Default", "Consumer group controls which reader offset Eventstream uses", False),
     ],
     "app-backend": [
-        ("API_FRONTEND_URL", "API frontend URL", "", "URL of the application frontend", True),
+        ("API_FRONTEND_URL", "API frontend URL (the app that will call the GraphQL/REST endpoints)", "", "URL of the application frontend", True),
     ],
     "sensitive-data-insights": [
-        ("KEY_VAULT_URL", "Key Vault URL", "", "Azure Key Vault for encryption keys", True),
-        ("ENCRYPTION_KEY_NAME", "Encryption key name", "", "Name of the encryption key", True),
+        ("KEY_VAULT_URL", "Key Vault URL (Azure Key Vault storing encryption keys for PII masking)", "", "Azure Key Vault for encryption keys", True),
+        ("ENCRYPTION_KEY_NAME", "Encryption key name (key used by masking notebooks)", "", "Name of the encryption key", True),
     ],
 }
 
@@ -756,7 +756,10 @@ def _gen_tf_prompts_bash(task_flow: str) -> str:
         return ""
 
     lines: list[str] = []
-    for env_var, prompt_text, default, _desc, optional in prompts:
+    for env_var, prompt_text, default, desc, optional in prompts:
+        # Show description as a comment before the prompt
+        if desc:
+            lines.append(f'  # {desc}')
         if default:
             lines.append(f'  {env_var}=$(prompt_value "{env_var}" "{prompt_text}" "{default}")')
         elif optional:
@@ -772,9 +775,12 @@ def _gen_tf_prompts_ps1(task_flow: str) -> str:
         return ""
 
     lines: list[str] = []
-    for env_var, prompt_text, default, _desc, optional in prompts:
+    for env_var, prompt_text, default, desc, optional in prompts:
         # Convert ENV_VAR to $PascalCase
         ps_var = "".join(w.capitalize() for w in env_var.lower().split("_"))
+        # Show description as a comment before the prompt
+        if desc:
+            lines.append(f'  # {desc}')
         if default:
             lines.append(
                 f'  ${ps_var} = Prompt-Value -EnvVarName "{env_var}" '
