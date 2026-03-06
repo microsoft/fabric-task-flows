@@ -2,10 +2,18 @@
 
 ## Project Overview
 
-This is a **documentation-only** knowledge base — there is no source code, build system, or tests. All content is Markdown. The repo provides pre-defined Microsoft Fabric architectures via four custom Copilot agents that operate as a pipeline:
+This is a **documentation-only** knowledge base — there is no source code, build system, or tests. All content is Markdown. The repo provides pre-defined Microsoft Fabric architectures via four custom Copilot agents that collaborate in phases:
 
 ```
-@fabric-architect → @fabric-tester (Test Plan) → @fabric-engineer (Deploy) → @fabric-tester (Validate) → @fabric-documenter
+Phase 1 — Design:     @fabric-architect (DRAFT) ──┬──► @fabric-engineer (Deployment Review)
+                                                    └──► @fabric-tester (Testability Review)
+                      @fabric-architect (incorporates feedback → FINAL Handoff)
+
+Phase 2 — Plan+Deploy: @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
+
+Phase 3 — Validate:    @fabric-tester (Validate against checklist)
+
+Phase 4 — Document:    @fabric-documenter (ADRs + wiki)
 ```
 
 ## Architecture

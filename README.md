@@ -2,10 +2,12 @@
 
 > Technical architecture guidance for Microsoft Fabric projects.
 
-Task Flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes four GitHub Copilot custom agents that work as a pipeline:
+Task Flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes four GitHub Copilot custom agents that collaborate in phases:
 
 ```
-@fabric-architect → @fabric-tester (Test Plan) → @fabric-engineer (Deploy) → @fabric-tester (Validate) → @fabric-documenter
+@fabric-architect (DRAFT) ──► @fabric-engineer + @fabric-tester (Design Review)
+@fabric-architect (FINAL) ──► @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
+                               @fabric-tester (Validate) → @fabric-documenter (ADRs)
 ```
 
 ## 📁 Repository Structure
@@ -71,19 +73,38 @@ The **@fabric-architect** uses a two-tier prompting model:
 
 Values not collected by the architect are prompted just-in-time by the **@fabric-engineer** at deployment time, with sensible defaults.
 
-### Agent Pipeline
+### Agent Pipeline (Collaborative Phases)
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌──────────────┐
-│  Architect   │───►│   Tester    │───►│  Engineer   │───►│   Tester    │───►│  Documenter  │
-│  (Decisions) │    │ (Test Plan) │    │  (Deploy)   │    │ (Validate)  │    │  (ADRs/Wiki) │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └──────────────┘
-       │                  │                  │                  │                   │
-  Architecture        Test Plan         Deployment         Validation           Wiki Docs
-    Handoff                               Handoff            Report            + ADRs
+Phase 1 — Design:
+┌─────────────┐         ┌─────────────┐
+│  Architect   │──DRAFT──►│  Engineer   │── Deployment Feasibility Review
+│  (Leads)     │         │  (Reviews)  │
+│              │         └─────────────┘
+│              │         ┌─────────────┐
+│              │──DRAFT──►│   Tester    │── Testability Review
+│              │         │  (Reviews)  │
+│              │         └─────────────┘
+│              │◄── feedback ──────────┘
+│  (Finalizes) │
+└──────┬───────┘
+       │ FINAL Architecture Handoff
+       ▼
+Phase 2 — Plan + Deploy:
+┌─────────────┐         ┌─────────────┐
+│   Tester    │         │  Engineer   │
+│ (Test Plan) │         │  (Deploy)   │
+└──────┬──────┘         └──────┬──────┘
+       │                       │
+       ▼                       ▼
+Phase 3 — Validate:     Phase 4 — Document:
+┌─────────────┐         ┌──────────────┐
+│   Tester    │────────►│  Documenter  │
+│ (Validate)  │         │  (ADRs/Wiki) │
+└─────────────┘         └──────────────┘
 ```
 
-Each agent produces a structured **handoff document** consumed by the next agent in the pipeline.
+The architect leads design but collaborates with the engineer (deployment expertise) and tester (testability expertise) before finalizing. Each agent produces structured **handoff documents** — the architect's includes a Design Review section documenting what feedback was incorporated.
 
 ## 📋 Available Task Flows
 
