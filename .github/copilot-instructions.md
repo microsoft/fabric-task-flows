@@ -41,6 +41,24 @@ All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event
 
 Decision guides live in `decisions/` and are shared across task flows. Shared reference content (legend, prerequisites, parallel deployment, CI/CD practices, deployment patterns, rollback protocol, validation patterns, documentation templates, workflow guide) lives in `_shared/`.
 
+### Directory indexes
+
+Each content directory has an `_index.md` routing table that agents should read first:
+
+| Directory | Index | Purpose |
+|-----------|-------|---------|
+| `decisions/` | `decisions/_index.md` | Find decision guides by ID; use `quick_decision` in YAML frontmatter for fast resolution |
+| `diagrams/` | `diagrams/_index.md` | Find deployment diagram by task flow; includes item/wave counts |
+| `validation/` | `validation/_index.md` | Find validation checklist by task flow; includes phase names |
+
+**Agent context loading rule:** Read the `_index.md` first, then fetch only the specific file needed. Do not scan entire directories. Decision guide YAML frontmatter contains a `quick_decision` field with a compact decision tree — resolve from frontmatter before reading the full guide body.
+
+**Diagram skip markers:** Diagram files contain `<!-- AGENT: Skip to "## Deployment Order" -->` markers. Agents should jump past the ASCII visual diagram to the structured deployment order table.
+
+### Project scaffolding
+
+New projects are scaffolded with `python scripts/new-project.py "Project Name"`, which creates all directories and template files. Agents edit pre-existing files — they do not create directories or boilerplate. See `_shared/workflow-guide.md` for details.
+
 ### Custom agents (`.github/agents/`)
 
 | Agent | Role | Tools | Constraint |
@@ -59,15 +77,7 @@ Each guide uses **YAML frontmatter** with `id`, `title`, `description`, `trigger
 
 ## Key Conventions
 
-### Adding a new task flow
-
-1. Add an H2 section to `task-flows.md` following the existing structure: description, task count, ASCII flow diagram, workloads, items, decision table with links, and diagram/validation links.
-2. Create `diagrams/{task-flow-id}.md` with phased deployment flow using the symbols from `_shared/legend.md` (`[LC]`/`[CF]` skillset tags, `──►` flow, `OR` for choices).
-3. Create `validation/{task-flow-id}.md` with a post-deployment manual steps table and a phase-by-phase checklist (Foundation → Environment → Ingestion → Transformation → Visualization → ML).
-
-### Diagram conventions
-
-Deployment diagrams use ASCII box-drawing characters with phased sections separated by `═════`. Skillset tags (`[LC]`, `[CF]`, `[LC/CF]`) annotate each item. Decision points use `OR` blocks with differentiator comparison tables.
+> For contributor guidelines (adding task flows, diagram conventions, git workflow), see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ### Deployment tooling
 
@@ -75,33 +85,13 @@ The Fabric CLI (`fab` via `pip install ms-fabric-cli`) is the preferred tool for
 
 ### Architecture vs. deployment details
 
-The architect produces a **conceptual blueprint** — what items to create, which patterns to follow, and how data flows between components. Implementation details (connection GUIDs, source table schemas, credentials, gateway configuration) are collected by the `@fabric-engineer` at deployment time.
-
-Acceptance criteria in the architecture handoff are categorized as:
-- **Structural** — verifiable immediately after items are created (item exists, correct type, correct configuration)
-- **Data Flow** — verifiable only after implementation details are in place (data lands, transformations run, queries return results)
-
-Pre-deployment blockers are categorized as:
-- **Architecture Blockers** — decisions that must be resolved before sign-off (capacity tier, workspace strategy)
-- **Deployment Blockers** — infrastructure that must exist before the engineer deploys (connection GUIDs, gateway, credentials)
-
-### Validation checklist structure
-
-Every validation file starts with a "Post-Deployment Manual Steps" table (Item Type → Manual Action Required), followed by phased checklists using `- [ ]` checkboxes. Phases follow the standard order: Foundation, Environment, Ingestion, Transformation, Visualization, ML (if applicable).
+- **Architect** produces the conceptual blueprint (items, patterns, data flow). **Engineer** collects implementation details (connection GUIDs, credentials) at deploy time.
+- **Structural ACs** = verifiable after item creation. **Data Flow ACs** = verifiable after connections/data are configured.
+- **Architecture Blockers** = block sign-off. **Deployment Blockers** = block engineer only.
 
 ### Deployment practices
 
-Two deployment tools are supported: the Fabric CLI (`fab`) for interactive and ad-hoc deployments, and the `fabric-cicd` Python library (`pip install fabric-cicd`) for automated CI/CD pipelines. See `_shared/cicd-practices.md` for the full reference including parameterization with `parameter.yml`, per-item deployment gotchas, and release pipeline examples.
-
-**Parallel deployment:** The `@fabric-engineer` agent analyzes the "Depends On" column in deployment order tables (`diagrams/[task-flow].md`) and groups items into dependency waves for concurrent execution. See `_shared/parallel-deployment.md` for the bash template.
-
-**Workspace strategy is a user choice:** The architect presents single-workspace vs. multi-workspace options with trade-offs and lets the user decide. The engineer implements whichever strategy the architect's handoff specifies. Neither approach is the default.
-
-**CI/CD is optional but well-supported:** Single-environment projects skip CI/CD checks. Multi-environment projects get full parameterization support, connection management guidance, and capacity pool configuration.
-
-### Git workflow
-
-When agents create or modify files in `projects/`:
-- **Commit messages:** Use the format `[project-name] action description` (e.g., `[old-style] Add architecture handoff`, `[fraud-detection] Update deployment log`)
-- **One project per commit:** Don't mix changes across different projects in a single commit
-- **Never commit secrets:** Connection strings, workspace IDs, and credentials must use environment variables or parameter placeholders — never hardcoded values
+- **CLI:** `fab` (preferred) — see `_shared/fabric-cli-commands.md`
+- **CI/CD:** `fabric-cicd` library — see `_shared/cicd-practices.md`
+- **Parameterization:** Variable Library (preferred), parameter.yml, or env vars — see `decisions/parameterization-selection.md`
+- **Parallel deployment:** Waves from `diagrams/[task-flow].md` — see `_shared/parallel-deployment.md`

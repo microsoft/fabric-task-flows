@@ -75,20 +75,7 @@ Use this table to infer signals from the user's problem description. Multiple si
 
 ## Project Naming Rules
 
-**ALWAYS ask the user what they want to call their project.** Then sanitize the name:
-
-1. Convert to lowercase
-2. Replace spaces with dashes (`-`)
-3. Remove special characters (keep only `a-z`, `0-9`, `-`)
-4. Trim leading/trailing dashes
-
-**Examples:**
-| User Input | Sanitized Folder Name |
-|------------|----------------------|
-| Fraud Detection | `fraud-detection` |
-| Customer 360° Analytics | `customer-360-analytics` |
-| ML Pipeline #2 | `ml-pipeline-2` |
-| IoT Real-Time Dashboard | `iot-real-time-dashboard` |
+**Always ask the user what to call their project.** Sanitize: lowercase, spaces→dashes, remove special chars (keep `a-z`, `0-9`, `-`), trim dashes.
 
 ## Output Constraints
 
