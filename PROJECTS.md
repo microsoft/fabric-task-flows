@@ -4,7 +4,7 @@
 
 | Project | Task Flow | Phase | Status | Blockers | Next Action |
 |---------|-----------|-------|--------|----------|-------------|
-| chicago-bears-85 | medallion | Design Review ✅ | FINAL handoff produced | Oracle gateway TBD | User Sign-Off (Phase 2b) |
+| chicago-bears-85 | medallion | Test Plan ✅ | Test plan produced (15 ACs, 5 blockers) | Capacity, gateway, Oracle connection, table list, test user | User Sign-Off (Phase 2b) |
 
 > Project rows are generated locally by agents. See `projects/` folder (gitignored) for per-project artifacts.
 
