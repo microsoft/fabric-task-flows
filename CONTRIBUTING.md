@@ -37,7 +37,8 @@ The `scripts/` directory contains pipeline utilities. Key scripts:
 | `test-plan-prefill.py` | Prefills test plan from acceptance criteria |
 | `validate-items.ps1/.sh` | Runs `fab exists` per deployed item, outputs validation YAML |
 | `taskflow-gen.py` | Generates Fabric workspace task flow JSON for import |
-| `run-pipeline.py` | Pipeline orchestrator — manages state, pre-compute, transitions |
+| `fabric-logo.py` | ASCII logo generator for banners |
+| `handoff-scaffolder.py` | Pre-fills handoff template YAML from diagram metadata |
 | `sync-item-types.py` | Syncs `_shared/item-type-registry.json` against installed Fabric CLI |
 | `generate-ps1-types.py` | Regenerates PowerShell item-type constants in `validate-items.ps1` from registry |
 | `registry_loader.py` | Shared module — all scripts import item type metadata from here |

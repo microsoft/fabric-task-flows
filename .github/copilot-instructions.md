@@ -2,13 +2,12 @@
 
 ## Project Overview
 
-This is a **documentation-only** knowledge base — there is no source code, build system, or tests. All content is Markdown. The repo provides pre-defined Microsoft Fabric architectures via five custom Copilot agents that collaborate in phases:
+This is a **documentation-only** knowledge base — there is no source code, build system, or tests. All content is Markdown. The repo provides pre-defined Microsoft Fabric architectures via six custom Copilot agents that collaborate in phases:
 
 ```
 Phase 0 — Discover:   @fabric-advisor (Discovery Brief)
                         │ automatic
-Phase 1 — Design:     @fabric-architect (DRAFT) ──┬──► @fabric-engineer (Deployment Review)
-                                                    └──► @fabric-tester (Testability Review)
+Phase 1 — Design:     @fabric-architect (DRAFT) ──► @fabric-reviewer (Combined Review)
                       @fabric-architect (incorporates feedback → FINAL Handoff)
                         │ automatic
 Phase 2 — Plan+Approve+Deploy:
@@ -27,7 +26,7 @@ Phase 4 — Document:    @fabric-documenter (ADRs + wiki)
 
 ### Content routing
 
-All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event-analytics`). The 10 task flow IDs map to:
+All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event-analytics`). The 11 task flow IDs map to:
 
 | Content | Path pattern |
 |---------|-------------|
@@ -63,9 +62,10 @@ New projects are scaffolded with `python scripts/new-project.py "Project Name"`,
 
 | Agent | Role | Tools | Constraint |
 |-------|------|-------|------------|
-| `@fabric-advisor` | Discovers the problem, infers architectural signals, produces Discovery Brief | read, search | Read-only; never makes architecture decisions or deploys |
-| `@fabric-architect` | Selects task flow, walks through decision guides, produces Architecture Handoff | read, search | Read-only; never deploys |
-| `@fabric-tester` | Mode 0: reviews DRAFT architecture for testability; Mode 1: produces Test Plan; Mode 2: validates deployment | read, search, edit | Never modifies Fabric items; edit is for STATUS.md/PROJECTS.md updates |
+| `@fabric-advisor` | Discovers the problem, infers architectural signals, produces Discovery Brief | read, search, edit, execute | Read-only analysis; never makes architecture decisions or deploys |
+| `@fabric-architect` | Selects task flow, walks through decision guides, produces Architecture Handoff | read, search, edit | Never deploys |
+| `@fabric-tester` | Mode 0: reviews DRAFT architecture for testability; Mode 1: produces Test Plan; Mode 2: validates deployment | read, search, edit, execute | Never modifies Fabric items; edit is for STATUS.md/PROJECTS.md updates |
+| `@fabric-reviewer` | Combined engineer + tester DRAFT review in a single pass (replaces parallel Mode 0 calls) | read, search, edit | Review only; never deploys or makes architecture decisions |
 | `@fabric-engineer` | Deploys Fabric items following diagrams and deployment order | read, edit, execute, search | Never makes architecture decisions |
 | `@fabric-documenter` | Synthesizes all handoffs into wiki-style ADRs in `projects/[workspace]/docs/` | read, edit | Never deploys; documents only |
 
