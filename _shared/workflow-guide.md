@@ -64,7 +64,9 @@ The DRAFT is reviewed in parallel by two agents:
 - **Engineer** — checks deployment order, per-item gotchas, prerequisites, capacity, and parallel deployment potential
 - **Tester** — checks acceptance criteria specificity, test coverage gaps, pre-deployment blockers, edge cases, and validation feasibility
 
-**Produces:** Deployment Feasibility Review → `projects/[name]/prd/engineer-review.md` + Testability Review → `projects/[name]/prd/tester-review.md`
+> **Performance optimization:** Use `@fabric-reviewer` instead of invoking `@fabric-engineer` and `@fabric-tester` separately. The combined reviewer reads the architecture once and produces both reviews in a single pass, cutting review time roughly in half.
+
+**Produces:**Deployment Feasibility Review → `projects/[name]/prd/engineer-review.md` + Testability Review → `projects/[name]/prd/tester-review.md`
 
 ---
 
@@ -139,6 +141,18 @@ Say "approved" or "go ahead and deploy" to continue the pipeline. If something d
 After your approval, the engineer deploys all Fabric items following the FINAL handoff's deployment order. Items are deployed by dependency wave — independent items go in parallel, dependent items wait for their prerequisites. The engineer reviews the test plan before deploying so it knows which verification points matter.
 
 **Produces:** Deployment Handoff → `projects/[name]/prd/deployment-handoff.md` with items created, manual steps required, and known issues
+
+### Design-Only Mode (Local Script Generation)
+
+When the user selects **design-only** during architecture (instead of providing a workspace or requesting workspace creation), Phase 2c produces deploy scripts instead of deploying directly:
+
+1. **Architect** sets `deployment-mode: design-only` in the Architecture Handoff
+2. **Tester** produces the Test Plan as normal (validation criteria don't change)
+3. **User** signs off on the architecture and test plan
+4. **Engineer** generates `deploy-{project}.sh` and `deploy-{project}.ps1` scripts in `projects/[name]/deployments/`
+5. **User** runs the scripts at their convenience — the scripts prompt for capacity ID, tenant ID, workspace name, environment, and auth method at runtime
+
+> **When to use design-only mode:** Teams that want architecture decisions documented and reviewed before provisioning any Fabric resources, or when deploying to a workspace managed by a separate infrastructure team.
 
 ---
 

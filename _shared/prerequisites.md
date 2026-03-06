@@ -115,3 +115,31 @@ publish_all_items(workspace)
 Full documentation: https://microsoft.github.io/fabric-cicd/0.1.23/
 
 See `_shared/cicd-practices.md` for parameterization, per-item considerations, and release pipeline examples.
+
+## Design-Only Mode
+
+When using design-only mode (selected during architecture), the Fabric CLI and authentication are **not required at design time**. The architect and tester agents work normally — only deployment is deferred.
+
+**At design time (no prerequisites):**
+- Architecture decisions, task flow selection, and test planning proceed without any CLI or workspace access
+- The engineer generates self-contained deploy scripts instead of deploying
+
+**At deploy time (when running the generated scripts):**
+- Python 3.10+ and `fab` CLI (`pip install ms-fabric-cli`)
+- Valid Fabric authentication (interactive, service principal, or managed identity)
+- Fabric Capacity ID (F2 or higher SKU)
+- Azure AD Tenant ID
+- Workspace Contributor permissions (the script creates the workspace if needed)
+
+The generated scripts prompt for all required values interactively, with environment variable fallbacks:
+
+```bash
+# Pre-set values as environment variables (optional)
+export FABRIC_CAPACITY_ID="your-capacity-guid"
+export FABRIC_TENANT_ID="your-tenant-guid"
+export FABRIC_WORKSPACE_NAME="my-project-dev"
+export FABRIC_ENVIRONMENT="dev"
+
+# Run the deploy script
+./deploy-my-project.sh
+```
