@@ -11,7 +11,7 @@
 
 | Phase | Description |
 |-------|-------------|
-| Discovery | Guide producing Discovery Brief |
+| Discovery | Advisor producing Discovery Brief |
 | Design | Architect producing DRAFT handoff |
 | Design Review | Engineer + Tester reviewing DRAFT |
 | Design Review ✅ | Architect incorporated feedback → FINAL handoff |

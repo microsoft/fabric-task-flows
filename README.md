@@ -92,7 +92,7 @@ Values not collected by the architect are prompted just-in-time by the **@fabric
 ```
 Phase 0 — Discover:
 ┌──────────────┐
-│    Guide     │── "What problems does your project need to solve?"
+│   Advisor   │── "What problems does your project need to solve?"
 │  (Discovers) │
 └──────┬───────┘
        │ Discovery Brief
@@ -125,7 +125,7 @@ Phase 3 — Validate:     Phase 4 — Document:
 └─────────────┘         └──────────────┘
 ```
 
-The guide discovers the problem, the architect leads design with collaboration from the engineer (deployment expertise) and tester (testability expertise). Each agent produces structured **handoff documents** — the architect's includes a Design Review section documenting what feedback was incorporated.
+The advisor discovers the problem, the architect leads design with collaboration from the engineer (deployment expertise) and tester (testability expertise). Each agent produces structured **handoff documents** — the architect's includes a Design Review section documenting what feedback was incorporated.
 
 ## 📋 Available Task Flows
 

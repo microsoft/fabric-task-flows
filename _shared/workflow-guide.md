@@ -35,7 +35,7 @@ Before starting any phase, check where your project stands:
 @fabric-advisor I'm starting a new project.
 ```
 
-The guide will ask for your project name and what problems you need to solve. Describe your scenario in natural language — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports."
+The advisor will ask for your project name and what problems you need to solve. Describe your scenario in natural language — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports."
 
 **Output:** Discovery Brief with inferred signals (velocity, use case, task flow candidates)
 
