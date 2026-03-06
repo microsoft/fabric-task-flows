@@ -21,18 +21,18 @@ function Print-Banner {
   Write-Host ""
   Write-Host "╔══════════════════════════════════════════════════════════════════╗"
   Write-Host "║                                                                  ║"
-  Write-Host "║        /@@@@@@@@@@@@@@/                                          ║"
-  Write-Host "║       /@@@@@@@@@@@@@@/  ╔════════════════════════════════════╗   ║"
-  Write-Host "║      /@@@@/             ║                                    ║   ║"
-  Write-Host "║     /@@@@@@@@@@@@@/     ║  F A B R I C   T A S K   F L O W S ║   ║"
-  Write-Host "║    /@@@@/               ║  ──────────────────────────────── ║   ║"
-  Write-Host "║   /@@@@/                ║  Deploy Microsoft Fabric           ║   ║"
-  Write-Host "║  /@@@@/                 ║  architectures to production       ║   ║"
-  Write-Host "║                         ╚════════════════════════════════════╝   ║"
+  Write-Host "║        /@@@@@@@@@@@@/                                            ║"
+  Write-Host "║       /@@@@@@@@@@@@/   ┌──────────────────────────────────────┐  ║"
+  Write-Host "║      /@@@@/            │                                      │  ║"
+  Write-Host "║     /@@@@@@@@@@@@/     │ F A B R I C   T A S K   F L O W S    │  ║"
+  Write-Host "║    /@@@@/              │ ──────────────────────────────────── │  ║"
+  Write-Host "║   /@@@@/               │ Deploy Microsoft Fabric              │  ║"
+  Write-Host "║  /@@@@/                │ architectures to production          │  ║"
+  Write-Host "║                        └──────────────────────────────────────┘  ║"
   Write-Host "║                                                                  ║"
-  Write-Host ("║   Project:   {0,-49} ║" -f $ProjectName)
-  Write-Host ("║   Task Flow: {0,-49} ║" -f $TaskFlow)
-  Write-Host ("║   Mode:      {0,-49} ║" -f $Mode)
+  Write-Host ("║  Project:   {0,-53} ║" -f $ProjectName)
+  Write-Host ("║  Task Flow: {0,-53} ║" -f $TaskFlow)
+  Write-Host ("║  Mode:      {0,-53} ║" -f $Mode)
   Write-Host "║                                                                  ║"
   Write-Host "╚══════════════════════════════════════════════════════════════════╝"
   Write-Host ""

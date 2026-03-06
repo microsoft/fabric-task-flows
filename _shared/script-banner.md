@@ -15,18 +15,18 @@ print_banner() {
   echo ""
   echo "╔══════════════════════════════════════════════════════════════════╗"
   echo "║                                                                  ║"
-  echo "║        /@@@@@@@@@@@@@@/                                          ║"
-  echo "║       /@@@@@@@@@@@@@@/  ╔════════════════════════════════════╗   ║"
-  echo "║      /@@@@/             ║                                    ║   ║"
-  echo "║     /@@@@@@@@@@@@@/     ║  F A B R I C   T A S K   F L O W S ║   ║"
-  echo "║    /@@@@/               ║  ──────────────────────────────── ║   ║"
-  echo "║   /@@@@/                ║  Deploy Microsoft Fabric           ║   ║"
-  echo "║  /@@@@/                 ║  architectures to production       ║   ║"
-  echo "║                         ╚════════════════════════════════════╝   ║"
+  echo "║        /@@@@@@@@@@@@/                                            ║"
+  echo "║       /@@@@@@@@@@@@/   ┌──────────────────────────────────────┐  ║"
+  echo "║      /@@@@/            │                                      │  ║"
+  echo "║     /@@@@@@@@@@@@/     │ F A B R I C   T A S K   F L O W S    │  ║"
+  echo "║    /@@@@/              │ ──────────────────────────────────── │  ║"
+  echo "║   /@@@@/               │ Deploy Microsoft Fabric              │  ║"
+  echo "║  /@@@@/                │ architectures to production          │  ║"
+  echo "║                        └──────────────────────────────────────┘  ║"
   echo "║                                                                  ║"
-  printf "║   Project:   %-49s ║\n" "$project_name"
-  printf "║   Task Flow: %-49s ║\n" "$task_flow"
-  printf "║   Mode:      %-49s ║\n" "$mode"
+  printf "║  Project:   %-53s ║\n" "$project_name"
+  printf "║  Task Flow: %-53s ║\n" "$task_flow"
+  printf "║  Mode:      %-53s ║\n" "$mode"
   echo "║                                                                  ║"
   echo "╚══════════════════════════════════════════════════════════════════╝"
   echo ""
@@ -46,18 +46,18 @@ function Print-Banner {
   Write-Host ""
   Write-Host "╔══════════════════════════════════════════════════════════════════╗"
   Write-Host "║                                                                  ║"
-  Write-Host "║        /@@@@@@@@@@@@@@/                                          ║"
-  Write-Host "║       /@@@@@@@@@@@@@@/  ╔════════════════════════════════════╗   ║"
-  Write-Host "║      /@@@@/             ║                                    ║   ║"
-  Write-Host "║     /@@@@@@@@@@@@@/     ║  F A B R I C   T A S K   F L O W S ║   ║"
-  Write-Host "║    /@@@@/               ║  ──────────────────────────────── ║   ║"
-  Write-Host "║   /@@@@/                ║  Deploy Microsoft Fabric           ║   ║"
-  Write-Host "║  /@@@@/                 ║  architectures to production       ║   ║"
-  Write-Host "║                         ╚════════════════════════════════════╝   ║"
+  Write-Host "║        /@@@@@@@@@@@@/                                            ║"
+  Write-Host "║       /@@@@@@@@@@@@/   ┌──────────────────────────────────────┐  ║"
+  Write-Host "║      /@@@@/            │                                      │  ║"
+  Write-Host "║     /@@@@@@@@@@@@/     │ F A B R I C   T A S K   F L O W S    │  ║"
+  Write-Host "║    /@@@@/              │ ──────────────────────────────────── │  ║"
+  Write-Host "║   /@@@@/               │ Deploy Microsoft Fabric              │  ║"
+  Write-Host "║  /@@@@/                │ architectures to production          │  ║"
+  Write-Host "║                        └──────────────────────────────────────┘  ║"
   Write-Host "║                                                                  ║"
-  Write-Host ("║   Project:   {0,-49} ║" -f $ProjectName)
-  Write-Host ("║   Task Flow: {0,-49} ║" -f $TaskFlow)
-  Write-Host ("║   Mode:      {0,-49} ║" -f $Mode)
+  Write-Host ("║  Project:   {0,-53} ║" -f $ProjectName)
+  Write-Host ("║  Task Flow: {0,-53} ║" -f $TaskFlow)
+  Write-Host ("║  Mode:      {0,-53} ║" -f $Mode)
   Write-Host "║                                                                  ║"
   Write-Host "╚══════════════════════════════════════════════════════════════════╝"
   Write-Host ""
@@ -69,18 +69,18 @@ function Print-Banner {
 ```
 ╔══════════════════════════════════════════════════════════════════╗
 ║                                                                  ║
-║        /@@@@@@@@@@@@@@/                                          ║
-║       /@@@@@@@@@@@@@@/  ╔════════════════════════════════════╗   ║
-║      /@@@@/             ║                                    ║   ║
-║     /@@@@@@@@@@@@@/     ║  F A B R I C   T A S K   F L O W S ║   ║
-║    /@@@@/               ║  ──────────────────────────────── ║   ║
-║   /@@@@/                ║  Deploy Microsoft Fabric           ║   ║
-║  /@@@@/                 ║  architectures to production       ║   ║
-║                         ╚════════════════════════════════════╝   ║
+║        /@@@@@@@@@@@@/                                            ║
+║       /@@@@@@@@@@@@/   ┌──────────────────────────────────────┐  ║
+║      /@@@@/            │                                      │  ║
+║     /@@@@@@@@@@@@/     │ F A B R I C   T A S K   F L O W S    │  ║
+║    /@@@@/              │ ──────────────────────────────────── │  ║
+║   /@@@@/               │ Deploy Microsoft Fabric              │  ║
+║  /@@@@/                │ architectures to production          │  ║
+║                        └──────────────────────────────────────┘  ║
 ║                                                                  ║
-║   Project:   {PROJECT_NAME}                                      ║
-║   Task Flow: {TASK_FLOW}                                         ║
-║   Mode:      {MODE}                                              ║
+║  Project:   {PROJECT_NAME}                                       ║
+║  Task Flow: {TASK_FLOW}                                          ║
+║  Mode:      {MODE}                                               ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
 ```
