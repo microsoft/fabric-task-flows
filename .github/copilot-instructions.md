@@ -30,14 +30,14 @@ All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event
 | Project documentation | `projects/{workspace}/docs/` |
 | Project deployments | `projects/{workspace}/deployments/` |
 
-Decision guides live in `decisions/` and are shared across task flows. Shared reference content (legend, prerequisites, parallel deployment, CI/CD practices) lives in `_shared/`.
+Decision guides live in `decisions/` and are shared across task flows. Shared reference content (legend, prerequisites, parallel deployment, CI/CD practices, deployment patterns, rollback protocol, validation patterns, documentation templates, workflow guide) lives in `_shared/`.
 
 ### Custom agents (`.github/agents/`)
 
 | Agent | Role | Tools | Constraint |
 |-------|------|-------|------------|
 | `@fabric-architect` | Selects task flow, walks through decision guides, produces Architecture Handoff | read, search | Read-only; never deploys |
-| `@fabric-tester` | Mode 1: produces Test Plan from architecture; Mode 2: validates deployment against checklist | read, search | Read-only; never modifies items |
+| `@fabric-tester` | Mode 0: reviews DRAFT architecture for testability; Mode 1: produces Test Plan; Mode 2: validates deployment | read, search | Read-only; never modifies items |
 | `@fabric-engineer` | Deploys Fabric items following diagrams and deployment order | read, edit, execute, search | Never makes architecture decisions |
 | `@fabric-documenter` | Synthesizes all handoffs into wiki-style ADRs in `projects/[workspace]/docs/` | read, edit | Never deploys; documents only |
 

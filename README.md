@@ -48,7 +48,13 @@ task-flows/
 │   ├── adr-template.md                 # Architecture Decision Record template
 │   ├── cicd-practices.md               # CI/CD reference: fabric-cicd, parameter.yml, gotchas
 │   ├── parallel-deployment.md          # Dependency-wave analysis, bash template, timing
-│   └── fabric-cli-commands.md          # fab CLI command reference
+│   ├── fabric-cli-commands.md          # fab CLI command reference
+│   ├── deployment-patterns.md          # fab mkdir patterns per item type
+│   ├── rollback-protocol.md            # Wave failure recovery and cleanup
+│   ├── validation-patterns.md          # Item-type verification commands
+│   ├── validation-report-template.md   # Validation Report output template
+│   ├── documentation-templates.md      # Wiki output templates (README, architecture, deploy log)
+│   └── workflow-guide.md               # Step-by-step pipeline orchestration with copy-paste prompts
 └── README.md
 ```
 

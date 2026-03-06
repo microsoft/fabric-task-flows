@@ -1,3 +1,19 @@
+---
+project: old-style
+task_flow: basic-data-analytics
+phase: test-plan-complete
+status: final
+created: 2025-07-16
+last_updated: 2026-03-06
+acceptance_criteria: 8
+checks: 29
+blockers:
+  critical: [B-1, B-2, B-4, B-5, B-6]
+  medium: [B-3, B-7]
+edge_cases: 11
+next_phase: deployment
+---
+
 # Test Plan
 
 **Project:** old-style
