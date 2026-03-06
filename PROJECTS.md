@@ -30,4 +30,4 @@
 2. **Resuming work?** Check this table → read the project's `STATUS.md` for details → invoke the next agent
 3. **Agents update this table** as part of their handoff output
 
-See [`_shared/workflow-guide.md`](\_shared/workflow-guide.md) for step-by-step prompts for each phase transition.
+See [`_shared/workflow-guide.md`](_shared/workflow-guide.md) for step-by-step prompts for each phase transition.

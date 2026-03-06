@@ -15,6 +15,7 @@ Task flows is a documentation-only knowledge base of pre-defined architectures, 
 
 ```
 task-flows/
+├── LICENSE                        # MIT License
 ├── PROJECTS.md                    # Mission control — all projects at a glance
 ├── .github/
 │   ├── agents/                     # GitHub Copilot custom agents

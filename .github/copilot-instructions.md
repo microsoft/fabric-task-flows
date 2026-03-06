@@ -43,7 +43,7 @@ Decision guides live in `decisions/` and are shared across task flows. Shared re
 |-------|------|-------|------------|
 | `@fabric-advisor` | Discovers the problem, infers architectural signals, produces Discovery Brief | read, search | Read-only; never makes architecture decisions or deploys |
 | `@fabric-architect` | Selects task flow, walks through decision guides, produces Architecture Handoff | read, search | Read-only; never deploys |
-| `@fabric-tester` | Mode 0: reviews DRAFT architecture for testability; Mode 1: produces Test Plan; Mode 2: validates deployment | read, search | Read-only; never modifies items |
+| `@fabric-tester` | Mode 0: reviews DRAFT architecture for testability; Mode 1: produces Test Plan; Mode 2: validates deployment | read, search, edit | Never modifies Fabric items; edit is for STATUS.md/PROJECTS.md updates |
 | `@fabric-engineer` | Deploys Fabric items following diagrams and deployment order | read, edit, execute, search | Never makes architecture decisions |
 | `@fabric-documenter` | Synthesizes all handoffs into wiki-style ADRs in `projects/[workspace]/docs/` | read, edit | Never deploys; documents only |
 

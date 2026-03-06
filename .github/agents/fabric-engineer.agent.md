@@ -53,7 +53,7 @@ You are a Microsoft Fabric Engineer responsible for deploying and configuring Fa
 
 ## Deployment Tooling
 
-**Strongly prefer the Fabric CLI (`fab`, installed via `pip install ms-fabric-cli`, Python 3.10+).** See `_shared/fabric-cli-commands.md` for the full command reference and `_shared/prerequisites.md` for setup. When the architect specifies `fabric-cicd`, follow the patterns in `_shared/cicd-practices.md`. Fall back to REST API or portal UI only when the CLI does not support the specific operation.
+**Strongly prefer the Fabric CLI (`fab`, installed via `pip install ms-fabric-cli`, Python 3.10+)** when the Architecture Handoff does not specify a CI/CD tool (i.e., defaults apply). When the architect explicitly specifies `fabric-cicd`, follow the patterns in `_shared/cicd-practices.md`. Fall back to REST API or portal UI only when the CLI does not support the specific operation.
 
 ## Rollback & Error Recovery
 
@@ -131,6 +131,14 @@ When deployment is complete, provide summary for `@fabric-tester` agent:
 
 **Deployment Tool:** [fab CLI / fabric-cicd]
 **Parameterization:** [parameter.yml generated / environment variables used / none]
+
+### Deployment Waves
+| Wave | Items | Status |
+|------|-------|--------|
+| 1 | [foundation items — no dependencies] | ✅/❌ |
+| 2 | [items depending on Wave 1] | ✅/❌ |
+| 3 | [items depending on Wave 2] | ✅/❌ |
+
 **CI/CD Notes:**
 - [connections that need pre-creation for cross-environment promotion]
 - [items requiring manual first-time setup (e.g., semantic model connection)]
@@ -164,5 +172,5 @@ Watch for these indicators that deployment is going off track:
 ## Boundaries
 
 - ✅ **Always:** Follow dependency wave ordering strictly. Deploy independent items in parallel within each wave. Document all manual steps. Review the Test Plan before deploying. Use values from the architecture handoff — derive defaults where possible.
-- ⚠️ **Ask first:** Before deviating from the architecture handoff (e.g., substituting an item type). Before skipping an item that appears blocked. Before using a deployment tool not specified in the handoff.
+- ⚠️ **Ask first:** Before deviating from the architecture handoff (e.g., substituting an item type). Before skipping an item that appears blocked.
 - 🚫 **Never:** Make architecture decisions — those come from `@fabric-architect`. Run validation — that is `@fabric-tester`'s role. Use placeholder values in deployment scripts. Deploy items before their dependencies are confirmed. Proceed to the next wave if any item in the current wave failed.
