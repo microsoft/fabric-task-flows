@@ -7,7 +7,8 @@
 ```
 Phase 0 — Discover:   @fabric-advisor (Discovery Brief)
 Phase 1 — Design:     @fabric-architect (DRAFT → Review → FINAL)
-Phase 2 — Plan+Deploy: @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
+Phase 2 — Plan+Approve+Deploy:
+              @fabric-tester (Test Plan) → User Sign-Off → @fabric-engineer (Deploy)
 Phase 3 — Validate:    @fabric-tester (Validate)
 Phase 4 — Document:    @fabric-documenter (ADRs + wiki)
 ```
@@ -123,7 +124,61 @@ Map acceptance criteria to validation checks, identify critical verification poi
 
 ---
 
-## Phase 2b: Deploy (can start after Test Plan exists)
+## Phase 2b: User Sign-Off
+
+> **This is the only step where you — not an agent — make the final call.** Everything before this point is preparation. Everything after it creates real Fabric items in your workspace.
+
+### Why This Matters
+
+The agents have done the analysis: the architect designed the architecture with input from the engineer and tester, and the tester produced a test plan with acceptance criteria. But before anything is deployed, you should review both documents to make sure they match your expectations.
+
+This is your chance to catch misunderstandings, adjust scope, or ask questions — **before** resources are created.
+
+### What You're Reviewing
+
+```
+┌─────────────────────────────────┐     ┌─────────────────────────────────┐
+│   FINAL Architecture Handoff    │     │          Test Plan              │
+│                                 │     │                                 │
+│  • Task flow selected           │     │  • Acceptance criteria mapped   │
+│  • Decisions + rationale        │     │  • Critical verification points │
+│  • Items to deploy              │     │  • Edge cases identified        │
+│  • Deployment order             │     │  • Pre-deployment blockers      │
+│  • Alternatives considered      │     │                                 │
+│                                 │     │                                 │
+│  projects/[name]/deployments/   │     │  projects/[name]/docs/          │
+│  handoff.md                     │     │  test-plan.md                   │
+└─────────────────────────────────┘     └─────────────────────────────────┘
+                         │                         │
+                         └────────┬────────────────┘
+                                  ▼
+                        ✅ Your Approval
+                                  │
+                                  ▼
+                         Phase 2c: Deploy
+```
+
+### Review Checklist
+
+Walk through these before giving the go-ahead:
+
+- **Does the task flow match your problem?** — Re-read the problem statement and make sure the selected pattern still feels right
+- **Are the items what you expected?** — Check the deployment list for anything surprising or missing
+- **Do the decisions make sense for your team?** — Storage, ingestion, processing, and visualization choices should align with your team's skills and preferences
+- **Are acceptance criteria clear enough?** — You'll validate against these after deployment, so make sure they describe success in terms you understand
+- **Any blockers to resolve first?** — The test plan may flag pre-deployment blockers (credentials, data sources, capacity) that need your action
+
+### When You're Ready
+
+Tell the engineer to proceed:
+
+> "Go ahead and deploy [project name]."
+
+If something doesn't look right, ask the architect or tester to revise before continuing.
+
+---
+
+## Phase 2c: Deploy
 
 **Invoke:** `@fabric-engineer`
 
@@ -188,6 +243,7 @@ Create ADRs and project documentation in projects/[name]/docs/
 | 1b | @fabric-tester | Mode 0 | DRAFT handoff | Testability review |
 | 1c | @fabric-architect | — | Reviews | FINAL handoff |
 | 2a | @fabric-tester | Mode 1 | FINAL handoff | Test Plan |
-| 2b | @fabric-engineer | Deploy | FINAL handoff + Test Plan | Deployment handoff |
+| 2b | — (User) | Sign-Off | FINAL handoff + Test Plan | Approval to deploy |
+| 2c | @fabric-engineer | Deploy | FINAL handoff + Test Plan | Deployment handoff |
 | 3 | @fabric-tester | Mode 2 | All handoffs | Validation Report |
 | 4 | @fabric-documenter | — | All handoffs | Wiki + ADRs |

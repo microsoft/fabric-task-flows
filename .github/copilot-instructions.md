@@ -11,7 +11,8 @@ Phase 1 — Design:     @fabric-architect (DRAFT) ──┬──► @fabric-eng
                                                     └──► @fabric-tester (Testability Review)
                       @fabric-architect (incorporates feedback → FINAL Handoff)
 
-Phase 2 — Plan+Deploy: @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
+Phase 2 — Plan+Approve+Deploy:
+                      @fabric-tester (Test Plan) → User Sign-Off → @fabric-engineer (Deploy)
 
 Phase 3 — Validate:    @fabric-tester (Validate against checklist)
 

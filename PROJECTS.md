@@ -16,6 +16,7 @@
 | Design Review | Engineer + Tester reviewing DRAFT |
 | Design Review ✅ | Architect incorporated feedback → FINAL handoff |
 | Test Plan | Tester producing test plan from FINAL handoff |
+| Approved ✅ | User reviewed architecture + test plan and approved deployment |
 | Deploying | Engineer deploying items by wave |
 | Deployed | All items created; manual steps may remain |
 | Validating | Tester running validation checklist |
