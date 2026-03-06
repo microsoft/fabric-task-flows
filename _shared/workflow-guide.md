@@ -1,126 +1,67 @@
 # Workflow Guide
 
-> Step-by-step guide for orchestrating the Fabric agent pipeline. Copy-paste the prompts below to invoke each phase.
+> The Fabric agent pipeline runs as a continuous flow. You start by mentioning `@fabric-advisor` — everything else chains automatically. Your only required intervention is **Phase 2b: Sign-Off**, where you approve the architecture before deployment begins.
 
 ## Overview
 
 ```
-Phase 0 — Discover:   @fabric-advisor (Discovery Brief)
-Phase 1 — Design:     @fabric-architect (DRAFT → Review → FINAL)
-Phase 2 — Plan+Approve+Deploy:
-              @fabric-tester (Test Plan) → User Sign-Off → @fabric-engineer (Deploy)
-Phase 3 — Validate:    @fabric-tester (Validate)
-Phase 4 — Document:    @fabric-documenter (ADRs + wiki)
+@fabric-advisor ──► @fabric-architect ──► Design Review ──► Test Plan
+                                                                │
+                                                           YOU (Sign-Off)
+                                                                │
+                                                           Deploy ──► Validate ──► Document
 ```
 
 ---
 
 ## Step 0: Check Status
 
-Before starting any phase, check where your project stands:
+Check `PROJECTS.md` for your project's current phase and next action. If your project already exists, the pipeline resumes from wherever it left off.
 
-1. **Read `PROJECTS.md`** at the repo root — find your project row, check Phase and Next Action
-2. **Read `projects/[name]/STATUS.md`** — see detailed phase history, active blockers, and pending manual steps
-3. **Invoke the agent listed in "Next Action"** using the prompts below
-
-> If starting a brand new project, skip to Phase 0a (Discovery) and add a row to PROJECTS.md with Phase = "Discovery".
+To start a new project, mention `@fabric-advisor` in chat with a description of your problem.
 
 ---
 
 ## Phase 0a: Discovery
 
-**Invoke:** `@fabric-advisor`
+Mention `@fabric-advisor` and describe what you need — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports." The advisor asks clarifying questions, infers architectural signals (data velocity, volume, use cases), and produces a **Discovery Brief** with task flow candidates.
 
-**Prompt:**
-```
-@fabric-advisor I'm starting a new project.
-```
-
-The advisor will ask for your project name and what problems you need to solve. Describe your scenario in natural language — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports."
-
-**Output:** Discovery Brief with inferred signals (velocity, use case, task flow candidates)
+**Produces:** Discovery Brief with inferred signals and task flow candidates
 
 ---
 
 ## Phase 1a: Architecture Design
 
-**Invoke:** `@fabric-architect`
+The architect receives the Discovery Brief and selects the best-fit task flow. It walks through each decision guide — storage format, ingestion method, processing engine, visualization layer — and produces a DRAFT Architecture Handoff with the full deployment plan, item list, and rationale for every decision.
 
-**Prompt (with Discovery Brief):**
-```
-@fabric-architect Design an architecture for [project name] using the Discovery Brief above.
-```
-
-**Prompt (without Discovery Brief — direct invocation):**
-```
-@fabric-architect I need to design a Fabric project.
-
-- Project name: [your project name]
-- Problem: [what problems does your project need to solve?]
-- Team skills: [T-SQL / Python/PySpark / Spark/Scala / Mixed]
-- Workspace: [existing workspace name/ID, or "create new"]
-```
-
-**Output:** DRAFT Architecture Handoff saved to `projects/[name]/deployments/handoff.md`
+**Produces:** DRAFT Architecture Handoff → `projects/[name]/deployments/handoff.md`
 
 ---
 
-## Phase 1b: Design Review (Parallel)
+## Phase 1b: Design Review
 
-Send the DRAFT to both reviewers simultaneously:
+The DRAFT is reviewed in parallel by two agents:
 
-**Invoke:** `@fabric-engineer`
+- **Engineer** — checks deployment order, per-item gotchas, prerequisites, capacity, and parallel deployment potential
+- **Tester** — checks acceptance criteria specificity, test coverage gaps, pre-deployment blockers, edge cases, and validation feasibility
 
-**Prompt:**
-```
-@fabric-engineer Review this DRAFT architecture for deployment feasibility. The handoff is at projects/[name]/deployments/handoff.md
-
-Check: deployment order, per-item gotchas, prerequisites, capacity, parallel deployment potential.
-```
-
-**Invoke:** `@fabric-tester`
-
-**Prompt:**
-```
-@fabric-tester Review this DRAFT architecture for testability (Mode 0). The handoff is at projects/[name]/deployments/handoff.md
-
-Check: acceptance criteria specificity, missing test coverage, pre-deployment blockers, edge cases, validation feasibility.
-```
-
-**Output:** Deployment Feasibility Review + Testability Review
+**Produces:** Deployment Feasibility Review + Testability Review
 
 ---
 
 ## Phase 1c: Incorporate Feedback
 
-**Invoke:** `@fabric-architect`
+The architect incorporates both reviews into the FINAL handoff. A Design Review section is added documenting what changed and why.
 
-**Prompt:**
-```
-@fabric-architect Incorporate the Design Review feedback into the FINAL handoff for [project name].
-
-Engineer review: [paste or reference]
-Tester review: [paste or reference]
-
-Update the handoff with a Design Review section documenting what changed.
-```
-
-**Output:** FINAL Architecture Handoff with Design Review section
+**Produces:** FINAL Architecture Handoff with Design Review section
 
 ---
 
 ## Phase 2a: Test Plan
 
-**Invoke:** `@fabric-tester`
+The tester receives the FINAL handoff and maps each acceptance criterion to a concrete validation check. It identifies critical verification points, edge cases, and any pre-deployment blockers that need resolution before deployment can begin.
 
-**Prompt:**
-```
-@fabric-tester Produce a Test Plan (Mode 1) for [project name]. The FINAL architecture handoff is at projects/[name]/deployments/handoff.md
-
-Map acceptance criteria to validation checks, identify critical verification points, edge cases, and pre-deployment blockers.
-```
-
-**Output:** Test Plan saved to `projects/[name]/docs/test-plan.md`
+**Produces:** Test Plan → `projects/[name]/docs/test-plan.md`
 
 ---
 
@@ -170,80 +111,44 @@ Walk through these before giving the go-ahead:
 
 ### When You're Ready
 
-Tell the engineer to proceed:
-
-> "Go ahead and deploy [project name]."
-
-If something doesn't look right, ask the architect or tester to revise before continuing.
+Say "approved" or "go ahead and deploy" to continue the pipeline. If something doesn't look right, raise your concerns — the architect or tester will revise before the pipeline continues.
 
 ---
 
 ## Phase 2c: Deploy
 
-**Invoke:** `@fabric-engineer`
+After your approval, the engineer deploys all Fabric items following the FINAL handoff's deployment order. Items are deployed by dependency wave — independent items go in parallel, dependent items wait for their prerequisites. The engineer reviews the test plan before deploying so it knows which verification points matter.
 
-**Prompt:**
-```
-@fabric-engineer Deploy [project name] following the FINAL architecture handoff at projects/[name]/deployments/handoff.md
-
-Review the test plan at projects/[name]/docs/test-plan.md before deploying. Deploy by dependency wave.
-```
-
-**Output:** Deployment Handoff with items created, manual steps, known issues
+**Produces:** Deployment Handoff with items created, manual steps required, and known issues
 
 ---
 
 ## Phase 3: Validate
 
-**Invoke:** `@fabric-tester`
+The tester runs through the task flow's validation checklist against the live deployment. It checks every item the engineer created, verifies acceptance criteria from the test plan, and flags anything that doesn't match expectations.
 
-**Prompt:**
-```
-@fabric-tester Validate the deployment of [project name] (Mode 2).
-
-Architecture handoff: projects/[name]/deployments/handoff.md
-Test plan: projects/[name]/docs/test-plan.md
-Deployment handoff: [reference engineer's output]
-
-Run through the validation checklist for [task-flow-id].
-```
-
-**Output:** Validation Report (PASSED / PARTIAL / FAILED)
+**Produces:** Validation Report (PASSED / PARTIAL / FAILED)
 
 ---
 
 ## Phase 4: Document
 
-**Invoke:** `@fabric-documenter`
+The documenter gathers all handoffs — architecture, test plan, deployment log, and validation report — and synthesizes them into project documentation. It produces ADRs explaining the "why" behind each decision and a project README tying everything together.
 
-**Prompt:**
-```
-@fabric-documenter Generate wiki documentation for [project name].
-
-Gather all handoffs:
-- Architecture: projects/[name]/deployments/handoff.md
-- Test Plan: projects/[name]/docs/test-plan.md
-- Deployment: [reference engineer's output]
-- Validation: [reference tester's output]
-
-Create ADRs and project documentation in projects/[name]/docs/
-```
-
-**Output:** README, ADRs, architecture page, deployment log in `projects/[name]/docs/`
+**Produces:** README, ADRs, architecture page, deployment log → `projects/[name]/docs/`
 
 ---
 
 ## Quick Reference
 
-| Phase | Agent | Mode | Input | Output |
-|-------|-------|------|-------|--------|
-| 0a | @fabric-advisor | — | User's problem description | Discovery Brief |
-| 1a | @fabric-architect | — | Discovery Brief (or direct) | DRAFT handoff |
-| 1b | @fabric-engineer | Review | DRAFT handoff | Feasibility review |
-| 1b | @fabric-tester | Mode 0 | DRAFT handoff | Testability review |
-| 1c | @fabric-architect | — | Reviews | FINAL handoff |
-| 2a | @fabric-tester | Mode 1 | FINAL handoff | Test Plan |
-| 2b | — (User) | Sign-Off | FINAL handoff + Test Plan | Approval to deploy |
-| 2c | @fabric-engineer | Deploy | FINAL handoff + Test Plan | Deployment handoff |
-| 3 | @fabric-tester | Mode 2 | All handoffs | Validation Report |
-| 4 | @fabric-documenter | — | All handoffs | Wiki + ADRs |
+| Phase | What Happens | Produces |
+|-------|-------------|----------|
+| 0a — Discovery | Advisor analyzes your problem and infers architectural signals | Discovery Brief |
+| 1a — Design | Architect selects task flow and makes design decisions | DRAFT handoff |
+| 1b — Review | Engineer + Tester review DRAFT in parallel | Feasibility + Testability reviews |
+| 1c — Finalize | Architect incorporates review feedback | FINAL handoff |
+| 2a — Test Plan | Tester maps acceptance criteria to validation checks | Test Plan |
+| **2b — Sign-Off** | **You review and approve** | **Your approval** |
+| 2c — Deploy | Engineer deploys items by dependency wave | Deployment handoff |
+| 3 — Validate | Tester validates deployment against checklist | Validation Report |
+| 4 — Document | Documenter synthesizes all handoffs into wiki + ADRs | Project docs |

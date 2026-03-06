@@ -106,9 +106,9 @@ Before producing the Deployment Handoff, verify:
 - [ ] Deployment tool matches what the architect specified (fab CLI or fabric-cicd)
 - [ ] If partial deployment: clearly states which waves succeeded and which failed
 
-## Handoff to Tester
+## Deployment Handoff
 
-When deployment is complete, provide summary for `@fabric-tester` agent:
+When deployment is complete, produce a Deployment Handoff that feeds into the validation phase:
 
 ```
 ## Deployment Handoff

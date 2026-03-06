@@ -13,13 +13,16 @@
 | Design Review ✅ | 2026-03-06 | @fabric-architect | FINAL handoff — all feedback incorporated; 4 parallel waves; prerequisites documented |
 | Test Plan ✅ | 2026-03-06 | @fabric-tester | Test plan produced — 15 ACs, 5 phases, 11 manual checks, 3 edge cases, 5 pre-deployment blockers |
 
-## Active Blockers
+## Active Architecture Blockers
 
-- PB-01: Fabric capacity (F-SKU) — not provisioned
-- PB-02: On-premises data gateway — Oracle assumed on-prem (NOT CONFIRMED)
-- PB-03: Oracle connection GUID — not created
-- PB-04: Oracle source table list — not provided
-- PB-05: Test user with Build permission — not created
+- AB-01: Fabric capacity (F-SKU) — not provisioned
+
+## Active Deployment Blockers (do NOT block sign-off)
+
+- DB-01: On-premises data gateway — Oracle assumed on-prem (NOT CONFIRMED)
+- DB-02: Oracle connection GUID — not created
+- DB-03: Oracle source table list — not provided
+- DB-04: Test user with Build permission — not created
 
 ## Pending Manual Steps
 

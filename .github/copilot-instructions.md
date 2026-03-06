@@ -6,16 +6,20 @@ This is a **documentation-only** knowledge base — there is no source code, bui
 
 ```
 Phase 0 — Discover:   @fabric-advisor (Discovery Brief)
-
+                        │ automatic
 Phase 1 — Design:     @fabric-architect (DRAFT) ──┬──► @fabric-engineer (Deployment Review)
                                                     └──► @fabric-tester (Testability Review)
                       @fabric-architect (incorporates feedback → FINAL Handoff)
-
+                        │ automatic
 Phase 2 — Plan+Approve+Deploy:
-                      @fabric-tester (Test Plan) → User Sign-Off → @fabric-engineer (Deploy)
-
+                      @fabric-tester (Test Plan)
+                        │
+                      ★ User Sign-Off (ONLY human gate)
+                        │
+                      @fabric-engineer (Deploy)
+                        │ automatic
 Phase 3 — Validate:    @fabric-tester (Validate against checklist)
-
+                        │ automatic
 Phase 4 — Document:    @fabric-documenter (ADRs + wiki)
 ```
 
@@ -68,6 +72,18 @@ Deployment diagrams use ASCII box-drawing characters with phased sections separa
 ### Deployment tooling
 
 The Fabric CLI (`fab` via `pip install ms-fabric-cli`) is the preferred tool for deploying and verifying Fabric items. The `@fabric-engineer` agent uses `fab mkdir` to create items and `fab set` to configure them; the `@fabric-tester` agent uses `fab exists`, `fab ls`, and `fab get` for verification. See `_shared/fabric-cli-commands.md` for the full command reference and `_shared/prerequisites.md` for setup.
+
+### Architecture vs. deployment details
+
+The architect produces a **conceptual blueprint** — what items to create, which patterns to follow, and how data flows between components. Implementation details (connection GUIDs, source table schemas, credentials, gateway configuration) are collected by the `@fabric-engineer` at deployment time.
+
+Acceptance criteria in the architecture handoff are categorized as:
+- **Structural** — verifiable immediately after items are created (item exists, correct type, correct configuration)
+- **Data Flow** — verifiable only after implementation details are in place (data lands, transformations run, queries return results)
+
+Pre-deployment blockers are categorized as:
+- **Architecture Blockers** — decisions that must be resolved before sign-off (capacity tier, workspace strategy)
+- **Deployment Blockers** — infrastructure that must exist before the engineer deploys (connection GUIDs, gateway, credentials)
 
 ### Validation checklist structure
 

@@ -15,7 +15,8 @@ When `@fabric-architect` shares a DRAFT Architecture Handoff, review for testabi
 ### Testability Assessment
 - **Acceptance criteria** — Is each criterion specific and testable? Flag vague criteria like "system works" or "performance is good"
 - **Missing test coverage** — Are there items or configurations with no corresponding acceptance criteria?
-- **Pre-deployment blockers** — What external inputs (credentials, DDL scripts, data) must exist before deployment can start?
+- **Architecture blockers** — What decisions must be resolved before the design can be finalized? (e.g., capacity tier, workspace strategy, data volume estimates)
+- **Deployment blockers** — What infrastructure must be set up before the engineer can deploy? (e.g., connection GUIDs, gateway registration, credentials — these do NOT block architecture sign-off)
 - **Edge cases** — What failure scenarios should the architect account for? (e.g., empty data at deploy time, connection timeouts, capacity limits)
 - **Validation feasibility** — Can each criterion be verified with `fab` CLI commands, or does it require manual UI checks?
 
@@ -32,7 +33,8 @@ The `@fabric-architect` will map your findings into the Design Review table. Use
 
 **Untestable Criteria:** [list any ACs that can't be verified]
 **Missing Coverage:** [items/configs with no test criteria]
-**Pre-Deployment Blockers:** [external inputs needed before deploy]
+**Architecture Blockers:** [decisions that must be resolved before FINAL handoff]
+**Deployment Blockers:** [infrastructure/credentials needed before engineer deploys — do NOT block sign-off]
 
 **Overall Assessment:** Testable / Needs refinement / Major gaps
 ```
@@ -66,11 +68,14 @@ Parse `@fabric-architect`'s specification:
 ### Edge Cases to Configure For
 - [Scenario Engineer should set up for testing]
 
-### Pre-Deployment Blockers
-- [Any architecture issues that would fail validation]
+### Architecture Blockers (block sign-off)
+- [Decisions that must be made before user approves — e.g., capacity tier, workspace strategy]
+
+### Deployment Blockers (block engineer)
+- [Infrastructure/credentials that must exist before deployment — do NOT block architecture approval]
 ```
 
-This Test Plan goes to `@fabric-engineer` so they deploy with testability in mind. After the Test Plan is produced, the **user reviews and approves** both the FINAL Architecture Handoff and the Test Plan before deployment begins (Phase 2b — see `_shared/workflow-guide.md`).
+This Test Plan feeds into the deployment phase so the engineer deploys with testability in mind. After the Test Plan is produced, the **user reviews and approves** both the FINAL Architecture Handoff and the Test Plan before deployment begins (Phase 2b — see `_shared/workflow-guide.md`).
 
 ## Mode 2: Post-Deployment (After Engineer)
 1. **Load Validation Checklist** — Read `validation/[task-flow].md` for manual steps, phase checklists, and item-specific criteria.
@@ -157,5 +162,5 @@ This Test Plan goes to `@fabric-engineer` so they deploy with testability in min
 
 ## Boundaries
 - ✅ **Always:** Provide actionable remediation steps for failures. Map every acceptance criterion to a specific validation check. Include `fab` CLI commands for every verifiable item. Escalate deployment issues to `@fabric-engineer` and design issues to `@fabric-architect`.
-- ⚠️ **Ask first:** Before marking a phase as ❌ FAILED — confirm the issue isn't a configuration delay (e.g., Environment publish can take 20+ minutes). Before flagging a pre-deployment blocker that could halt the entire pipeline.
+- ⚠️ **Ask first:** Before marking a phase as ❌ FAILED — confirm the issue isn't a configuration delay (e.g., Environment publish can take 20+ minutes). Before flagging a deployment blocker that could halt the entire pipeline.
 - 🚫 **Never:** Deploy or modify Fabric items — that is `@fabric-engineer`'s role. Make architecture decisions — those come from `@fabric-architect`. Skip phases in the validation checklist. Invent acceptance criteria not in the Architecture Handoff.

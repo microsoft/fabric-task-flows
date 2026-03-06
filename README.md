@@ -5,10 +5,9 @@
 Task flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes five GitHub Copilot custom agents that collaborate in phases:
 
 ```
-@fabric-advisor (Discovery Brief) ──► @fabric-architect (DRAFT)
-@fabric-architect (DRAFT) ──► @fabric-engineer + @fabric-tester (Design Review)
-@fabric-architect (FINAL) ──► @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
-                               @fabric-tester (Validate) → @fabric-documenter (ADRs)
+@fabric-advisor ──► @fabric-architect (DRAFT) ──► @fabric-engineer + @fabric-tester (Review)
+──► @fabric-architect (FINAL) ──► @fabric-tester (Test Plan) ──► ★ YOU (Sign-Off) ──►
+@fabric-engineer (Deploy) ──► @fabric-tester (Validate) ──► @fabric-documenter (ADRs)
 ```
 
 ## 📁 Repository Structure
@@ -71,26 +70,31 @@ Open [`PROJECTS.md`](PROJECTS.md) at the repo root to see all projects and their
 
 ### Using the Agents
 
-From VS Code / GitHub.com with GitHub Copilot, mention an agent in chat:
+Start a project by mentioning **@fabric-advisor** in chat and describing your problem. The pipeline flows automatically through these phases:
 
-1. **@fabric-advisor** — Describe your problem → get a Discovery Brief with inferred architectural signals
-2. **@fabric-architect** — Receive the Discovery Brief (or start fresh) → get a task flow recommendation and Architecture Handoff
-3. **@fabric-tester** (Mode 1) — Receive the handoff → produce a Test Plan with acceptance criteria and pre-deployment blockers
-4. **@fabric-engineer** — Deploy items using dependency-wave parallelism with `fab` CLI or `fabric-cicd`
-5. **@fabric-tester** (Mode 2) — Validate the deployment against the task flow checklist
-6. **@fabric-documenter** — Generate wiki-style ADRs explaining the "why" behind each decision
+- **@fabric-advisor** — Discovers your problem, infers architectural signals, produces a Discovery Brief
+- **@fabric-architect** — Selects task flow, walks through decisions, produces Architecture Handoff
+- **@fabric-engineer** + **@fabric-tester** — Review the DRAFT handoff in parallel for feasibility and testability
+- **@fabric-architect** — Incorporates review feedback into FINAL handoff
+- **@fabric-tester** — Produces Test Plan from FINAL handoff
+- **YOU** — Review architecture + test plan and approve (Phase 2b — the only human gate)
+- **@fabric-engineer** — Deploys items by dependency wave
+- **@fabric-tester** — Validates deployment against checklist
+- **@fabric-documenter** — Generates wiki-style ADRs
 
 ### Problem-First Discovery
 
-The **@fabric-advisor** agent starts every new project by asking: *"What problems does your project need to solve?"* It infers architectural signals (data velocity, use case, task flow candidates) from the user's natural-language description and produces a **Discovery Brief** for the architect.
+The **@fabric-advisor** agent starts every new project by asking: *"What problems does your project need to solve?"* It infers architectural signals (data velocity, use case, task flow candidates) from the user's natural-language description and produces a **Discovery Brief**.
 
-The **@fabric-architect** then picks up the brief, confirms the inferred signals, fills in remaining gaps (skillset, workspace), and proceeds with the full decision walkthrough. If no Discovery Brief is available, the architect can also be invoked directly with its core questions.
+The pipeline then continues automatically — **@fabric-architect** receives the brief, confirms the inferred signals, fills in remaining gaps (skillset, workspace), and proceeds with the full decision walkthrough. If no Discovery Brief is available, the architect can also start fresh with its core questions.
 
 Values not collected by the architect are prompted just-in-time by the **@fabric-engineer** at deployment time, with sensible defaults.
 
-### Agent Pipeline (Collaborative Phases)
+### Agent Pipeline (Continuous Flow)
 
 ```
+═══════════════════════  AUTOMATIC FLOW  ═══════════════════════
+
 Phase 0 — Discover:
 ┌──────────────┐
 │   Advisor   │── "What problems does your project need to solve?"
@@ -112,19 +116,31 @@ Phase 1 — Design:
 └──────┬───────┘
        │ FINAL Architecture Handoff
        ▼
-Phase 2 — Plan + Approve + Deploy:
-┌─────────────┐         ┌─────────────┐
-│   Tester    │         │   YOU       │
-│ (Test Plan) │────────►│ (Sign-Off)  │
-└─────────────┘         └──────┬──────┘
-                               │ ✅ Approved
-                               ▼
-                        ┌─────────────┐
-                        │  Engineer   │
-                        │  (Deploy)   │
-                        └──────┬──────┘
-                               │
-                               ▼
+Phase 2a — Test Plan:
+┌─────────────┐
+│   Tester    │
+│ (Test Plan) │
+└──────┬──────┘
+       │
+       ▼
+═══════════════  ★ ONLY HUMAN GATE  ════════════════════════════
+
+Phase 2b — Sign-Off:
+┌─────────────┐
+│     YOU     │── Review architecture + test plan and approve
+│ (Sign-Off)  │
+└──────┬──────┘
+       │ ✅ Approved
+       ▼
+═══════════════════════  AUTOMATIC FLOW  ═══════════════════════
+
+Phase 2c — Deploy:
+┌─────────────┐
+│  Engineer   │
+│  (Deploy)   │
+└──────┬──────┘
+       │
+       ▼
 Phase 3 — Validate:     Phase 4 — Document:
 ┌─────────────┐         ┌──────────────┐
 │   Tester    │────────►│  Documenter  │
@@ -132,7 +148,7 @@ Phase 3 — Validate:     Phase 4 — Document:
 └─────────────┘         └──────────────┘
 ```
 
-The advisor discovers the problem, the architect leads design with collaboration from the engineer (deployment expertise) and tester (testability expertise). After the test plan is produced, **you review and approve** the architecture and test plan before deployment begins. Each agent produces structured **handoff documents** — the architect's includes a Design Review section documenting what feedback was incorporated.
+The advisor discovers the problem, and the pipeline flows automatically through design, review, and test planning. **You review and approve** the architecture and test plan (the only manual step), then deployment, validation, and documentation continue automatically. Each agent produces structured **handoff documents** — the architect's includes a Design Review section documenting what feedback was incorporated.
 
 ## 📋 Available Task Flows
 
