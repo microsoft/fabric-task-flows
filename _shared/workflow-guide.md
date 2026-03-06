@@ -170,10 +170,11 @@ This is your chance to catch misunderstandings, adjust scope, or ask questions �
 ┌─────────────────────────────────┐     ┌─────────────────────────────────┐
 │   FINAL Architecture Handoff    │     │          Test Plan              │
 │                                 │     │                                 │
-│  • Task flow selected           │     │  • Acceptance criteria mapped   │
-│  • Decisions + rationale        │     │  • Critical verification points │
-│  • Items to deploy              │     │  • Edge cases identified        │
-│  • Deployment order             │     │  • Pre-deployment blockers      │
+│  • Architecture diagram         │     │  • Acceptance criteria mapped   │
+│  • Task flow selected           │     │  • Critical verification points │
+│  • Decisions + rationale        │     │  • Edge cases identified        │
+│  • Items to deploy              │     │  • Pre-deployment blockers      │
+│  • Deployment order             │     │                                 │
 │  • Alternatives considered      │     │                                 │
 │                                 │     │                                 │
 │  projects/[name]/prd/            │     │  projects/[name]/prd/            │
@@ -192,6 +193,7 @@ This is your chance to catch misunderstandings, adjust scope, or ask questions �
 
 Walk through these before giving the go-ahead:
 
+- **Does the architecture diagram clearly show how data flows from your sources to your outputs?** — The diagram should use your actual item names and make the end-to-end pipeline easy to follow
 - **Does the task flow match your problem?** — Re-read the problem statement and make sure the selected pattern still feels right
 - **Are the items what you expected?** — Check the deployment list for anything surprising or missing
 - **Do the decisions make sense for your team?** — Storage, ingestion, processing, and visualization choices should align with your team's skills and preferences
