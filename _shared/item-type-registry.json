@@ -533,6 +533,30 @@
       "mkdir_args": [],
       "aliases": ["snowflakedatabase", "snowflake database", "snowflake mirroring"],
       "notes": "Snowflake mirrored into Fabric via Mirroring"
+    },
+    "GraphModel": {
+      "fab_type": "GraphModel",
+      "api_path": "items",
+      "display_name": "Graph Model",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "govern data",
+      "mkdir_args": [],
+      "aliases": ["graphmodel", "graph model", "knowledge graph model"]
+    },
+    "GraphQueryset": {
+      "fab_type": "GraphQueryset",
+      "api_path": "items",
+      "display_name": "Graph Queryset",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "govern data",
+      "mkdir_args": [],
+      "aliases": ["graphqueryset", "graph queryset", "graph query"]
     }
   }
 }

@@ -394,20 +394,29 @@ def check_registry_references(dc: DriftChecker):
     print("\n── Registry Cross-References ──")
 
     registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
-    items = registry.get("items", {})
-    all_fab_types = {v.get("fab_type", k) for k, v in items.items()}
-    all_aliases = set()
-    for v in items.values():
-        all_aliases.update(a.lower() for a in v.get("aliases", []))
+    items = registry.get("types", {})
+    # Build a set of all known names: fab_type, registry keys, display_names, and aliases (case-insensitive)
+    all_known_names = set()
+    for k, v in items.items():
+        all_known_names.add(k.lower())
+        all_known_names.add(v.get("fab_type", k).lower())
+        all_known_names.add(v.get("display_name", k).lower())
+        for a in v.get("aliases", []):
+            all_known_names.add(a.lower())
 
-    # Check diagrams reference known item types
+    # Check diagrams reference known item types (deployment order tables only)
     for diagram_path in sorted(DIAGRAMS_DIR.glob("*.md")):
         if diagram_path.name == "_index.md":
             continue
         content = diagram_path.read_text(encoding="utf-8")
-        # Look for Fabric item type references in deployment order tables
+        in_code_block = False
         for line in content.splitlines():
-            if line.startswith("|") and "Lakehouse" not in line and "Wave" not in line:
+            if line.strip().startswith("```"):
+                in_code_block = not in_code_block
+            # Only scan inside code blocks (deployment order tables use box-drawing chars)
+            if not in_code_block:
+                continue
+            if ("│" in line or line.startswith("|")) and "Lakehouse" not in line and "Wave" not in line:
                 # Extract item types from table cells
                 for m in re.finditer(r"\b(Lakehouse|Warehouse|Eventhouse|Notebook|Pipeline|"
                                      r"SemanticModel|Report|Eventstream|KQLDatabase|"
@@ -417,7 +426,7 @@ def check_registry_references(dc: DriftChecker):
                     item_type = m.group(1)
                     dc.check(
                         f"{diagram_path.stem}: {item_type} in registry",
-                        item_type in all_fab_types,
+                        item_type.lower() in all_known_names,
                         f"{item_type} referenced in {diagram_path.name} but not in registry"
                     )
 

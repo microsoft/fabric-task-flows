@@ -81,8 +81,8 @@ Use this table to infer signals from the user's problem description. Multiple si
 | "document data", "NoSQL", "JSON", "semi-structured", "Cosmos DB", "MongoDB", "Mongo", "schema-less", "vector search" | Varies | NoSQL / AI-ready apps | app-backend, translytical |
 | "RAG", "embeddings", "LLM", "generative AI", "AI-powered search", "semantic search", "knowledge base" | Varies | AI-powered applications | app-backend |
 | "PostgreSQL", "Postgres", "open-source database", "geospatial", "PostGIS" | Varies | Open-source / Geospatial | app-backend |
-| "cross-domain", "unified vocabulary", "knowledge graph", "enterprise semantics", "ontology", "business terms" | Varies | Semantic governance | (any — ontology is an optional layer) |
-| "conversational", "chat", "ask questions", "natural language", "non-technical users", "self-service" | Varies | AI interaction | (any — data agent is an optional consumption layer) |
+| "cross-domain", "unified vocabulary", "knowledge graph", "enterprise semantics", "ontology", "business terms" | Varies | Semantic governance | semantic-governance |
+| "conversational", "chat", "ask questions", "natural language", "non-technical users", "self-service" | Varies | AI interaction | conversational-analytics |
 | "data mesh", "domain ownership", "data products", "federated governance", "decentralized", "self-serve data platform" | Varies | Data mesh / federated analytics | medallion (multi-workspace with Shortcuts) |
 | "lakehouse", "lakehouse architecture", "unified analytics", "delta lake", "one platform", "consolidate analytics" | Varies | Enterprise lakehouse | medallion, data-analytics-sql-endpoint |
 | "migrate from Synapse", "Synapse to Fabric", "consolidate data platforms", "replace Synapse", "modernize analytics platform" | Batch | Platform migration | basic-data-analytics, medallion |

@@ -2,6 +2,28 @@
 
 Microsoft Fabric task flows - pre-defined architectures for common data scenarios.
 
+## Quick Reference
+
+> Agents: scan this table to identify the right task flow. Only read the detailed section below when you need the full decision table and diagram links.
+
+| Task Flow | Best For | Primary Storage | Key Ingestion | Items |
+|-----------|----------|-----------------|---------------|-------|
+| `basic-data-analytics` | Simple batch analytics | Warehouse | Copy Job, Dataflow Gen2 | ~6 |
+| `medallion` | Layered batch (Bronze/Silver/Gold) | Lakehouse | Pipeline + Notebook | ~10 |
+| `lambda` | Batch + real-time combined | Lakehouse + Eventhouse + Warehouse | Eventstream + Pipeline | ~12 |
+| `event-analytics` | Real-time streaming focus | Eventhouse | Eventstream | ~8 |
+| `event-medallion` | Streaming with medallion layers | Eventhouse + Lakehouse | Eventstream | ~10 |
+| `sensitive-data-insights` | Security-focused analytics | Lakehouse | Pipeline + Notebook | ~9 |
+| `basic-machine-learning-models` | ML training workflows | Lakehouse | Pipeline + Notebook | ~8 |
+| `data-analytics-sql-endpoint` | SQL analytics on Lakehouse | Lakehouse (SQL endpoint) | Copy Job, Pipeline | ~6 |
+| `translytical` | Operational with writeback | SQL Database | User Data Functions | ~4 |
+| `app-backend` | Application APIs + serverless logic | SQL Database / Cosmos DB | GraphQL, UDFs | ~8 |
+| `conversational-analytics` | AI self-service via Data Agents | Lakehouse or Warehouse | (overlay — uses existing ingestion) | ~5 |
+| `semantic-governance` | Enterprise vocabulary & knowledge graph | Lakehouse | (overlay — uses existing ingestion) | ~7 |
+| `general` | Flexible high-level guidance | Any | Any | varies |
+
+---
+
 ---
 
 ## Basic Data Analytics
@@ -291,3 +313,89 @@ store data ──→ visualize ──→ develop
 | Storage Solution | SQL Database (OLTP-capable with read/write transactions) | [Storage Selection](decisions/storage-selection.md) |
 
 **Diagrams:** [translytical](diagrams/translytical.md) | **Validation:** [translytical](validation/translytical.md)
+
+---
+
+## App Backend
+
+> Build application backends on Microsoft Fabric — transactional databases, GraphQL APIs, serverless functions, and optional analytics.
+
+**Tasks:** 4
+
+Create a transactional database, expose it through a GraphQL API, add serverless business logic with User Data Functions, and optionally layer on analytics with Semantic Models and AI-powered Data Agents.
+
+```
+store data ──→ expose API ──→ business logic
+                  │
+                  └──→ visualize / interact (optional)
+```
+
+**Workloads:** Database, Data Engineering, Power BI, Data Science
+
+**Items:** SQL database, GraphQL API, User data functions, Variable library, Semantic model, Report, Data agent, Ontology
+
+| Decision | Options | Guide |
+|----------|---------|-------|
+| Storage Type | SQL Database, SQL Database + Cosmos DB Mirroring | [Storage Selection](decisions/storage-selection.md) |
+| API Layer | GraphQL API, User Data Functions (REST), Direct Connection | [API Selection](decisions/api-selection.md) |
+| Parameterization | Variable Library, parameter.yml, Environment Variables | [Parameterization Selection](decisions/parameterization-selection.md) |
+| Visualization Type | Report, Data Agent, Dashboard | [Visualization Selection](decisions/visualization-selection.md) |
+| Skillset Approach | Code-First (primary for this flow) | [Skillset Selection](decisions/skillset-selection.md) |
+
+**Diagrams:** [app-backend](diagrams/app-backend.md) | **Validation:** [app-backend](validation/app-backend.md)
+
+---
+
+## Conversational Analytics
+
+> Enable non-technical users to query data through natural language using AI-powered data agents.
+
+**Tasks:** 4
+
+Build on top of existing data pipelines by adding a semantic model and an AI-powered data agent. Non-technical users can ask questions in natural language and get answers from governed, modeled data — no report building or query writing required.
+
+```
+store data ──→ model data ──→ deploy agent ──→ govern (optional)
+```
+
+**Workloads:** Power BI, Data Engineering, Real-Time Intelligence
+
+**Items:** Data agent, Semantic model, Lakehouse or Warehouse, Ontology (optional), Activator (optional)
+
+| Decision | Options | Guide |
+|----------|---------|-------|
+| Storage Solution | Lakehouse, Warehouse (usually pre-existing from upstream task flow) | [Storage Selection](decisions/storage-selection.md) |
+| Semantic Model Design | Direct Lake, Import, DirectQuery | [Visualization Selection](decisions/visualization-selection.md) |
+| Agent Configuration | Data scope, access controls, greeting prompts | (Portal configuration) |
+| Governance Layer | Ontology for business vocabulary (optional) | (Portal configuration) |
+| Skillset Approach | Low-Code (primary — agent + semantic model are UI-driven) | [Skillset Selection](decisions/skillset-selection.md) |
+
+**Diagrams:** [conversational-analytics](diagrams/conversational-analytics.md) | **Validation:** [conversational-analytics](validation/conversational-analytics.md)
+
+---
+
+## Semantic Governance
+
+> Build a unified business vocabulary and knowledge graph for enterprise-wide data governance.
+
+**Tasks:** 5
+
+Define business terms, build a knowledge graph of entity relationships, and connect the governance vocabulary to physical data through semantic models. This flow adds an enterprise governance layer on top of existing data pipelines.
+
+```
+store data ──→ model data ──→ define vocabulary ──→ build graph ──→ query / govern
+```
+
+**Workloads:** Power BI, Data Engineering, Governance
+
+**Items:** Ontology, Graph model, Graph queryset, Semantic model, Lakehouse, Data agent (optional), Report (optional)
+
+| Decision | Options | Guide |
+|----------|---------|-------|
+| Storage Solution | Lakehouse, Warehouse (usually pre-existing from upstream task flow) | [Storage Selection](decisions/storage-selection.md) |
+| Ontology Scope | Single-domain, Cross-domain, Enterprise-wide | (Define based on governance requirements) |
+| Graph Modeling | Entity types, edge types, traversal patterns | (Portal configuration) |
+| Consumption Layer | Data Agent (conversational), Report (dashboards), Both | [Visualization Selection](decisions/visualization-selection.md) |
+| External Integration | Microsoft Purview (catalog/lineage), Azure OpenAI (AI context) | (Optional — configure per environment) |
+
+**Diagrams:** [semantic-governance](diagrams/semantic-governance.md) | **Validation:** [semantic-governance](validation/semantic-governance.md)
