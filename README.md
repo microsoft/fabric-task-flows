@@ -2,9 +2,10 @@
 
 > Technical architecture guidance for Microsoft Fabric projects.
 
-Task flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes four GitHub Copilot custom agents that collaborate in phases:
+Task flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes five GitHub Copilot custom agents that collaborate in phases:
 
 ```
+@fabric-guide (Discovery Brief) ──► @fabric-architect (DRAFT)
 @fabric-architect (DRAFT) ──► @fabric-engineer + @fabric-tester (Design Review)
 @fabric-architect (FINAL) ──► @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
                                @fabric-tester (Validate) → @fabric-documenter (ADRs)
@@ -17,10 +18,11 @@ task-flows/
 ├── PROJECTS.md                    # Mission control — all projects at a glance
 ├── .github/
 │   ├── agents/                     # GitHub Copilot custom agents
-│   │   ├── fabric-architect.agent.md   # Architecture decisions (core/advanced prompting)
-│   │   ├── fabric-engineer.agent.md    # Deployment execution (parallel waves, CI/CD)
-│   │   ├── fabric-tester.agent.md      # Validation & testing (3 modes)
-│   │   └── fabric-documenter.agent.md  # Wiki & ADR generation
+│   │   ├── fabric-guide.agent.md        # Problem discovery & Discovery Brief
+│   │   ├── fabric-architect.agent.md    # Architecture decisions (accepts Discovery Brief)
+│   │   ├── fabric-engineer.agent.md     # Deployment execution (parallel waves, CI/CD)
+│   │   ├── fabric-tester.agent.md       # Validation & testing (3 modes)
+│   │   └── fabric-documenter.agent.md   # Wiki & ADR generation
 │   └── copilot-instructions.md     # System-level agent context
 ├── task-flows.md                   # All 10 task flow patterns (consolidated)
 ├── decisions/                      # Decision guides (5 guides)
@@ -33,7 +35,7 @@ task-flows/
 │   └── {task-flow}.md                  # Phased deployment flow, dependency order, OR blocks
 ├── validation/                     # Post-deployment checklists
 │   └── {task-flow}.md                  # Phase-by-phase validation with Direct Lake guidance
-├── projects/                       # Per-project documentation & deployments
+├── projects/                       # Per-project documentation & deployments (local only — gitignored)
 │   └── {workspace-name}/
 │       ├── STATUS.md                    # Project status tracker (phase log, blockers, wave progress)
 │       ├── docs/                       # Architecture docs, test plans, ADRs
@@ -70,24 +72,31 @@ Open [`PROJECTS.md`](PROJECTS.md) at the repo root to see all projects and their
 
 From VS Code / GitHub.com with GitHub Copilot, mention an agent in chat:
 
-1. **@fabric-architect** — Describe your requirements → get a task flow recommendation and Architecture Handoff
-2. **@fabric-tester** (Mode 1) — Receive the handoff → produce a Test Plan with acceptance criteria and pre-deployment blockers
-3. **@fabric-engineer** — Deploy items using dependency-wave parallelism with `fab` CLI or `fabric-cicd`
-4. **@fabric-tester** (Mode 2) — Validate the deployment against the task flow checklist
-5. **@fabric-documenter** — Generate wiki-style ADRs explaining the "why" behind each decision
+1. **@fabric-guide** — Describe your problem → get a Discovery Brief with inferred architectural signals
+2. **@fabric-architect** — Receive the Discovery Brief (or start fresh) → get a task flow recommendation and Architecture Handoff
+3. **@fabric-tester** (Mode 1) — Receive the handoff → produce a Test Plan with acceptance criteria and pre-deployment blockers
+4. **@fabric-engineer** — Deploy items using dependency-wave parallelism with `fab` CLI or `fabric-cicd`
+5. **@fabric-tester** (Mode 2) — Validate the deployment against the task flow checklist
+6. **@fabric-documenter** — Generate wiki-style ADRs explaining the "why" behind each decision
 
-### Core vs Advanced Mode
+### Problem-First Discovery
 
-The **@fabric-architect** uses a two-tier prompting model:
+The **@fabric-guide** agent starts every new project by asking: *"What problems does your project need to solve?"* It infers architectural signals (data velocity, use case, task flow candidates) from the user's natural-language description and produces a **Discovery Brief** for the architect.
 
-- **Core** (5 questions, always asked): Project name, development velocity, skillset + language follow-up, primary use case, workspace (existing or new)
-- **Advanced** (opt-in): Capacity pools, environment names, Event Hub config, source connections, alert thresholds
+The **@fabric-architect** then picks up the brief, confirms the inferred signals, fills in remaining gaps (skillset, workspace), and proceeds with the full decision walkthrough. If no Discovery Brief is available, the architect can also be invoked directly with its core questions.
 
 Values not collected by the architect are prompted just-in-time by the **@fabric-engineer** at deployment time, with sensible defaults.
 
 ### Agent Pipeline (Collaborative Phases)
 
 ```
+Phase 0 — Discover:
+┌──────────────┐
+│    Guide     │── "What problems does your project need to solve?"
+│  (Discovers) │
+└──────┬───────┘
+       │ Discovery Brief
+       ▼
 Phase 1 — Design:
 ┌──────────────┐         ┌─────────────┐
 │  Architect   │──DRAFT──►│  Engineer  │── Deployment Feasibility Review
@@ -116,7 +125,7 @@ Phase 3 — Validate:     Phase 4 — Document:
 └─────────────┘         └──────────────┘
 ```
 
-The architect leads design but collaborates with the engineer (deployment expertise) and tester (testability expertise) before finalizing. Each agent produces structured **handoff documents** — the architect's includes a Design Review section documenting what feedback was incorporated.
+The guide discovers the problem, the architect leads design with collaboration from the engineer (deployment expertise) and tester (testability expertise). Each agent produces structured **handoff documents** — the architect's includes a Design Review section documenting what feedback was incorporated.
 
 ## 📋 Available Task Flows
 
@@ -157,13 +166,22 @@ The [Visualization Selection](decisions/visualization-selection.md) guide includ
 
 ## 🤖 Custom Agents
 
+### @fabric-guide
+
+**Purpose:** Problem discovery and scoping — the first agent users interact with
+
+**Responsibilities:**
+- Ask what problems the project needs to solve
+- Infer architectural signals (data velocity, use case, task flow candidates) from the problem description
+- Confirm inferences with the user
+- Produce a Discovery Brief for `@fabric-architect`
+
 ### @fabric-architect
 
 **Purpose:** Guide architecture decisions before deployment
 
 **Responsibilities:**
-- Ask core questions (5) with optional advanced deep-dive
-- Follow up on code-first language (T-SQL, Python/PySpark, Spark/Scala, Mixed)
+- Accept Discovery Brief (or gather requirements directly if invoked without one)
 - Recommend task flow + walk through decision guides
 - Recommend Semantic Model query mode (Direct Lake by default)
 - Produce Architecture Handoff with decisions, items, deployment order, acceptance criteria, alternatives considered, and trade-offs

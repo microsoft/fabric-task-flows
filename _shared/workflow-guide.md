@@ -5,7 +5,7 @@
 ## Overview
 
 ```
-Phase 0 — Status:     Check PROJECTS.md → find your project → see next action
+Phase 0 — Discover:   @fabric-guide (Discovery Brief)
 Phase 1 — Design:     @fabric-architect (DRAFT → Review → FINAL)
 Phase 2 — Plan+Deploy: @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
 Phase 3 — Validate:    @fabric-tester (Validate)
@@ -22,7 +22,22 @@ Before starting any phase, check where your project stands:
 2. **Read `projects/[name]/STATUS.md`** — see detailed phase history, active blockers, and pending manual steps
 3. **Invoke the agent listed in "Next Action"** using the prompts below
 
-> If starting a brand new project, skip to Phase 1a and add a row to PROJECTS.md with Phase = "Design".
+> If starting a brand new project, skip to Phase 0a (Discovery) and add a row to PROJECTS.md with Phase = "Discovery".
+
+---
+
+## Phase 0a: Discovery
+
+**Invoke:** `@fabric-guide`
+
+**Prompt:**
+```
+@fabric-guide I'm starting a new project.
+```
+
+The guide will ask for your project name and what problems you need to solve. Describe your scenario in natural language — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports."
+
+**Output:** Discovery Brief with inferred signals (velocity, use case, task flow candidates)
 
 ---
 
@@ -30,14 +45,18 @@ Before starting any phase, check where your project stands:
 
 **Invoke:** `@fabric-architect`
 
-**Prompt:**
+**Prompt (with Discovery Brief):**
+```
+@fabric-architect Design an architecture for [project name] using the Discovery Brief above.
+```
+
+**Prompt (without Discovery Brief — direct invocation):**
 ```
 @fabric-architect I need to design a Fabric project.
 
 - Project name: [your project name]
-- Data pattern: [batch / real-time / both]
+- Problem: [what problems does your project need to solve?]
 - Team skills: [T-SQL / Python/PySpark / Spark/Scala / Mixed]
-- Use case: [analytics / ML / transactional / sensitive data]
 - Workspace: [existing workspace name/ID, or "create new"]
 ```
 
@@ -163,7 +182,8 @@ Create ADRs and project documentation in projects/[name]/docs/
 
 | Phase | Agent | Mode | Input | Output |
 |-------|-------|------|-------|--------|
-| 1a | @fabric-architect | — | User requirements | DRAFT handoff |
+| 0a | @fabric-guide | — | User's problem description | Discovery Brief |
+| 1a | @fabric-architect | — | Discovery Brief (or direct) | DRAFT handoff |
 | 1b | @fabric-engineer | Review | DRAFT handoff | Feasibility review |
 | 1b | @fabric-tester | Mode 0 | DRAFT handoff | Testability review |
 | 1c | @fabric-architect | — | Reviews | FINAL handoff |

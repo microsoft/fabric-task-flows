@@ -1,0 +1,4 @@
+# Project contents are local testing artifacts — not committed to git.
+# The projects/ folder itself is kept as an empty directory.
+*
+!.gitignore
