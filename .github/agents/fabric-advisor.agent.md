@@ -40,6 +40,10 @@ Use this table to infer signals from the user's problem description. Multiple si
 | "writeback", "transactional", "CRUD", "operational", "update records" | Real-time | Transactional | translytical |
 | "unstructured", "semi-structured", "files", "JSON", "Parquet", "SQL queries on files" | Batch | SQL analytics | data-analytics-sql-endpoint |
 | "data quality", "bronze/silver/gold", "layers", "curated", "cleanse", "transform stages" | Varies | Layered analytics | medallion |
+| "API", "app", "frontend", "mobile", "backend", "GraphQL", "REST endpoint", "microservices", "CRUD" | Varies | Application backend | app-backend |
+| "document data", "NoSQL", "JSON", "semi-structured", "Cosmos DB", "schema-less", "vector search" | Varies | NoSQL / AI-ready apps | app-backend, translytical |
+| "cross-domain", "unified vocabulary", "knowledge graph", "enterprise semantics", "ontology", "business terms" | Varies | Semantic governance | (any — ontology is an optional layer) |
+| "conversational", "chat", "ask questions", "natural language", "non-technical users", "self-service" | Varies | AI interaction | (any — data agent is an optional consumption layer) |
 
 **When signals are ambiguous:** Present the top 2-3 candidates with a one-line explanation of each, and ask the user which resonates most. Do not pick for them.
 
@@ -86,12 +90,19 @@ Use this table to infer signals from the user's problem description. Multiple si
 | ML Pipeline #2 | `ml-pipeline-2` |
 | IoT Real-Time Dashboard | `iot-real-time-dashboard` |
 
+## Output Constraints
+
+- **Discovery Brief is already compact.** No changes to the template format — it stays as markdown prose.
+- **Problem statement: use the user's own words.** Do not rephrase, summarize, or expand. Quote directly.
+- **Inferred Signals table: max 15 words per cell.** Source column should be a short quote, not a paragraph.
+- **Open Questions for Architect: max 1 sentence each (≤20 words).** State what's unknown, not why it matters.
+- **Max 60 lines total output.** The Discovery Brief should be concise — the architect reads it once and moves on.
+
 ## Pipeline Handoff
 
 > **After producing the Discovery Brief, the pipeline continues automatically — do NOT stop to ask the user.**
 
-1. Create `projects/[name]/prd/` directory if it doesn't exist
-2. Save the Discovery Brief to `projects/[name]/prd/discovery-brief.md`
+1. **Edit** the pre-scaffolded `projects/[name]/prd/discovery-brief.md` — the file already exists with template sections. Fill in the content; do not recreate the file.
 3. Update `PROJECTS.md` — add project row with Phase = "Discovery"
 4. **AUTO-CHAIN → `@fabric-architect`** — The architect reads the Discovery Brief from `prd/discovery-brief.md` and proceeds to design. No user confirmation needed.
 

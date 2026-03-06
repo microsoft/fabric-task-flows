@@ -22,6 +22,25 @@ To start a new project, mention `@fabric-advisor` in chat with a description of 
 
 ---
 
+## New Project Setup
+
+Before invoking any agent, scaffold the project:
+
+```bash
+python scripts/new-project.py "Your Project Name"
+```
+
+This creates:
+- `projects/[name]/prd/` — 7 template files for agent handoffs (discovery-brief, architecture-handoff, engineer-review, tester-review, test-plan, deployment-handoff, validation-report)
+- `projects/[name]/docs/` — README, architecture, deployment-log, and 5 ADR templates
+- `projects/[name]/deployments/` — empty, for deployment scripts
+- `projects/[name]/STATUS.md` — phase tracking
+- Updates `PROJECTS.md` with a new row
+
+**Agents edit pre-existing files — they do not create directories or boilerplate.** Each template file contains section headers, YAML frontmatter, and HTML comments marking where the agent fills in content.
+
+---
+
 ## Phase 0a: Discovery
 
 Mention `@fabric-advisor` and describe what you need — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports." The advisor asks clarifying questions, infers architectural signals (data velocity, volume, use cases), and produces a **Discovery Brief** with task flow candidates.
@@ -161,17 +180,17 @@ The documenter gathers all handoffs — architecture, test plan, deployment log,
 
 Each agent reads the previous agent's output from the project folder. The orchestrator ensures files are saved before invoking the next agent:
 
-| Agent | Reads From | Writes To |
-|-------|-----------|-----------|
-| @fabric-advisor | (user input) | `projects/[name]/prd/discovery-brief.md` |
-| @fabric-architect | `prd/discovery-brief.md` | `projects/[name]/prd/architecture-handoff.md` |
-| @fabric-engineer (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/engineer-review.md` |
-| @fabric-tester (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/tester-review.md` |
-| @fabric-architect (finalize) | `prd/engineer-review.md` + `prd/tester-review.md` | `prd/architecture-handoff.md` (updated to FINAL) |
-| @fabric-tester (test plan) | `prd/architecture-handoff.md` (FINAL) | `projects/[name]/prd/test-plan.md` |
-| @fabric-engineer (deploy) | `prd/architecture-handoff.md` + `prd/test-plan.md` | `projects/[name]/prd/deployment-handoff.md` |
-| @fabric-tester (validate) | `prd/deployment-handoff.md` + `validation/[task-flow].md` | `projects/[name]/prd/validation-report.md` |
-| @fabric-documenter | All 5 documents in `prd/` | `projects/[name]/docs/` |
+| Agent | Reads From | Writes To | Format |
+|-------|-----------|-----------|--------|
+| @fabric-advisor | (user input) | `projects/[name]/prd/discovery-brief.md` | Markdown |
+| @fabric-architect | `prd/discovery-brief.md` | `projects/[name]/prd/architecture-handoff.md` | Markdown + YAML data blocks |
+| @fabric-engineer (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/engineer-review.md` | YAML schema |
+| @fabric-tester (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/tester-review.md` | YAML schema |
+| @fabric-architect (finalize) | `prd/engineer-review.md` + `prd/tester-review.md` | `prd/architecture-handoff.md` (updated to FINAL) | Markdown + YAML data blocks |
+| @fabric-tester (test plan) | `prd/architecture-handoff.md` (FINAL) | `projects/[name]/prd/test-plan.md` | YAML schema |
+| @fabric-engineer (deploy) | `prd/architecture-handoff.md` + `prd/test-plan.md` | `projects/[name]/prd/deployment-handoff.md` | YAML schema |
+| @fabric-tester (validate) | `prd/deployment-handoff.md` + `validation/[task-flow].md` | `projects/[name]/prd/validation-report.md` | YAML schema |
+| @fabric-documenter | All 5 documents in `prd/` | `projects/[name]/docs/` | Markdown (wiki output) |
 
 ---
 
@@ -188,3 +207,36 @@ Each agent reads the previous agent's output from the project folder. The orches
 | 2c — Deploy | Engineer deploys items by dependency wave | Deployment handoff → `prd/deployment-handoff.md` |
 | 3 — Validate | Tester validates deployment against checklist | Validation Report → `prd/validation-report.md` |
 | 4 — Document | Documenter synthesizes all handoffs into wiki + ADRs | Project docs → `docs/` |
+
+---
+
+## Handoff Format Reference
+
+Agents produce handoffs in two formats:
+
+| Format | Used By | Why |
+|--------|---------|-----|
+| **Markdown with YAML data blocks** | Architecture Handoff | Human-readable for the sign-off review (Phase 2b) while keeping items, ACs, and waves in structured YAML |
+| **YAML schema** | Engineer Review, Tester Review, Test Plan, Deployment Handoff, Validation Report | Machine-parseable for downstream agents; compact output reduces generation time |
+
+### Schema Files
+
+All YAML schemas live in `_shared/schemas/`:
+
+| Schema | Agent | Mode | Output File |
+|--------|-------|------|-------------|
+| `engineer-review.md` | @fabric-engineer | Review (Mode 0) | `prd/engineer-review.md` |
+| `tester-review.md` | @fabric-tester | Review (Mode 0) | `prd/tester-review.md` |
+| `test-plan.md` | @fabric-tester | Test Plan (Mode 1) | `prd/test-plan.md` |
+| `deployment-handoff.md` | @fabric-engineer | Deploy | `prd/deployment-handoff.md` |
+| `validation-report.md` | @fabric-tester | Validate (Mode 2) | `prd/validation-report.md` |
+
+### Output Rules
+
+All agents follow these constraints:
+
+- **YAML field values: max 15 words** (test methods: max 20 words)
+- **No re-stating prior documents** — reference items by name, ACs by ID
+- **Architecture Handoff: max 200 lines** — uses YAML data blocks for items, ACs, waves
+- **Prose sections have explicit word limits** — documented in each schema file
+- **The documenter is the prose agent** — it reads structured YAML and produces human-readable wiki documentation

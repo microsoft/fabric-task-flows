@@ -25,18 +25,7 @@ When `@fabric-architect` shares a DRAFT Architecture Handoff, review for testabi
 The `@fabric-architect` will map your findings into the Design Review table. Use the format below so findings translate cleanly:
 
 ```
-## Testability Review
-
-| Area | Finding | Severity | Suggestion |
-|------|---------|----------|------------|
-| [area] | [what you found] | 🔴/🟡/🟢 | [recommended change] |
-
-**Untestable Criteria:** [list any ACs that can't be verified]
-**Missing Coverage:** [items/configs with no test criteria]
-**Architecture Blockers:** [decisions that must be resolved before FINAL handoff]
-**Deployment Blockers:** [infrastructure/credentials needed before engineer deploys — do NOT block sign-off]
-
-**Overall Assessment:** Testable / Needs refinement / Major gaps
+Use the YAML schema in `_shared/schemas/tester-review.md`. Fill every field; omit optional sections only if not applicable.
 ```
 
 ## Mode 1: Pre-Deployment (After Architect Finalizes, Before Engineer)
@@ -49,30 +38,7 @@ Parse `@fabric-architect`'s specification:
 
 ### Produce Test Plan
 ```
-## Test Plan
-
-**Project:** [name]
-**Task flow:** [name]
-**Architecture Date:** [timestamp]
-**Test Plan Date:** [timestamp]
-
-### Acceptance Criteria Mapping
-| Criteria | Validation Checklist Reference | Test Method |
-|----------|-------------------------------|-------------|
-| [from arch] | validation/[task-flow].md#phase-X | [how to verify] |
-
-### Critical Verification Points
-1. [Key item/config that must work]
-2. [Data flow that must be validated]
-
-### Edge Cases to Configure For
-- [Scenario Engineer should set up for testing]
-
-### Architecture Blockers (block sign-off)
-- [Decisions that must be made before user approves — e.g., capacity tier, workspace strategy]
-
-### Deployment Blockers (block engineer)
-- [Infrastructure/credentials that must exist before deployment — do NOT block architecture approval]
+Use the YAML schema in `_shared/schemas/test-plan.md`. Fill every field. Reference AC IDs from the architecture handoff — do not re-state criterion text.
 ```
 
 This Test Plan feeds into the deployment phase so the engineer deploys with testability in mind. After the Test Plan is produced, the **user reviews and approves** both the FINAL Architecture Handoff and the Test Plan before deployment begins (Phase 2b — see `_shared/workflow-guide.md`).
@@ -93,55 +59,20 @@ This Test Plan feeds into the deployment phase so the engineer deploys with test
 ### Validation Report Template
 
 ```
-## Validation Report
-
-**Project:** [name]
-**Task flow:** [name]
-**Date:** [timestamp]
-**Status:** ✅ PASSED | ⚠️ PARTIAL | ❌ FAILED
-
-### Phase Results
-
-| Phase | Status | Notes |
-|-------|--------|-------|
-| Foundation | ✅/⚠️/❌ | [details] |
-| Environment | ✅/⚠️/❌ | [details] |
-| Ingestion | ✅/⚠️/❌ | [details] |
-| Transformation | ✅/⚠️/❌ | [details] |
-| Visualization | ✅/⚠️/❌ | [details] |
-| CI/CD Readiness | ✅/⚠️/❌/N/A | [parameterization, capacity pools, connections] |
-
-### Items Validated
-
-- [x] Item 1 - verified with `fab exists`
-- [ ] Item 2 - ISSUE: [description]
-
-### Manual Steps Verification
-
-- [x] Step 1 - confirmed
-- [ ] Step 2 - NOT COMPLETED: [action needed]
-
-### Issues Found
-
-| Severity | Item | Issue | Recommended Action |
-|----------|------|-------|-------------------|
-| High/Med/Low | [item] | [description] | [fix] |
-
-### Next Steps
-
-1. [Action items for issues found]
-2. [Re-validation triggers]
-
-### Validation Context
-[Explain what successful validation means for this specific architecture — tie back to original requirements and acceptance criteria from the Architecture Handoff. This helps the Documenter connect validation outcomes to the project's goals.]
-
-### Future Considerations
-[Operational learnings discovered during validation — scaling concerns, monitoring gaps, improvement opportunities. The Documenter uses this to capture lessons learned in project documentation.]
+Use the YAML schema in `_shared/schemas/validation-report.md`. Fill every field. Include the mandatory prose sections (Validation Context, Future Considerations) after the YAML block.
 ```
 
 > **HARD REQUIREMENT:** The `Validation Context` and `Future Considerations` sections are MANDATORY. The `@fabric-documenter` agent requires this information.
 
 **Status Tracking:** After producing a Test Plan (Mode 1) or Validation Report (Mode 2), update `PROJECTS.md` (phase column) and the project's `STATUS.md` (phase progression log).
+
+## Output Constraints
+
+- **Use YAML schemas for all outputs.** Mode 0 uses `_shared/schemas/tester-review.md`. Mode 1 uses `_shared/schemas/test-plan.md`. Mode 2 uses `_shared/schemas/validation-report.md`.
+- **No essays in structured fields.** Every YAML field: max 15 words (test methods: max 20 words). If more context is needed, the reader will ask.
+- **No re-stating prior documents.** Reference ACs by ID (e.g., "AC-5"), items by name (e.g., "goi-eventhouse"). Do NOT copy criterion text from the architecture handoff.
+- **Prove nothing.** State findings directly. Do not explain your reasoning process.
+- **Prose sections have word limits.** Validation Context: max 100 words. Future Considerations: max 100 words.
 
 ## Reference Documentation
 - Validation checklists: `validation/` directory
@@ -156,16 +87,16 @@ This Test Plan feeds into the deployment phase so the engineer deploys with test
 > **The tester has THREE modes with different handoff rules.**
 
 ### Mode 0 — Architecture Review (DRAFT feedback):
-1. Save Testability Review to `projects/[name]/prd/tester-review.md`
+1. **Edit** the pre-scaffolded `projects/[name]/prd/tester-review.md` — fill in the YAML schema fields. Do not recreate the file.
 2. **AUTO-CHAIN → return to `@fabric-architect`** — The architect reads reviews from `prd/tester-review.md` and `prd/engineer-review.md`, then incorporates into FINAL. No user confirmation needed.
 
 ### Mode 1 — Test Plan (from FINAL handoff):
-1. Save Test Plan to `projects/[name]/prd/test-plan.md`
+1. **Edit** the pre-scaffolded `projects/[name]/prd/test-plan.md` — fill in the YAML schema fields. Do not recreate the file.
 2. Update `PROJECTS.md` — Phase = "Test Plan ✅"
 3. **🛑 HUMAN GATE → Phase 2b Sign-Off** — The orchestrator presents the consolidated architecture (`prd/architecture-handoff.md`) + test plan (`prd/test-plan.md`) to the user for approval. This is the ONLY user gate in the pipeline.
 
 ### Mode 2 — Post-Deployment Validation:
-1. Save Validation Report to `projects/[name]/prd/validation-report.md`
+1. **Edit** the pre-scaffolded `projects/[name]/prd/validation-report.md` — fill in the YAML schema fields and prose sections. Do not recreate the file.
 2. Update `PROJECTS.md` — Phase = "Validated ✅"
 3. **AUTO-CHAIN → `@fabric-documenter`** — Documenter reads all handoffs from `prd/` (discovery-brief.md, architecture-handoff.md, test-plan.md, deployment-handoff.md, validation-report.md) for wiki synthesis. No user confirmation needed.
 
@@ -177,6 +108,7 @@ This Test Plan feeds into the deployment phase so the engineer deploys with test
 - **Marking phases as passed without verification commands** — every check should have a corresponding `fab` command or manual inspection step
 - **Circular re-validation** — if the same check fails repeatedly, escalate rather than retrying indefinitely
 - **PROJECTS.md or STATUS.md out of sync** — project phase should reflect validation outcome
+- **Re-stating architecture handoff content** — reference ACs by ID and items by name, never copy criterion text or descriptions
 
 ## Boundaries
 - ✅ **Always:** Provide actionable remediation steps for failures. Map every acceptance criterion to a specific validation check. Include `fab` CLI commands for every verifiable item. Escalate deployment issues to `@fabric-engineer` and design issues to `@fabric-architect`.
