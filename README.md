@@ -2,47 +2,160 @@
 
 > Technical architecture guidance for Microsoft Fabric projects.
 
-Task flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes six GitHub Copilot custom agents that collaborate in phases:
+A documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. Six GitHub Copilot custom agents collaborate in phases — from problem discovery through deployment and documentation:
 
 ```
-@fabric-advisor ──► @fabric-architect (DRAFT) ──► @fabric-reviewer (Combined Review)
-──► @fabric-architect (FINAL) ──► @fabric-tester (Test Plan) ──► ★ YOU (Sign-Off) ──►
-@fabric-engineer (Deploy) ──► @fabric-tester (Validate) ──► @fabric-documenter (ADRs)
+@fabric-advisor ──► @fabric-architect (DRAFT) ──► @fabric-reviewer (Review)
+──► @fabric-architect (FINAL) ──► @fabric-tester (Test Plan) ──► ★ YOU (Sign-Off)
+──► @fabric-engineer (Deploy) ──► @fabric-tester (Validate) ──► @fabric-documenter (ADRs)
 ```
+
+## 🚀 Quick Start
+
+1. **Start a project** — mention **@fabric-advisor** in chat and describe your problem
+2. **Review & approve** — the only human gate is Phase 2b (architecture + test plan sign-off)
+3. **Everything else is automatic** — design, review, deploy, validate, document
+
+Use `scripts/run-pipeline.py` to manage the full pipeline lifecycle. See `_shared/workflow-guide.md` for details.
+
+## 📋 Task Flows
+
+| ID | Pattern | Description |
+|----|---------|-------------|
+| `basic-data-analytics` | Batch | Simple analytics (Warehouse → Pipeline → Semantic Model → Report) |
+| `medallion` | Batch | Progressive data quality (Bronze → Silver → Gold) |
+| `lambda` | Hybrid | Batch + real-time combined paths |
+| `event-analytics` | Streaming | Real-time IoT/logs with Eventhouse |
+| `event-medallion` | Streaming | Real-time medallion layers |
+| `data-analytics-sql-endpoint` | Batch | Lakehouse with SQL analytics endpoint |
+| `basic-machine-learning-models` | Batch | ML training, experiment tracking, prediction |
+| `sensitive-data-insights` | Batch | RLS/OLS/CLS for compliant processing |
+| `translytical` | Transactional | Operational BI with SQL Database writeback |
+| `app-backend` | API | Application APIs + serverless logic (SQL Database / Cosmos DB) |
+| `conversational-analytics` | AI | Self-service analytics via Data Agents + Semantic Models |
+| `semantic-governance` | Governance | Enterprise vocabulary, knowledge graph, Ontology |
+| `general` | All | Comprehensive reference architecture |
+
+See [`task-flows.md`](task-flows.md) for full decision tables, items, and diagram links.
+
+## 📊 Decision Guides
+
+| Guide | Key Decision | Options |
+|-------|-------------|---------|
+| [Storage](decisions/storage-selection.md) | Where to store data | Lakehouse, Warehouse, Eventhouse, SQL Database, Cosmos DB, PostgreSQL |
+| [Ingestion](decisions/ingestion-selection.md) | How data arrives | Copy Job, Dataflow Gen2, Pipeline, Eventstream, Mirroring, Shortcuts, Fabric Link, Notebook |
+| [Processing](decisions/processing-selection.md) | How to transform | Notebook, Spark Job Definition, Dataflow Gen2, KQL Queryset |
+| [Visualization](decisions/visualization-selection.md) | How to present | Report, Dashboard, Paginated, Real-Time Dashboard, Data Agent |
+| [Skillset](decisions/skillset-selection.md) | Team capability | Code-First `[CF]` vs Low-Code `[LC]` |
+| [Parameterization](decisions/parameterization-selection.md) | Multi-env config | Variable Library, parameter.yml, Environment Variables |
+| [API](decisions/api-selection.md) | Exposing data to apps | GraphQL API, User Data Functions, Direct Connection |
+
+Each guide has YAML frontmatter with structured options, a `quick_decision` tree, comparison tables, and "Choose when" sections. The [Visualization guide](decisions/visualization-selection.md) also covers **Direct Lake** — the recommended Semantic Model query mode for Fabric sources with Delta tables.
+
+## 🤖 Agents
+
+| Agent | Phase | Purpose | Key Output |
+|-------|-------|---------|------------|
+| **@fabric-advisor** | 0 — Discover | Infers signals from problem description | Discovery Brief |
+| **@fabric-architect** | 1 — Design | Selects task flow, walks through decisions | Architecture Handoff (DRAFT → FINAL) |
+| **@fabric-reviewer** | 1 — Design | Combined feasibility + testability review | Consolidated feedback |
+| **@fabric-tester** | 2a/3 — Plan/Validate | Mode 0: review DRAFT, Mode 1: test plan, Mode 2: post-deploy validation | Test Plan / Validation Report |
+| **@fabric-engineer** | 2c — Deploy | Parallel wave deployment via `fab` CLI or `fabric-cicd` | Deployment Handoff |
+| **@fabric-documenter** | 4 — Document | Synthesizes handoffs into wiki-style docs | ADRs + architecture docs |
+
+All agents include: three-tier boundaries (✅/⚠️/🚫), Signs of Drift, Quality Checklists, structured handoff templates, and `⚠️ ORCHESTRATION OVERRIDE` blocks (auto-chain to next phase — no user confirmation except Phase 2b sign-off).
+
+### Agent Pipeline
+
+```
+Phase 0 — Discover:
+┌──────────────┐
+│   Advisor    │── "What problems does your project need to solve?"
+└──────┬───────┘
+       │ Discovery Brief
+       ▼
+Phase 1 — Design:
+┌──────────────┐         ┌─────────────┐
+│  Architect   │──DRAFT──►│  Reviewer  │── Combined Review
+│              │◄─feedback─┘            │
+│  (Finalizes) │
+└──────┬───────┘
+       │ FINAL Architecture Handoff
+       ▼
+Phase 2a — Test Plan:       ═══ ★ ONLY HUMAN GATE ═══
+┌─────────────┐             ┌─────────────┐
+│   Tester    │────────────►│     YOU     │── Review & approve
+│ (Test Plan) │             │ (Sign-Off)  │
+└─────────────┘             └──────┬──────┘
+                                   ▼
+Phase 2c — Deploy:          Phase 3 — Validate:    Phase 4 — Document:
+┌─────────────┐             ┌─────────────┐        ┌──────────────┐
+│  Engineer   │────────────►│   Tester    │───────►│  Documenter  │
+│  (Deploy)   │             │ (Validate)  │        │  (ADRs/Wiki) │
+└─────────────┘             └─────────────┘        └──────────────┘
+```
+
+## ⚡ Deployment & CI/CD
+
+| Tool | Best For | Install |
+|------|---------|---------|
+| **Fabric CLI** (`fab`) | Interactive, ad-hoc | `pip install ms-fabric-cli` |
+| **fabric-cicd** library | Automated CI/CD pipelines | `pip install fabric-cicd` (v0.1.23+) |
+
+The engineer agent groups items into **dependency waves** from the "Depends On" column in deployment diagrams. Items within a wave deploy concurrently; waves execute sequentially. In design-only mode, `scripts/deploy-script-gen.py` generates self-contained deploy scripts with idempotency, retry, and deployment summaries.
+
+See `_shared/cicd-practices.md` for CI/CD reference and `_shared/parallel-deployment.md` for wave analysis.
+
+## 🔍 Automation & Quality
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `check-drift.py` | Documentation drift detection — 204 cross-reference checks across 6 categories | `python scripts/check-drift.py --check` (CI mode, exit 1 on failure) |
+| `sync-item-types.py` | Registry ↔ Fabric CLI alignment | `python scripts/sync-item-types.py --check` |
+| `run-pipeline.py` | Pipeline orchestrator — tracks phase state, auto-chains agents | `python scripts/run-pipeline.py start "Project"` |
+| `new-project.py` | Project scaffolder — creates all template files | `python scripts/new-project.py "Project Name"` |
+
+Drift detection categories: Task Flow Cross-References, Decision Guide Consistency, Ingestion Guide Internal Consistency, Signal Mapping Validity, Registry Cross-References, Integration First / Better Together compliance.
 
 ## 📁 Repository Structure
 
 ```
 task-flows/
 ├── LICENSE                            # MIT License
+├── CONTRIBUTING.md                    # Contributor guidelines (task flows, diagrams, git workflow)
 ├── PROJECTS.md                        # Mission control — all projects at a glance
+├── General.json                       # General task flow item definitions
 ├── .github/
-│   ├── agents/                         # GitHub Copilot custom agents
-│   │   ├── fabric-advisor.agent.md     # Problem discovery & Discovery Brief
-│   │   ├── fabric-architect.agent.md   # Architecture decisions (accepts Discovery Brief)
-│   │   ├── fabric-reviewer.agent.md    # Combined deployment + testability review (single pass)
-│   │   ├── fabric-engineer.agent.md    # Deployment execution (parallel waves, CI/CD)
-│   │   ├── fabric-tester.agent.md      # Validation & testing (3 modes)
-│   │   └── fabric-documenter.agent.md  # Wiki & ADR generation
+│   ├── agents/                         # GitHub Copilot custom agents (6 agents)
+│   │   ├── fabric-advisor.agent.md
+│   │   ├── fabric-architect.agent.md
+│   │   ├── fabric-reviewer.agent.md
+│   │   ├── fabric-engineer.agent.md
+│   │   ├── fabric-tester.agent.md
+│   │   └── fabric-documenter.agent.md
 │   └── copilot-instructions.md         # System-level agent context
 ├── task-flows.md                       # All 13 task flow patterns (consolidated)
 ├── decisions/                          # Decision guides (7 guides)
 │   ├── _index.md                       # Routing table — agents read this first
-│   ├── storage-selection.md            # Lakehouse vs Warehouse vs Eventhouse vs SQL DB vs Cosmos DB
-│   ├── ingestion-selection.md          # Copy Job vs Dataflow vs Pipeline vs Eventstream vs Mirroring
+│   ├── storage-selection.md            # Lakehouse vs Warehouse vs Eventhouse vs SQL DB vs Cosmos DB vs PostgreSQL
+│   ├── ingestion-selection.md          # Copy Job vs Dataflow vs Pipeline vs Eventstream vs Mirroring vs Shortcuts vs Fabric Link vs Notebook
 │   ├── processing-selection.md         # Notebook vs Spark Job vs Dataflow vs KQL Queryset
-│   ├── visualization-selection.md      # Report vs Dashboard vs Paginated + Direct Lake guidance
+│   ├── visualization-selection.md      # Report vs Dashboard vs Paginated + Direct Lake + Data Agent
 │   ├── skillset-selection.md           # Code-First [CF] vs Low-Code [LC]
 │   ├── parameterization-selection.md   # Variable Library vs parameter.yml vs env vars
 │   └── api-selection.md                # GraphQL API vs User Data Functions vs Direct Connection
 ├── diagrams/                           # Deployment diagrams per task flow
-│   └── {task-flow}.md                  # Phased deployment flow, dependency order, OR blocks
+│   ├── _index.md                       # Routing table with item/wave counts
+│   ├── {task-flow}.md                  # Phased deployment flow, dependency order, OR blocks
+│   └── task-flows/                     # Structured task flow definitions (JSON)
+│       └── {task-flow}.json
 ├── validation/                         # Post-deployment checklists
-│   └── {task-flow}.md                  # Phase-by-phase validation with Direct Lake guidance
-├── projects/                           # Per-project documentation & deployments (local only — gitignored)
+│   ├── _index.md                       # Routing table with phase names
+│   └── {task-flow}.md                  # Phase-by-phase validation checklist
+├── projects/                           # Per-project documentation (local only — gitignored)
 │   └── {workspace-name}/
-│       ├── STATUS.md                   # Project status tracker (phase log, blockers, wave progress)
-│       ├── pipeline-state.json         # Pipeline orchestration state (phase tracking, auto-chain)
+│       ├── STATUS.md                   # Phase log, blockers, wave progress
+│       ├── pipeline-state.json         # Pipeline orchestration state
 │       ├── prd/                        # Agent handoff documents
 │       │   ├── discovery-brief.md
 │       │   ├── architecture-handoff.md
@@ -52,292 +165,53 @@ task-flows/
 │       │   ├── deployment-handoff.md
 │       │   └── validation-report.md
 │       ├── docs/                       # Architecture docs, ADRs
-│       │   ├── README.md
-│       │   ├── architecture.md
-│       │   ├── deployment-log.md
-│       │   └── decisions/              # ADR files (001-task-flow.md, 002-storage.md, etc.)
 │       └── deployments/                # Generated deploy scripts
-│           └── deploy-{project}.ps1/.sh
 ├── scripts/                            # Pipeline utilities & code generation
-│   ├── new-project.py                  # Project scaffolder (creates all template files)
-│   ├── run-pipeline.py                 # Pipeline orchestrator (start/next/status/advance/reset)
-│   ├── deploy-script-gen.py            # Deploy script generator (reads architecture → PS1/bash)
-│   ├── signal-mapper.py                # Maps problem signals to task flow candidates
-│   ├── decision-resolver.py            # Resolves decision guide YAML frontmatter
-│   ├── handoff-scaffolder.py           # Fills handoff template sections
-│   ├── review-prescan.py               # Pre-scans architecture for review flags
-│   ├── test-plan-prefill.py            # Prefills test plan from acceptance criteria
-│   ├── taskflow-gen.py                 # Generates task flow Markdown sections
-│   ├── fabric-logo.py                  # ASCII logo generator for banners
-│   ├── check-drift.py                  # Documentation drift detection (cross-reference checks)
-│   ├── sync-item-types.py              # Syncs item-type-registry.json against Fabric CLI
-│   ├── generate-ps1-types.py           # Regenerates PowerShell item-type constants from registry
-│   ├── registry_loader.py              # Shared module — all scripts import item type metadata from here
+│   ├── new-project.py                  # Project scaffolder
+│   ├── run-pipeline.py                 # Pipeline orchestrator
+│   ├── deploy-script-gen.py            # Deploy script generator
+│   ├── signal-mapper.py                # Problem signal → task flow mapper
+│   ├── decision-resolver.py            # Decision guide YAML resolver
+│   ├── handoff-scaffolder.py           # Handoff template filler
+│   ├── review-prescan.py               # Architecture review pre-scanner
+│   ├── test-plan-prefill.py            # Test plan prefiller from acceptance criteria
+│   ├── taskflow-gen.py                 # Task flow Markdown generator
+│   ├── fabric-logo.py                  # ASCII logo generator
+│   ├── check-drift.py                  # Documentation drift detection (204 checks)
+│   ├── sync-item-types.py              # Registry ↔ Fabric CLI sync
+│   ├── generate-ps1-types.py           # PowerShell item-type constant generator
+│   ├── registry_loader.py              # Shared module — item type metadata loader
 │   ├── validate-items.ps1              # PowerShell item validation helper
 │   └── validate-items.sh               # Bash item validation helper
 ├── _shared/                            # Shared reference content
+│   ├── item-type-registry.json         # Single source of truth for Fabric item types (45 types)
+│   ├── agent-boundaries.md             # Shared agent boundary reference
 │   ├── legend.md                       # Diagram symbols ([LC], [CF], ──►, OR)
-│   ├── prerequisites.md                # Setup: Fabric CLI, fabric-cicd, capacity, connections
+│   ├── prerequisites.md                # Setup: Fabric CLI, fabric-cicd, capacity
 │   ├── adr-template.md                 # Architecture Decision Record template
-│   ├── cicd-practices.md               # CI/CD reference: fabric-cicd, parameter.yml, gotchas
-│   ├── parallel-deployment.md          # Dependency-wave analysis, bash template, timing
+│   ├── cicd-practices.md               # CI/CD reference: fabric-cicd, parameter.yml
+│   ├── parallel-deployment.md          # Dependency-wave analysis
 │   ├── fabric-cli-commands.md          # fab CLI command reference
 │   ├── deployment-patterns.md          # fab mkdir patterns per item type
-│   ├── rollback-protocol.md            # Wave failure recovery and cleanup
+│   ├── rollback-protocol.md            # Wave failure recovery
 │   ├── validation-patterns.md          # Item-type verification commands
 │   ├── validation-report-template.md   # Validation Report output template
-│   ├── documentation-templates.md      # Wiki output templates (README, architecture, deploy log)
-│   ├── item-type-registry.json         # Single source of truth for all Fabric item type metadata
-│   ├── workflow-guide.md               # Pipeline orchestration, design-only mode, pipeline runner
-│   ├── script-banner.md                # Canonical Fabric Task Flows brand banner for all scripts
-│   ├── script-template.ps1             # PowerShell deploy script template (idempotency, retry, summary)
-│   ├── script-template.sh              # Bash deploy script template (idempotency, retry, summary)
+│   ├── documentation-templates.md      # Wiki output templates
+│   ├── workflow-guide.md               # Pipeline orchestration guide
+│   ├── learnings.md                    # Accumulated learnings
+│   ├── script-banner.md                # Brand banner for scripts
+│   ├── script-template.ps1             # PowerShell deploy script template
+│   ├── script-template.sh              # Bash deploy script template
 │   └── schemas/                        # Handoff document schemas
+│       ├── deployment-handoff.md
+│       ├── engineer-review.md
+│       ├── phase-progress.md
+│       ├── remediation-log.md
+│       ├── test-plan.md
+│       ├── tester-review.md
+│       └── validation-report.md
 └── README.md
 ```
-
-## 🚀 Quick Start
-
-### Check Project Status
-
-Open [`PROJECTS.md`](PROJECTS.md) at the repo root to see all projects and their current phase. Each project also has a detailed `STATUS.md` tracker at `projects/{name}/STATUS.md`.
-
-### Using the Agents
-
-Start a project by mentioning **@fabric-advisor** in chat and describing your problem. The pipeline flows automatically through these phases:
-
-- **@fabric-advisor** — Discovers your problem, infers architectural signals, produces a Discovery Brief
-- **@fabric-architect** — Selects task flow, walks through decisions, produces Architecture Handoff
-- **@fabric-reviewer** — Reviews the DRAFT handoff for deployment feasibility and testability in a single pass
-- **@fabric-architect** — Incorporates review feedback into FINAL handoff
-- **@fabric-tester** — Produces Test Plan from FINAL handoff
-- **YOU** — Review architecture + test plan and approve (Phase 2b — the only human gate)
-- **@fabric-engineer** — Deploys items by dependency wave
-- **@fabric-tester** — Validates deployment against checklist
-- **@fabric-documenter** — Generates wiki-style ADRs
-
-### Problem-First Discovery
-
-The **@fabric-advisor** agent starts every new project by asking: *"What problems does your project need to solve?"* It infers architectural signals (data velocity, use case, task flow candidates) from the user's natural-language description and produces a **Discovery Brief**.
-
-The pipeline then continues automatically — **@fabric-architect** receives the brief, confirms the inferred signals, fills in remaining gaps (skillset, workspace), and proceeds with the full decision walkthrough. If no Discovery Brief is available, the architect can also start fresh with its core questions.
-
-Values not collected by the architect are prompted just-in-time by the **@fabric-engineer** at deployment time, with sensible defaults.
-
-### Agent Pipeline (Continuous Flow)
-
-```
-═══════════════════════  AUTOMATIC FLOW  ═══════════════════════
-
-Phase 0 — Discover:
-┌──────────────┐
-│   Advisor    │── "What problems does your project need to solve?"
-│  (Discovers) │
-└──────┬───────┘
-       │ Discovery Brief
-       ▼
-Phase 1 — Design:
-┌──────────────┐         ┌─────────────┐
-│  Architect   │──DRAFT──►│  Reviewer  │── Combined Feasibility + Testability Review
-│  (Leads)     │         │ (Reviews)   │
-│              │         └─────────────┘
-│              │◄── feedback ──────────┘
-│  (Finalizes) │
-└──────┬───────┘
-       │ FINAL Architecture Handoff
-       ▼
-Phase 2a — Test Plan:
-┌─────────────┐
-│   Tester    │
-│ (Test Plan) │
-└──────┬──────┘
-       │
-       ▼
-═══════════════  ★ ONLY HUMAN GATE  ════════════════════════════
-
-Phase 2b — Sign-Off:
-┌─────────────┐
-│     YOU     │── Review architecture + test plan and approve
-│ (Sign-Off)  │
-└──────┬──────┘
-       │ ✅ Approved
-       ▼
-═══════════════════════  AUTOMATIC FLOW  ═══════════════════════
-
-Phase 2c — Deploy:
-┌─────────────┐
-│  Engineer   │
-│  (Deploy)   │
-└──────┬──────┘
-       │
-       ▼
-Phase 3 — Validate:     Phase 4 — Document:
-┌─────────────┐         ┌──────────────┐
-│   Tester    │────────►│  Documenter  │
-│ (Validate)  │         │  (ADRs/Wiki) │
-└─────────────┘         └──────────────┘
-```
-
-The advisor discovers the problem, and the pipeline flows automatically through design, review, and test planning. **You review and approve** the architecture and test plan (the only manual step), then deployment, validation, and documentation continue automatically. Each agent produces structured **handoff documents** — the architect's includes a Design Review section documenting what feedback was incorporated.
-
-### Pipeline Runner
-
-Use `scripts/run-pipeline.py` to manage the full pipeline lifecycle — it tracks phase state, runs pre-compute scripts, and generates agent prompts automatically. See `_shared/workflow-guide.md` for details.
-
-## 📋 Available Task Flows
-
-| ID | Name | Pattern | Description |
-|----|------|---------|-------------|
-| `basic-data-analytics` | Basic Data Analytics | Batch | Simple 4-item analytics (Warehouse → Pipeline → Semantic Model → Report) |
-| `medallion` | Medallion | Batch | Progressive data quality (Bronze → Silver → Gold) |
-| `lambda` | Lambda | Hybrid | Batch + real-time combined paths |
-| `event-analytics` | Event Analytics | Streaming | Real-time IoT/logs with Eventhouse |
-| `event-medallion` | Event Medallion | Streaming | Real-time medallion layers |
-| `data-analytics-sql-endpoint` | SQL Endpoint | Batch | Lakehouse with SQL analytics endpoint |
-| `basic-machine-learning-models` | Basic ML | Batch | ML training, experiment tracking, prediction |
-| `sensitive-data-insights` | Sensitive Data | Batch | RLS/OLS/CLS for compliant processing |
-| `translytical` | Translytical | Transactional | Operational BI with SQL Database writeback |
-| `app-backend` | App Backend | API | Application APIs + serverless logic on SQL Database / Cosmos DB |
-| `conversational-analytics` | Conversational Analytics | AI | Self-service analytics via Data Agents + Semantic Models |
-| `semantic-governance` | Semantic Governance | Governance | Enterprise vocabulary, knowledge graph, Ontology |
-| `general` | General | All | Comprehensive reference architecture |
-
-## 📊 Decision Guides
-
-| Guide | Key Decision | Options |
-|-------|-------------|---------|
-| [Storage](decisions/storage-selection.md) | Where to store data | Lakehouse, Warehouse, Eventhouse, SQL Database, Cosmos DB, PostgreSQL |
-| [Ingestion](decisions/ingestion-selection.md) | How data arrives | Copy Job, Dataflow Gen2, Pipeline, Eventstream, Mirroring, Shortcuts, Fabric Link, Notebook |
-| [Processing](decisions/processing-selection.md) | How to transform | Notebook, Spark Job Definition, Dataflow Gen2, KQL Queryset |
-| [Visualization](decisions/visualization-selection.md) | How to present | Report, Dashboard, Paginated, Real-Time Dashboard |
-| [Skillset](decisions/skillset-selection.md) | Team capability | Code-First `[CF]` vs Low-Code `[LC]` |
-| [Parameterization](decisions/parameterization-selection.md) | Multi-env config | Variable Library, parameter.yml, Environment Variables |
-| [API](decisions/api-selection.md) | Exposing data to apps | GraphQL API, User Data Functions, Direct Connection |
-
-### Direct Lake Guidance
-
-The [Visualization Selection](decisions/visualization-selection.md) guide includes comprehensive **Direct Lake** guidance — the recommended Semantic Model query mode for any Fabric source with Delta tables in OneLake:
-
-| Fabric Source | Direct Lake Support | How Data Reaches OneLake |
-|--------------|-------------------|--------------------------|
-| Lakehouse | ✅ Native | Delta tables stored directly |
-| Warehouse | ✅ Native | Tables stored as Delta/Parquet |
-| SQL Database | ✅ Via mirroring | Automatic mirroring to Delta format |
-| Eventhouse / KQL Database | ✅ Via OneLake availability | Enable OneLake availability |
-| Mirrored Databases | ✅ Via mirroring | Fabric mirroring from external sources |
-
-## 🤖 Custom Agents
-
-### @fabric-advisor
-
-**Purpose:** Problem discovery and scoping — the first agent users interact with
-
-**Responsibilities:**
-- Ask what problems the project needs to solve
-- Infer architectural signals (data velocity, use case, task flow candidates) from the problem description
-- Confirm inferences with the user
-- Produce a Discovery Brief for `@fabric-architect`
-
-### @fabric-architect
-
-**Purpose:** Guide architecture decisions before deployment
-
-**Responsibilities:**
-- Accept Discovery Brief (or gather requirements directly if invoked without one)
-- Recommend task flow + walk through decision guides
-- Recommend Semantic Model query mode (Direct Lake by default)
-- Produce Architecture Handoff with decisions, items, deployment order, acceptance criteria, alternatives considered, and trade-offs
-
-### @fabric-tester
-
-**Purpose:** Test planning (pre-deployment) and validation (post-deployment)
-
-**Mode 1 (Pre-Deployment):**
-- Receive Architecture Handoff → produce Test Plan
-- Map acceptance criteria to validation checklist phases
-- Identify pre-deployment blockers and edge cases
-
-**Mode 2 (Post-Deployment):**
-- Receive Deployment Handoff → execute validation checklist from `validation/{task-flow}.md`
-- Verify items with `fab exists`, `fab ls`, `fab get`
-- Report validation status (PASSED / PARTIAL / FAILED)
-
-### @fabric-reviewer
-
-**Purpose:** Combined deployment feasibility + testability review in a single pass
-
-**Responsibilities:**
-- Receive DRAFT Architecture Handoff from `@fabric-architect`
-- Evaluate deployment feasibility (engineer perspective) and testability (tester perspective) together
-- Return consolidated feedback — the architect incorporates it into the FINAL handoff
-- Replaces the previous parallel `@fabric-engineer` + `@fabric-tester` Mode 0 review pattern
-
-### @fabric-engineer
-
-**Purpose:** Deploy Fabric items based on architecture
-
-**Key capabilities:**
-- **Parallel deployment** — Analyzes dependency graph and deploys items in concurrent waves (see `_shared/parallel-deployment.md`)
-- **Sub-agent delegation** — Orchestrates waves sequentially but delegates items within a wave to parallel sub-agents
-- **Dual tooling** — Supports `fab` CLI (interactive) and `fabric-cicd` library (automated CI/CD)
-- **Direct Lake configuration** — Configures optimal query mode for all Fabric sources
-- **Rollback & error recovery** — Wave failure protocol with cleanup decision table
-- **Just-in-time prompting** — Only asks for values when needed per item, with sensible defaults
-
-### @fabric-documenter
-
-**Purpose:** Synthesize all pipeline handoffs into wiki-style documentation
-
-**Produces in `projects/{workspace}/docs/`:**
-- Architecture Decision Records (ADRs) explaining the "why" behind each choice
-- System architecture overview with item relationships
-- Deployment log with configuration rationale
-- CI/CD ADR (006-cicd.md) when multi-environment
-
-## ⚡ Deployment & CI/CD
-
-### Deploy Script Generation
-
-In design-only mode, the engineer generates self-contained deploy scripts via `scripts/deploy-script-gen.py`. Generated scripts include:
-
-| Feature | Description |
-|---------|-------------|
-| **Preflight check** | Verifies `fab` CLI is installed before prompting |
-| **Workspace auto-creation** | Checks if workspace exists; creates it if not |
-| **Item idempotency** | Skips items that already exist (`fab exists` check) |
-| **Retry with backoff** | 3 attempts with 10s/20s/30s delays on failure |
-| **Environment publish wait** | Polls for Environment readiness (30s intervals, 30min timeout) |
-| **Notebook binding** | Auto-binds lakehouse + environment via `fab set` after creation |
-| **Item ID resolution** | Captures SemanticModel/Eventhouse IDs for dependent items (Report, KQLDatabase) |
-| **Deployment summary** | Final report showing ✅/⏭️/❌ status per item |
-
-The scripts prompt only for **workspace name** (with environment variable fallback). Authentication, capacity, and tenant are handled natively by the `fab` CLI.
-
-### Deployment Tooling
-
-| Tool | Best For | Install |
-|------|---------|---------|
-| **Fabric CLI** (`fab`) | Interactive, ad-hoc, learning | `pip install ms-fabric-cli` |
-| **fabric-cicd** library | Automated CI/CD pipelines | `pip install fabric-cicd` (v0.1.23+) |
-
-### Parallel Deployment
-
-The engineer agent groups items into **dependency waves** based on the "Depends On" column in deployment diagrams. Items within a wave deploy concurrently; waves execute sequentially:
-
-```
-Wave 1: Foundation items (no dependencies)     ─── parallel ───►
-Wave 2: Items depending only on Wave 1         ─── parallel ───►
-Wave 3: Items depending on Wave 2              ─── parallel ───►
-```
-
-### CI/CD Practices
-
-See `_shared/cicd-practices.md` for the full reference:
-- Workspace strategy presented as a user choice (single vs multi-workspace)
-- `fabric-cicd` integration with `parameter.yml` for environment-specific values
-- Per-item deployment gotchas (Notebook lakehouse binding, Environment publish time, Semantic Model manual connection)
-- Connection management and capacity pool configuration
-- Autoscale Billing as alternative to fixed capacity SKUs
 
 ## 📂 Content Routing
 
@@ -348,9 +222,8 @@ All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-an
 | Task flow overview | `task-flows.md` → H2 anchor (`## Medallion`) |
 | Deployment diagram | `diagrams/{task-flow-id}.md` |
 | Validation checklist | `validation/{task-flow-id}.md` |
-| Project docs | `projects/{workspace}/docs/` |
-| Project deployments | `projects/{workspace}/deployments/` |
 | Decision guides | `decisions/{decision-id}.md` |
+| Project docs | `projects/{workspace}/docs/` |
 | Shared references | `_shared/{file}.md` |
 
 ## 📝 Contributing
@@ -362,6 +235,7 @@ All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-an
 3. Create `validation/{task-flow-id}.md` with phase-by-phase checklist
 4. Update `diagrams/_index.md` and `validation/_index.md` with the new entry
 5. Reference decision guides in the task-flows.md section
+6. Run `python scripts/check-drift.py --check` to verify consistency
 
 ### Adding a Decision Guide
 
@@ -369,18 +243,9 @@ All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-an
 2. Add entry to `decisions/_index.md`
 3. Update this README's decision guides table
 
-### Terminology Rules
-
-- Path templates use hyphenated form: `{task-flow-id}`
-
 ### Updating Agents
 
-Agent files are in `.github/agents/`. Each includes:
-- Three-tier boundaries (✅ Always / ⚠️ Ask first / 🚫 Never)
-- Signs of Drift (role-specific indicators)
-- Quality Checklists (pre-handoff self-review)
-- Structured handoff templates
-- `⚠️ ORCHESTRATION OVERRIDE` block (never ask "Want me to continue?" — auto-chain to next phase)
+Agent files are in `.github/agents/`. Each includes three-tier boundaries, Signs of Drift, Quality Checklists, structured handoff templates, and an `⚠️ ORCHESTRATION OVERRIDE` block.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full details on scripts, pipeline state, and conventions.
 
