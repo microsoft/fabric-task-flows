@@ -150,7 +150,7 @@
       "phase_order": 3,
       "task_type": "get data",
       "mkdir_args": [],
-      "aliases": ["mounteddatafactory", "mounted data factory"],
+      "aliases": ["mounteddatafactory", "mounted data factory", "azure data factory", "adf"],
       "notes": "Azure Data Factory pipeline mounted into Fabric"
     },
     "Environment": {
@@ -397,7 +397,7 @@
       "phase_order": 5,
       "task_type": "distribute data",
       "mkdir_args": [],
-      "aliases": ["graphqlapi", "graphql api"]
+      "aliases": ["graphqlapi", "graphql api", "api for graphql"]
     },
     "UserDataFunctions": {
       "fab_type": "UserDataFunctions",
@@ -446,6 +446,93 @@
       "task_type": "govern data",
       "mkdir_args": [],
       "aliases": ["dataagent", "data agent"]
+    },
+    "ApacheAirflowJob": {
+      "fab_type": "ApacheAirflowProject",
+      "api_path": "items",
+      "display_name": "Apache Airflow Job",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
+      "mkdir_args": [],
+      "aliases": ["apacheairflowproject", "apache airflow job", "airflow job", "airflow"],
+      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only"
+    },
+    "Exploration": {
+      "fab_type": "Exploration",
+      "api_path": "items",
+      "display_name": "Exploration",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "visualize",
+      "mkdir_args": [],
+      "aliases": ["exploration"],
+      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only"
+    },
+    "dbtJob": {
+      "fab_type": "dbtJob",
+      "api_path": "items",
+      "display_name": "dbt Job",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Transformation",
+      "phase_order": 4,
+      "task_type": "prepare data",
+      "mkdir_args": [],
+      "aliases": ["dbtjob", "dbt job", "dbt"]
+    },
+    "PostgreSQLDatabase": {
+      "fab_type": "PostgreSQLDatabase",
+      "api_path": "items",
+      "display_name": "PostgreSQL Database",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
+      "mkdir_args": [],
+      "aliases": ["postgresqldatabase", "postgresql database", "postgresql", "postgres"]
+    },
+    "MirroredDatabricksCatalog": {
+      "fab_type": "MirroredDatabricksCatalog",
+      "api_path": "items",
+      "display_name": "Mirrored Azure Databricks Catalog",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "mirror data",
+      "mkdir_args": [],
+      "aliases": ["mirroreddatabrickscatalog", "mirrored azure databricks catalog", "mirrored databricks catalog", "databricks mirroring"]
+    },
+    "MirroredCatalog": {
+      "fab_type": "MirroredCatalog",
+      "api_path": "items",
+      "display_name": "Mirrored Catalog",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "mirror data",
+      "mkdir_args": [],
+      "aliases": ["mirroredcatalog", "mirrored catalog"]
+    },
+    "SnowflakeDatabase": {
+      "fab_type": "SnowflakeDatabase",
+      "api_path": "items",
+      "display_name": "Snowflake Database",
+      "cli_supported": false,
+      "mkdir_supported": false,
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "mirror data",
+      "mkdir_args": [],
+      "aliases": ["snowflakedatabase", "snowflake database", "snowflake mirroring"],
+      "notes": "Snowflake mirrored into Fabric via Mirroring"
     }
   }
 }
