@@ -161,18 +161,18 @@ These must be resolved before the user approves the architecture.
 
 | # | Blocker | Owner | Status | Impact |
 |---|---------|-------|--------|--------|
-| AB-01 | **Fabric capacity (F-SKU)** — F2 min for dev/test, F4+ for production | User | ⬜ Not started | Direct Lake requires F-SKU; architecture feasibility depends on capacity tier |
+| AB-01 | **Fabric capacity (F-SKU)** — F2 min for dev/test, F4+ for production | User | ⬜ Not started | Direct Lake requires F-SKU; architecture feasibility depends on this |
 
 ### Deployment Blockers (block engineer, NOT sign-off)
 
 These must be resolved before `@fabric-engineer` begins deployment. They do **not** block architecture approval.
 
-| # | Blocker | Owner | Status | Impact if Missing |
-|---|---------|-------|--------|-------------------|
-| DB-01 | **On-premises data gateway** — Oracle assumed on-prem | User/IT | ⬜ Not started | Copy Job cannot reach Oracle; no data enters Bronze |
-| DB-02 | **Oracle connection** — ODBC/JDBC via gateway in "Manage connections and gateways" | User/IT | ⬜ Not started | Copy Job cannot be configured |
-| DB-03 | **Oracle source table list** — Table names and primary keys | User | ⬜ Not started | Cannot validate Data Flow ACs (AC-07, AC-08, AC-09) |
-| DB-04 | **Test user account** — User with Build permission on Semantic Model | User | ⬜ Not started | Cannot validate AC-14 (not a deployment blocker either — needed for validation) |
+| # | Blocker | Owner | Status | Impact |
+|---|---------|-------|--------|--------|
+| DB-01 | **On-premises data gateway** — Oracle assumed on-prem. **Confirm with user.** | User/IT | ⬜ Not started | Copy Job cannot reach Oracle |
+| DB-02 | **Oracle connection GUID** — ODBC/JDBC via gateway in "Manage connections and gateways" | User/IT | ⬜ Not started | Copy Job connection configuration |
+| DB-03 | **Oracle source table list** — Table names and primary keys | User | ⬜ Not started | Needed for Data Flow ACs (AC-07, AC-08, AC-09) |
+| DB-04 | **Test user with Build permission** — User account for self-service validation | User | ⬜ Not started | Needed for AC-14 validation |
 
 ---
 
