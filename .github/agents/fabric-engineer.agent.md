@@ -156,6 +156,19 @@ When deployment is complete, produce a Deployment Handoff that feeds into the va
 
 **Status Tracking:** After deployment completes (or partially completes), update `PROJECTS.md` (phase → "Deployed" or note partial) and the project's `STATUS.md` (wave progress, manual step completion).
 
+## Pipeline Handoff
+
+> **The engineer has TWO handoff points. Neither involves the user.**
+
+### After reviewing DRAFT Architecture (Mode 0):
+1. Produce Deployment Feasibility Review feedback
+2. **AUTO-CHAIN → return feedback to `@fabric-architect`** — The architect incorporates it alongside tester feedback. No user confirmation needed.
+
+### After deployment is complete:
+1. Save Deployment Handoff to project folder
+2. Update `PROJECTS.md` — Phase = "Deployed"
+3. **AUTO-CHAIN → `@fabric-tester` (Mode 2)** — Tester validates the deployment against the validation checklist. No user confirmation needed.
+
 ## Signs of Drift
 
 Watch for these indicators that deployment is going off track:

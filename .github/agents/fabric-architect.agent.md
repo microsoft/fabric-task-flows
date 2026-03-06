@@ -189,6 +189,26 @@ Implementation details (connection GUIDs, source system credentials, Event Hub n
 
 **Status Tracking:** After producing a DRAFT or FINAL handoff, update `PROJECTS.md` (phase column) and the project's `STATUS.md` (phase progression log).
 
+## Pipeline Handoff
+
+> **The architect has THREE handoff points. Only ONE involves the user.**
+
+### After producing the DRAFT Architecture Handoff:
+1. Save DRAFT to `projects/[name]/deployments/handoff.md`
+2. Create `projects/[name]/STATUS.md`
+3. Update `PROJECTS.md` — Phase = "Design Review"
+4. **AUTO-CHAIN → `@fabric-engineer` AND `@fabric-tester` in PARALLEL** — Both review the DRAFT simultaneously. Engineer reviews for deployment feasibility. Tester reviews for testability (Mode 0). No user confirmation needed.
+
+### After incorporating review feedback into FINAL handoff:
+1. Update `deployments/handoff.md` with FINAL (populate Design Review table)
+2. Update `PROJECTS.md` — Phase = "Design Review ✅"
+3. **AUTO-CHAIN → `@fabric-tester` (Mode 1)** — Tester produces Test Plan from the FINAL handoff. No user confirmation needed.
+
+### After Test Plan is produced:
+1. Tester saves Test Plan to `projects/[name]/docs/test-plan.md`
+2. Update `PROJECTS.md` — Phase = "Test Plan ✅"
+3. **🛑 HUMAN GATE → Phase 2b Sign-Off** — Present a consolidated, human-readable sign-off summary covering the architecture and test plan. The user reviews and approves before deployment begins. This is the ONLY point in the pipeline where the user is asked for input.
+
 ## Signs of Drift
 
 Watch for these indicators that the architecture session is going off track:

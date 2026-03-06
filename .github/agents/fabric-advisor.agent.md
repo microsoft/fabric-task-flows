@@ -86,6 +86,14 @@ Use this table to infer signals from the user's problem description. Multiple si
 | ML Pipeline #2 | `ml-pipeline-2` |
 | IoT Real-Time Dashboard | `iot-real-time-dashboard` |
 
+## Pipeline Handoff
+
+> **After producing the Discovery Brief, the pipeline continues automatically — do NOT stop to ask the user.**
+
+1. Save the Discovery Brief (in conversation context or project folder)
+2. Update `PROJECTS.md` — add project row with Phase = "Discovery"
+3. **AUTO-CHAIN → `@fabric-architect`** — Pass the Discovery Brief as input. The architect reads it and proceeds to design. No user confirmation needed.
+
 ## Signs of Drift
 
 Watch for these indicators that the discovery session is going off track:

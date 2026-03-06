@@ -151,6 +151,24 @@ This Test Plan feeds into the deployment phase so the engineer deploys with test
 - Fabric CLI commands: `_shared/fabric-cli-commands.md`
 - Validation patterns by item type: `_shared/validation-patterns.md`
 
+## Pipeline Handoff
+
+> **The tester has THREE modes with different handoff rules.**
+
+### Mode 0 — Architecture Review (DRAFT feedback):
+1. Produce Testability Review feedback
+2. **AUTO-CHAIN → return feedback to `@fabric-architect`** — The architect incorporates it alongside engineer feedback. No user confirmation needed.
+
+### Mode 1 — Test Plan (from FINAL handoff):
+1. Save Test Plan to `projects/[name]/docs/test-plan.md`
+2. Update `PROJECTS.md` — Phase = "Test Plan ✅"
+3. **🛑 HUMAN GATE → Phase 2b Sign-Off** — The orchestrator presents the consolidated architecture + test plan to the user for approval. This is the ONLY user gate in the pipeline.
+
+### Mode 2 — Post-Deployment Validation:
+1. Save Validation Report to project folder
+2. Update `PROJECTS.md` — Phase = "Validated ✅"
+3. **AUTO-CHAIN → `@fabric-documenter`** — Pass all handoffs (Discovery Brief, Architecture, Test Plan, Deployment, Validation Report) for wiki synthesis. No user confirmation needed.
+
 ## Signs of Drift
 - **Skipping validation phases** — every applicable phase must be checked, even if items appear healthy
 - **Inventing acceptance criteria** — all criteria must come from the Architecture Handoff, not be made up

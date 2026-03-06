@@ -139,6 +139,42 @@ The documenter gathers all handoffs — architecture, test plan, deployment log,
 
 ---
 
+## Orchestration Rules
+
+> **These rules govern automatic phase transitions.** The orchestrating agent (or human operator) MUST follow these rules — do NOT stop and ask the user between phases unless the rule says `🛑 HUMAN GATE`.
+
+| # | From Phase | To Phase | Trigger | Gate |
+|---|-----------|----------|---------|------|
+| 1 | 0a — Discovery (Brief produced) | 1a — Design | Discovery Brief saved to project folder | 🟢 Auto-chain |
+| 2 | 1a — Design (DRAFT produced) | 1b — Review | DRAFT handoff saved to `deployments/handoff.md` | 🟢 Auto-chain (invoke engineer + tester **in parallel**) |
+| 3 | 1b — Review (both reviews complete) | 1c — Finalize | Engineer AND Tester feedback received | 🟢 Auto-chain |
+| 4 | 1c — Finalize (FINAL produced) | 2a — Test Plan | FINAL handoff saved to `deployments/handoff.md` | 🟢 Auto-chain |
+| 5 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `docs/test-plan.md` | 🛑 **HUMAN GATE** — present consolidated sign-off |
+| 6 | 2b — Sign-Off (user approved) | 2c — Deploy | User says "approved" / "go ahead" / "deploy" | 🟢 Auto-chain |
+| 7 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved | 🟢 Auto-chain |
+| 8 | 3 — Validate (report produced) | 4 — Document | Validation Report saved | 🟢 Auto-chain |
+| 9 | 4 — Document (docs produced) | Complete | Wiki + ADRs saved | 🟢 Pipeline complete |
+
+**Key principle:** Only Rule #5 stops for user input. All other transitions happen automatically. If the orchestrator finds itself asking "should I continue?" at any transition other than Rule #5, the answer is always YES — continue immediately.
+
+### How to Pass Context Between Phases
+
+Each agent reads the previous agent's output from the project folder. The orchestrator ensures files are saved before invoking the next agent:
+
+| Agent | Reads From | Writes To |
+|-------|-----------|-----------|
+| @fabric-advisor | (user input) | Discovery Brief (in conversation or project folder) |
+| @fabric-architect | Discovery Brief | `projects/[name]/deployments/handoff.md` |
+| @fabric-engineer (review) | `deployments/handoff.md` | Review feedback (in conversation) |
+| @fabric-tester (review) | `deployments/handoff.md` | Review feedback (in conversation) |
+| @fabric-architect (finalize) | Review feedback | `deployments/handoff.md` (updated to FINAL) |
+| @fabric-tester (test plan) | `deployments/handoff.md` (FINAL) | `projects/[name]/docs/test-plan.md` |
+| @fabric-engineer (deploy) | `deployments/handoff.md` + `docs/test-plan.md` | Deployment Handoff |
+| @fabric-tester (validate) | Deployment Handoff + `validation/[task-flow].md` | Validation Report |
+| @fabric-documenter | All handoffs in project folder | `projects/[name]/docs/` |
+
+---
+
 ## Quick Reference
 
 | Phase | What Happens | Produces |
@@ -148,7 +184,7 @@ The documenter gathers all handoffs — architecture, test plan, deployment log,
 | 1b — Review | Engineer + Tester review DRAFT in parallel | Feasibility + Testability reviews |
 | 1c — Finalize | Architect incorporates review feedback | FINAL handoff |
 | 2a — Test Plan | Tester maps acceptance criteria to validation checks | Test Plan |
-| **2b — Sign-Off** | **You review and approve** | **Your approval** |
+| **2b — Sign-Off** | **🛑 You review and approve** | **Your approval** |
 | 2c — Deploy | Engineer deploys items by dependency wave | Deployment handoff |
 | 3 — Validate | Tester validates deployment against checklist | Validation Report |
 | 4 — Document | Documenter synthesizes all handoffs into wiki + ADRs | Project docs |

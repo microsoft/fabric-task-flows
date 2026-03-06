@@ -36,6 +36,15 @@ Generate wiki documentation using the templates in `_shared/documentation-templa
 - Deployment diagrams: `diagrams/[task-flow].md`
 - CI/CD practices: `_shared/cicd-practices.md`
 
+## Pipeline Handoff
+
+> **The documenter is the final agent. No further handoff.**
+
+### After documentation is complete:
+1. Save all wiki pages and ADRs to `projects/[name]/docs/`
+2. Update `PROJECTS.md` — Phase = "Documented ✅"
+3. **Pipeline complete.** No further agents to invoke. Update `PROJECTS.md` Phase to "Complete".
+
 ## Signs of Drift
 
 Watch for these indicators that documentation is going off track:
