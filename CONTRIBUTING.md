@@ -76,9 +76,11 @@ Key rules:
 
 ## Agent conventions
 
-### ORCHESTRATION OVERRIDE
+### ORCHESTRATION — Pipeline Runner
 
-All six agent files (`.github/agents/fabric-*.agent.md`) include an `⚠️ ORCHESTRATION OVERRIDE` block in their Pipeline Handoff section. This instructs agents to **never** ask "Want me to continue?" or "Shall I proceed?" — they must auto-chain to the next phase immediately after producing their handoff.
+All six agent files (`.github/agents/fabric-*.agent.md`) include an `⚠️ ORCHESTRATION` block in their Pipeline Handoff section. This instructs agents to use `run-pipeline.py advance && run-pipeline.py next` for all phase transitions — **never** manually chain to another agent via `AUTO-CHAIN` or ask "Want me to continue?". The runner manages `pipeline-state.json`, verifies output files, runs pre-compute scripts, and enforces the human gate at Phase 2b.
+
+> ⚠️ **Bypassing the runner** (e.g., calling `new-project.py` directly, manually editing `pipeline-state.json`, or telling agents to invoke each other) leaves pipeline state stale and breaks phase tracking.
 
 ### Agent tool lists
 

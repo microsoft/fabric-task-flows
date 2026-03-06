@@ -14,6 +14,54 @@
 
 ---
 
+## Pipeline Runner (Required)
+
+> ⚠️ **All pipeline orchestration MUST go through `run-pipeline.py`.** Do not call `new-project.py` directly, manually chain agents via `AUTO-CHAIN`, or edit `pipeline-state.json` by hand. Bypassing the runner leaves pipeline state stale, skips pre-compute scripts, and breaks phase verification. See `_shared/agent-boundaries.md` rule #1.
+
+Use the pipeline runner script to manage the full lifecycle. It scaffolds the project, tracks phase state, runs pre-compute scripts, and generates agent prompts — stopping only at Phase 2b for your approval.
+
+```bash
+# Start a new pipeline
+python scripts/run-pipeline.py start "Your Project Name" --problem "describe your problem"
+
+# Check pipeline status
+python scripts/run-pipeline.py status --project your-project-name
+
+# Get the next agent prompt (after each phase completes)
+python scripts/run-pipeline.py next --project your-project-name
+
+# Mark current phase complete and advance
+python scripts/run-pipeline.py advance --project your-project-name
+
+# Reset a phase (for re-runs after fixes)
+python scripts/run-pipeline.py reset --project your-project-name --phase 1b-review
+```
+
+The runner creates a `pipeline-state.json` file in each project directory that tracks which phases are complete, which agent to invoke next, and whether the transition is automatic or requires human approval.
+
+### State Ownership
+
+**`pipeline-state.json` is managed exclusively by `run-pipeline.py`.** Agents must never write to this file — they write their output to `prd/` files only. The runner verifies output files exist before advancing phases and extracts metadata (e.g., `task_flow`) from agent output automatically.
+
+This prevents dual-writer conflicts where an agent and the runner both try to update phase status, causing phases to be skipped.
+
+### Gate Enforcement
+
+The `advance` command enforces human gates defined in `pipeline-state.json` transitions. When a transition has `auto: false` (e.g., the 2a→2b sign-off boundary), `advance` blocks and prompts for explicit approval:
+
+```bash
+# This will be blocked at the sign-off gate:
+python scripts/run-pipeline.py advance --project my-project
+# 🛑  Cannot advance — Phase '2a-test-plan' is a human gate.
+
+# Explicitly approve after reviewing architecture + test plan:
+python scripts/run-pipeline.py advance --project my-project --approve
+```
+
+All other transitions (`auto: true`) advance automatically without `--approve`.
+
+---
+
 ## Step 0: Check Status
 
 Check `PROJECTS.md` for your project's current phase and next action. If your project already exists, the pipeline resumes from wherever it left off.
@@ -35,6 +83,7 @@ This creates:
 - `projects/[name]/docs/` — README, architecture, deployment-log, and 5 ADR templates
 - `projects/[name]/deployments/` — empty, for deployment scripts
 - `projects/[name]/STATUS.md` — phase tracking
+- `projects/[name]/pipeline-state.json` — pipeline orchestration state (for `run-pipeline.py`)
 - Updates `PROJECTS.md` with a new row
 
 **Agents edit pre-existing files — they do not create directories or boilerplate.** Each template file contains section headers, YAML frontmatter, and HTML comments marking where the agent fills in content.
@@ -66,7 +115,26 @@ The DRAFT is reviewed in parallel by two agents:
 
 > **Performance optimization:** Use `@fabric-reviewer` instead of invoking `@fabric-engineer` and `@fabric-tester` separately. The combined reviewer reads the architecture once and produces both reviews in a single pass, cutting review time roughly in half.
 
-**Produces:**Deployment Feasibility Review → `projects/[name]/prd/engineer-review.md` + Testability Review → `projects/[name]/prd/tester-review.md`
+### Review Quality Gate (Iterative)
+
+Reviews include a `review_outcome` field (`approved` | `revise`). If either review has `review_outcome: revise` (red-severity findings), the architect revises the DRAFT and the reviewer re-reviews. This cycle repeats until both reviews show `approved` or the maximum of **3 iterations** is reached.
+
+```
+Architect (DRAFT) ──► Reviewer ──► review_outcome?
+                                      │
+                          ┌───────────┴───────────┐
+                          ▼                       ▼
+                    "approved"               "revise"
+                          │                       │
+                          ▼                       ▼
+                    Proceed to 1c      Architect revises DRAFT
+                                              │
+                                              ▼
+                                       Re-invoke Reviewer
+                                       (iteration 2, max 3)
+```
+
+**Produces:** Deployment Feasibility Review → `projects/[name]/prd/engineer-review.md` + Testability Review → `projects/[name]/prd/tester-review.md`
 
 ---
 
@@ -150,7 +218,7 @@ When the user selects **design-only** during architecture (instead of providing 
 2. **Tester** produces the Test Plan as normal (validation criteria don't change)
 3. **User** signs off on the architecture and test plan
 4. **Engineer** generates `deploy-{project}.sh` and `deploy-{project}.ps1` scripts in `projects/[name]/deployments/`
-5. **User** runs the scripts at their convenience — the scripts prompt for capacity ID, tenant ID, workspace name, environment, and auth method at runtime
+5. **User** runs the scripts at their convenience — the scripts prompt for workspace name at runtime (authentication, capacity, and tenant are handled by the `fab` CLI)
 
 > **When to use design-only mode:** Teams that want architecture decisions documented and reviewed before provisioning any Fabric resources, or when deploying to a workspace managed by a separate infrastructure team.
 
@@ -160,7 +228,37 @@ When the user selects **design-only** during architecture (instead of providing 
 
 The tester runs through the task flow's validation checklist against the live deployment. It checks every item the engineer created, verifies acceptance criteria from the test plan, and flags anything that doesn't match expectations.
 
-**Produces:** Validation Report → `projects/[name]/prd/validation-report.md` (PASSED / PARTIAL / FAILED)
+### Validate-Remediate Loop (Iterative)
+
+When validation finds deployment or configuration issues, the pipeline enters a remediation loop instead of immediately proceeding to documentation:
+
+```
+Engineer (Deploy) ──► Tester (Validate) ──► validation status?
+                          ▲                       │
+                          │           ┌───────────┴───────────────┐
+                          │           ▼                           ▼
+                          │     "PASSED"                   "PARTIAL/FAILED"
+                          │           │                           │
+                          │           ▼                    categorize issues
+                          │     Proceed to                        │
+                          │     Phase 4                  ┌────────┴────────┐
+                          │                              ▼                ▼
+                          │                     deployment/config     design issues
+                          │                     issues                    │
+                          │                         │                     ▼
+                          │                         ▼               ESCALATE (stop)
+                          │                  Engineer (Remediate)
+                          │                         │
+                          └─────────────────────────┘
+                                              (max 3 iterations)
+```
+
+Issues are tracked in `projects/[name]/prd/remediation-log.md`. The loop exits when:
+- ✅ All issues resolved → proceed to Phase 4 (Document)
+- 🛑 Design issues found → escalate to architect/user
+- 🛑 Max 3 remediation iterations reached → escalate to user
+
+**Produces:** Validation Report → `projects/[name]/prd/validation-report.md` (PASSED / PARTIAL / FAILED) + Remediation Log → `projects/[name]/prd/remediation-log.md` (if issues found)
 
 ---
 
@@ -176,19 +274,39 @@ The documenter gathers all handoffs — architecture, test plan, deployment log,
 
 > **These rules govern automatic phase transitions.** The orchestrating agent (or human operator) MUST follow these rules — do NOT stop and ask the user between phases unless the rule says `🛑 HUMAN GATE`.
 
+### ⚠️ For LLM Orchestrators (Copilot CLI, GitHub Copilot Chat, etc.)
+
+**You are the orchestrator.** When you invoke a custom agent (e.g., `@fabric-advisor`) and it completes, you MUST immediately invoke the next agent in the pipeline. Do NOT:
+- Say "Want me to continue?"
+- Say "Should I proceed to the next phase?"
+- Present a summary and wait for user input
+- Ask any variation of "ready to move on?"
+
+The answer to all of these is always YES. Use `run-pipeline.py advance && next` to progress. **The ONLY exception is Phase 2b Sign-Off** — that requires `--approve`.
+
+**Pattern to follow:**
+1. Agent A completes → writes output to `prd/` files
+2. Run `python scripts/run-pipeline.py advance --project [name]` (verifies output, advances state)
+3. Run `python scripts/run-pipeline.py next --project [name]` (generates next agent prompt)
+4. Paste prompt into chat → agent B completes → repeat
+5. At Phase 2b: runner blocks — requires `advance --approve` after user reviews
+
 | # | From Phase | To Phase | Trigger | Gate |
 |---|-----------|----------|---------|------|
-| 1 | 0a — Discovery (Brief produced) | 1a — Design | Discovery Brief saved to `prd/discovery-brief.md` | 🟢 Auto-chain |
-| 2 | 1a — Design (DRAFT produced) | 1b — Review | DRAFT handoff saved to `prd/architecture-handoff.md` | 🟢 Auto-chain (invoke engineer + tester **in parallel**) |
-| 3 | 1b — Review (both reviews complete) | 1c — Finalize | Reviews saved to `prd/engineer-review.md` and `prd/tester-review.md` | 🟢 Auto-chain |
-| 4 | 1c — Finalize (FINAL produced) | 2a — Test Plan | FINAL handoff saved to `prd/architecture-handoff.md` | 🟢 Auto-chain |
-| 5 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `prd/test-plan.md` | 🛑 **HUMAN GATE** — present consolidated sign-off |
-| 6 | 2b — Sign-Off (user approved) | 2c — Deploy | User says "approved" / "go ahead" / "deploy" | 🟢 Auto-chain |
-| 7 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved to `prd/deployment-handoff.md` | 🟢 Auto-chain |
-| 8 | 3 — Validate (report produced) | 4 — Document | Validation Report saved to `prd/validation-report.md` | 🟢 Auto-chain |
-| 9 | 4 — Document (docs produced) | Complete | Wiki + ADRs saved | 🟢 Pipeline complete |
+| 1 | 0a — Discovery (Brief produced) | 1a — Design | Discovery Brief saved to `prd/discovery-brief.md` | 🟢 `advance && next` |
+| 2 | 1a — Design (DRAFT produced) | 1b — Review | DRAFT handoff saved to `prd/architecture-handoff.md` | 🟢 `advance && next` |
+| 2a | 1b — Review (`revise`) | 1a — Design (revise) | `review_outcome: revise` in either review | 🔄 Iterative (max 3 cycles, then force-proceed) |
+| 3 | 1b — Review (both `approved`) | 1c — Finalize | Reviews saved with `review_outcome: approved` | 🟢 `advance && next` |
+| 4 | 1c — Finalize (FINAL produced) | 2a — Test Plan | FINAL handoff saved to `prd/architecture-handoff.md` | 🟢 `advance && next` |
+| 5 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `prd/test-plan.md` | 🛑 **HUMAN GATE** — `advance --approve` required |
+| 6 | 2b — Sign-Off (user approved) | 2c — Deploy | User says "approved" / "go ahead" / "deploy" | 🟢 `advance && next` |
+| 7 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved to `prd/deployment-handoff.md` | 🟢 `advance && next` |
+| 7a | 3 — Validate (issues found) | 2c — Remediate | Remediation log created with `routed_to: engineer` issues | 🔄 Iterative (max 3 cycles, then escalate) |
+| 7b | 3 — Validate (design issues) | ESCALATE | `category: design` issues in remediation log | 🛑 **ESCALATION GATE** — human/architect intervention |
+| 8 | 3 — Validate (PASSED) | 4 — Document | Validation Report saved with `status: passed` | 🟢 `advance && next` |
+| 9 | 4 — Document (docs produced) | Complete | Wiki + ADRs saved | 🟢 `advance` (final) |
 
-**Key principle:** Only Rule #5 stops for user input. All other transitions happen automatically. If the orchestrator finds itself asking "should I continue?" at any transition other than Rule #5, the answer is always YES — continue immediately.
+**Key principle:** Only Rule #5 stops for user input. All other transitions use `run-pipeline.py advance && next`. If the orchestrator finds itself asking "should I continue?" at any transition other than Rule #5, the answer is always YES — run `advance && next` immediately.
 
 ### How to Pass Context Between Phases
 
@@ -202,8 +320,9 @@ Each agent reads the previous agent's output from the project folder. The orches
 | @fabric-tester (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/tester-review.md` | YAML schema |
 | @fabric-architect (finalize) | `prd/engineer-review.md` + `prd/tester-review.md` | `prd/architecture-handoff.md` (updated to FINAL) | Markdown + YAML data blocks |
 | @fabric-tester (test plan) | `prd/architecture-handoff.md` (FINAL) | `projects/[name]/prd/test-plan.md` | YAML schema |
-| @fabric-engineer (deploy) | `prd/architecture-handoff.md` + `prd/test-plan.md` | `projects/[name]/prd/deployment-handoff.md` | YAML schema |
-| @fabric-tester (validate) | `prd/deployment-handoff.md` + `validation/[task-flow].md` | `projects/[name]/prd/validation-report.md` | YAML schema |
+| @fabric-engineer (deploy) | `prd/architecture-handoff.md` + `prd/test-plan.md` | `projects/[name]/prd/deployment-handoff.md` + `prd/phase-progress.md` | YAML schema |
+| @fabric-tester (validate) | `prd/deployment-handoff.md` + `validation/[task-flow].md` | `projects/[name]/prd/validation-report.md` + `prd/remediation-log.md` | YAML schema |
+| @fabric-engineer (remediate) | `prd/remediation-log.md` | `prd/remediation-log.md` (updated) + `prd/phase-progress.md` | YAML schema |
 | @fabric-documenter | All 5 documents in `prd/` | `projects/[name]/docs/` | Markdown (wiki output) |
 
 ---
@@ -214,12 +333,12 @@ Each agent reads the previous agent's output from the project folder. The orches
 |-------|-------------|----------|
 | 0a — Discovery | Advisor analyzes your problem and infers architectural signals | Discovery Brief → `prd/discovery-brief.md` |
 | 1a — Design | Architect selects task flow and makes design decisions | DRAFT handoff → `prd/architecture-handoff.md` |
-| 1b — Review | Engineer + Tester review DRAFT in parallel | Reviews → `prd/engineer-review.md` + `prd/tester-review.md` |
+| 1b — Review | Engineer + Tester review DRAFT in parallel (iterates until `approved` or max 3 cycles) | Reviews → `prd/engineer-review.md` + `prd/tester-review.md` |
 | 1c — Finalize | Architect incorporates review feedback | FINAL handoff → `prd/architecture-handoff.md` (updated) |
 | 2a — Test Plan | Tester maps acceptance criteria to validation checks | Test Plan → `prd/test-plan.md` |
 | **2b — Sign-Off** | **🛑 You review and approve** | **Your approval** |
-| 2c — Deploy | Engineer deploys items by dependency wave | Deployment handoff → `prd/deployment-handoff.md` |
-| 3 — Validate | Tester validates deployment against checklist | Validation Report → `prd/validation-report.md` |
+| 2c — Deploy | Engineer deploys items by dependency wave, tracks progress | Deployment handoff → `prd/deployment-handoff.md` + `prd/phase-progress.md` |
+| 3 — Validate | Tester validates deployment; routes issues for remediation if needed (max 3 cycles) | Validation Report → `prd/validation-report.md` + `prd/remediation-log.md` |
 | 4 — Document | Documenter synthesizes all handoffs into wiki + ADRs | Project docs → `docs/` |
 
 ---
@@ -244,6 +363,8 @@ All YAML schemas live in `_shared/schemas/`:
 | `test-plan.md` | @fabric-tester | Test Plan (Mode 1) | `prd/test-plan.md` |
 | `deployment-handoff.md` | @fabric-engineer | Deploy | `prd/deployment-handoff.md` |
 | `validation-report.md` | @fabric-tester | Validate (Mode 2) | `prd/validation-report.md` |
+| `remediation-log.md` | @fabric-tester / @fabric-engineer | Validate → Remediate loop | `prd/remediation-log.md` |
+| `phase-progress.md` | @fabric-engineer / @fabric-tester | Deploy / Validate / Remediate | `prd/phase-progress.md` |
 
 ### Output Rules
 

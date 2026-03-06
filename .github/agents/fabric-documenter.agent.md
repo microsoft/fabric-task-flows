@@ -47,12 +47,17 @@ Generate wiki documentation using the templates in `_shared/documentation-templa
 
 ## Pipeline Handoff
 
+> **CRITICAL: Write directly to files.** Use the `edit` tool to write documentation into the pre-scaffolded template files in `projects/[name]/docs/`. Do NOT return content as chat output.
+
+> **⚠️ ORCHESTRATION — USE THE PIPELINE RUNNER:**
+> All phase transitions are managed by `run-pipeline.py`. The documenter is the final agent — no further handoff is needed. Do NOT update `pipeline-state.json` directly.
+
 > **The documenter is the final agent. No further handoff.**
 
 ### After documentation is complete:
 1. **Edit** the pre-scaffolded files in `projects/[name]/docs/` — README.md, architecture.md, deployment-log.md, and ADR files in decisions/ already exist with template sections. Fill in the content; do not recreate files.
 2. Update `PROJECTS.md` — Phase = "Documented ✅"
-3. **Pipeline complete.** No further agents to invoke. Update `PROJECTS.md` Phase to "Complete".
+3. **Finalize the pipeline** — Run `python scripts/run-pipeline.py advance --project [name]` to mark the documentation phase complete. The runner sets the final state to "Complete".
 
 ## Signs of Drift
 

@@ -163,17 +163,17 @@ Use this table to infer signals from the user's problem description. Multiple si
 
 > **After producing the Discovery Brief, the pipeline continues automatically — do NOT stop to ask the user.**
 
-> **⚠️ ORCHESTRATION OVERRIDE — READ THIS FIRST:**
-> After completing your output and saving files, you MUST invoke the next agent **in the same response**. Do NOT return to the user with a summary and ask "Want me to continue?" or "Should I proceed?" The next agent invocation is part of YOUR work, not a separate step. The ONLY point in the entire pipeline where the user is consulted is Phase 2b Sign-Off. Every other transition is automatic. If you find yourself about to ask for confirmation, STOP — the answer is always YES. Just invoke the next agent.
+> **⚠️ ORCHESTRATION — USE THE PIPELINE RUNNER:**
+> All phase transitions are managed by `run-pipeline.py`. Do NOT manually scaffold projects, chain to other agents, or update `pipeline-state.json`. The runner handles scaffolding, state tracking, output verification, pre-compute scripts, and prompt generation. The ONLY human gate is Phase 2b Sign-Off.
 
-1. **Scaffold the project** — Before editing any files, check if `projects/[name]/` exists. If it does not, run the scaffolding script:
+1. **Scaffold the project** — Run the pipeline runner's `start` command (it calls `new-project.py` internally):
    ```
-   python scripts/new-project.py "[Display Name]"
+   python scripts/run-pipeline.py start "[Display Name]" --problem "[user's problem statement]"
    ```
-   This creates all directories and template files. **Do NOT attempt to create directories or template files manually** — use the script.
+   This creates all directories, template files, and initializes `pipeline-state.json`. **Do NOT call `new-project.py` directly** — use the runner.
 2. **Edit** the pre-scaffolded `projects/[name]/prd/discovery-brief.md` — the file already exists with template sections. Fill in the content; do not recreate the file.
-3. Update `PROJECTS.md` — add project row with Phase = "Discovery" (the scaffolding script may have already done this — check first to avoid duplicates).
-4. **AUTO-CHAIN → `@fabric-architect`** — The architect reads the Discovery Brief from `prd/discovery-brief.md` and proceeds to design. No user confirmation needed.
+3. Update `PROJECTS.md` — add project row with Phase = "Discovery ✅" (the scaffolding script may have already added a row — check first to avoid duplicates).
+4. **Advance the pipeline** — Run `python scripts/run-pipeline.py advance --project [name]` to mark discovery complete, then `python scripts/run-pipeline.py next --project [name]` to get the next agent's prompt. The runner verifies output, advances state, and generates the architect prompt automatically.
 
 ## Signs of Drift
 

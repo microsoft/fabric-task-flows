@@ -56,7 +56,7 @@ Each content directory has an `_index.md` routing table that agents should read 
 
 ### Project scaffolding
 
-New projects are scaffolded with `python scripts/new-project.py "Project Name"`, which creates all directories and template files. Agents edit pre-existing files — they do not create directories or boilerplate. See `_shared/workflow-guide.md` for details.
+New projects are scaffolded via `python scripts/run-pipeline.py start "Project Name" --problem "description"`, which calls `new-project.py` internally to create all directories and template files, then initializes `pipeline-state.json` for phase tracking. Agents edit pre-existing files — they do not create directories or boilerplate. See `_shared/workflow-guide.md` for details.
 
 ### Custom agents (`.github/agents/`)
 

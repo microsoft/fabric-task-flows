@@ -12,11 +12,12 @@ A documentation-only knowledge base of pre-defined architectures, decision guide
 
 ## 🚀 Quick Start
 
-1. **Start a project** — mention **@fabric-advisor** in chat and describe your problem
-2. **Review & approve** — the only human gate is Phase 2b (architecture + test plan sign-off)
-3. **Everything else is automatic** — design, review, deploy, validate, document
+1. **Start a project** — run `python scripts/run-pipeline.py start "Your Project Name" --problem "describe your problem"`
+2. **Follow the prompts** — the runner generates agent prompts; paste each into chat. Use `advance` + `next` to progress.
+3. **Review & approve** — the only human gate is Phase 2b (architecture + test plan sign-off, via `--approve`)
+4. **Everything else is automatic** — design, review, deploy, validate, document
 
-Use `scripts/run-pipeline.py` to manage the full pipeline lifecycle. See `_shared/workflow-guide.md` for details.
+> ⚠️ **Always use `run-pipeline.py`** to start projects and advance phases. Do not call `new-project.py` directly or manually chain agents. See `_shared/workflow-guide.md` for details.
 
 ## 📋 Task Flows
 
@@ -63,7 +64,7 @@ Each guide has YAML frontmatter with structured options, a `quick_decision` tree
 | **@fabric-engineer** | 2c — Deploy | Parallel wave deployment via `fab` CLI or `fabric-cicd` | Deployment Handoff |
 | **@fabric-documenter** | 4 — Document | Synthesizes handoffs into wiki-style docs | ADRs + architecture docs |
 
-All agents include: three-tier boundaries (✅/⚠️/🚫), Signs of Drift, Quality Checklists, structured handoff templates, and `⚠️ ORCHESTRATION OVERRIDE` blocks (auto-chain to next phase — no user confirmation except Phase 2b sign-off).
+All agents include: three-tier boundaries (✅/⚠️/🚫), Signs of Drift, Quality Checklists, structured handoff templates, and `⚠️ ORCHESTRATION` blocks (use `run-pipeline.py advance && next` for phase transitions — no manual agent chaining except Phase 2b sign-off).
 
 ### Agent Pipeline
 
