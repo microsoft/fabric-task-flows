@@ -90,9 +90,10 @@ Use this table to infer signals from the user's problem description. Multiple si
 
 > **After producing the Discovery Brief, the pipeline continues automatically — do NOT stop to ask the user.**
 
-1. Save the Discovery Brief (in conversation context or project folder)
-2. Update `PROJECTS.md` — add project row with Phase = "Discovery"
-3. **AUTO-CHAIN → `@fabric-architect`** — Pass the Discovery Brief as input. The architect reads it and proceeds to design. No user confirmation needed.
+1. Create `projects/[name]/prd/` directory if it doesn't exist
+2. Save the Discovery Brief to `projects/[name]/prd/discovery-brief.md`
+3. Update `PROJECTS.md` — add project row with Phase = "Discovery"
+4. **AUTO-CHAIN → `@fabric-architect`** — The architect reads the Discovery Brief from `prd/discovery-brief.md` and proceeds to design. No user confirmation needed.
 
 ## Signs of Drift
 

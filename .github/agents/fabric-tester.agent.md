@@ -156,18 +156,18 @@ This Test Plan feeds into the deployment phase so the engineer deploys with test
 > **The tester has THREE modes with different handoff rules.**
 
 ### Mode 0 — Architecture Review (DRAFT feedback):
-1. Produce Testability Review feedback
-2. **AUTO-CHAIN → return feedback to `@fabric-architect`** — The architect incorporates it alongside engineer feedback. No user confirmation needed.
+1. Save Testability Review to `projects/[name]/prd/tester-review.md`
+2. **AUTO-CHAIN → return to `@fabric-architect`** — The architect reads reviews from `prd/tester-review.md` and `prd/engineer-review.md`, then incorporates into FINAL. No user confirmation needed.
 
 ### Mode 1 — Test Plan (from FINAL handoff):
-1. Save Test Plan to `projects/[name]/docs/test-plan.md`
+1. Save Test Plan to `projects/[name]/prd/test-plan.md`
 2. Update `PROJECTS.md` — Phase = "Test Plan ✅"
-3. **🛑 HUMAN GATE → Phase 2b Sign-Off** — The orchestrator presents the consolidated architecture + test plan to the user for approval. This is the ONLY user gate in the pipeline.
+3. **🛑 HUMAN GATE → Phase 2b Sign-Off** — The orchestrator presents the consolidated architecture (`prd/architecture-handoff.md`) + test plan (`prd/test-plan.md`) to the user for approval. This is the ONLY user gate in the pipeline.
 
 ### Mode 2 — Post-Deployment Validation:
-1. Save Validation Report to project folder
+1. Save Validation Report to `projects/[name]/prd/validation-report.md`
 2. Update `PROJECTS.md` — Phase = "Validated ✅"
-3. **AUTO-CHAIN → `@fabric-documenter`** — Pass all handoffs (Discovery Brief, Architecture, Test Plan, Deployment, Validation Report) for wiki synthesis. No user confirmation needed.
+3. **AUTO-CHAIN → `@fabric-documenter`** — Documenter reads all handoffs from `prd/` (discovery-brief.md, architecture-handoff.md, test-plan.md, deployment-handoff.md, validation-report.md) for wiki synthesis. No user confirmation needed.
 
 ## Signs of Drift
 - **Skipping validation phases** — every applicable phase must be checked, even if items appear healthy

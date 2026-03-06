@@ -194,20 +194,21 @@ Implementation details (connection GUIDs, source system credentials, Event Hub n
 > **The architect has THREE handoff points. Only ONE involves the user.**
 
 ### After producing the DRAFT Architecture Handoff:
-1. Save DRAFT to `projects/[name]/deployments/handoff.md`
-2. Create `projects/[name]/STATUS.md`
-3. Update `PROJECTS.md` — Phase = "Design Review"
-4. **AUTO-CHAIN → `@fabric-engineer` AND `@fabric-tester` in PARALLEL** — Both review the DRAFT simultaneously. Engineer reviews for deployment feasibility. Tester reviews for testability (Mode 0). No user confirmation needed.
+1. Create `projects/[name]/prd/` directory if it doesn't exist
+2. Save DRAFT to `projects/[name]/prd/architecture-handoff.md`
+3. Create `projects/[name]/STATUS.md`
+4. Update `PROJECTS.md` — Phase = "Design Review"
+5. **AUTO-CHAIN → `@fabric-engineer` AND `@fabric-tester` in PARALLEL** — Both read the DRAFT from `prd/architecture-handoff.md` and save reviews to `prd/engineer-review.md` and `prd/tester-review.md` respectively. No user confirmation needed.
 
 ### After incorporating review feedback into FINAL handoff:
-1. Update `deployments/handoff.md` with FINAL (populate Design Review table)
+1. Update `prd/architecture-handoff.md` with FINAL (populate Design Review table)
 2. Update `PROJECTS.md` — Phase = "Design Review ✅"
-3. **AUTO-CHAIN → `@fabric-tester` (Mode 1)** — Tester produces Test Plan from the FINAL handoff. No user confirmation needed.
+3. **AUTO-CHAIN → `@fabric-tester` (Mode 1)** — Tester reads FINAL from `prd/architecture-handoff.md` and saves Test Plan to `prd/test-plan.md`. No user confirmation needed.
 
 ### After Test Plan is produced:
-1. Tester saves Test Plan to `projects/[name]/docs/test-plan.md`
+1. Tester saves Test Plan to `projects/[name]/prd/test-plan.md`
 2. Update `PROJECTS.md` — Phase = "Test Plan ✅"
-3. **🛑 HUMAN GATE → Phase 2b Sign-Off** — Present a consolidated, human-readable sign-off summary covering the architecture and test plan. The user reviews and approves before deployment begins. This is the ONLY point in the pipeline where the user is asked for input.
+3. **🛑 HUMAN GATE → Phase 2b Sign-Off** — Present a consolidated, human-readable sign-off summary covering the architecture (`prd/architecture-handoff.md`) and test plan (`prd/test-plan.md`). The user reviews and approves before deployment begins. This is the ONLY point in the pipeline where the user is asked for input.
 
 ## Signs of Drift
 

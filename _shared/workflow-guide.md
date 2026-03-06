@@ -26,7 +26,7 @@ To start a new project, mention `@fabric-advisor` in chat with a description of 
 
 Mention `@fabric-advisor` and describe what you need — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports." The advisor asks clarifying questions, infers architectural signals (data velocity, volume, use cases), and produces a **Discovery Brief** with task flow candidates.
 
-**Produces:** Discovery Brief with inferred signals and task flow candidates
+**Produces:** Discovery Brief → `projects/[name]/prd/discovery-brief.md`
 
 ---
 
@@ -34,7 +34,7 @@ Mention `@fabric-advisor` and describe what you need — e.g., "We have IoT sens
 
 The architect receives the Discovery Brief and selects the best-fit task flow. It walks through each decision guide — storage format, ingestion method, processing engine, visualization layer — and produces a DRAFT Architecture Handoff with the full deployment plan, item list, and rationale for every decision.
 
-**Produces:** DRAFT Architecture Handoff → `projects/[name]/deployments/handoff.md`
+**Produces:** DRAFT Architecture Handoff → `projects/[name]/prd/architecture-handoff.md`
 
 ---
 
@@ -45,7 +45,7 @@ The DRAFT is reviewed in parallel by two agents:
 - **Engineer** — checks deployment order, per-item gotchas, prerequisites, capacity, and parallel deployment potential
 - **Tester** — checks acceptance criteria specificity, test coverage gaps, pre-deployment blockers, edge cases, and validation feasibility
 
-**Produces:** Deployment Feasibility Review + Testability Review
+**Produces:** Deployment Feasibility Review → `projects/[name]/prd/engineer-review.md` + Testability Review → `projects/[name]/prd/tester-review.md`
 
 ---
 
@@ -61,7 +61,7 @@ The architect incorporates both reviews into the FINAL handoff. A Design Review 
 
 The tester receives the FINAL handoff and maps each acceptance criterion to a concrete validation check. It identifies critical verification points, edge cases, and any pre-deployment blockers that need resolution before deployment can begin.
 
-**Produces:** Test Plan → `projects/[name]/docs/test-plan.md`
+**Produces:** Test Plan → `projects/[name]/prd/test-plan.md`
 
 ---
 
@@ -87,8 +87,8 @@ This is your chance to catch misunderstandings, adjust scope, or ask questions �
 │  • Deployment order             │     │  • Pre-deployment blockers      │
 │  • Alternatives considered      │     │                                 │
 │                                 │     │                                 │
-│  projects/[name]/deployments/   │     │  projects/[name]/docs/          │
-│  handoff.md                     │     │  test-plan.md                   │
+│  projects/[name]/prd/            │     │  projects/[name]/prd/            │
+│  architecture-handoff.md        │     │  test-plan.md                   │
 └─────────────────────────────────┘     └─────────────────────────────────┘
                          │                         │
                          └────────┬────────────────┘
@@ -119,7 +119,7 @@ Say "approved" or "go ahead and deploy" to continue the pipeline. If something d
 
 After your approval, the engineer deploys all Fabric items following the FINAL handoff's deployment order. Items are deployed by dependency wave — independent items go in parallel, dependent items wait for their prerequisites. The engineer reviews the test plan before deploying so it knows which verification points matter.
 
-**Produces:** Deployment Handoff with items created, manual steps required, and known issues
+**Produces:** Deployment Handoff → `projects/[name]/prd/deployment-handoff.md` with items created, manual steps required, and known issues
 
 ---
 
@@ -127,7 +127,7 @@ After your approval, the engineer deploys all Fabric items following the FINAL h
 
 The tester runs through the task flow's validation checklist against the live deployment. It checks every item the engineer created, verifies acceptance criteria from the test plan, and flags anything that doesn't match expectations.
 
-**Produces:** Validation Report (PASSED / PARTIAL / FAILED)
+**Produces:** Validation Report → `projects/[name]/prd/validation-report.md` (PASSED / PARTIAL / FAILED)
 
 ---
 
@@ -145,14 +145,14 @@ The documenter gathers all handoffs — architecture, test plan, deployment log,
 
 | # | From Phase | To Phase | Trigger | Gate |
 |---|-----------|----------|---------|------|
-| 1 | 0a — Discovery (Brief produced) | 1a — Design | Discovery Brief saved to project folder | 🟢 Auto-chain |
-| 2 | 1a — Design (DRAFT produced) | 1b — Review | DRAFT handoff saved to `deployments/handoff.md` | 🟢 Auto-chain (invoke engineer + tester **in parallel**) |
-| 3 | 1b — Review (both reviews complete) | 1c — Finalize | Engineer AND Tester feedback received | 🟢 Auto-chain |
-| 4 | 1c — Finalize (FINAL produced) | 2a — Test Plan | FINAL handoff saved to `deployments/handoff.md` | 🟢 Auto-chain |
-| 5 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `docs/test-plan.md` | 🛑 **HUMAN GATE** — present consolidated sign-off |
+| 1 | 0a — Discovery (Brief produced) | 1a — Design | Discovery Brief saved to `prd/discovery-brief.md` | 🟢 Auto-chain |
+| 2 | 1a — Design (DRAFT produced) | 1b — Review | DRAFT handoff saved to `prd/architecture-handoff.md` | 🟢 Auto-chain (invoke engineer + tester **in parallel**) |
+| 3 | 1b — Review (both reviews complete) | 1c — Finalize | Reviews saved to `prd/engineer-review.md` and `prd/tester-review.md` | 🟢 Auto-chain |
+| 4 | 1c — Finalize (FINAL produced) | 2a — Test Plan | FINAL handoff saved to `prd/architecture-handoff.md` | 🟢 Auto-chain |
+| 5 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `prd/test-plan.md` | 🛑 **HUMAN GATE** — present consolidated sign-off |
 | 6 | 2b — Sign-Off (user approved) | 2c — Deploy | User says "approved" / "go ahead" / "deploy" | 🟢 Auto-chain |
-| 7 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved | 🟢 Auto-chain |
-| 8 | 3 — Validate (report produced) | 4 — Document | Validation Report saved | 🟢 Auto-chain |
+| 7 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved to `prd/deployment-handoff.md` | 🟢 Auto-chain |
+| 8 | 3 — Validate (report produced) | 4 — Document | Validation Report saved to `prd/validation-report.md` | 🟢 Auto-chain |
 | 9 | 4 — Document (docs produced) | Complete | Wiki + ADRs saved | 🟢 Pipeline complete |
 
 **Key principle:** Only Rule #5 stops for user input. All other transitions happen automatically. If the orchestrator finds itself asking "should I continue?" at any transition other than Rule #5, the answer is always YES — continue immediately.
@@ -163,15 +163,15 @@ Each agent reads the previous agent's output from the project folder. The orches
 
 | Agent | Reads From | Writes To |
 |-------|-----------|-----------|
-| @fabric-advisor | (user input) | Discovery Brief (in conversation or project folder) |
-| @fabric-architect | Discovery Brief | `projects/[name]/deployments/handoff.md` |
-| @fabric-engineer (review) | `deployments/handoff.md` | Review feedback (in conversation) |
-| @fabric-tester (review) | `deployments/handoff.md` | Review feedback (in conversation) |
-| @fabric-architect (finalize) | Review feedback | `deployments/handoff.md` (updated to FINAL) |
-| @fabric-tester (test plan) | `deployments/handoff.md` (FINAL) | `projects/[name]/docs/test-plan.md` |
-| @fabric-engineer (deploy) | `deployments/handoff.md` + `docs/test-plan.md` | Deployment Handoff |
-| @fabric-tester (validate) | Deployment Handoff + `validation/[task-flow].md` | Validation Report |
-| @fabric-documenter | All handoffs in project folder | `projects/[name]/docs/` |
+| @fabric-advisor | (user input) | `projects/[name]/prd/discovery-brief.md` |
+| @fabric-architect | `prd/discovery-brief.md` | `projects/[name]/prd/architecture-handoff.md` |
+| @fabric-engineer (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/engineer-review.md` |
+| @fabric-tester (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/tester-review.md` |
+| @fabric-architect (finalize) | `prd/engineer-review.md` + `prd/tester-review.md` | `prd/architecture-handoff.md` (updated to FINAL) |
+| @fabric-tester (test plan) | `prd/architecture-handoff.md` (FINAL) | `projects/[name]/prd/test-plan.md` |
+| @fabric-engineer (deploy) | `prd/architecture-handoff.md` + `prd/test-plan.md` | `projects/[name]/prd/deployment-handoff.md` |
+| @fabric-tester (validate) | `prd/deployment-handoff.md` + `validation/[task-flow].md` | `projects/[name]/prd/validation-report.md` |
+| @fabric-documenter | All 5 documents in `prd/` | `projects/[name]/docs/` |
 
 ---
 
@@ -179,12 +179,12 @@ Each agent reads the previous agent's output from the project folder. The orches
 
 | Phase | What Happens | Produces |
 |-------|-------------|----------|
-| 0a — Discovery | Advisor analyzes your problem and infers architectural signals | Discovery Brief |
-| 1a — Design | Architect selects task flow and makes design decisions | DRAFT handoff |
-| 1b — Review | Engineer + Tester review DRAFT in parallel | Feasibility + Testability reviews |
-| 1c — Finalize | Architect incorporates review feedback | FINAL handoff |
-| 2a — Test Plan | Tester maps acceptance criteria to validation checks | Test Plan |
+| 0a — Discovery | Advisor analyzes your problem and infers architectural signals | Discovery Brief → `prd/discovery-brief.md` |
+| 1a — Design | Architect selects task flow and makes design decisions | DRAFT handoff → `prd/architecture-handoff.md` |
+| 1b — Review | Engineer + Tester review DRAFT in parallel | Reviews → `prd/engineer-review.md` + `prd/tester-review.md` |
+| 1c — Finalize | Architect incorporates review feedback | FINAL handoff → `prd/architecture-handoff.md` (updated) |
+| 2a — Test Plan | Tester maps acceptance criteria to validation checks | Test Plan → `prd/test-plan.md` |
 | **2b — Sign-Off** | **🛑 You review and approve** | **Your approval** |
-| 2c — Deploy | Engineer deploys items by dependency wave | Deployment handoff |
-| 3 — Validate | Tester validates deployment against checklist | Validation Report |
-| 4 — Document | Documenter synthesizes all handoffs into wiki + ADRs | Project docs |
+| 2c — Deploy | Engineer deploys items by dependency wave | Deployment handoff → `prd/deployment-handoff.md` |
+| 3 — Validate | Tester validates deployment against checklist | Validation Report → `prd/validation-report.md` |
+| 4 — Document | Documenter synthesizes all handoffs into wiki + ADRs | Project docs → `docs/` |

@@ -161,13 +161,13 @@ When deployment is complete, produce a Deployment Handoff that feeds into the va
 > **The engineer has TWO handoff points. Neither involves the user.**
 
 ### After reviewing DRAFT Architecture (Mode 0):
-1. Produce Deployment Feasibility Review feedback
-2. **AUTO-CHAIN → return feedback to `@fabric-architect`** — The architect incorporates it alongside tester feedback. No user confirmation needed.
+1. Save Deployment Feasibility Review to `projects/[name]/prd/engineer-review.md`
+2. **AUTO-CHAIN → return to `@fabric-architect`** — The architect reads reviews from `prd/engineer-review.md` and `prd/tester-review.md`, then incorporates into FINAL. No user confirmation needed.
 
 ### After deployment is complete:
-1. Save Deployment Handoff to project folder
+1. Save Deployment Handoff to `projects/[name]/prd/deployment-handoff.md`
 2. Update `PROJECTS.md` — Phase = "Deployed"
-3. **AUTO-CHAIN → `@fabric-tester` (Mode 2)** — Tester validates the deployment against the validation checklist. No user confirmation needed.
+3. **AUTO-CHAIN → `@fabric-tester` (Mode 2)** — Tester reads deployment details from `prd/deployment-handoff.md` and validates against the checklist. No user confirmation needed.
 
 ## Signs of Drift
 
