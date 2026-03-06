@@ -324,7 +324,7 @@ Is your data ALREADY in a cloud store or another Fabric workspace?
 | **Custom source (no connector)** | Notebook (standalone) | Via Pipeline or manual |
 | **Databricks collaboration** | Mirrored Databricks Catalog or Shortcut | Automatic or always live |
 | **Multi-cloud data access** | Shortcut (S3, GCS) | None (always live) |
-| **Platform migration** | Copy Job + Pipeline (phased cutover) | Pipeline schedule |
+| **Platform migration (user-initiated)** | Copy Job + Pipeline (phased cutover) | Pipeline schedule |
 
 ### Pipeline Orchestration Example
 

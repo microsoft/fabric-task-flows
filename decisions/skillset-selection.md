@@ -33,6 +33,11 @@ options:
       personas: ["Mixed teams"]
       flexibility: maximum
       best_for: ["enterprise deployments", "shared ownership", "progressive complexity"]
+quick_decision: |
+  Engineers + Python/Spark/SQL → Code-First [CF]
+  Engineers + prefer visual tools → Low-Code [LC]
+  Business Analysts + Power Query → Low-Code [LC]
+  Mixed team (engineers + analysts) → Hybrid [LC/CF]
 ---
 
 # Skillset Selection: Code-First vs Low-Code
@@ -173,13 +178,13 @@ Who will BUILD and MAINTAIN this solution?
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Migration Paths
+## Evolution Paths
 
 ### Low-Code to Code-First
 
 When you outgrow Low-Code tools:
 
-| From (LC) | To (CF) | When to Migrate |
+| From (LC) | To (CF) | When to Evolve |
 |-----------|---------|-----------------|
 | Dataflow Gen2 | Notebook | Complex logic, large scale, reusability |
 | Copy Job | Pipeline + Notebook | Conditional logic, error handling |
@@ -190,7 +195,7 @@ When you outgrow Low-Code tools:
 
 When to simplify:
 
-| From (CF) | To (LC) | When to Migrate |
+| From (CF) | To (LC) | When to Evolve |
 |-----------|---------|-----------------|
 | Simple Notebook | Dataflow Gen2 | Business user maintenance |
 | Spark aggregations | Semantic Model measures | Standard BI calculations |
