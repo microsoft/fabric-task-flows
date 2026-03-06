@@ -124,7 +124,7 @@ Before choosing an ingestion method, assess your project across four dimensions:
 | **Pipeline** | Any | Batch | Activities + connectors + Notebooks | Low-code + Code [LC/CF] |
 | **Notebook** | Large → Very Large | Batch | Custom code (any source) | Code-first [CF] |
 | **Eventstream** | Any (streaming) | Real-time | Event Hubs, Kafka, custom apps | Low-code [LC] |
-| **Mirroring** | Any | Continuous CDC | Azure SQL, Cosmos DB, Snowflake, Databricks, SQL Server 2025 | Low-code [LC] |
+| **Mirroring** | Any | Continuous CDC | Azure SQL, Azure SQL MI, Cosmos DB, Snowflake, Databricks, SQL Server 2025, MySQL (preview), PostgreSQL (preview) | Low-code [LC] |
 | **Shortcut** | Any | Always live (zero-copy) | ADLS Gen2, S3, GCS, cross-workspace Fabric items | Low-code [LC] |
 | **Fabric Link** | Any | Continuous sync | Dataverse (Dynamics 365, Power Platform) | Low-code [LC] |
 
@@ -252,7 +252,7 @@ Is your data ALREADY in a cloud store or another Fabric workspace?
 ### Choose MIRRORING when:
 
 - ✅ You need to **replicate an entire database** to OneLake
-- ✅ Source is Azure SQL, Cosmos DB, Snowflake, SQL Server 2025, or Azure Databricks (Unity Catalog)
+- ✅ Source is Azure SQL, Azure SQL MI, Cosmos DB, Snowflake, SQL Server 2025, Azure Databricks (Unity Catalog), Azure Database for MySQL (preview), or Azure Database for PostgreSQL (preview)
 - ✅ You want **CDC (Change Data Capture)** without custom code
 - ✅ **Near real-time sync** of operational data
 - ✅ No transformation needed (raw replication)
@@ -262,6 +262,8 @@ Is your data ALREADY in a cloud store or another Fabric workspace?
 - Replicate Cosmos DB for cross-region or analytics
 - Mirror Snowflake data into Fabric
 - Mirror Azure Databricks Unity Catalog for cross-platform collaboration
+- Mirror Azure SQL Managed Instance for near-real-time analytics
+- Replicate Azure Database for MySQL to OneLake (preview)
 
 ### Choose SHORTCUT when:
 
@@ -346,7 +348,7 @@ Understanding the **variety** of your data sources, shapes, and landing targets 
 
 | Source Category | Examples | Best Tool |
 |----------------|----------|-----------|
-| **Databases** | SQL Server, Oracle, MySQL, PostgreSQL | Copy Job, Pipeline, Mirroring |
+| **Databases** | SQL Server, Azure SQL MI, Oracle, MySQL, PostgreSQL | Copy Job, Pipeline, Mirroring |
 | **Files** | CSV, Parquet, JSON, Excel, XML | Copy Job, Dataflow Gen2 |
 | **APIs** | REST endpoints, OData feeds | Dataflow Gen2, Pipeline + Notebook |
 | **SaaS Apps** | Salesforce, Dynamics 365, SharePoint | Dataflow Gen2 (built-in connectors) |
