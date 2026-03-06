@@ -4,6 +4,7 @@
 
 | Project | Task Flow | Phase | Status | Blockers | Next Action |
 |---------|-----------|-------|--------|----------|-------------|
+| chicago-bears-85 | medallion | Design | DRAFT handoff produced | None | @fabric-engineer + @fabric-tester Design Review |
 
 > Project rows are generated locally by agents. See `projects/` folder (gitignored) for per-project artifacts.
 
