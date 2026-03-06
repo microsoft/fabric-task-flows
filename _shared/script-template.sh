@@ -20,18 +20,16 @@ print_banner() {
   echo ""
   echo "╔══════════════════════════════════════════════════════════════════╗"
   echo "║                                                                  ║"
-  echo "║        /@@@@@@@@@@@@/                                            ║"
-  echo "║       /@@@@@@@@@@@@/   ┌──────────────────────────────────────┐  ║"
-  echo "║      /@@@@/            │                                      │  ║"
-  echo "║     /@@@@@@@@@@@@/     │ F A B R I C   T A S K   F L O W S    │  ║"
-  echo "║    /@@@@/              │ ──────────────────────────────────── │  ║"
-  echo "║   /@@@@/               │ Deploy Microsoft Fabric              │  ║"
-  echo "║  /@@@@/                │ architectures to production          │  ║"
+  echo "║        /@@@@@@@@@@@@/  ┌──────────────────────────────────────┐  ║"
+  echo "║       /@@@@@@@@@@@@/   │ F A B R I C   T A S K   F L O W S    │  ║"
+  echo "║      /@@@@@@@@@/       │ ──────────────────────────────────── │  ║"
+  echo "║     /@@@@@@/           │ Deploy Microsoft Fabric              │  ║"
+  echo "║    /@@@@@@/            │ architectures to production          │  ║"
   echo "║                        └──────────────────────────────────────┘  ║"
   echo "║                                                                  ║"
-  printf "║  Project:   %-53s ║\n" "$project_name"
-  printf "║  Task Flow: %-53s ║\n" "$task_flow"
-  printf "║  Mode:      %-53s ║\n" "$mode"
+  printf "║  Project:   %-52s ║\n" "$project_name"
+  printf "║  Task Flow: %-52s ║\n" "$task_flow"
+  printf "║  Mode:      %-52s ║\n" "$mode"
   echo "║                                                                  ║"
   echo "╚══════════════════════════════════════════════════════════════════╝"
   echo ""
@@ -50,6 +48,7 @@ prompt_value() {
   local var_name="$1"
   local prompt_text="$2"
   local default_value="${3:-}"
+  local optional="${4:-}"
   local env_value="${!var_name:-}"
 
   if [[ -n "$env_value" ]]; then
@@ -58,32 +57,57 @@ prompt_value() {
   fi
 
   if [[ -n "$default_value" ]]; then
-    read -rp "  ? $prompt_text [$default_value]: " input
+    read -rp "  ? $prompt_text (Enter = $default_value, or type to rename): " input
     echo "${input:-$default_value}"
+  elif [[ "$optional" == "optional" ]]; then
+    read -rp "  ? $prompt_text (optional, Enter to skip): " input
+    echo "$input"
   else
     read -rp "  ? $prompt_text: " input
     echo "$input"
   fi
 }
 
-prompt_choice() {
-  local prompt_text="$1"
-  shift
-  local options=("$@")
+DEPLOY_CREATED=0
+DEPLOY_EXISTS=0
+DEPLOY_FAILED=0
+DEPLOY_LOG=""
 
-  echo "  ? $prompt_text"
-  for i in "${!options[@]}"; do
-    if [[ $i -eq 0 ]]; then
-      echo "    ❯ ${options[$i]}"
-    else
-      echo "      ${options[$i]}"
+fab_mkdir() {
+  local path="$1"
+  local label="$2"
+  local tree_char="${3:-├──}"
+  shift 3 2>/dev/null || true
+  local extra_args=("$@")
+  local max_retries=3
+
+  # Idempotency: skip if item already exists
+  if fab exists "$path" 2>&1 | cat > /dev/null; then
+    echo "  $tree_char ✅ $label (already exists)"
+    DEPLOY_EXISTS=$((DEPLOY_EXISTS + 1))
+    DEPLOY_LOG="${DEPLOY_LOG}\n  ✅ Exists   $label"
+    return
+  fi
+
+  # Retry with backoff for transient failures
+  for attempt in $(seq 1 $max_retries); do
+    if fab mkdir "$path" "${extra_args[@]}" 2>&1 | cat > /dev/null; then
+      echo "  $tree_char ✅ $label"
+      DEPLOY_CREATED=$((DEPLOY_CREATED + 1))
+      DEPLOY_LOG="${DEPLOY_LOG}\n  ✅ Created  $label"
+      return
+    fi
+    if [ "$attempt" -lt "$max_retries" ]; then
+      local wait=$((attempt * 10))
+      echo "  $tree_char ⚠️  $label (attempt $attempt failed, retrying in ${wait}s...)"
+      sleep "$wait"
     fi
   done
 
-  local choice
-  read -rp "  Enter choice (1-${#options[@]}) [1]: " choice
-  choice="${choice:-1}"
-  echo "${options[$((choice - 1))]}"
+  echo "  $tree_char ❌ $label (failed after $max_retries attempts)"
+  DEPLOY_FAILED=$((DEPLOY_FAILED + 1))
+  DEPLOY_LOG="${DEPLOY_LOG}\n  ❌ Failed   $label"
+  exit 1
 }
 
 # ---------------------------------------------------------------------------
@@ -92,26 +116,34 @@ prompt_choice() {
 main() {
   print_banner "$PROJECT_NAME" "$TASK_FLOW" "Deploy to Fabric"
 
-  echo "┌─────────────────────────────────────────────────────────────┐"
-  echo "│  CONFIGURATION                                              │"
-  echo "│  Fill in the values below or set as environment variables.  │"
-  echo "└─────────────────────────────────────────────────────────────┘"
+  # ---------------------------------------------------------------------------
+  # Preflight checks
+  # ---------------------------------------------------------------------------
+  echo "  Checking prerequisites..."
+  if ! command -v fab &> /dev/null; then
+    echo "  ❌ Fabric CLI (fab) not found."
+    echo "     Install with: pip install ms-fabric-cli"
+    exit 1
+  fi
+  echo "  ── ✅ Fabric CLI found"
+  echo ""
+
+  echo "┌──────────────────────────────────────────────────────────────────┐"
+  echo "│  CONFIGURATION                                                   │"
+  echo "│  Fill in the values below or set as environment variables.       │"
+  echo "└──────────────────────────────────────────────────────────────────┘"
   echo ""
 
   FABRIC_WORKSPACE_NAME=$(prompt_value "FABRIC_WORKSPACE_NAME" "Workspace name" "{{PROJECT_SLUG}}-dev")
-  FABRIC_CAPACITY_ID=$(prompt_value "FABRIC_CAPACITY_ID" "Fabric Capacity ID")
-  FABRIC_TENANT_ID=$(prompt_value "FABRIC_TENANT_ID" "Azure AD Tenant ID")
-  FABRIC_ENVIRONMENT=$(prompt_value "FABRIC_ENVIRONMENT" "Target environment" "dev")
-  FABRIC_AUTH_METHOD=$(prompt_choice "Authentication method" "Interactive login (fab auth login)" "Service principal" "Managed identity")
 
   # {{TASK_FLOW_SPECIFIC_PROMPTS}}
   # Agent: Insert task-flow-specific prompts here (Event Hub, SQL connections, etc.)
 
   echo ""
-  echo "┌─────────────────────────────────────────────────────────────┐"
-  echo "│  DEPLOYMENT PLAN                                            │"
-  echo "│  Task flow: $TASK_FLOW  |  Items: {{ITEM_COUNT}}  |  Waves: {{WAVE_COUNT}}           │"
-  echo "└─────────────────────────────────────────────────────────────┘"
+  echo "┌──────────────────────────────────────────────────────────────────┐"
+  echo "│  DEPLOYMENT PLAN                                                 │"
+  printf "│%-66s│\n" "  Task flow: $TASK_FLOW  |  Items: {{ITEM_COUNT}}  |  Waves: {{WAVE_COUNT}}"
+  echo "└──────────────────────────────────────────────────────────────────┘"
   echo ""
 
   # {{DEPLOYMENT_PLAN_PREVIEW}}
@@ -130,20 +162,15 @@ main() {
   fi
 
   # ---------------------------------------------------------------------------
-  # Authentication
+  # Workspace
   # ---------------------------------------------------------------------------
   echo ""
-  echo "  Authenticating..."
-  case "$FABRIC_AUTH_METHOD" in
-    "Interactive login"*) fab auth login ;;
-    "Service principal"*)
-      SPN_CLIENT_ID=$(prompt_value "SPN_CLIENT_ID" "Service Principal Client ID")
-      SPN_CLIENT_SECRET=$(prompt_value "SPN_CLIENT_SECRET" "Service Principal Client Secret")
-      fab auth login -u "$SPN_CLIENT_ID" -p "$SPN_CLIENT_SECRET" --tenant "$FABRIC_TENANT_ID"
-      ;;
-    "Managed identity"*) fab auth login --identity ;;
-  esac
-  echo "  ✅ Authenticated"
+  if fab exists "$FABRIC_WORKSPACE_NAME.Workspace" 2>&1 | cat > /dev/null; then
+    echo "  ── ✅ Workspace already exists: $FABRIC_WORKSPACE_NAME"
+  else
+    echo "  Creating workspace..."
+    fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace" "Workspace: $FABRIC_WORKSPACE_NAME" "──"
+  fi
 
   # ---------------------------------------------------------------------------
   # Wave Deployment
@@ -159,10 +186,59 @@ main() {
   #   echo "  ├── ✅ Lakehouse: {{item-name}}"
 
   echo ""
-  echo "┌─────────────────────────────────────────────────────────────┐"
-  echo "│  DEPLOYMENT COMPLETE                                        │"
-  echo "│  All items deployed successfully.                           │"
-  echo "└─────────────────────────────────────────────────────────────┘"
+  echo "┌──────────────────────────────────────────────────────────────────┐"
+  echo "│  DEPLOYMENT SUMMARY                                              │"
+  echo "└──────────────────────────────────────────────────────────────────┘"
+  echo ""
+  printf "%b\n" "$DEPLOY_LOG"
+  echo ""
+  echo "  Created: $DEPLOY_CREATED  |  Already existed: $DEPLOY_EXISTS  |  Failed: $DEPLOY_FAILED"
+
+  # ---------------------------------------------------------------------------
+  # Post-Deployment Metadata
+  # ---------------------------------------------------------------------------
+  echo ""
+  echo "┌──────────────────────────────────────────────────────────────────┐"
+  echo "│  POST-DEPLOYMENT METADATA                                       │"
+  echo "└──────────────────────────────────────────────────────────────────┘"
+  echo ""
+
+  # Workspace ID
+  local ws_json
+  ws_json=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace" --output json 2>/dev/null || echo "{}")
+  local workspace_id
+  workspace_id=$(echo "$ws_json" | grep -o '"id"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"id"\s*:\s*"\([^"]*\)".*/\1/')
+  workspace_id="${workspace_id:-(unavailable)}"
+  echo "  Workspace ID:   $workspace_id"
+
+  # Tenant ID
+  local auth_json
+  auth_json=$(fab auth status --output json 2>/dev/null || echo "{}")
+  local tenant_id
+  tenant_id=$(echo "$auth_json" | grep -o '"tenantId"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"tenantId"\s*:\s*"\([^"]*\)".*/\1/')
+  tenant_id="${tenant_id:-(unavailable)}"
+  echo "  Tenant ID:      $tenant_id"
+
+  # Portal URL
+  local portal_base="https://app.fabric.microsoft.com/groups/$workspace_id"
+  echo "  Workspace URL:  $portal_base"
+  echo ""
+
+  # Per-item IDs
+  echo "  Item Details:"
+  # Re-parse deploy log for item names is not reliable; items were tracked above.
+  # Use fab ls to enumerate workspace items.
+  local items_json
+  items_json=$(fab ls "$FABRIC_WORKSPACE_NAME.Workspace" --output json 2>/dev/null || echo "[]")
+  echo "$items_json" | grep -o '"displayName"\s*:\s*"[^"]*"\|"id"\s*:\s*"[^"]*"' | paste - - | while read -r line; do
+    local item_name item_id
+    item_name=$(echo "$line" | sed 's/.*"displayName"\s*:\s*"\([^"]*\)".*/\1/')
+    item_id=$(echo "$line" | sed 's/.*"id"\s*:\s*"\([^"]*\)".*/\1/')
+    echo "  ├── $item_name  →  ID: $item_id"
+  done
+  echo ""
+  echo "  ℹ️  Save these IDs — they are required for CI/CD parameterization"
+  echo "     and fabric-cicd library configuration."
 }
 
 main "$@"

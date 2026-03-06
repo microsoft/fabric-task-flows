@@ -21,18 +21,16 @@ function Print-Banner {
   Write-Host ""
   Write-Host "╔══════════════════════════════════════════════════════════════════╗"
   Write-Host "║                                                                  ║"
-  Write-Host "║        /@@@@@@@@@@@@/                                            ║"
-  Write-Host "║       /@@@@@@@@@@@@/   ┌──────────────────────────────────────┐  ║"
-  Write-Host "║      /@@@@/            │                                      │  ║"
-  Write-Host "║     /@@@@@@@@@@@@/     │ F A B R I C   T A S K   F L O W S    │  ║"
-  Write-Host "║    /@@@@/              │ ──────────────────────────────────── │  ║"
-  Write-Host "║   /@@@@/               │ Deploy Microsoft Fabric              │  ║"
-  Write-Host "║  /@@@@/                │ architectures to production          │  ║"
+  Write-Host "║        /@@@@@@@@@@@@/  ┌──────────────────────────────────────┐  ║"
+  Write-Host "║       /@@@@@@@@@@@@/   │ F A B R I C   T A S K   F L O W S    │  ║"  
+  Write-Host "║      /@@@@@@@@@/       │ ──────────────────────────────────── │  ║"
+  Write-Host "║     /@@@@@@/           │ Deploy Microsoft Fabric              │  ║"
+  Write-Host "║    /@@@@@@/            │ architectures to production          │  ║"
   Write-Host "║                        └──────────────────────────────────────┘  ║"
   Write-Host "║                                                                  ║"
-  Write-Host ("║  Project:   {0,-53} ║" -f $ProjectName)
-  Write-Host ("║  Task Flow: {0,-53} ║" -f $TaskFlow)
-  Write-Host ("║  Mode:      {0,-53} ║" -f $Mode)
+  Write-Host ("║  Project:   {0,-52} ║" -f $ProjectName)
+  Write-Host ("║  Task Flow: {0,-52} ║" -f $TaskFlow)
+  Write-Host ("║  Mode:      {0,-52} ║" -f $Mode)
   Write-Host "║                                                                  ║"
   Write-Host "╚══════════════════════════════════════════════════════════════════╝"
   Write-Host ""
@@ -51,39 +49,62 @@ function Prompt-Value {
   param(
     [string]$EnvVarName,
     [string]$PromptText,
-    [string]$DefaultValue = ""
+    [string]$DefaultValue = "",
+    [switch]$Optional
   )
 
   $envValue = [System.Environment]::GetEnvironmentVariable($EnvVarName)
   if ($envValue) { return $envValue }
 
   if ($DefaultValue) {
-    $input = Read-Host "  ? $PromptText [$DefaultValue]"
+    $input = Read-Host "  ? $PromptText (Enter = $DefaultValue, or type to rename)"
     if ([string]::IsNullOrWhiteSpace($input)) { return $DefaultValue }
+    return $input
+  } elseif ($Optional) {
+    $input = Read-Host "  ? $PromptText (optional, Enter to skip)"
+    if ([string]::IsNullOrWhiteSpace($input)) { return "" }
     return $input
   } else {
     return Read-Host "  ? $PromptText"
   }
 }
 
-function Prompt-Choice {
+function Fab-Mkdir {
   param(
-    [string]$PromptText,
-    [string[]]$Options
+    [string]$Path,
+    [string]$Label,
+    [string]$TreeChar = "├──",
+    [string[]]$ExtraArgs = @(),
+    [int]$MaxRetries = 3
   )
 
-  Write-Host "  ? $PromptText"
-  for ($i = 0; $i -lt $Options.Count; $i++) {
-    if ($i -eq 0) {
-      Write-Host "    > $($Options[$i])"
-    } else {
-      Write-Host "      $($Options[$i])"
+  # Idempotency: skip if item already exists
+  fab exists "$Path" 2>&1 | Out-Null
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "  $TreeChar ✅ $Label (already exists)"
+    $script:DeployResults += @{ Label = $Label; Status = "exists" }
+    return
+  }
+
+  # Retry with backoff for transient failures
+  for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
+    $allArgs = @("mkdir", $Path) + $ExtraArgs
+    & fab @allArgs 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+      Write-Host "  $TreeChar ✅ $Label"
+      $script:DeployResults += @{ Label = $Label; Status = "created" }
+      return
+    }
+    if ($attempt -lt $MaxRetries) {
+      $wait = $attempt * 10
+      Write-Host "  $TreeChar ⚠️  $Label (attempt $attempt failed, retrying in ${wait}s...)"
+      Start-Sleep -Seconds $wait
     }
   }
 
-  $choice = Read-Host "  Enter choice (1-$($Options.Count)) [1]"
-  if ([string]::IsNullOrWhiteSpace($choice)) { $choice = "1" }
-  return $Options[[int]$choice - 1]
+  Write-Host "  $TreeChar ❌ $Label (failed after $MaxRetries attempts)"
+  $script:DeployResults += @{ Label = $Label; Status = "failed" }
+  throw "Deployment failed: $Label"
 }
 
 # ---------------------------------------------------------------------------
@@ -92,26 +113,38 @@ function Prompt-Choice {
 function Main {
   Print-Banner -ProjectName $ProjectName -TaskFlow $TaskFlow -Mode "Deploy to Fabric"
 
-  Write-Host "┌─────────────────────────────────────────────────────────────┐"
-  Write-Host "│  CONFIGURATION                                              │"
-  Write-Host "│  Fill in the values below or set as environment variables.  │"
-  Write-Host "└─────────────────────────────────────────────────────────────┘"
+  # ---------------------------------------------------------------------------
+  # Preflight checks
+  # ---------------------------------------------------------------------------
+  Write-Host "  Checking prerequisites..."
+  $fabCmd = Get-Command fab -ErrorAction SilentlyContinue
+  if (-not $fabCmd) {
+    Write-Host "  ❌ Fabric CLI (fab) not found."
+    Write-Host "     Install with: pip install ms-fabric-cli"
+    return
+  }
+  Write-Host "  ── ✅ Fabric CLI found"
+  Write-Host ""
+
+  # Track deployment results
+  $script:DeployResults = @()
+
+  Write-Host "┌──────────────────────────────────────────────────────────────────┐"
+  Write-Host "│  CONFIGURATION                                                   │"
+  Write-Host "│  Fill in the values below or set as environment variables.       │"
+  Write-Host "└──────────────────────────────────────────────────────────────────┘"
   Write-Host ""
 
   $WorkspaceName = Prompt-Value -EnvVarName "FABRIC_WORKSPACE_NAME" -PromptText "Workspace name" -DefaultValue "{{PROJECT_SLUG}}-dev"
-  $CapacityId = Prompt-Value -EnvVarName "FABRIC_CAPACITY_ID" -PromptText "Fabric Capacity ID"
-  $TenantId = Prompt-Value -EnvVarName "FABRIC_TENANT_ID" -PromptText "Azure AD Tenant ID"
-  $Environment = Prompt-Value -EnvVarName "FABRIC_ENVIRONMENT" -PromptText "Target environment" -DefaultValue "dev"
-  $AuthMethod = Prompt-Choice -PromptText "Authentication method" -Options @("Interactive login (fab auth login)", "Service principal", "Managed identity")
 
   # {{TASK_FLOW_SPECIFIC_PROMPTS}}
   # Agent: Insert task-flow-specific prompts here
 
   Write-Host ""
-  Write-Host "┌─────────────────────────────────────────────────────────────┐"
-  Write-Host "│  DEPLOYMENT PLAN                                            │"
-  Write-Host "│  Task flow: $TaskFlow  |  Items: {{ITEM_COUNT}}  |  Waves: {{WAVE_COUNT}}           │"
-  Write-Host "└─────────────────────────────────────────────────────────────┘"
+  Write-Host "┌──────────────────────────────────────────────────────────────────┐"
+  Write-Host "│  DEPLOYMENT PLAN                                                 │"
+  Write-Host ("│{0,-66}│" -f "  Task flow: $TaskFlow  |  Items: {{ITEM_COUNT}}  |  Waves: {{WAVE_COUNT}}")
+  Write-Host "└──────────────────────────────────────────────────────────────────┘"
   Write-Host ""
 
   # {{DEPLOYMENT_PLAN_PREVIEW}}
@@ -125,20 +158,16 @@ function Main {
   }
 
   # ---------------------------------------------------------------------------
-  # Authentication
+  # Workspace
   # ---------------------------------------------------------------------------
   Write-Host ""
-  Write-Host "  Authenticating..."
-  switch -Wildcard ($AuthMethod) {
-    "Interactive*" { fab auth login }
-    "Service*" {
-      $ClientId = Prompt-Value -EnvVarName "SPN_CLIENT_ID" -PromptText "Service Principal Client ID"
-      $ClientSecret = Prompt-Value -EnvVarName "SPN_CLIENT_SECRET" -PromptText "Service Principal Client Secret"
-      fab auth login -u $ClientId -p $ClientSecret --tenant $TenantId
-    }
-    "Managed*" { fab auth login --identity }
+  fab exists "$WorkspaceName.Workspace" 2>&1 | Out-Null
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "  ── ✅ Workspace already exists: $WorkspaceName"
+  } else {
+    Write-Host "  Creating workspace..."
+    Fab-Mkdir -Path "$WorkspaceName.Workspace" -Label "Workspace: $WorkspaceName" -TreeChar "──"
   }
-  Write-Host "  ✅ Authenticated"
 
   # ---------------------------------------------------------------------------
   # Wave Deployment
@@ -147,10 +176,57 @@ function Main {
   # Agent: Insert fab mkdir commands grouped by wave
 
   Write-Host ""
-  Write-Host "┌─────────────────────────────────────────────────────────────┐"
-  Write-Host "│  DEPLOYMENT COMPLETE                                        │"
-  Write-Host "│  All items deployed successfully.                           │"
-  Write-Host "└─────────────────────────────────────────────────────────────┘"
+  Write-Host "┌──────────────────────────────────────────────────────────────────┐"
+  Write-Host "│  DEPLOYMENT SUMMARY                                              │"
+  Write-Host "└──────────────────────────────────────────────────────────────────┘"
+  Write-Host ""
+  $created = ($script:DeployResults | Where-Object { $_.Status -eq "created" }).Count
+  $existed = ($script:DeployResults | Where-Object { $_.Status -eq "exists" }).Count
+  $failed  = ($script:DeployResults | Where-Object { $_.Status -eq "failed" }).Count
+  foreach ($r in $script:DeployResults) {
+    $icon = switch ($r.Status) { "created" { "✅ Created" } "exists" { "✅ Exists " } "failed" { "❌ Failed " } default { "⏭️  Skipped" } }
+    Write-Host "  $icon  $($r.Label)"
+  }
+  Write-Host ""
+  Write-Host "  Created: $created  |  Already existed: $existed  |  Failed: $failed"
+
+  # ---------------------------------------------------------------------------
+  # Post-Deployment Metadata
+  # ---------------------------------------------------------------------------
+  Write-Host ""
+  Write-Host "┌──────────────────────────────────────────────────────────────────┐"
+  Write-Host "│  POST-DEPLOYMENT METADATA                                       │"
+  Write-Host "└──────────────────────────────────────────────────────────────────┘"
+  Write-Host ""
+
+  # Workspace ID
+  $wsInfo = fab get "$WorkspaceName.Workspace" --output json 2>$null | ConvertFrom-Json
+  $WorkspaceId = if ($wsInfo.id) { $wsInfo.id } else { "(unavailable)" }
+  Write-Host "  Workspace ID:   $WorkspaceId"
+
+  # Tenant ID
+  $authInfo = fab auth status --output json 2>$null | ConvertFrom-Json
+  $TenantId = if ($authInfo.tenantId) { $authInfo.tenantId } else { "(unavailable)" }
+  Write-Host "  Tenant ID:      $TenantId"
+
+  # Portal URL
+  $portalBase = "https://app.fabric.microsoft.com/groups/$WorkspaceId"
+  Write-Host "  Workspace URL:  $portalBase"
+  Write-Host ""
+
+  # Per-item IDs
+  Write-Host "  Item Details:"
+  foreach ($r in $script:DeployResults) {
+    if ($r.Status -eq "created" -or $r.Status -eq "exists") {
+      $itemName = ($r.Label -split ":\s*", 2)[-1].Trim()
+      $itemInfo = fab get "$WorkspaceName.Workspace/$itemName" --output json 2>$null | ConvertFrom-Json
+      $itemId = if ($itemInfo.id) { $itemInfo.id } else { "-" }
+      Write-Host "  ├── $($r.Label)  →  ID: $itemId"
+    }
+  }
+  Write-Host ""
+  Write-Host "  ℹ️  Save these IDs — they are required for CI/CD parameterization"
+  Write-Host "     and fabric-cicd library configuration."
 }
 
 Main
