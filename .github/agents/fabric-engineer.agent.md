@@ -144,6 +144,8 @@ When deployment is complete, provide summary for `@fabric-tester` agent:
 
 > **HARD REQUIREMENT:** The `Implementation Notes` and `Configuration Rationale` sections are MANDATORY. The `@fabric-documenter` agent requires this information to generate deployment documentation that explains not just what was deployed, but why specific configurations were chosen.
 
+**Status Tracking:** After deployment completes (or partially completes), update `PROJECTS.md` (phase → "Deployed" or note partial) and the project's `STATUS.md` (wave progress, manual step completion).
+
 ## Signs of Drift
 
 Watch for these indicators that deployment is going off track:
@@ -155,6 +157,7 @@ Watch for these indicators that deployment is going off track:
 - **Skipping manual steps documentation** — every manual action must be logged in the handoff
 - **Ignoring the Test Plan** — deploying without reviewing acceptance criteria leads to untestable configurations
 - **Scope creep** — configuring items beyond what the handoff specifies (e.g., adding extra tables, creating unplanned notebooks)
+- **PROJECTS.md or STATUS.md out of sync** — wave progress and phase should reflect actual deployment state
 
 ## Boundaries
 

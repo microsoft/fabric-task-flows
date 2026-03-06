@@ -2,7 +2,7 @@
 
 > Technical architecture guidance for Microsoft Fabric projects.
 
-Task Flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes four GitHub Copilot custom agents that collaborate in phases:
+Task flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes four GitHub Copilot custom agents that collaborate in phases:
 
 ```
 @fabric-architect (DRAFT) ──► @fabric-engineer + @fabric-tester (Design Review)
@@ -14,11 +14,12 @@ Task Flows is a documentation-only knowledge base of pre-defined architectures, 
 
 ```
 task-flows/
+├── PROJECTS.md                    # Mission control — all projects at a glance
 ├── .github/
 │   ├── agents/                     # GitHub Copilot custom agents
 │   │   ├── fabric-architect.agent.md   # Architecture decisions (core/advanced prompting)
 │   │   ├── fabric-engineer.agent.md    # Deployment execution (parallel waves, CI/CD)
-│   │   ├── fabric-tester.agent.md      # Validation & testing (2 modes)
+│   │   ├── fabric-tester.agent.md      # Validation & testing (3 modes)
 │   │   └── fabric-documenter.agent.md  # Wiki & ADR generation
 │   └── copilot-instructions.md     # System-level agent context
 ├── task-flows.md                   # All 10 task flow patterns (consolidated)
@@ -34,6 +35,7 @@ task-flows/
 │   └── {task-flow}.md                  # Phase-by-phase validation with Direct Lake guidance
 ├── projects/                       # Per-project documentation & deployments
 │   └── {workspace-name}/
+│       ├── STATUS.md                    # Project status tracker (phase log, blockers, wave progress)
 │       ├── docs/                       # Architecture docs, test plans, ADRs
 │       │   ├── test-plan.md
 │       │   ├── architecture.md
@@ -60,6 +62,10 @@ task-flows/
 
 ## 🚀 Quick Start
 
+### Check Project Status
+
+Open [`PROJECTS.md`](PROJECTS.md) at the repo root to see all projects and their current phase. Each project also has a detailed `STATUS.md` tracker at `projects/{name}/STATUS.md`.
+
 ### Using the Agents
 
 From VS Code / GitHub.com with GitHub Copilot, mention an agent in chat:
@@ -83,12 +89,12 @@ Values not collected by the architect are prompted just-in-time by the **@fabric
 
 ```
 Phase 1 — Design:
-┌─────────────┐         ┌─────────────┐
-│  Architect   │──DRAFT──►│  Engineer   │── Deployment Feasibility Review
+┌──────────────┐         ┌─────────────┐
+│  Architect   │──DRAFT──►│  Engineer  │── Deployment Feasibility Review
 │  (Leads)     │         │  (Reviews)  │
 │              │         └─────────────┘
 │              │         ┌─────────────┐
-│              │──DRAFT──►│   Tester    │── Testability Review
+│              │──DRAFT──►│   Tester   │── Testability Review
 │              │         │  (Reviews)  │
 │              │         └─────────────┘
 │              │◄── feedback ──────────┘
@@ -251,8 +257,6 @@ All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-an
 
 ### Terminology Rules
 
-- **"Direct Lake"** — Always two words with space (never "DirectLake")
-- **"task flow"** — Always two words with space (never "taskflow")
 - Path templates use hyphenated form: `{task-flow-id}`
 
 ### Updating Agents

@@ -84,6 +84,8 @@ This Test Plan goes to `@fabric-engineer` so they deploy with testability in min
 
 > **HARD REQUIREMENT:** The `Validation Context` and `Future Considerations` sections are MANDATORY. The `@fabric-documenter` agent requires this information.
 
+**Status Tracking:** After producing a Test Plan (Mode 1) or Validation Report (Mode 2), update `PROJECTS.md` (phase column) and the project's `STATUS.md` (phase progression log).
+
 ## Reference Documentation
 - Validation checklists: `validation/` directory
 - Architecture diagrams: `diagrams/` (for expected item relationships)
@@ -99,6 +101,7 @@ This Test Plan goes to `@fabric-engineer` so they deploy with testability in min
 - **Ignoring manual steps** — pending manual steps from the Engineer must be flagged, not silently skipped
 - **Marking phases as passed without verification commands** — every check should have a corresponding `fab` command or manual inspection step
 - **Circular re-validation** — if the same check fails repeatedly, escalate rather than retrying indefinitely
+- **PROJECTS.md or STATUS.md out of sync** — project phase should reflect validation outcome
 
 ## Boundaries
 - ✅ **Always:** Provide actionable remediation steps for failures. Map every acceptance criterion to a specific validation check. Include `fab` CLI commands for every verifiable item. Escalate deployment issues to `@fabric-engineer` and design issues to `@fabric-architect`.

@@ -5,11 +5,24 @@
 ## Overview
 
 ```
+Phase 0 — Status:     Check PROJECTS.md → find your project → see next action
 Phase 1 — Design:     @fabric-architect (DRAFT → Review → FINAL)
 Phase 2 — Plan+Deploy: @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
 Phase 3 — Validate:    @fabric-tester (Validate)
 Phase 4 — Document:    @fabric-documenter (ADRs + wiki)
 ```
+
+---
+
+## Step 0: Check Status
+
+Before starting any phase, check where your project stands:
+
+1. **Read `PROJECTS.md`** at the repo root — find your project row, check Phase and Next Action
+2. **Read `projects/[name]/STATUS.md`** — see detailed phase history, active blockers, and pending manual steps
+3. **Invoke the agent listed in "Next Action"** using the prompts below
+
+> If starting a brand new project, skip to Phase 1a and add a row to PROJECTS.md with Phase = "Design".
 
 ---
 

@@ -45,6 +45,7 @@ Watch for these indicators that documentation is going off track:
 - **Using jargon without explanation** — documentation must be accessible to non-technical stakeholders
 - **Overwriting existing documentation** — always confirm before replacing existing files
 - **Missing handoff sections** — if a handoff section exists, it must appear somewhere in the documentation
+- **PROJECTS.md or STATUS.md out of sync** — update phase to "Complete" after documentation is produced
 
 ## Boundaries
 

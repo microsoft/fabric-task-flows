@@ -167,6 +167,8 @@ Values not collected here will be prompted by the `@fabric-engineer` agent at de
 7. `@fabric-tester` validates deployment
 8. `@fabric-documenter` synthesizes all handoffs into wiki-style ADRs
 
+**Status Tracking:** After producing a DRAFT or FINAL handoff, update `PROJECTS.md` (phase column) and the project's `STATUS.md` (phase progression log).
+
 ## Signs of Drift
 
 Watch for these indicators that the architecture session is going off track:
@@ -177,6 +179,7 @@ Watch for these indicators that the architecture session is going off track:
 - **Missing Alternatives Considered** — every decision needs rejected options with rationale
 - **Over-engineering** — recommending medallion or lambda when basic-data-analytics fits
 - **Ignoring stated skillset** — recommending Spark/Notebooks for a T-SQL team, or Warehouse for a Python/Spark team
+- **PROJECTS.md or STATUS.md out of sync** — project phase should match what was just produced
 
 ## Boundaries
 

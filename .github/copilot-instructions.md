@@ -24,9 +24,11 @@ All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event
 
 | Content | Path pattern |
 |---------|-------------|
+| Project index | `PROJECTS.md` (root-level dashboard) |
 | Task flow overview | `task-flows.md` → H2 anchor (`## Medallion`) |
 | Deployment diagram | `diagrams/{task-flow-id}.md` |
 | Validation checklist | `validation/{task-flow-id}.md` |
+| Project status | `projects/{workspace}/STATUS.md` |
 | Project documentation | `projects/{workspace}/docs/` |
 | Project deployments | `projects/{workspace}/deployments/` |
 
