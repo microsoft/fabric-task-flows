@@ -25,7 +25,7 @@
 
 ## How to Use
 
-1. **Starting a new project?** Add a row with Phase = "Discovery" and invoke `@fabric-guide`
+1. **Starting a new project?** Add a row with Phase = "Discovery" and invoke `@fabric-advisor`
 2. **Resuming work?** Check this table → read the project's `STATUS.md` for details → invoke the next agent
 3. **Agents update this table** as part of their handoff output
 

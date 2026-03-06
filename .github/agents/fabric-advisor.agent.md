@@ -1,5 +1,5 @@
 ---
-name: fabric-guide
+name: fabric-advisor
 description: Discovers what problems a project needs to solve, infers architectural signals, and produces a Discovery Brief for the architect
 tools: ["read", "search"]
 ---

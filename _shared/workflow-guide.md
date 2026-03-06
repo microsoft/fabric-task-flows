@@ -5,7 +5,7 @@
 ## Overview
 
 ```
-Phase 0 — Discover:   @fabric-guide (Discovery Brief)
+Phase 0 — Discover:   @fabric-advisor (Discovery Brief)
 Phase 1 — Design:     @fabric-architect (DRAFT → Review → FINAL)
 Phase 2 — Plan+Deploy: @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
 Phase 3 — Validate:    @fabric-tester (Validate)
@@ -28,11 +28,11 @@ Before starting any phase, check where your project stands:
 
 ## Phase 0a: Discovery
 
-**Invoke:** `@fabric-guide`
+**Invoke:** `@fabric-advisor`
 
 **Prompt:**
 ```
-@fabric-guide I'm starting a new project.
+@fabric-advisor I'm starting a new project.
 ```
 
 The guide will ask for your project name and what problems you need to solve. Describe your scenario in natural language — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports."
@@ -182,7 +182,7 @@ Create ADRs and project documentation in projects/[name]/docs/
 
 | Phase | Agent | Mode | Input | Output |
 |-------|-------|------|-------|--------|
-| 0a | @fabric-guide | — | User's problem description | Discovery Brief |
+| 0a | @fabric-advisor | — | User's problem description | Discovery Brief |
 | 1a | @fabric-architect | — | Discovery Brief (or direct) | DRAFT handoff |
 | 1b | @fabric-engineer | Review | DRAFT handoff | Feasibility review |
 | 1b | @fabric-tester | Mode 0 | DRAFT handoff | Testability review |

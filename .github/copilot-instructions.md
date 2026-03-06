@@ -5,7 +5,7 @@
 This is a **documentation-only** knowledge base — there is no source code, build system, or tests. All content is Markdown. The repo provides pre-defined Microsoft Fabric architectures via five custom Copilot agents that collaborate in phases:
 
 ```
-Phase 0 — Discover:   @fabric-guide (Discovery Brief)
+Phase 0 — Discover:   @fabric-advisor (Discovery Brief)
 
 Phase 1 — Design:     @fabric-architect (DRAFT) ──┬──► @fabric-engineer (Deployment Review)
                                                     └──► @fabric-tester (Testability Review)
@@ -40,7 +40,7 @@ Decision guides live in `decisions/` and are shared across task flows. Shared re
 
 | Agent | Role | Tools | Constraint |
 |-------|------|-------|------------|
-| `@fabric-guide` | Discovers the problem, infers architectural signals, produces Discovery Brief | read, search | Read-only; never makes architecture decisions or deploys |
+| `@fabric-advisor` | Discovers the problem, infers architectural signals, produces Discovery Brief | read, search | Read-only; never makes architecture decisions or deploys |
 | `@fabric-architect` | Selects task flow, walks through decision guides, produces Architecture Handoff | read, search | Read-only; never deploys |
 | `@fabric-tester` | Mode 0: reviews DRAFT architecture for testability; Mode 1: produces Test Plan; Mode 2: validates deployment | read, search | Read-only; never modifies items |
 | `@fabric-engineer` | Deploys Fabric items following diagrams and deployment order | read, edit, execute, search | Never makes architecture decisions |

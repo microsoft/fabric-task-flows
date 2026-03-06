@@ -5,7 +5,7 @@
 Task flows is a documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. It includes five GitHub Copilot custom agents that collaborate in phases:
 
 ```
-@fabric-guide (Discovery Brief) ──► @fabric-architect (DRAFT)
+@fabric-advisor (Discovery Brief) ──► @fabric-architect (DRAFT)
 @fabric-architect (DRAFT) ──► @fabric-engineer + @fabric-tester (Design Review)
 @fabric-architect (FINAL) ──► @fabric-tester (Test Plan) + @fabric-engineer (Deploy)
                                @fabric-tester (Validate) → @fabric-documenter (ADRs)
@@ -18,7 +18,7 @@ task-flows/
 ├── PROJECTS.md                    # Mission control — all projects at a glance
 ├── .github/
 │   ├── agents/                     # GitHub Copilot custom agents
-│   │   ├── fabric-guide.agent.md        # Problem discovery & Discovery Brief
+│   │   ├── fabric-advisor.agent.md        # Problem discovery & Discovery Brief
 │   │   ├── fabric-architect.agent.md    # Architecture decisions (accepts Discovery Brief)
 │   │   ├── fabric-engineer.agent.md     # Deployment execution (parallel waves, CI/CD)
 │   │   ├── fabric-tester.agent.md       # Validation & testing (3 modes)
@@ -72,7 +72,7 @@ Open [`PROJECTS.md`](PROJECTS.md) at the repo root to see all projects and their
 
 From VS Code / GitHub.com with GitHub Copilot, mention an agent in chat:
 
-1. **@fabric-guide** — Describe your problem → get a Discovery Brief with inferred architectural signals
+1. **@fabric-advisor** — Describe your problem → get a Discovery Brief with inferred architectural signals
 2. **@fabric-architect** — Receive the Discovery Brief (or start fresh) → get a task flow recommendation and Architecture Handoff
 3. **@fabric-tester** (Mode 1) — Receive the handoff → produce a Test Plan with acceptance criteria and pre-deployment blockers
 4. **@fabric-engineer** — Deploy items using dependency-wave parallelism with `fab` CLI or `fabric-cicd`
@@ -81,7 +81,7 @@ From VS Code / GitHub.com with GitHub Copilot, mention an agent in chat:
 
 ### Problem-First Discovery
 
-The **@fabric-guide** agent starts every new project by asking: *"What problems does your project need to solve?"* It infers architectural signals (data velocity, use case, task flow candidates) from the user's natural-language description and produces a **Discovery Brief** for the architect.
+The **@fabric-advisor** agent starts every new project by asking: *"What problems does your project need to solve?"* It infers architectural signals (data velocity, use case, task flow candidates) from the user's natural-language description and produces a **Discovery Brief** for the architect.
 
 The **@fabric-architect** then picks up the brief, confirms the inferred signals, fills in remaining gaps (skillset, workspace), and proceeds with the full decision walkthrough. If no Discovery Brief is available, the architect can also be invoked directly with its core questions.
 
@@ -166,7 +166,7 @@ The [Visualization Selection](decisions/visualization-selection.md) guide includ
 
 ## 🤖 Custom Agents
 
-### @fabric-guide
+### @fabric-advisor
 
 **Purpose:** Problem discovery and scoping — the first agent users interact with
 
