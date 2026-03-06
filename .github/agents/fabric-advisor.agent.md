@@ -100,6 +100,11 @@ Use this table to infer signals from the user's problem description. Multiple si
 | "Oracle", "Oracle Database", "OracleDB", "Exadata", "Oracle ERP" | Varies | Database source analytics | basic-data-analytics, medallion |
 | "Managed Instance", "Azure SQL MI", "SQL Managed Instance", "SQL MI" | Varies | Azure SQL analytics | basic-data-analytics, medallion, translytical |
 | "Snowflake", "Snowflake warehouse", "Snowflake data", "migrate from Snowflake" | Varies | Snowflake + Fabric (Better Together) | basic-data-analytics, medallion, data-analytics-sql-endpoint |
+| "Lakehouse vs Warehouse", "which storage", "SQL Database or Lakehouse", "Eventhouse or Lakehouse", "where to store data" | Varies | Data store selection | (any — storage decision is cross-cutting; flag for architect) |
+| "workspace design", "organize workspaces", "multi-workspace", "capacity planning", "tenant setup", "how to structure Fabric" | Varies | Deployment topology | (any — deployment pattern is cross-cutting; flag for architect) |
+| "multi-tenant", "SaaS analytics", "per-customer", "ISV", "tenant isolation", "customer-facing analytics" | Varies | Multi-tenant / SaaS analytics | medallion, basic-data-analytics |
+| "share data externally", "B2B data", "data sharing", "Delta Sharing", "partner data exchange", "external consumers" | Varies | External data sharing | basic-data-analytics, medallion (via Shortcuts/sharing) |
+| "cost", "budget", "capacity sizing", "optimize spend", "F SKU", "pay per use", "cost management" | Varies | Cost optimization | (any — capacity/cost is cross-cutting; flag for architect) |
 
 **When signals are ambiguous:** Present the top 2-3 candidates with a one-line explanation of each, and ask the user which resonates most. Do not pick for them.
 
