@@ -1,0 +1,98 @@
+{
+    "tasks": [
+        {
+            "type": "get data",
+            "id": "528c7370-1dab-4d7f-8aa8-d37f8f954535",
+            "name": "Get data"
+        },
+        {
+            "type": "store data",
+            "id": "f35d964b-b357-4fcf-9a8a-9f1130029438",
+            "name": "Store"
+        },
+        {
+            "type": "analyze and train data",
+            "id": "a1020cee-edc1-4985-9b01-3661c822888f",
+            "name": "Analyze and train"
+        },
+        {
+            "type": "prepare data",
+            "id": "81e0f8c6-5225-4971-b6d3-695d40b00634",
+            "name": "Prepare"
+        },
+        {
+            "type": "visualize",
+            "id": "b32d1907-9bdc-43e8-bd7c-45e9ce809354",
+            "name": "Visualize"
+        },
+        {
+            "type": "track data",
+            "id": "c214e404-e25c-4308-901a-93c38411292b",
+            "name": "Track"
+        },
+        {
+            "type": "develop",
+            "id": "21a4cf2e-907d-4126-9630-f5ad4429a21f",
+            "name": "Develop"
+        },
+        {
+            "type": "mirror data",
+            "id": "21f83d8e-06d2-49de-baae-8d81770ea364",
+            "name": "Mirror"
+        },
+        {
+            "type": "distribute data",
+            "id": "89551488-b652-4be2-af60-71aacbd4184e",
+            "name": "Distribute"
+        },
+        {
+            "type": "govern data",
+            "id": "65e34a2b-c806-4a25-90ce-298d3e24ffdc",
+            "name": "Govern data"
+        }
+    ],
+    "edges": [
+        {
+            "source": "528c7370-1dab-4d7f-8aa8-d37f8f954535",
+            "target": "f35d964b-b357-4fcf-9a8a-9f1130029438"
+        },
+        {
+            "source": "f35d964b-b357-4fcf-9a8a-9f1130029438",
+            "target": "a1020cee-edc1-4985-9b01-3661c822888f"
+        },
+        {
+            "source": "f35d964b-b357-4fcf-9a8a-9f1130029438",
+            "target": "81e0f8c6-5225-4971-b6d3-695d40b00634"
+        },
+        {
+            "source": "81e0f8c6-5225-4971-b6d3-695d40b00634",
+            "target": "b32d1907-9bdc-43e8-bd7c-45e9ce809354"
+        },
+        {
+            "source": "b32d1907-9bdc-43e8-bd7c-45e9ce809354",
+            "target": "c214e404-e25c-4308-901a-93c38411292b"
+        },
+        {
+            "source": "a1020cee-edc1-4985-9b01-3661c822888f",
+            "target": "21a4cf2e-907d-4126-9630-f5ad4429a21f"
+        },
+        {
+            "source": "21f83d8e-06d2-49de-baae-8d81770ea364",
+            "target": "f35d964b-b357-4fcf-9a8a-9f1130029438"
+        },
+        {
+            "source": "b32d1907-9bdc-43e8-bd7c-45e9ce809354",
+            "target": "89551488-b652-4be2-af60-71aacbd4184e"
+        },
+        {
+            "source": "c214e404-e25c-4308-901a-93c38411292b",
+            "target": "89551488-b652-4be2-af60-71aacbd4184e"
+        },
+        {
+            "source": "21a4cf2e-907d-4126-9630-f5ad4429a21f",
+            "target": "65e34a2b-c806-4a25-90ce-298d3e24ffdc"
+        }
+    ],
+    "name": "General",
+    "description": "This task flow guides you through the completion of high-level data processing tasks within Fabric and the items typically assigned to them."
+}

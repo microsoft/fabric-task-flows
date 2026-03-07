@@ -125,7 +125,7 @@ task-flows/
 ├── LICENSE                            # MIT License
 ├── CONTRIBUTING.md                    # Contributor guidelines (task flows, diagrams, git workflow)
 ├── PROJECTS.md                        # Mission control — all projects at a glance
-├── General.json                       # General task flow item definitions
+├── .gitignore                         # Excludes __pycache__, projects/, .env
 ├── .github/
 │   ├── agents/                         # GitHub Copilot custom agents (6 agents)
 │   │   ├── fabric-advisor.agent.md
@@ -147,9 +147,7 @@ task-flows/
 │   └── api-selection.md                # GraphQL API vs User Data Functions vs Direct Connection
 ├── diagrams/                           # Deployment diagrams per task flow
 │   ├── _index.md                       # Routing table with item/wave counts
-│   ├── {task-flow}.md                  # Phased deployment flow, dependency order, OR blocks
-│   └── task-flows/                     # Structured task flow definitions (JSON)
-│       └── {task-flow}.json
+│   └── {task-flow}.md                  # Phased deployment flow, dependency order, OR blocks
 ├── validation/                         # Post-deployment checklists
 │   ├── _index.md                       # Routing table with phase names
 │   └── {task-flow}.md                  # Phase-by-phase validation checklist
@@ -176,7 +174,7 @@ task-flows/
 │   ├── handoff-scaffolder.py           # Handoff template filler
 │   ├── review-prescan.py               # Architecture review pre-scanner
 │   ├── test-plan-prefill.py            # Test plan prefiller from acceptance criteria
-│   ├── taskflow-gen.py                 # Task flow Markdown generator
+│   ├── taskflow-gen.py                 # Task flow JSON generator (scaffold + finalize modes)
 │   ├── fabric-logo.py                  # ASCII logo generator
 │   ├── check-drift.py                  # Documentation drift detection (204 checks)
 │   ├── sync-item-types.py              # Registry ↔ Fabric CLI sync
