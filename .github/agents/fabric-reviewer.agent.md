@@ -60,6 +60,8 @@ Produce TWO outputs by editing TWO pre-scaffolded files:
 
 > **⚠️ ORCHESTRATION — USE THE PIPELINE RUNNER:**
 > All phase transitions are managed by `run-pipeline.py`. Do NOT chain to other agents directly or update `pipeline-state.json`. The runner handles state tracking, output verification, and prompt generation.
+>
+> **Shell unavailable?** If shell/powershell is confirmed unavailable, follow the degraded-mode fallback in `_shared/workflow-guide.md` § Shell Unavailable Fallback. You may edit `pipeline-state.json` directly with limited, deterministic edits that mirror `run-pipeline.py advance`. Log degraded-mode usage in STATUS.md.
 
 ### After producing both reviews:
 1. **Edit** `projects/[name]/prd/engineer-review.md` — fill in YAML schema

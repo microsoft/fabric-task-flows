@@ -47,6 +47,12 @@ options:
       distribution: web
       refresh: sub-second streaming
       best_for: ["location tracking", "geospatial monitoring", "fleet tracking"]
+quick_decision: |
+  Interactive exploration + filters → Power BI Report
+  Pixel-perfect / printable / multi-page → Paginated Report
+  Goal/KPI tracking + check-ins → Metrics Scorecard
+  Live streaming data (sub-second) → Real-Time Dashboard
+  Live geospatial/location data → Real-Time Map
 ---
 
 # Visualization Type Selection

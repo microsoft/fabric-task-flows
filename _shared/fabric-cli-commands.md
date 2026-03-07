@@ -19,6 +19,10 @@ fab auth login --identity
 
 ## Item Creation (`fab mkdir`)
 
+> **Workspace creation requires a capacity.** Pass `-P capacityName=<name>` or set `fab config set default_capacity <name>` first. List capacities with `fab ls .capacities`. Prefer `config set` — it handles special characters in capacity names that `-P` may strip.
+
+> **Naming restrictions:** Some item types reject hyphens (`-`) in names. Use underscores (`_`) instead for: **Eventstream**, **MLExperiment**, **MLModel**. All other types accept hyphens.
+
 ### Storage
 
 ```bash
@@ -28,6 +32,9 @@ fab mkdir <workspace>.Workspace/<name>.Warehouse
 fab mkdir <workspace>.Workspace/<name>.Eventhouse
 fab mkdir <workspace>.Workspace/<name>.KQLDatabase -P eventhouseId=<id>
 fab mkdir <workspace>.Workspace/<name>.SQLDatabase
+fab mkdir <workspace>.Workspace/<name>.Datamart
+fab mkdir <workspace>.Workspace/<name>.MirroredWarehouse
+fab mkdir <workspace>.Workspace/<name>.MirroredDatabase
 
 # Cosmos DB — portal only (no fab mkdir support)
 # Create via Portal → + New Item → Cosmos DB database
@@ -36,9 +43,12 @@ fab mkdir <workspace>.Workspace/<name>.SQLDatabase
 ### Ingestion
 
 ```bash
-fab mkdir <workspace>.Workspace/<name>.CopyJob
 fab mkdir <workspace>.Workspace/<name>.DataPipeline
 fab mkdir <workspace>.Workspace/<name>.Eventstream
+fab mkdir <workspace>.Workspace/<name>.MountedDataFactory
+
+# CopyJob — portal only (commented out in CLI v0.1.10)
+# Dataflow Gen2 — portal only
 ```
 
 ### Processing
@@ -47,6 +57,7 @@ fab mkdir <workspace>.Workspace/<name>.Eventstream
 fab mkdir <workspace>.Workspace/<name>.Environment
 fab mkdir <workspace>.Workspace/<name>.Notebook
 fab mkdir <workspace>.Workspace/<name>.SparkJobDefinition
+fab mkdir <workspace>.Workspace/<name>.KQLQueryset
 ```
 
 ### ML
@@ -85,7 +96,7 @@ fab set <ws>.Workspace/<item>.Type -q description -i "Description text"
 ## Data Operations
 
 ```bash
-# Upload file to OneLake
+# Upload file to OneLake (alias: copy)
 fab cp ./local/data.csv <ws>.Workspace/<lh>.Lakehouse/Files/data.csv
 
 # Download from OneLake
@@ -124,11 +135,11 @@ fab job run-list <ws>.Workspace/<item>.Type
 ## Shortcuts (`fab ln`)
 
 ```bash
-# Internal OneLake shortcut
-fab ln <ws>.Workspace/<shortcut_path> --type lakehouse --target <ws2>.Workspace/<lh>.Lakehouse
+# Internal OneLake shortcut (alias: mklink)
+fab ln Files/scut.Shortcut --type oneLake --target ../../<ws2>.Workspace/<lh>.Lakehouse/Files
 
 # External shortcut (ADLS Gen2)
-fab ln <ws>.Workspace/<shortcut_path> --type adlsGen2 -i '<connection_json>'
+fab ln Tables/ext_table.Shortcut --type adlsGen2 -i '<inline_json_w_location_subpath_connectionid>'
 ```
 
 ## Import / Export
@@ -147,38 +158,45 @@ fab import <ws>.Workspace/<nb>.Notebook -i ./script.py --format .py
 ## Verification
 
 ```bash
-# Check if an item exists
+# Check if an item exists (outputs '* true' or '* false'; exit code is always 0)
 fab exists <ws>.Workspace/<item>.Type
 
-# List all items in a workspace
+# List all items in a workspace (alias: dir)
 fab ls <ws>.Workspace
 fab ls <ws>.Workspace -l
 
-# Filter items by name
-fab ls <ws>.Workspace -q "[?contains(name, 'Bronze')]"
-
-# Get item details
+# Get item details (use -q for JMESPath queries)
 fab get <ws>.Workspace/<item>.Type
-fab get <ws>.Workspace/<item>.Type -q properties
+fab get <ws>.Workspace/<item>.Type -q .
 
 # Inspect table schema
 fab table schema Tables/<table_name>
 ```
 
-## Portal-Only Items (No CLI Support)
+## Capacity Assignment (`fab assign`)
 
-The following Fabric item types cannot be created with `fab mkdir`. Use the Fabric Portal or REST API.
+```bash
+# Assign a capacity to a workspace (uses capacity NAME, not GUID)
+fab assign .capacities/<capacity_name>.Capacity -W <ws>.Workspace
 
-| Item Type | Status | Creation Method | Notes |
-|-----------|--------|----------------|-------|
-| GraphQL API | GA | Portal → + New Item → API for GraphQL | Auto-generates schema from data sources |
-| User Data Functions | Preview | Portal → + New Item → User Data Functions | Python functions with `@udf.function()` decorator |
-| Variable Library | GA | Portal → + New Item → Variable Library | Git-syncable JSON definition |
-| Data Agent | Preview | Portal → + New Item → Fabric Data Agent | Up to 5 data sources, NL2SQL/DAX/KQL |
-| Ontology | Preview | Portal → + New Item → Ontology | IQ workload, requires tenant settings |
-| Cosmos DB Database (native) | Preview | Portal → + New Item → Cosmos DB database | AI-optimized NoSQL, auto-mirrors to OneLake |
-| Cosmos DB Mirroring (external) | GA | Portal → + New Item → Mirrored Azure Cosmos DB | Requires continuous backup on Cosmos account |
-| Real-Time Dashboard | GA | Portal → + New Item → Real-Time Dashboard | Backed by Eventhouse/KQL |
-| Activator | GA | Portal → + New Item → Activator | Rules-based alerting |
+# Assign a domain to a workspace
+fab assign .domains/<domain_name>.Domain -W <ws>.Workspace -f
+```
 
-> **Deployment impact:** The `@fabric-engineer` agent should document these as manual portal steps in the deployment handoff. Use `fab exists` and `fab get` to verify after manual creation where item types are supported.
+> **Note:** `fab assign` uses the capacity **display name**, not a GUID. Find capacity names in the Fabric Admin Portal → Capacities, or via `fab ls .capacities`.
+
+## Portal-Only Items (No `fab mkdir` Support)
+
+The following Fabric item types cannot be created with `fab mkdir`. Use the Fabric Portal.
+
+| Item Type | CLI Type | Creation Method | CLI Operations |
+|-----------|----------|-----------------|----------------|
+| Dashboard | `.Dashboard` | Portal → + New Item → Dashboard | get, ls |
+| Activator | `.Reflex` | Portal → + New Item → Activator | get, set, export, import |
+| Real-Time Dashboard | `.KQLDashboard` | Portal → + New Item → Real-Time Dashboard | get, set, export, import |
+| GraphQL API | `.GraphQLApi` | Portal → + New Item → API for GraphQL | get, set |
+| CopyJob | `.CopyJob` | Portal → + New Item → Copy Job | get (commented out in CLI v0.1.10) |
+| Dataflow Gen2 | `.DataflowGen2` | Portal → + New Item → Dataflow Gen2 | — |
+| Paginated Report | `.PaginatedReport` | Portal or Power BI Desktop | get, ls |
+
+> Use `fab desc .<Type>` to check which operations any item type supports.

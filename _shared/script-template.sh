@@ -18,20 +18,20 @@ print_banner() {
   local mode="${3:-Deploy}"
 
   echo ""
-  echo "╔══════════════════════════════════════════════════════════════════╗"
-  echo "║                                                                  ║"
-  echo "║        /@@@@@@@@@@@@/  ┌──────────────────────────────────────┐  ║"
-  echo "║       /@@@@@@@@@@@@/   │ F A B R I C   T A S K   F L O W S    │  ║"
-  echo "║      /@@@@@@@@@/       │ ──────────────────────────────────── │  ║"
-  echo "║     /@@@@@@/           │ Deploy Microsoft Fabric              │  ║"
-  echo "║    /@@@@@@/            │ architectures to production          │  ║"
-  echo "║                        └──────────────────────────────────────┘  ║"
-  echo "║                                                                  ║"
-  printf "║  Project:   %-52s ║\n" "$project_name"
-  printf "║  Task Flow: %-52s ║\n" "$task_flow"
-  printf "║  Mode:      %-52s ║\n" "$mode"
-  echo "║                                                                  ║"
-  echo "╚══════════════════════════════════════════════════════════════════╝"
+  echo "╔═════════════════════════════════════════════╗"
+  echo "║                                             ║"
+  echo "║   ┌──────────────────────────────────────┐  ║"
+  echo "║   │ F A B R I C   T A S K   F L O W S    │  ║"
+  echo "║   │ ──────────────────────────────────── │  ║"
+  echo "║   │ Deploy Microsoft Fabric              │  ║"
+  echo "║   │ architectures to production          │  ║"
+  echo "║   └──────────────────────────────────────┘  ║"
+  echo "║                                             ║"
+  printf "║  Project:   %-45s ║\n" "$project_name"
+  printf "║  Task Flow: %-45s ║\n" "$task_flow"
+  printf "║  Mode:      %-45s ║\n" "$mode"
+  echo "║                                             ║"
+  echo "╚═════════════════════════════════════════════╝"
   echo ""
 }
 
@@ -83,7 +83,8 @@ fab_mkdir() {
   local err_output
 
   # Idempotency: skip if item already exists
-  if fab -c "exists $path" 2>/dev/null; then
+  # fab exists outputs '* true' or '* false' (exit code is always 0)
+  if fab exists "$path" 2>/dev/null | grep -q "\* true"; then
     echo "  $tree_char ✅ $label (already exists)"
     DEPLOY_EXISTS=$((DEPLOY_EXISTS + 1))
     DEPLOY_LOG="${DEPLOY_LOG}\n  ✅ Exists   $label"
@@ -92,7 +93,7 @@ fab_mkdir() {
 
   # Retry with backoff for transient failures
   for attempt in $(seq 1 $max_retries); do
-    err_output=$(fab -c "mkdir $path ${extra_args[*]}" 2>&1)
+    err_output=$(fab mkdir "$path" ${extra_args[*]} 2>&1)
     if [ $? -eq 0 ]; then
       echo "  $tree_char ✅ $label"
       DEPLOY_CREATED=$((DEPLOY_CREATED + 1))
@@ -142,7 +143,7 @@ main() {
   echo ""
 
   FABRIC_WORKSPACE_NAME=$(prompt_value "FABRIC_WORKSPACE_NAME" "Workspace name" "{{PROJECT_SLUG}}-dev")
-  FABRIC_CAPACITY_ID=$(prompt_value "FABRIC_CAPACITY_ID" "Fabric capacity ID (GUID from portal → Capacities)")
+  FABRIC_CAPACITY_NAME=$(prompt_value "FABRIC_CAPACITY_NAME" "Fabric capacity name (from Admin Portal → Capacities)" "" "optional")
 
   # {{TASK_FLOW_SPECIFIC_PROMPTS}}
   # Agent: Insert task-flow-specific prompts here (Event Hub, SQL connections, etc.)
@@ -175,15 +176,15 @@ main() {
   echo ""
   echo "  Checking authentication..."
   local auth_out
-  auth_out=$(fab -c "auth status" 2>&1)
+  auth_out=$(fab auth status 2>&1)
   if echo "$auth_out" | grep -qi "Not logged in"; then
     echo "  ── Not authenticated — launching browser login..."
-    fab -c "auth login" 2>/dev/null
-    auth_out=$(fab -c "auth status" 2>&1)
+    fab auth login 2>/dev/null
+    auth_out=$(fab auth status 2>&1)
     if echo "$auth_out" | grep -qi "Not logged in"; then
       echo "  ── ❌ Authentication failed."
       echo ""
-      echo "     Run manually:  fab -c \"auth login\""
+      echo "     Run manually:  fab auth login"
       echo "     Then re-run this script."
       exit 1
     fi
@@ -194,7 +195,7 @@ main() {
   # Workspace
   # ---------------------------------------------------------------------------
   echo ""
-  if fab -c "exists $FABRIC_WORKSPACE_NAME.Workspace" 2>/dev/null; then
+  if fab exists "$FABRIC_WORKSPACE_NAME.Workspace" 2>/dev/null | grep -q "\* true"; then
     echo "  ── ✅ Workspace already exists: $FABRIC_WORKSPACE_NAME"
   else
     echo "  Creating workspace..."
@@ -202,12 +203,13 @@ main() {
   fi
 
   # Assign capacity to workspace
-  if [[ -n "$FABRIC_CAPACITY_ID" ]]; then
+  if [[ -n "$FABRIC_CAPACITY_NAME" ]]; then
     echo "  ── Assigning capacity..."
-    if fab -c "set $FABRIC_WORKSPACE_NAME.Workspace -q capacityId -i $FABRIC_CAPACITY_ID" 2>/dev/null; then
-      echo "  ── ✅ Capacity assigned"
+    if fab assign ".capacities/$FABRIC_CAPACITY_NAME.Capacity" -W "$FABRIC_WORKSPACE_NAME.Workspace" 2>/dev/null; then
+      echo "  ── ✅ Capacity assigned: $FABRIC_CAPACITY_NAME"
     else
-      echo "  ── ⚠️  Could not assign capacity — verify ID in portal (Admin → Capacities)"
+      echo "  ── ⚠️  Could not assign capacity '$FABRIC_CAPACITY_NAME'"
+      echo "         Run 'fab ls .capacities' to list available capacities"
     fi
   fi
 
@@ -244,17 +246,17 @@ main() {
 
   # Workspace ID
   local ws_json
-  ws_json=$(fab -c "get $FABRIC_WORKSPACE_NAME.Workspace --output json" 2>/dev/null || echo "{}")
+  ws_json=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace" -q . 2>/dev/null || echo "{}")
   local workspace_id
   workspace_id=$(echo "$ws_json" | grep -o '"id"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"id"\s*:\s*"\([^"]*\)".*/\1/')
   workspace_id="${workspace_id:-(unavailable)}"
   echo "  Workspace ID:   $workspace_id"
 
-  # Tenant ID
-  local auth_json
-  auth_json=$(fab -c "auth status --output json" 2>/dev/null || echo "{}")
+  # Tenant ID (parse from auth status text)
+  local auth_text
+  auth_text=$(fab auth status 2>/dev/null || echo "")
   local tenant_id
-  tenant_id=$(echo "$auth_json" | grep -o '"tenantId"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"tenantId"\s*:\s*"\([^"]*\)".*/\1/')
+  tenant_id=$(echo "$auth_text" | grep -o 'Tenant ID:\s*\S*' | sed 's/Tenant ID:\s*//')
   tenant_id="${tenant_id:-(unavailable)}"
   echo "  Tenant ID:      $tenant_id"
 
@@ -265,14 +267,9 @@ main() {
 
   # Per-item IDs
   echo "  Item Details:"
-  local items_json
-  items_json=$(fab -c "ls $FABRIC_WORKSPACE_NAME.Workspace --output json" 2>/dev/null || echo "[]")
-  echo "$items_json" | grep -o '"displayName"\s*:\s*"[^"]*"\|"id"\s*:\s*"[^"]*"' | paste - - | while read -r line; do
-    local item_name item_id
-    item_name=$(echo "$line" | sed 's/.*"displayName"\s*:\s*"\([^"]*\)".*/\1/')
-    item_id=$(echo "$line" | sed 's/.*"id"\s*:\s*"\([^"]*\)".*/\1/')
-    echo "  ├── $item_name  →  ID: $item_id"
-  done
+  local items_text
+  items_text=$(fab ls "$FABRIC_WORKSPACE_NAME.Workspace" -l 2>/dev/null || echo "")
+  echo "$items_text"
   echo ""
   echo "  ℹ️  Save these IDs — they are required for CI/CD parameterization"
   echo "     and fabric-cicd library configuration."

@@ -45,6 +45,15 @@ options:
       skillset: code-first (SQL)
       scheduling: via pipeline
       best_for: ["SQL-based transformations", "Warehouse processing", "traditional DW patterns"]
+quick_decision: |
+  Interactive + Python/Spark → Notebook
+  Interactive + KQL → KQL Queryset
+  Interactive + visual/no-code → Dataflow Gen2
+  Production Spark + CI/CD → Spark Job Definition
+  Production Spark + simple schedule → Notebook (via Pipeline)
+  Production T-SQL → Stored Procedures
+  Production KQL → KQL Queryset (update policies)
+  Production Power Query → Dataflow Gen2
 ---
 
 # Processing Method Selection

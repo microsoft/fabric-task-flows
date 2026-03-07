@@ -19,6 +19,9 @@
 
 <!-- @fabric-engineer appends learnings here after deployment phases -->
 
+- **Mirrored SQL Server Database has no `fab mkdir` support.** Must create via Fabric Portal; document as manual step M-1 with guided portal instructions in deploy scripts.
+- **Environment publish delay requires explicit wait.** Add interactive confirmation prompt in deploy scripts between Environment creation and Notebook binding to prevent attachment failures.
+
 ## Validation
 
 <!-- @fabric-tester appends learnings here after validation phases -->

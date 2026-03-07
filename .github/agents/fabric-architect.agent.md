@@ -125,19 +125,32 @@ Produce a DRAFT handoff document, which is then reviewed by BOTH `@fabric-engine
 
 > **⚠️ ORCHESTRATION — USE THE PIPELINE RUNNER:**
 > All phase transitions are managed by `run-pipeline.py`. Do NOT chain to other agents directly or update `pipeline-state.json`. The runner handles state tracking, output verification, pre-compute scripts, and prompt generation. The ONLY human gate is Phase 2b Sign-Off.
+>
+> **Shell unavailable?** If shell/powershell is confirmed unavailable, follow the degraded-mode fallback in `_shared/workflow-guide.md` § Shell Unavailable Fallback. You may edit `pipeline-state.json` directly with limited, deterministic edits that mirror `run-pipeline.py advance`. Log degraded-mode usage in STATUS.md.
 
 > **The architect has THREE handoff points. Only ONE involves the user.**
 
 ### After producing the DRAFT Architecture Handoff:
 1. **Edit** the pre-scaffolded `projects/[name]/prd/architecture-handoff.md` — the file already exists with YAML frontmatter and template sections. Fill in the content; do not recreate the file.
-2. **Edit** `projects/[name]/STATUS.md` — update phase to "Design Review"
-3. Update `PROJECTS.md` — Phase = "Design Review"
-4. **Advance the pipeline** — Run `python scripts/run-pipeline.py advance --project [name]` then `python scripts/run-pipeline.py next --project [name]` to get the reviewer prompt.
+2. **Write ADRs sequentially with read-back (001→005)** — Fill in the pre-scaffolded ADR files in `projects/[name]/docs/decisions/` one at a time, reading all prior ADRs before writing each subsequent one:
+   1. **Write 001** (task flow) — Context comes from the Discovery Brief only.
+   2. **Read 001 → Write 002** (storage) — Read `001-task-flow.md`, then write 002. Context must reference the task flow decision from ADR-001 (e.g., "Given event-analytics (ADR-001), storage must support real-time time-series ingestion…").
+   3. **Read 001, 002 → Write 003** (ingestion) — Read both prior ADRs, then write 003. Context must reference the storage decision from ADR-002 (e.g., "Data must land in Eventhouse (ADR-002), so ingestion targets KQL databases…").
+   4. **Read 001, 002, 003 → Write 004** (processing) — Read all three prior ADRs, then write 004. Context must reference storage (ADR-002) and ingestion (ADR-003).
+   5. **Read 001, 002, 003, 004 → Write 005** (visualization) — Read all four prior ADRs, then write 005. Context must reference storage (ADR-002) and processing (ADR-004).
+
+   Use `_shared/adr-template.md` as the format reference. Pull Decision + Alternatives from your Decisions and Alternatives Considered tables, and Consequences from your Trade-offs table. Write them now — don't defer to the documenter. The documenter will polish language and add cross-links later, but the initial content must come from the architect who made the decisions.
+
+   > **Why read-back?** The ADR dependency graph is a tree, not a line: 001→002→{003, 004, 005}, where 004 needs both 002 and 003, and 005 needs both 002 and 004. Reading only the previous ADR misses cross-cutting constraints. Reading all prior ADRs (~200 tokens each) costs ~2000 tokens total — trivial vs the quality improvement of a properly chained decision record.
+3. **Edit** `projects/[name]/STATUS.md` — update phase to "Design Review"
+4. Update `PROJECTS.md` — Phase = "Design Review"
+5. **Advance the pipeline** — Run `python scripts/run-pipeline.py advance --project [name]` then `python scripts/run-pipeline.py next --project [name]` to get the reviewer prompt.
 
 ### After incorporating review feedback into FINAL handoff:
 1. Update `prd/architecture-handoff.md` with FINAL (populate Design Review table)
-2. Update `PROJECTS.md` — Phase = "Design Review ✅"
-3. **Advance the pipeline** — Run `python scripts/run-pipeline.py advance --project [name]` then `python scripts/run-pipeline.py next --project [name]` to get the tester prompt.
+2. **Update ADRs** — Refine the ADR files in `projects/[name]/docs/decisions/` if review feedback changed any decisions. Update the Decision, Alternatives, or Consequences sections as needed.
+3. Update `PROJECTS.md` — Phase = "Design Review ✅"
+4. **Advance the pipeline** — Run `python scripts/run-pipeline.py advance --project [name]` then `python scripts/run-pipeline.py next --project [name]` to get the tester prompt.
 
 ### After Test Plan is produced:
 1. Tester saves Test Plan to `projects/[name]/prd/test-plan.md`
@@ -154,6 +167,7 @@ Watch for these indicators that the architecture session is going off track:
 - **Skipping the decision walkthrough** — jumping straight to a handoff without walking through storage, ingestion, processing, and visualization decisions
 - **Defaulting to a workspace strategy** — must present both single and multi-workspace with trade-offs
 - **Missing Alternatives Considered** — every decision needs rejected options with rationale
+- **Skipping ADR write-through** — ADR files must be filled during Phase 1a, not deferred to the documenter
 - **Over-engineering** — recommending medallion or lambda when basic-data-analytics fits
 - **Ignoring stated skillset** — recommending Spark/Notebooks for a T-SQL team, or Warehouse for a Python/Spark team
 - **PROJECTS.md or STATUS.md out of sync** — project phase should match what was just produced
@@ -178,6 +192,7 @@ Before producing the Architecture Handoff, verify:
 - [ ] Deployment order makes dependency sense (no item listed before its dependency)
 - [ ] Acceptance criteria are specific and testable (not vague like "system works")
 - [ ] Architecture diagram shows the project-specific data flow with actual item names
+- [ ] ADR files (001–005) in `docs/decisions/` are filled in with Context, Decision, Alternatives, and Consequences
 - [ ] Workspace strategy was presented as a choice, not defaulted
 
 

@@ -2,6 +2,8 @@
 
 ## Deployment Flow
 
+<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                      EVENT ANALYTICS ARCHITECTURE DEPLOYMENT                    │

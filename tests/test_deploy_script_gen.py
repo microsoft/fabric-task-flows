@@ -21,23 +21,27 @@ def test_bash_template_has_required_sections():
     content = (SHARED_DIR / "script-template.sh").read_text(encoding="utf-8")
     assert "fab_mkdir()" in content, "Missing fab_mkdir function"
     assert "prompt_value()" in content, "Missing prompt_value function"
-    assert 'fab -c "auth status"' in content, "Missing fab -c auth status check"
-    assert "FABRIC_CAPACITY_ID" in content, "Missing capacity prompt"
-    assert "capacityId" in content, "Missing capacity assignment"
+    assert "fab auth status" in content, "Missing fab auth status check"
+    assert "FABRIC_CAPACITY_NAME" in content, "Missing capacity prompt"
+    assert "fab assign" in content or "fab config set default_capacity" in content, "Missing capacity assignment"
     assert "CONFIGURATION" in content, "Missing CONFIGURATION section"
     assert "DEPLOYMENT PLAN" in content, "Missing DEPLOYMENT PLAN section"
     assert "DEPLOYMENT SUMMARY" in content, "Missing DEPLOYMENT SUMMARY section"
     assert "POST-DEPLOYMENT METADATA" in content, "Missing POST-DEPLOYMENT METADATA section"
+    assert '* true' in content, "Missing verified exists check pattern"
 
 
 def test_ps1_template_has_required_sections():
     content = (SHARED_DIR / "script-template.ps1").read_text(encoding="utf-8")
-    assert "Fab-Mkdir" in content, "Missing Fab-Mkdir function"
+    assert "New-FabItem" in content, "Missing New-FabItem function"
     assert "Prompt-Value" in content, "Missing Prompt-Value function"
-    assert 'fab -c "auth status"' in content, "Missing fab -c auth status check"
-    assert "FABRIC_CAPACITY_ID" in content, "Missing capacity prompt"
-    assert "capacityId" in content, "Missing capacity assignment"
+    assert "Test-FabAuth" in content, "Missing Test-FabAuth function"
+    assert "Test-FabExists" in content, "Missing Test-FabExists function"
+    assert "Select-FabCapacity" in content, "Missing Select-FabCapacity function"
     assert "CONFIGURATION" in content, "Missing CONFIGURATION section"
+    assert '* true' in content, "Missing verified exists check pattern"
+    assert "fab assign" in content or "fab config set default_capacity" in content, "Missing capacity assignment"
+    assert "Description" in content, "Missing Description parameter support"
 
 
 def test_bash_template_shows_errors():
@@ -48,10 +52,10 @@ def test_bash_template_shows_errors():
 
 
 def test_ps1_template_shows_errors():
-    """Verify Fab-Mkdir captures errors instead of piping to Out-Null."""
+    """Verify New-FabItem captures errors instead of piping to Out-Null."""
     content = (SHARED_DIR / "script-template.ps1").read_text(encoding="utf-8")
-    assert "$errOutput" in content, "Fab-Mkdir should capture error output"
-    assert 'Error: $errOutput' in content, "Fab-Mkdir should display error on failure"
+    assert "$errOutput" in content, "New-FabItem should capture error output"
+    assert 'errOutput.Trim()' in content, "New-FabItem should display trimmed error on failure"
 
 
 def test_deploy_script_gen_imports():

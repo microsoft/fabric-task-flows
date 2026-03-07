@@ -10,30 +10,33 @@
 | **Signal mapping** | `signal-mapper.py` maps keywords → candidates | Confirm/adjust with user |
 | **Decision resolution** | `decision-resolver.py` applies YAML frontmatter rules | Add judgment when ambiguous |
 | **Handoff structure** | `handoff-scaffolder.py` pre-fills YAML from diagram | Fill in naming, purpose, rationale |
-| **Review pre-scan** | `review-prescan.py` runs mechanical checks | Add nuanced findings |
+| **Review pre-scan** | `review-prescan.py` runs mechanical checks | Add nuanced findings + review_outcome verdict |
 | **Test plan mapping** | `test-plan-prefill.py` maps ACs → phases | Add edge cases, critical checks |
 | **Deploy scripts** | `deploy-script-gen.py` generates from templates | Never hand-write |
-| **Validation checks** | `validate-items.ps1/.sh` runs `fab exists` per item | Interpret partial results |
+| **Validation checks** | `validate-items.ps1/.sh` runs `fab exists` per item | Interpret results, categorize issues, route remediation |
 | **Task flow JSON** | `taskflow-gen.py` generates Fabric import JSON | Never |
 | **Pipeline state** | `run-pipeline.py` manages `pipeline-state.json` | Never touch directly |
 | **Output schemas** | `_shared/schemas/` define YAML structure | Fill in content fields |
+| **Phase progress** | `_shared/schemas/phase-progress.md` defines tracking | Update item status during deploy/validate |
+| **Remediation routing** | `_shared/schemas/remediation-log.md` defines routing | Categorize issues, set outcome |
+| **Operational learnings** | `_shared/learnings.md` captures CLI gotchas | Append new learnings after deploy/validate |
 
 ## MUST Rules (All Phases)
 
-1. **MUST** use `run-pipeline.py` to orchestrate pipeline phases — not ad-hoc agent chaining
-2. **MUST** run the pre-compute script for each phase before LLM reasoning (see Phase Rules below)
+1. **MUST** use `run-pipeline.py` to orchestrate pipeline phases — not ad-hoc agent chaining. If shell is unavailable, follow the degraded-mode fallback in `_shared/workflow-guide.md`.
+2. **MUST** run the pre-compute script for each phase before LLM reasoning when shell is available (see Phase Rules below). Pre-compute enhances quality but is not a blocking gate — agents may proceed with LLM reasoning alone when shell is unavailable.
 3. **MUST** use `_shared/schemas/` for all handoff output format — do not invent structure
 4. **MUST** use `new-project.py` to scaffold projects — do not create directories or template files manually
 5. **MUST** follow filename conventions — `deploy-{project-name}.ps1/.sh`
 6. **MUST** generate both `.ps1` and `.sh` deploy scripts (via `deploy-script-gen.py`)
-7. **MUST** update `pipeline-state.json` only through `run-pipeline.py` — never edit directly
+7. **MUST** update `pipeline-state.json` only through `run-pipeline.py` — never edit directly, unless in degraded mode (see `_shared/workflow-guide.md` § Shell Unavailable Fallback)
 
 ## MUST NOT Rules (All Phases)
 
 1. **MUST NOT** hand-write deployment scripts — use `deploy-script-gen.py`
 2. **MUST NOT** write handoff YAML structure from scratch — use the schema + pre-compute output as base
-3. **MUST NOT** skip pre-compute steps — even if the LLM "knows" the answer
-4. **MUST NOT** manually manage phase transitions — `run-pipeline.py` handles this
+3. **MUST NOT** skip pre-compute steps when shell is available — even if the LLM "knows" the answer
+4. **MUST NOT** manually manage phase transitions when shell is available — `run-pipeline.py` handles this. Degraded-mode fallback is permitted only when shell is confirmed unavailable (see `_shared/workflow-guide.md`).
 5. **MUST NOT** create project directories or boilerplate files manually — `new-project.py` does this
 6. **MUST NOT** modify template functions (`Fab-Mkdir`, `Prompt-Value`, `Print-Banner`) — they come from `_shared/script-template.ps1/.sh`
 7. **MUST NOT** produce free-form prose where a schema expects structured YAML
@@ -64,11 +67,11 @@
 | Step | Tool | What it produces |
 |------|------|-----------------|
 | Pre-compute | `review-prescan.py --handoff <path>` | Mechanical findings (YAML) |
-| Schema | `_shared/schemas/engineer-review.md` | YAML structure for output |
-| Schema | `_shared/schemas/tester-review.md` | YAML structure for output |
-| LLM adds | Judgment-based findings beyond mechanical checks | Nuanced review items |
+| Schema | `_shared/schemas/engineer-review.md` | YAML structure for output (includes `review_outcome` quality gate) |
+| Schema | `_shared/schemas/tester-review.md` | YAML structure for output (includes `review_outcome` quality gate) |
+| LLM adds | Judgment-based findings beyond mechanical checks | Nuanced review items + quality gate verdict |
 
-**Signs of drift:** Agent writes all review findings from scratch without running prescan. Agent produces prose instead of structured YAML per schema. Agent invents output format instead of using `_shared/schemas/`.
+**Signs of drift:** Agent writes all review findings from scratch without running prescan. Agent produces prose instead of structured YAML per schema. Agent invents output format instead of using `_shared/schemas/`. Agent omits `review_outcome` field — this drives the iteration loop.
 
 ### Phase 2a — Test Plan (`@fabric-tester`)
 
@@ -86,9 +89,10 @@
 |------|------|-----------------|
 | Pre-compute | `deploy-script-gen.py --handoff <path> --project "<name>"` | `.ps1` + `.sh` deploy scripts |
 | Schema | `_shared/schemas/deployment-handoff.md` | YAML structure for handoff |
-| LLM adds | Nothing to the scripts — they are fully generated | Deployment handoff content |
+| Schema | `_shared/schemas/phase-progress.md` | YAML structure for item tracking |
+| LLM adds | Nothing to the scripts — they are fully generated | Deployment handoff content + phase progress |
 
-**Signs of drift:** Agent hand-writes deploy scripts. Agent uses custom function names instead of template functions. Agent creates scripts without using `deploy-script-gen.py`. Agent produces a single script instead of both `.ps1` and `.sh`.
+**Signs of drift:** Agent hand-writes deploy scripts. Agent uses custom function names instead of template functions. Agent creates scripts without using `deploy-script-gen.py`. Agent produces a single script instead of both `.ps1` and `.sh`. Agent doesn't update phase-progress.md. Agent doesn't read _shared/learnings.md before deploying.
 
 ### Phase 3 — Validate (`@fabric-tester`)
 
@@ -96,9 +100,11 @@
 |------|------|-----------------|
 | Pre-compute | `validate-items.ps1 <handoff-path>` | Per-item `fab exists` results (YAML) |
 | Schema | `_shared/schemas/validation-report.md` | YAML structure for report |
-| LLM adds | Interpretation of partial results, issue severity | Validation judgment |
+| Schema | `_shared/schemas/remediation-log.md` | YAML structure for issue routing |
+| Schema | `_shared/schemas/phase-progress.md` | YAML structure for item tracking |
+| LLM adds | Interpretation of partial results, issue severity, remediation routing | Validation judgment |
 
-**Signs of drift:** Agent writes validation report without running `validate-items`. Agent marks items as verified without `fab exists` evidence.
+**Signs of drift:** Agent writes validation report without running `validate-items`. Agent marks items as verified without `fab exists` evidence. Agent skips issue categorization and remediation routing. Agent doesn't update phase-progress.md.
 
 ### Phase 4 — Document (`@fabric-documenter`)
 
@@ -159,3 +165,25 @@ All Fabric item type metadata lives in `_shared/item-type-registry.json`. This i
 1. Add the entry to `_shared/item-type-registry.json` with all required fields
 2. Run `python scripts/sync-item-types.py --diff` to verify alignment
 3. All scripts automatically pick up the new type via `registry_loader.py` — no other changes needed
+
+## Degraded Mode — Shell Unavailable
+
+When an agent's shell/powershell tool is removed mid-session, the pipeline enters **degraded mode**. This is a fallback, not a preference — shell-based orchestration via `run-pipeline.py` is always the primary path.
+
+**What changes in degraded mode:**
+
+| Normal Mode | Degraded Mode |
+|-------------|---------------|
+| `run-pipeline.py advance` manages state | Agent edits `pipeline-state.json` directly (limited edits) |
+| Pre-compute scripts run before each phase | Pre-compute skipped; LLM reasons from source material |
+| Output verification is automated | Agent self-verifies output file content |
+| `run-pipeline.py next` generates prompts | Agent constructs prompt from known templates |
+
+**What does NOT change:**
+
+- Human gate at Phase 2b is never bypassable
+- Agents still write output to `prd/` files
+- Agents still update `STATUS.md` and `PROJECTS.md`
+- All architecture, review, and deployment logic remains the same
+
+**Recovery:** Run `python scripts/run-pipeline.py reconcile --project [name]` when shell access returns. See `_shared/workflow-guide.md` § Shell Unavailable Fallback for the full protocol.

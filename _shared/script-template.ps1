@@ -5,6 +5,9 @@
 # Project:   {{PROJECT_NAME}}
 # Task Flow: {{TASK_FLOW}}
 # Generated: {{DATE}}
+#
+# CLI Reference: fab v0.1.10+ (pip install ms-fabric-cli)
+# Verified: exists → "* true"/"* false", get -q ., assign, mkdir
 # =============================================================================
 $ErrorActionPreference = "Stop"
 
@@ -22,7 +25,7 @@ function Print-Banner {
   Write-Host "╔══════════════════════════════════════════════════════════════════╗"
   Write-Host "║                                                                  ║"
   Write-Host "║        /@@@@@@@@@@@@/  ┌──────────────────────────────────────┐  ║"
-  Write-Host "║       /@@@@@@@@@@@@/   │ F A B R I C   T A S K   F L O W S    │  ║"  
+  Write-Host "║       /@@@@@@@@@@@@/   │ F A B R I C   T A S K   F L O W S    │  ║"
   Write-Host "║      /@@@@@@@@@/       │ ──────────────────────────────────── │  ║"
   Write-Host "║     /@@@@@@/           │ Deploy Microsoft Fabric              │  ║"
   Write-Host "║    /@@@@@@/            │ architectures to production          │  ║"
@@ -41,6 +44,160 @@ function Print-Banner {
 # ---------------------------------------------------------------------------
 $ProjectName = "{{PROJECT_NAME}}"
 $TaskFlow = "{{TASK_FLOW}}"
+
+# ---------------------------------------------------------------------------
+# Fab CLI Wrappers (verified against fab v0.1.10)
+# ---------------------------------------------------------------------------
+
+function Test-FabAuth {
+  # fab auth status outputs text; "Not logged in" means unauthenticated
+  $out = & fab auth status 2>&1 | Out-String
+  return ($out -notmatch "Not logged in")
+}
+
+function Get-FabTenantId {
+  # Parse "  - Tenant ID: <guid>" from fab auth status text
+  $out = & fab auth status 2>&1 | Out-String
+  if ($out -match "Tenant ID:\s*(\S+)") { return $Matches[1] }
+  return "(unavailable)"
+}
+
+function Test-FabExists {
+  # fab exists outputs "* true" or "* false" (exit code always 0)
+  param([string]$Path)
+  $out = & fab exists $Path 2>&1 | Out-String
+  return ($out -match "\* true")
+}
+
+function Get-FabProperty {
+  # fab get <path> -q <jmespath> — use -q . for full JSON
+  param([string]$Path, [string]$Query = ".")
+  $out = & fab get $Path -q $Query 2>&1 | Out-String
+  return $out.Trim()
+}
+
+function New-FabItem {
+  # Create item with idempotency (Test-FabExists first) and retry
+  # After creation, sets description via fab set -q description -f
+  param(
+    [string]$Path,
+    [string]$Label,
+    [string]$TreeChar = "├──",
+    [string[]]$Params = @(),
+    [string]$Description = "",
+    [int]$MaxRetries = 3
+  )
+
+  if (Test-FabExists -Path $Path) {
+    Write-Host "  $TreeChar ✅ $Label (already exists)"
+    $script:DeployResults += @{ Label = $Label; Status = "exists" }
+    return
+  }
+
+  $cmdArgs = @("mkdir", $Path)
+  if ($Params.Count -gt 0) {
+    $cmdArgs += "-P"
+    $cmdArgs += ($Params -join ",")
+  }
+
+  for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
+    $errOutput = & fab @cmdArgs 2>&1 | Out-String
+    if ($LASTEXITCODE -eq 0) {
+      Write-Host "  $TreeChar ✅ $Label"
+      $script:DeployResults += @{ Label = $Label; Status = "created" }
+      # Set description if provided (fire-and-forget, non-fatal)
+      if ($Description) {
+        & fab set $Path -q description -i $Description -f 2>&1 | Out-Null
+      }
+      return
+    }
+    if ($attempt -lt $MaxRetries) {
+      $wait = $attempt * 10
+      Write-Host "  $TreeChar ⚠️  $Label (attempt $attempt failed, retrying in ${wait}s...)"
+      Write-Host "         Error: $($errOutput.Trim())"
+      Start-Sleep -Seconds $wait
+    }
+  }
+
+  Write-Host "  $TreeChar ❌ $Label (failed after $MaxRetries attempts)"
+  Write-Host "         Error: $($errOutput.Trim())"
+  $script:DeployResults += @{ Label = $Label; Status = "failed" }
+  throw "Deployment failed: $Label"
+}
+
+function Set-FabCapacity {
+  # fab assign .capacities/<name>.Capacity -W <ws>.Workspace
+  # Uses capacity display NAME, not GUID. List with: fab ls .capacities
+  param([string]$CapacityName, [string]$WorkspacePath)
+
+  Write-Host "  ── Assigning capacity: $CapacityName"
+  $out = & fab assign ".capacities/$CapacityName.Capacity" -W $WorkspacePath 2>&1 | Out-String
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "  ── ✅ Capacity assigned"
+  } else {
+    Write-Host "  ── ⚠️  Could not assign capacity '$CapacityName'"
+    Write-Host "         Run 'fab ls .capacities' to see available names"
+    Write-Host "         Error: $($out.Trim())"
+  }
+}
+
+function Select-FabCapacity {
+  <#
+  .SYNOPSIS Interactive capacity picker. Lists available capacities and lets
+  the user select by number. Supports env var override (FABRIC_CAPACITY_NAME).
+  Returns the selected capacity name (without .Capacity suffix), or empty string if skipped.
+  #>
+
+  # Check env var first
+  $envVal = [System.Environment]::GetEnvironmentVariable("FABRIC_CAPACITY_NAME")
+  if ($envVal) {
+    Write-Host "  ── Using capacity from env: $envVal"
+    return $envVal
+  }
+
+  Write-Host "  Fetching available capacities..."
+  $raw = & fab ls .capacities 2>&1 | Out-String
+  $lines = $raw -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" -and $_ -match "\.Capacity$" }
+
+  if ($lines.Count -eq 0) {
+    Write-Host "  ── ⚠️  No capacities found (check permissions or tenant)"
+    return ""
+  }
+
+  # Strip .Capacity suffix for display
+  $names = $lines | ForEach-Object { $_ -replace "\.Capacity$", "" }
+
+  Write-Host ""
+  Write-Host "  Available capacities:"
+  Write-Host "  ─────────────────────"
+  for ($i = 0; $i -lt $names.Count; $i++) {
+    Write-Host ("  {0,3})  {1}" -f ($i + 1), $names[$i])
+  }
+  Write-Host ("  {0,3})  {1}" -f 0, "[Skip — no capacity assignment]")
+  Write-Host ""
+
+  do {
+    $input = Read-Host "  ? Select capacity (enter number)"
+    $num = 0
+    $valid = [int]::TryParse($input, [ref]$num)
+  } while (-not $valid -or $num -lt 0 -or $num -gt $names.Count)
+
+  if ($num -eq 0) {
+    Write-Host "  ── Skipping capacity assignment"
+    return ""
+  }
+
+  $selected = $names[$num - 1]
+  Write-Host "  ── Selected: $selected"
+  return $selected
+}
+
+function Add-ManualStep {
+  # Only .Dashboard truly lacks fab mkdir. All other items support CLI creation.
+  param([string]$Label, [string]$TreeChar = "├──")
+  Write-Host "  $TreeChar ⏭️  [MANUAL] $Label"
+  $script:DeployResults += @{ Label = $Label; Status = "manual" }
+}
 
 # ---------------------------------------------------------------------------
 # Interactive prompts (with env var fallbacks)
@@ -69,70 +226,26 @@ function Prompt-Value {
   }
 }
 
-function Fab-Mkdir {
-  param(
-    [string]$Path,
-    [string]$Label,
-    [string]$TreeChar = "├──",
-    [string[]]$ExtraArgs = @(),
-    [int]$MaxRetries = 3
-  )
-
-  # Idempotency: skip if item already exists
-  $existsOut = & fab -c "exists $Path" 2>&1 | Out-String
-  if ($existsOut -notmatch "does not exist") {
-    Write-Host "  $TreeChar ✅ $Label (already exists)"
-    $script:DeployResults += @{ Label = $Label; Status = "exists" }
-    return
-  }
-
-  # Retry with backoff for transient failures
-  for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
-    $extraStr = if ($ExtraArgs.Count -gt 0) { " " + ($ExtraArgs -join " ") } else { "" }
-    $errOutput = & fab -c "mkdir $Path$extraStr" 2>&1 | Out-String
-    if ($LASTEXITCODE -eq 0) {
-      Write-Host "  $TreeChar ✅ $Label"
-      $script:DeployResults += @{ Label = $Label; Status = "created" }
-      return
-    }
-    if ($attempt -lt $MaxRetries) {
-      $wait = $attempt * 10
-      Write-Host "  $TreeChar ⚠️  $Label (attempt $attempt failed, retrying in ${wait}s...)"
-      Write-Host "         Error: $errOutput"
-      Start-Sleep -Seconds $wait
-    }
-  }
-
-  Write-Host "  $TreeChar ❌ $Label (failed after $MaxRetries attempts)"
-  Write-Host "         Error: $errOutput"
-  $script:DeployResults += @{ Label = $Label; Status = "failed" }
-  throw "Deployment failed: $Label"
-}
-
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 function Main {
   Print-Banner -ProjectName $ProjectName -TaskFlow $TaskFlow -Mode "Deploy to Fabric"
 
-  # ---------------------------------------------------------------------------
-  # Preflight: CLI only (auth comes after config)
-  # ---------------------------------------------------------------------------
+  # Preflight
   Write-Host "  Checking prerequisites..."
   $fabCmd = Get-Command fab -ErrorAction SilentlyContinue
   if (-not $fabCmd) {
-    Write-Host "  ❌ Fabric CLI (fab) not found."
-    Write-Host "     Install with: pip install ms-fabric-cli"
+    Write-Host "  ❌ Fabric CLI (fab) not found. Install: pip install ms-fabric-cli"
     return
   }
-  Write-Host "  ── ✅ Fabric CLI found"
+  Write-Host "  ── ✅ Fabric CLI found ($(fab --version 2>&1 | Select-Object -First 1))"
   Write-Host ""
 
-  # Track deployment results
   $script:DeployResults = @()
 
   # ---------------------------------------------------------------------------
-  # Configuration — collect ALL inputs before authenticating
+  # Configuration
   # ---------------------------------------------------------------------------
   Write-Host "┌──────────────────────────────────────────────────────────────────┐"
   Write-Host "│  CONFIGURATION                                                   │"
@@ -141,10 +254,9 @@ function Main {
   Write-Host ""
 
   $WorkspaceName = Prompt-Value -EnvVarName "FABRIC_WORKSPACE_NAME" -PromptText "Workspace name" -DefaultValue "{{PROJECT_SLUG}}-dev"
-  $CapacityId = Prompt-Value -EnvVarName "FABRIC_CAPACITY_ID" -PromptText "Fabric capacity ID (GUID from portal → Capacities)"
+  $CapacityName = Select-FabCapacity
 
   # {{TASK_FLOW_SPECIFIC_PROMPTS}}
-  # Agent: Insert task-flow-specific prompts here
 
   Write-Host ""
   Write-Host "┌──────────────────────────────────────────────────────────────────┐"
@@ -154,7 +266,6 @@ function Main {
   Write-Host ""
 
   # {{DEPLOYMENT_PLAN_PREVIEW}}
-  # Agent: Insert wave-by-wave preview here
 
   Write-Host ""
   $confirm = Read-Host "  ? Proceed with deployment? [Y/n]"
@@ -164,68 +275,91 @@ function Main {
   }
 
   # ---------------------------------------------------------------------------
-  # Authenticate — verify auth; if not logged in, auto-login via browser
+  # Authenticate
   # ---------------------------------------------------------------------------
   Write-Host ""
   Write-Host "  Checking authentication..."
-  $authOut = & fab -c "auth status" 2>&1 | Out-String
-  if ($authOut -match "Not logged in") {
+  if (-not (Test-FabAuth)) {
     Write-Host "  ── Not authenticated — launching browser login..."
-    & fab -c "auth login" 2>$null
-    $authOut = & fab -c "auth status" 2>&1 | Out-String
-    if ($authOut -match "Not logged in") {
-      Write-Host "  ── ❌ Authentication failed."
-      Write-Host ""
-      Write-Host "     Run manually:  fab -c 'auth login'"
-      Write-Host "     Then re-run this script."
+    & fab auth login 2>$null
+    if (-not (Test-FabAuth)) {
+      Write-Host "  ── ❌ Authentication failed. Run: fab auth login"
       return
     }
   }
   Write-Host "  ── ✅ Authenticated"
 
   # ---------------------------------------------------------------------------
-  # Workspace
+  # Workspace (requires capacity for creation; uses fab assign for existing)
   # ---------------------------------------------------------------------------
   Write-Host ""
-  $wsCheck = & fab -c "exists $WorkspaceName.Workspace" 2>&1 | Out-String
-  if ($wsCheck -notmatch "does not exist") {
+  $wsPath = "$WorkspaceName.Workspace"
+  if (Test-FabExists -Path $wsPath) {
     Write-Host "  ── ✅ Workspace already exists: $WorkspaceName"
-  } else {
-    Write-Host "  Creating workspace..."
-    Fab-Mkdir -Path "$WorkspaceName.Workspace" -Label "Workspace: $WorkspaceName" -TreeChar "──"
-  }
-
-  # Assign capacity to workspace
-  if ($CapacityId) {
-    Write-Host "  ── Assigning capacity..."
-    & fab -c "set $WorkspaceName.Workspace -q capacityId -i $CapacityId" 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) {
-      Write-Host "  ── ✅ Capacity assigned"
-    } else {
-      Write-Host "  ── ⚠️  Could not assign capacity — verify ID in portal (Admin → Capacities)"
+    # Optionally reassign capacity on existing workspace
+    if ($CapacityName) {
+      Set-FabCapacity -CapacityName $CapacityName -WorkspacePath $wsPath
     }
+  } else {
+    # New workspace — use fab config set default_capacity (handles special chars in names)
+    if (-not $CapacityName) {
+      Write-Host "  ── ❌ Cannot create workspace without a capacity."
+      Write-Host "         Select a capacity above, or set FABRIC_CAPACITY_NAME env var."
+      Write-Host "         Alternatively, set a default: fab config set default_capacity <name>"
+      return
+    }
+    Write-Host "  Setting default capacity: $CapacityName"
+    & fab config set default_capacity $CapacityName 2>&1 | Out-Null
+    Write-Host "  Creating workspace..."
+    New-FabItem -Path $wsPath -Label "Workspace: $WorkspaceName" -TreeChar "──"
   }
 
   # ---------------------------------------------------------------------------
   # Wave Deployment
   # ---------------------------------------------------------------------------
   # {{WAVE_DEPLOYMENT}}
-  # Agent: Insert fab mkdir commands grouped by wave
+  # Agent: Insert New-FabItem calls grouped by wave, e.g.:
+  #
+  #   Write-Host "`n  Wave 1 — Foundation"
+  #   New-FabItem -Path "$wsPath/bronze-lh.Lakehouse" -Label "Lakehouse: bronze-lh" -Params @("enableSchemas=true") -Description "Bronze layer raw data store"
+  #   New-FabItem -Path "$wsPath/my-env.Environment" -Label "Environment: my-env" -TreeChar "└──" -Description "Spark/Python runtime"
+  #
+  # -Description sets fab set -q description after creation (from architecture handoff purpose field)
+  # Naming: use underscores for Eventstream, MLExperiment, MLModel (hyphens rejected)
+  #
+  # Items that support fab mkdir (verified via fab desc):
+  #   .Lakehouse, .Warehouse, .Eventhouse, .KQLDatabase, .SQLDatabase,
+  #   .Notebook, .Environment, .DataPipeline, .Eventstream, .CopyJob,
+  #   .SparkJobDefinition, .MLExperiment, .MLModel, .KQLQueryset,
+  #   .SemanticModel, .Report, .Reflex, .KQLDashboard, .GraphQLApi
+  #
+  # Portal-only (no fab mkdir):
+  #   .Dashboard — use Add-ManualStep
 
+  # ---------------------------------------------------------------------------
+  # Deployment Summary
+  # ---------------------------------------------------------------------------
   Write-Host ""
   Write-Host "┌──────────────────────────────────────────────────────────────────┐"
   Write-Host "│  DEPLOYMENT SUMMARY                                              │"
   Write-Host "└──────────────────────────────────────────────────────────────────┘"
   Write-Host ""
-  $created = ($script:DeployResults | Where-Object { $_.Status -eq "created" }).Count
-  $existed = ($script:DeployResults | Where-Object { $_.Status -eq "exists" }).Count
-  $failed  = ($script:DeployResults | Where-Object { $_.Status -eq "failed" }).Count
+  $created = @($script:DeployResults | Where-Object { $_.Status -eq "created" }).Count
+  $existed = @($script:DeployResults | Where-Object { $_.Status -eq "exists" }).Count
+  $failed  = @($script:DeployResults | Where-Object { $_.Status -eq "failed" }).Count
+  $manual  = @($script:DeployResults | Where-Object { $_.Status -eq "manual" }).Count
   foreach ($r in $script:DeployResults) {
-    $icon = switch ($r.Status) { "created" { "✅ Created" } "exists" { "✅ Exists " } "failed" { "❌ Failed " } default { "⏭️  Skipped" } }
+    $icon = switch ($r.Status) {
+      "created" { "✅ Created" }
+      "exists"  { "✅ Exists " }
+      "failed"  { "❌ Failed " }
+      "manual"  { "⏭️  Manual " }
+      default   { "?  Unknown" }
+    }
     Write-Host "  $icon  $($r.Label)"
   }
   Write-Host ""
-  Write-Host "  Created: $created  |  Already existed: $existed  |  Failed: $failed"
+  Write-Host "  Created: $created  |  Exists: $existed  |  Failed: $failed  |  Manual: $manual"
 
   # ---------------------------------------------------------------------------
   # Post-Deployment Metadata
@@ -236,37 +370,22 @@ function Main {
   Write-Host "└──────────────────────────────────────────────────────────────────┘"
   Write-Host ""
 
-  # Workspace ID
-  $wsJson = & fab -c "get $WorkspaceName.Workspace --output json" 2>$null | Out-String
-  try { $wsInfo = $wsJson | ConvertFrom-Json } catch { $wsInfo = $null }
-  $WorkspaceId = if ($wsInfo.id) { $wsInfo.id } else { "(unavailable)" }
-  Write-Host "  Workspace ID:   $WorkspaceId"
-
-  # Tenant ID
-  $authJson = & fab -c "auth status --output json" 2>$null | Out-String
-  try { $authInfo = $authJson | ConvertFrom-Json } catch { $authInfo = $null }
-  $TenantId = if ($authInfo.tenantId) { $authInfo.tenantId } else { "(unavailable)" }
-  Write-Host "  Tenant ID:      $TenantId"
-
-  # Portal URL
-  $portalBase = "https://app.fabric.microsoft.com/groups/$WorkspaceId"
-  Write-Host "  Workspace URL:  $portalBase"
-  Write-Host ""
-
-  # Per-item IDs
-  Write-Host "  Item Details:"
-  foreach ($r in $script:DeployResults) {
-    if ($r.Status -eq "created" -or $r.Status -eq "exists") {
-      $itemName = ($r.Label -split ":\s*", 2)[-1].Trim()
-      $itemJson = & fab -c "get $WorkspaceName.Workspace/$itemName --output json" 2>$null | Out-String
-      try { $itemInfo = $itemJson | ConvertFrom-Json } catch { $itemInfo = $null }
-      $itemId = if ($itemInfo.id) { $itemInfo.id } else { "-" }
-      Write-Host "  ├── $($r.Label)  →  ID: $itemId"
-    }
+  $wsJson = Get-FabProperty -Path $wsPath
+  try {
+    $wsInfo = $wsJson | ConvertFrom-Json
+    $WorkspaceId = $wsInfo.id
+  } catch {
+    $WorkspaceId = "(unavailable)"
   }
+  Write-Host "  Workspace ID:   $WorkspaceId"
+  Write-Host "  Tenant ID:      $(Get-FabTenantId)"
+  Write-Host "  Workspace URL:  https://app.fabric.microsoft.com/groups/$WorkspaceId"
   Write-Host ""
-  Write-Host "  ℹ️  Save these IDs — they are required for CI/CD parameterization"
-  Write-Host "     and fabric-cicd library configuration."
+
+  Write-Host "  Items in workspace:"
+  & fab ls $wsPath -l 2>&1 | ForEach-Object { Write-Host "    $_" }
+  Write-Host ""
+  Write-Host "  ℹ️  Run 'fab get $wsPath/<item>.<Type> -q .' to inspect any item"
 }
 
 Main

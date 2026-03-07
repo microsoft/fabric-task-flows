@@ -60,6 +60,50 @@ python scripts/run-pipeline.py advance --project my-project --approve
 
 All other transitions (`auto: true`) advance automatically without `--approve`.
 
+### Reconcile (Heal State Drift)
+
+If pipeline state gets out of sync (e.g., after degraded-mode operation), reconcile rebuilds state from file evidence:
+
+```bash
+python scripts/run-pipeline.py reconcile --project my-project
+```
+
+This scans `prd/` output files, detects which phases are actually complete, extracts `task_flow` if missing, and fixes `current_phase`. It's idempotent — safe to run multiple times.
+
+You can also reconcile before advancing in one step:
+
+```bash
+python scripts/run-pipeline.py advance --project my-project --reconcile
+```
+
+### Shell Unavailable Fallback
+
+When an agent loses shell/powershell access mid-session, the pipeline would normally halt because `run-pipeline.py advance` cannot be called. To prevent this, agents may enter **degraded mode** and edit `pipeline-state.json` directly using the file edit tool.
+
+**Activation criteria — ALL must be true:**
+1. Shell/powershell tool is confirmed unavailable (not just slow or erroring)
+2. The agent has already written its output file (e.g., `prd/architecture-handoff.md`)
+3. The output file passes the same content checks `run-pipeline.py` would apply (non-template, >200 bytes)
+
+**Permitted edits — these mirror `run-pipeline.py advance` exactly:**
+1. Set current phase's `status` to `"complete"`
+2. Set next phase's `status` to `"in_progress"`
+3. Update `current_phase` to the next phase ID
+4. Extract `task_flow` from `prd/architecture-handoff.md` and set it (after Phase 1a only)
+
+**Prohibited — even in degraded mode:**
+- Skipping phases (must advance one at a time)
+- Bypassing the Phase 2b human gate (`"gate": "human"` transitions require user approval)
+- Modifying transition definitions, display_name, or problem_statement
+- Running without writing the output file first
+
+**Agent responsibilities in degraded mode:**
+1. Log in `STATUS.md`: `| [Phase] | [Date] | Degraded mode — shell unavailable, state edited directly |`
+2. Include in the next agent prompt: `⚠️ State was advanced in degraded mode. Run 'python scripts/run-pipeline.py reconcile --project [name]' when shell is available.`
+3. Skip pre-compute scripts gracefully — proceed with LLM reasoning alone
+
+**When shell returns:** Run `python scripts/run-pipeline.py reconcile --project [name]` to verify state consistency and heal any drift.
+
 ---
 
 ## Step 0: Check Status
@@ -102,7 +146,9 @@ Mention `@fabric-advisor` and describe what you need — e.g., "We have IoT sens
 
 The architect receives the Discovery Brief and selects the best-fit task flow. It walks through each decision guide — storage format, ingestion method, processing engine, visualization layer — and produces a DRAFT Architecture Handoff with the full deployment plan, item list, and rationale for every decision.
 
-**Produces:** DRAFT Architecture Handoff → `projects/[name]/prd/architecture-handoff.md`
+**ADR Write-Through:** The architect also fills in the pre-scaffolded ADR files (`docs/decisions/001-task-flow.md` through `005-visualization.md`) during this phase. Decisions are documented at the moment they're made — not deferred to Phase 4. This ensures reviewers in Phase 1b can reference the full decision rationale, and the "why" behind choices is captured while context is fresh.
+
+**Produces:** DRAFT Architecture Handoff → `projects/[name]/prd/architecture-handoff.md` + ADRs → `projects/[name]/docs/decisions/001-*.md` through `005-*.md`
 
 ---
 
@@ -140,9 +186,9 @@ Architect (DRAFT) ──► Reviewer ──► review_outcome?
 
 ## Phase 1c: Incorporate Feedback
 
-The architect incorporates both reviews into the FINAL handoff. A Design Review section is added documenting what changed and why.
+The architect incorporates both reviews into the FINAL handoff. A Design Review section is added documenting what changed and why. If review feedback changed any decisions, the corresponding ADR files are updated.
 
-**Produces:** FINAL Architecture Handoff with Design Review section
+**Produces:** FINAL Architecture Handoff with Design Review section + updated ADRs (if decisions changed)
 
 ---
 
@@ -219,8 +265,8 @@ When the user selects **design-only** during architecture (instead of providing 
 1. **Architect** sets `deployment-mode: design-only` in the Architecture Handoff
 2. **Tester** produces the Test Plan as normal (validation criteria don't change)
 3. **User** signs off on the architecture and test plan
-4. **Engineer** generates `deploy-{project}.sh` and `deploy-{project}.ps1` scripts in `projects/[name]/deployments/`
-5. **User** runs the scripts at their convenience — the scripts prompt for workspace name at runtime (authentication, capacity, and tenant are handled by the `fab` CLI)
+4. **Engineer** generates `deploy-{project}.sh`, `deploy-{project}.ps1`, and `deploy-{project}.py` scripts in `projects/[name]/deployments/` — the Python script uses `_shared/fabric_deploy.py` (a shared `FabricDeployer` utility with idempotent item creation, retry with backoff, and branded output)
+5. **User** runs the script of their choice at their convenience — all scripts prompt for workspace name at runtime (authentication, capacity, and tenant are handled by the `fab` CLI)
 
 > **When to use design-only mode:** Teams that want architecture decisions documented and reviewed before provisioning any Fabric resources, or when deploying to a workspace managed by a separate infrastructure team.
 

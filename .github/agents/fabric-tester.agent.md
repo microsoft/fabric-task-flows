@@ -114,6 +114,8 @@ Use the YAML schema in `_shared/schemas/validation-report.md`. Fill every field.
 
 > **⚠️ ORCHESTRATION — USE THE PIPELINE RUNNER:**
 > All phase transitions are managed by `run-pipeline.py`. Do NOT chain to other agents directly or update `pipeline-state.json`. The runner handles state tracking, output verification, and prompt generation. The ONLY human gate is Phase 2b Sign-Off.
+>
+> **Shell unavailable?** If shell/powershell is confirmed unavailable, follow the degraded-mode fallback in `_shared/workflow-guide.md` § Shell Unavailable Fallback. You may edit `pipeline-state.json` directly with limited, deterministic edits that mirror `run-pipeline.py advance`. Log degraded-mode usage in STATUS.md.
 
 > **The tester has THREE modes with different handoff rules.**
 

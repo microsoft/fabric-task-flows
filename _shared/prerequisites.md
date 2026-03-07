@@ -38,14 +38,12 @@ For the full command reference, see [Fabric CLI Commands](fabric-cli-commands.md
 ## Environment Variables
 
 ```bash
-# Optional: Set workspace ID
-export FABRIC_WORKSPACE_ID="<workspace-guid>"
-
-# Optional: Pre-set capacity ID (skips interactive prompt in deploy scripts)
-export FABRIC_CAPACITY_ID="<capacity-guid>"
-
 # Optional: Pre-set workspace name (skips interactive prompt in deploy scripts)
 export FABRIC_WORKSPACE_NAME="<workspace-name>"
+
+# Optional: Pre-set capacity name (skips interactive picker in deploy scripts)
+# Find names with: fab ls .capacities
+export FABRIC_CAPACITY_NAME="<capacity-display-name>"
 ```
 
 ## Workspace Setup
@@ -133,10 +131,10 @@ When using design-only mode (selected during architecture), the Fabric CLI and a
 **At deploy time (when running the generated scripts):**
 - Python 3.10+ and `fab` CLI (`pip install ms-fabric-cli`)
 - Valid Fabric authentication — run `fab auth login` before the script (the script verifies auth and exits with instructions if not authenticated)
-- Fabric Capacity ID (GUID) — the script prompts for this interactively (or set `FABRIC_CAPACITY_ID` env var)
+- Fabric Capacity — the script presents an interactive capacity picker (or set `FABRIC_CAPACITY_NAME` env var to skip)
 - Workspace Contributor permissions (the script creates the workspace if needed)
 
-The generated scripts prompt for **workspace name** and **capacity ID** interactively (with environment variable fallback). The script runs a preflight check for authentication and exits with clear instructions if `fab auth status` fails.
+The generated scripts prompt for **workspace name** and present an **interactive capacity picker** (with environment variable fallback). The script runs a preflight check for authentication and exits with clear instructions if `fab auth status` fails.
 
 ```bash
 # Step 1: Authenticate (one-time)
@@ -144,8 +142,8 @@ fab auth login
 
 # Step 2 (optional): Pre-set values as environment variables
 export FABRIC_WORKSPACE_NAME="my-project-dev"
-export FABRIC_CAPACITY_ID="00000000-0000-0000-0000-000000000000"
+export FABRIC_CAPACITY_NAME="My Capacity Name"
 
 # Step 3: Run the deploy script
-./deploy-my-project.sh
+./deploy-my-project.ps1
 ```

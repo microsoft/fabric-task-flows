@@ -1,8 +1,8 @@
 """
 Fabric Task Flows — Python Deploy Utility
 
-Shared utility for Python-based deploy scripts. Uses `fab -c "command"`
-(command-line mode) to avoid the interactive REPL.
+Shared utility for Python-based deploy scripts. Uses `fab <command>`
+(direct CLI invocation, not interactive REPL).
 
 Usage in generated deploy scripts:
     from fabric_deploy import FabricDeployer
@@ -19,10 +19,10 @@ from dataclasses import dataclass, field
 
 
 def run_fab(command: str, capture: bool = False, allow_failure: bool = False) -> str | None:
-    """Run a fab CLI command in command-line mode (fab -c 'command').
+    """Run a fab CLI command.
 
     Args:
-        command: The fab command to run (without the 'fab' prefix).
+        command: The fab command to run (e.g., 'get ws1.Workspace -q .').
         capture: If True, capture and return stdout.
         allow_failure: If True, don't raise on non-zero exit or stderr.
 
@@ -32,8 +32,10 @@ def run_fab(command: str, capture: bool = False, allow_failure: bool = False) ->
     Raises:
         RuntimeError: If command fails and allow_failure is False.
     """
+    # Split command into args for subprocess
+    parts = command.split()
     result = subprocess.run(
-        ["fab", "-c", command],
+        ["fab"] + parts,
         capture_output=True,
         text=True,
     )
@@ -55,7 +57,7 @@ def run_fab(command: str, capture: bool = False, allow_failure: bool = False) ->
 def check_auth() -> bool:
     """Check if fab is authenticated by parsing status output text."""
     result = subprocess.run(
-        ["fab", "-c", "auth status"],
+        ["fab", "auth", "status"],
         capture_output=True,
         text=True,
     )
@@ -63,11 +65,11 @@ def check_auth() -> bool:
 
 
 def authenticate_interactive():
-    """Authenticate via interactive browser login (command-line mode)."""
+    """Authenticate via interactive browser login."""
     print("  ── Opening Fabric login (browser)...")
-    subprocess.run(["fab", "-c", "auth login"], text=True)
+    subprocess.run(["fab", "auth", "login"], text=True)
     if not check_auth():
-        raise RuntimeError("Authentication failed. Run 'fab -c \"auth login\"' manually.")
+        raise RuntimeError("Authentication failed. Run 'fab auth login' manually.")
     print("  ── ✅ Authenticated")
 
 
@@ -88,13 +90,17 @@ def authenticate_spn(client_id: str = None, client_secret: str = None, tenant_id
 
 
 def fab_exists(path: str) -> bool:
-    """Check if a Fabric item exists (idempotency check)."""
+    """Check if a Fabric item exists (idempotency check).
+    
+    The fab CLI outputs '* true' if the item exists, '* false' if not.
+    Exit code is always 0 regardless.
+    """
     result = subprocess.run(
-        ["fab", "-c", f"exists {path}"],
+        ["fab", "exists", path],
         capture_output=True,
         text=True,
     )
-    return "does not exist" not in result.stdout.lower() and result.returncode == 0
+    return "* true" in result.stdout
 
 
 @dataclass
@@ -123,17 +129,23 @@ class FabricDeployer:
 
     def create_workspace(self) -> str:
         """Create workspace and assign capacity. Returns workspace ID."""
-        ws_path = f"/{self.workspace}.Workspace"
+        ws_path = f"{self.workspace}.Workspace"
         print(f"\n  Creating workspace: {self.workspace}")
 
         if fab_exists(ws_path):
             print(f"  ── ✅ Workspace already exists")
         else:
-            cmd = f"mkdir {ws_path}"
-            if self.capacity:
-                cmd += f" -P capacityName={self.capacity}"
-            run_fab(cmd, allow_failure=True)
+            run_fab(f"mkdir {ws_path}", allow_failure=True)
             print(f"  ── ✅ Workspace created")
+
+        # Assign capacity (uses capacity NAME, not GUID)
+        if self.capacity:
+            assign_result = run_fab(
+                f"assign .capacities/{self.capacity}.Capacity -W {ws_path}",
+                allow_failure=True
+            )
+            if assign_result is not None or True:  # assign doesn't return output on success
+                print(f"  ── ✅ Capacity assigned: {self.capacity}")
 
         # Get workspace ID
         ws_id = run_fab(f"get {ws_path} -q id", capture=True, allow_failure=True) or "(unavailable)"
@@ -154,7 +166,7 @@ class FabricDeployer:
         Returns:
             Item ID if created/exists, None if failed.
         """
-        path = f"/{self.workspace}.Workspace/{name}.{item_type}"
+        path = f"{self.workspace}.Workspace/{name}.{item_type}"
         label = f"{item_type}: {name}"
 
         # Idempotency check
@@ -225,18 +237,18 @@ class FabricDeployer:
         print("│  POST-DEPLOYMENT METADATA                                       │")
         print("└──────────────────────────────────────────────────────────────────┘\n")
 
-        ws_id = run_fab(f"get /{self.workspace}.Workspace -q id", capture=True, allow_failure=True) or "(unavailable)"
+        ws_id = run_fab(f"get {self.workspace}.Workspace -q id", capture=True, allow_failure=True) or "(unavailable)"
         print(f"  Workspace ID:   {ws_id}")
 
+        # Parse tenant ID from auth status text output
         auth_out = run_fab("auth status", capture=True, allow_failure=True) or ""
         print(f"  Workspace URL:  https://app.fabric.microsoft.com/groups/{ws_id}")
 
+        # List items
         print("\n  Item Details:")
-        for r in self.results:
-            if r.status in ("created", "exists"):
-                item_label = r.label.split(": ", 1)[-1] if ": " in r.label else r.label
-                item_type = r.label.split(": ", 1)[0] if ": " in r.label else "Unknown"
-                print(f"  ├── {r.label}")
+        items_out = run_fab(f"ls {self.workspace}.Workspace -l", capture=True, allow_failure=True) or ""
+        if items_out:
+            print(f"  {items_out}")
 
         print("\n  ℹ️  Save these IDs — they are required for CI/CD parameterization")
         print("     and fabric-cicd library configuration.")

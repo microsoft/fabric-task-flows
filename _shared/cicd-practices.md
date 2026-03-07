@@ -108,11 +108,56 @@ Key characteristics:
 
 ---
 
-## Parameterization with fabric-cicd
+## Parameterization
+
+Three approaches for environment-specific configuration, from Fabric-native to code-driven:
+
+| Approach | Best For | Tool |
+|----------|----------|------|
+| Variable Library | Fabric-native, multi-env, item references | Portal / REST API / Git |
+| `parameter.yml` | Automated `fabric-cicd` pipelines, deployment-time replacement | `fabric-cicd` Python library |
+| Environment variables | Single-env, simple `fab` CLI scripts | Shell / CI/CD variables |
+
+### Variable Library (Fabric-Native)
+
+> **Preferred for Fabric-native CI/CD.** Variable Libraries are workspace items that centralize configuration across deployment stages without external files or scripts.
+
+**How it works:**
+1. Create a Variable Library item in the workspace
+2. Define variables (String, Integer, Boolean, Guid, DateTime, Item Reference)
+3. Create **value sets** per deployment stage (Dev, PPE, Prod)
+4. Activate the appropriate value set per workspace — all consuming items reconfigure automatically
+
+**Item Reference variables** store `workspaceId + itemId` pairs, enabling dynamic binding:
+- Notebooks reference different Lakehouses per stage (via `NotebookUtils`)
+- Shortcuts point to different source Lakehouses per stage
+- User Data Functions connect to stage-specific data sources
+
+**When to use Variable Library:**
+- ✅ Multi-environment deployments where items need stage-specific configuration
+- ✅ Teams already using Fabric's built-in Git integration
+- ✅ Projects where Notebooks, Pipelines, and Shortcuts need dynamic item references
+- ✅ When you want parameterization without external tooling
+
+**When to use `parameter.yml` instead:**
+- When using the `fabric-cicd` Python library for automated deployment pipelines
+- When you need parameterization of item definitions at deployment time (not runtime)
+
+**When to use environment variables instead:**
+- Single-environment projects with simple `fab` CLI scripts
+- When Variable Library is overkill for the project's complexity
+
+**Limits:** Max 1,000 variables, 1,000 value sets, total cells < 10,000, item size < 1 MB.
+
+**Git integration:** Variable Library definitions are stored as JSON and sync via Fabric's built-in Git. Changes to variables are tracked in source control.
+
+**Deployment order:** Variable Library must be created and populated **before** consuming items (Notebooks, Pipelines, Shortcuts) are deployed. Place it in Wave 1 alongside foundation items.
+
+### parameter.yml (fabric-cicd)
 
 The `parameter.yml` file sits at the root of your repository directory and handles environment-specific value replacement.
 
-### File Location
+#### File Location
 
 ```
 /repository-directory/
@@ -123,7 +168,7 @@ The `parameter.yml` file sits at the root of your repository directory and handl
     /parameter.yml           ← here
 ```
 
-### find_replace (String/Regex Replacement)
+#### find_replace (String/Regex Replacement)
 
 For replacing values in text-based files (Notebooks, etc.):
 
@@ -155,7 +200,7 @@ find_replace:
 - `$items.Type.Name.sqlendpoint` — resolves to the item's SQL endpoint
 - `$ENV:var_name` — resolves from environment variables (requires `enable_environment_variable_replacement` feature flag)
 
-### key_value_replace (JSONPath Replacement)
+#### key_value_replace (JSONPath Replacement)
 
 For replacing values in JSON/YAML files (Pipelines, Platform files):
 
@@ -168,7 +213,7 @@ key_value_replace:
       item_type: "DataPipeline"
 ```
 
-### spark_pool (Environment Pool Mapping)
+#### spark_pool (Environment Pool Mapping)
 
 For parameterizing custom Spark pool attachments:
 
@@ -185,7 +230,7 @@ spark_pool:
       item_name: "my-environment"
 ```
 
-### Feature Flags
+#### Feature Flags
 
 ```python
 from fabric_cicd import append_feature_flag

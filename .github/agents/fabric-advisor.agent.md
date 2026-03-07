@@ -165,6 +165,8 @@ Use this table to infer signals from the user's problem description. Multiple si
 
 > **⚠️ ORCHESTRATION — USE THE PIPELINE RUNNER:**
 > All phase transitions are managed by `run-pipeline.py`. Do NOT manually scaffold projects, chain to other agents, or update `pipeline-state.json`. The runner handles scaffolding, state tracking, output verification, pre-compute scripts, and prompt generation. The ONLY human gate is Phase 2b Sign-Off.
+>
+> **Shell unavailable?** If shell/powershell is confirmed unavailable, follow the degraded-mode fallback in `_shared/workflow-guide.md` § Shell Unavailable Fallback. You may edit `pipeline-state.json` directly with limited, deterministic edits that mirror `run-pipeline.py advance`. Log degraded-mode usage in STATUS.md.
 
 1. **Scaffold the project** — Run the pipeline runner's `start` command (it calls `new-project.py` internally):
    ```

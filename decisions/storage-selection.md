@@ -45,6 +45,15 @@ options:
       best_for: ["transactional apps", "operational data", "writeback"]
       access_pattern: OLTP read-write
       cost_profile: transaction-optimized
+  - id: cosmos-db
+    label: Cosmos DB
+    criteria:
+      query_language: ["NoSQL API", "SQL-like queries"]
+      schema_approach: schema-less (document model)
+      data_format: JSON documents
+      best_for: ["semi-structured data", "AI/vector search", "high-concurrency apps", "evolving schemas"]
+      access_pattern: read-write, document-oriented
+      cost_profile: auto-scaling RU-based
   - id: postgresql
     label: PostgreSQL
     criteria:
@@ -54,6 +63,13 @@ options:
       best_for: ["open-source compatibility", "app backends", "geospatial"]
       access_pattern: OLTP read-write
       cost_profile: flexible scaling
+quick_decision: |
+  Spark/Python → Lakehouse
+  T-SQL analytics → Warehouse
+  T-SQL transactional → SQL Database
+  KQL time-series → Eventhouse
+  NoSQL/document → Cosmos DB
+  PostgreSQL → PostgreSQL
 ---
 
 # Storage Type Selection
@@ -73,22 +89,24 @@ What's your PRIMARY query language?
 │
 ├─► KQL (time-series) ─────────────► EVENTHOUSE
 │
+├─► NoSQL / Document data ──────────► COSMOS DB
+│
 └─► PostgreSQL ────────────────────► POSTGRESQL
 ```
 
 ## Comparison Table
 
-| Criteria | Lakehouse | Warehouse | Eventhouse | SQL Database | PostgreSQL |
-|----------|-----------|-----------|------------|--------------|------------|
-| **Query Language** | Spark, Python, SQL (read-only) | T-SQL | KQL | T-SQL | PostgreSQL SQL |
-| **Schema Approach** | Schema-on-read | Schema-on-write | Schema-on-write | Schema-on-write | Schema-on-write |
-| **Data Format** | Delta Lake (Parquet) | Relational tables | Columnar time-series | Relational tables | Relational tables |
-| **Best For** | ML, Data Science, exploration | BI, Reporting, stored procs | Real-time, IoT, logs | Transactional apps, writeback | Open-source, geospatial |
-| **Access Pattern** | Read-heavy analytics | Read-write analytical | Append-heavy, time-windowed | OLTP read-write | OLTP read-write |
-| **Time Travel** | ✅ Built-in versioning | ❌ No | ✅ Retention policies | ❌ No | ❌ No |
-| **Stored Procedures** | ❌ No | ✅ T-SQL procs | ❌ No | ✅ T-SQL procs | ✅ PL/pgSQL |
-| **Real-Time Ingestion** | Via Eventstream | Limited | ✅ Native | Limited | Limited |
-| **Semantic Model** | ✅ Direct Lake mode | ✅ Direct Lake / Import / DirectQuery | ✅ DirectQuery | ✅ DirectQuery (via OneLake mirroring: Direct Lake) | ✅ DirectQuery |
+| Criteria | Lakehouse | Warehouse | Eventhouse | SQL Database | Cosmos DB | PostgreSQL |
+|----------|-----------|-----------|------------|--------------|-----------|------------|
+| **Query Language** | Spark, Python, SQL (read-only) | T-SQL | KQL | T-SQL | NoSQL API, SQL-like | PostgreSQL SQL |
+| **Schema Approach** | Schema-on-read | Schema-on-write | Schema-on-write | Schema-on-write | Schema-less (document) | Schema-on-write |
+| **Data Format** | Delta Lake (Parquet) | Relational tables | Columnar time-series | Relational tables | JSON documents | Relational tables |
+| **Best For** | ML, Data Science, exploration | BI, Reporting, stored procs | Real-time, IoT, logs | Transactional apps, writeback | Semi-structured, AI/vector, high-concurrency | Open-source, geospatial |
+| **Access Pattern** | Read-heavy analytics | Read-write analytical | Append-heavy, time-windowed | OLTP read-write | Read-write, document | OLTP read-write |
+| **Time Travel** | ✅ Built-in versioning | ❌ No | ✅ Retention policies | ❌ No | ❌ No | ❌ No |
+| **Stored Procedures** | ❌ No | ✅ T-SQL procs | ❌ No | ✅ T-SQL procs | ❌ No (use UDFs instead) | ✅ PL/pgSQL |
+| **Real-Time Ingestion** | Via Eventstream | Limited | ✅ Native | Limited | Limited | Limited |
+| **Semantic Model** | ✅ Direct Lake mode | ✅ Direct Lake / Import / DirectQuery | ✅ DirectQuery | ✅ DirectQuery (via OneLake mirroring: Direct Lake) | ✅ Direct Lake (via OneLake mirror) | ✅ DirectQuery |
 
 ## When to Choose Each
 
@@ -130,6 +148,17 @@ What's your PRIMARY query language?
 - ✅ Use case is **operational/transactional** (not just analytics)
 - ✅ You're building **translytical** patterns (operational + analytical)
 - ✅ Power BI reports need **writeback** functionality
+
+### Choose COSMOS DB when:
+
+- ✅ Data is **semi-structured or document-oriented** (JSON, nested objects)
+- ✅ Schema **evolves frequently** and you need schema-less flexibility
+- ✅ You need **AI capabilities** — vector search, full-text search, hybrid search with RRF
+- ✅ Application requires **limitless auto-scaling** with low latency
+- ✅ Use case is a **high-concurrency serving layer** (thousands of simultaneous users)
+- ✅ You're building **AI-powered apps** with RAG patterns and embeddings
+- ✅ Data model doesn't fit relational constraints (no foreign keys needed)
+- ✅ You want automatic **OneLake mirroring** for analytics without ETL
 
 ### Choose POSTGRESQL when:
 
