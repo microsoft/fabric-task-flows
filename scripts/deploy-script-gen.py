@@ -353,7 +353,7 @@ def _dict_to_wave(d: dict[str, str]) -> Wave:
         deps = [x.strip().strip('"').strip("'") for x in inner.split(",") if x.strip()] if inner else []
     else:
         deps = []
-    return Wave(id=wave_id, items=items, blocked_by=deps, note=d.get("note", ""))
+    return Wave(id=wave_id, items=items, blocked_by=deps, note=d.get("name", d.get("note", "")))
 
 
 def parse_handoff(path: str) -> HandoffData:

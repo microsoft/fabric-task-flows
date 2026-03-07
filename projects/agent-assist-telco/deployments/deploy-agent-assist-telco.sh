@@ -158,29 +158,29 @@ main() {
   echo "└──────────────────────────────────────────────────────────────────┘"
   echo ""
 
-  echo "  Wave 1 — Wave 1"
+  echo "  Wave 1 — Foundation + Compute"
   echo "  ├── ☐ Lakehouse: call-transcripts-lakehouse"
   echo "  ├── ☐ Warehouse: call-analytics-warehouse"
   echo "  ├── ☐ Eventhouse: call-events-eventhouse"
   echo "  └── ☐ Environment: spark-env"
   echo ""
-  echo "  Wave 2 — Wave 2"
+  echo "  Wave 2 — Ingestion"
   echo "  ├── ☐ Eventstream: call-stream-eventstream"
   echo "  └── ☐ Data Pipeline: crm-sync-pipeline"
   echo ""
-  echo "  Wave 3 — Wave 3"
+  echo "  Wave 3 — Processing"
   echo "  ├── ☐ Notebook: transcript-etl-notebook"
   echo "  └── ☐ KQL Queryset: call-insights-kql"
   echo ""
-  echo "  Wave 4 — Wave 4"
+  echo "  Wave 4 — Serving"
   echo "  ├── ☐ Semantic Model: call-analytics-model"
   echo "  └── ☐ [MANUAL] Real-Time Dashboard: call-ops-rt-dash"
   echo ""
-  echo "  Wave 5 — Wave 5"
+  echo "  Wave 5 — Visualization"
   echo "  ├── ☐ Report: call-analytics-report"
   echo "  └── ☐ [MANUAL] Activator: call-alert-activator"
   echo ""
-  echo "  Wave 6 — Wave 6"
+  echo "  Wave 6 — ML"
   echo "  ├── ☐ ML Experiment: transcript-ml-experiment"
   echo "  ├── ☐ ML Model: transcript-ml-model"
   echo "  └── ☐ Notebook: ml-scoring-notebook"
@@ -202,8 +202,9 @@ main() {
   if fab auth status 2>/dev/null; then
     echo "  ── ✅ Already authenticated"
   else
-    echo "  ── Launching Fabric auth login..."
-    if fab auth login 2>&1; then
+    echo "  ── Opening Fabric login (browser)..."
+    fab auth login
+    if fab auth status 2>/dev/null; then
       echo "  ── ✅ Authentication successful"
     else
       echo "  ── ❌ Authentication failed."
@@ -241,10 +242,10 @@ main() {
   # Wave Deployment
   # ---------------------------------------------------------------------------
   # ─────────────────────────────────────────────────────────────────
-  # Wave 1 — Wave 1
+  # Wave 1 — Foundation + Compute
   # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 1 — Wave 1"
+  echo "  Wave 1 — Foundation + Compute"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-transcripts-lakehouse.Lakehouse" "Lakehouse: call-transcripts-lakehouse" "├──" "-P" "enableSchemas=true"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-warehouse.Warehouse" "Warehouse: call-analytics-warehouse" "├──"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-events-eventhouse.Eventhouse" "Eventhouse: call-events-eventhouse" "├──"
@@ -268,18 +269,18 @@ main() {
   echo "  ── ℹ️  Captured Eventhouse ID: $EVENTHOUSE_ID"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 2 — Wave 2
+  # Wave 2 — Ingestion
   # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 2 — Wave 2"
+  echo "  Wave 2 — Ingestion"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-stream-eventstream.Eventstream" "Eventstream: call-stream-eventstream" "├──"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/crm-sync-pipeline.DataPipeline" "Data Pipeline: crm-sync-pipeline" "└──"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 3 — Wave 3
+  # Wave 3 — Processing
   # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 3 — Wave 3"
+  echo "  Wave 3 — Processing"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-etl-notebook.Notebook" "Notebook: transcript-etl-notebook" "├──"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-insights-kql.KQLQueryset" "KQL Queryset: call-insights-kql" "└──"
 
@@ -292,10 +293,10 @@ main() {
   echo "  ── ✅ transcript-etl-notebook bound to environment spark-env"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 4 — Wave 4
+  # Wave 4 — Serving
   # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 4 — Wave 4"
+  echo "  Wave 4 — Serving"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-model.SemanticModel" "Semantic Model: call-analytics-model" "├──"
   echo "  └── ⏭️  [MANUAL] Real-Time Dashboard: create via Fabric Portal"
 
@@ -303,18 +304,18 @@ main() {
   echo "  ── ℹ️  Captured SemanticModel ID: $SEMANTIC_MODEL_ID"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 5 — Wave 5
+  # Wave 5 — Visualization
   # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 5 — Wave 5"
+  echo "  Wave 5 — Visualization"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-report.Report" "Report: call-analytics-report" "├──" "-P" "semanticModelId=$SEMANTIC_MODEL_ID"
   echo "  └── ⏭️  [MANUAL] Activator: create via Fabric Portal"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 6 — Wave 6
+  # Wave 6 — ML
   # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 6 — Wave 6"
+  echo "  Wave 6 — ML"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-ml-experiment.MLExperiment" "ML Experiment: transcript-ml-experiment" "├──"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-ml-model.MLModel" "ML Model: transcript-ml-model" "├──"
   fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/ml-scoring-notebook.Notebook" "Notebook: ml-scoring-notebook" "└──"

@@ -157,29 +157,29 @@ function Main {
   Write-Host "└──────────────────────────────────────────────────────────────────┘"
   Write-Host ""
 
-  Write-Host "  Wave 1 — Wave 1"
+  Write-Host "  Wave 1 — Foundation + Compute"
   Write-Host "  ├── ☐ Lakehouse: call-transcripts-lakehouse"
   Write-Host "  ├── ☐ Warehouse: call-analytics-warehouse"
   Write-Host "  ├── ☐ Eventhouse: call-events-eventhouse"
   Write-Host "  └── ☐ Environment: spark-env"
   Write-Host ""
-  Write-Host "  Wave 2 — Wave 2"
+  Write-Host "  Wave 2 — Ingestion"
   Write-Host "  ├── ☐ Eventstream: call-stream-eventstream"
   Write-Host "  └── ☐ Data Pipeline: crm-sync-pipeline"
   Write-Host ""
-  Write-Host "  Wave 3 — Wave 3"
+  Write-Host "  Wave 3 — Processing"
   Write-Host "  ├── ☐ Notebook: transcript-etl-notebook"
   Write-Host "  └── ☐ KQL Queryset: call-insights-kql"
   Write-Host ""
-  Write-Host "  Wave 4 — Wave 4"
+  Write-Host "  Wave 4 — Serving"
   Write-Host "  ├── ☐ Semantic Model: call-analytics-model"
   Write-Host "  └── ☐ [MANUAL] Real-Time Dashboard: call-ops-rt-dash"
   Write-Host ""
-  Write-Host "  Wave 5 — Wave 5"
+  Write-Host "  Wave 5 — Visualization"
   Write-Host "  ├── ☐ Report: call-analytics-report"
   Write-Host "  └── ☐ [MANUAL] Activator: call-alert-activator"
   Write-Host ""
-  Write-Host "  Wave 6 — Wave 6"
+  Write-Host "  Wave 6 — ML"
   Write-Host "  ├── ☐ ML Experiment: transcript-ml-experiment"
   Write-Host "  ├── ☐ ML Model: transcript-ml-model"
   Write-Host "  └── ☐ Notebook: ml-scoring-notebook"
@@ -201,8 +201,9 @@ function Main {
   if ($LASTEXITCODE -eq 0) {
     Write-Host "  ── ✅ Already authenticated"
   } else {
-    Write-Host "  ── Launching Fabric auth login..."
-    fab auth login 2>&1 | Out-Null
+    Write-Host "  ── Opening Fabric login (browser)..."
+    fab auth login
+    fab auth status 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
       Write-Host "  ── ✅ Authentication successful"
     } else {
@@ -243,10 +244,10 @@ function Main {
   # Wave Deployment
   # ---------------------------------------------------------------------------
   # ─────────────────────────────────────────────────────────────────
-  # Wave 1 — Wave 1
+  # Wave 1 — Foundation + Compute
   # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 1 — Wave 1"
+  Write-Host "  Wave 1 — Foundation + Compute"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/call-transcripts-lakehouse.Lakehouse" -Label "Lakehouse: call-transcripts-lakehouse" -TreeChar "├──" -ExtraArgs @("-P", "enableSchemas=true")
   Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-warehouse.Warehouse" -Label "Warehouse: call-analytics-warehouse" -TreeChar "├──"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/call-events-eventhouse.Eventhouse" -Label "Eventhouse: call-events-eventhouse" -TreeChar "├──"
@@ -269,18 +270,18 @@ function Main {
   Write-Host "  ── ℹ️  Captured Eventhouse ID: $EventhouseId"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 2 — Wave 2
+  # Wave 2 — Ingestion
   # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 2 — Wave 2"
+  Write-Host "  Wave 2 — Ingestion"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/call-stream-eventstream.Eventstream" -Label "Eventstream: call-stream-eventstream" -TreeChar "├──"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/crm-sync-pipeline.DataPipeline" -Label "Data Pipeline: crm-sync-pipeline" -TreeChar "└──"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 3 — Wave 3
+  # Wave 3 — Processing
   # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 3 — Wave 3"
+  Write-Host "  Wave 3 — Processing"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-etl-notebook.Notebook" -Label "Notebook: transcript-etl-notebook" -TreeChar "├──"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/call-insights-kql.KQLQueryset" -Label "KQL Queryset: call-insights-kql" -TreeChar "└──"
 
@@ -293,10 +294,10 @@ function Main {
   Write-Host "  ── ✅ transcript-etl-notebook bound to environment spark-env"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 4 — Wave 4
+  # Wave 4 — Serving
   # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 4 — Wave 4"
+  Write-Host "  Wave 4 — Serving"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-model.SemanticModel" -Label "Semantic Model: call-analytics-model" -TreeChar "├──"
   Write-Host "  └── ⏭️  [MANUAL] Real-Time Dashboard: create via Fabric Portal"
 
@@ -304,18 +305,18 @@ function Main {
   Write-Host "  ── ℹ️  Captured SemanticModel ID: $SemanticModelId"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 5 — Wave 5
+  # Wave 5 — Visualization
   # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 5 — Wave 5"
+  Write-Host "  Wave 5 — Visualization"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-report.Report" -Label "Report: call-analytics-report" -TreeChar "├──" -ExtraArgs @("-P", "semanticModelId=$SemanticModelId")
   Write-Host "  └── ⏭️  [MANUAL] Activator: create via Fabric Portal"
 
   # ─────────────────────────────────────────────────────────────────
-  # Wave 6 — Wave 6
+  # Wave 6 — ML
   # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 6 — Wave 6"
+  Write-Host "  Wave 6 — ML"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-ml-experiment.MLExperiment" -Label "ML Experiment: transcript-ml-experiment" -TreeChar "├──"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-ml-model.MLModel" -Label "ML Model: transcript-ml-model" -TreeChar "├──"
   Fab-Mkdir -Path "$WorkspaceName.Workspace/ml-scoring-notebook.Notebook" -Label "Notebook: ml-scoring-notebook" -TreeChar "└──"

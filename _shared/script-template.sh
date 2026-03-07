@@ -177,8 +177,9 @@ main() {
   if fab auth status 2>/dev/null; then
     echo "  ── ✅ Already authenticated"
   else
-    echo "  ── Launching Fabric auth login..."
-    if fab auth login 2>&1; then
+    echo "  ── Opening Fabric login (browser)..."
+    fab auth login
+    if fab auth status 2>/dev/null; then
       echo "  ── ✅ Authentication successful"
     else
       echo "  ── ❌ Authentication failed."

@@ -172,8 +172,9 @@ function Main {
   if ($LASTEXITCODE -eq 0) {
     Write-Host "  ── ✅ Already authenticated"
   } else {
-    Write-Host "  ── Launching Fabric auth login..."
-    fab auth login 2>&1 | Out-Null
+    Write-Host "  ── Opening Fabric login (browser)..."
+    fab auth login
+    fab auth status 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
       Write-Host "  ── ✅ Authentication successful"
     } else {
