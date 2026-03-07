@@ -483,7 +483,7 @@ def main():
 
     if not args.problem and not args.problem_file and not args.all_projects:
         # Default: run problem-file if it exists, plus all-projects
-        default_pf = REPO_ROOT / "_shared" / "problem-statements.md"
+        default_pf = Path(__file__).resolve().parent.parent / "problem-statements.md"
         if default_pf.exists():
             args.problem_file = str(default_pf)
         args.all_projects = True

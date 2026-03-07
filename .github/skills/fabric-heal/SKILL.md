@@ -22,7 +22,7 @@ Improve the signal mapper's keyword coverage through iterative problem generatio
 
 **Trigger:** Orchestrator passes `--mode generate --batch-num N`.
 
-Write 25 novel problem statements to `_shared/problem-statements.md`.
+Write 25 novel problem statements to `problem-statements.md` (in this skill's folder).
 
 ### Requirements Per Problem
 
@@ -72,6 +72,6 @@ Coverage %, zero-candidate count, uncovered terms list.
 ## References
 
 - `scripts/signal-mapper.py` — current keyword categories
-- `_shared/problem-statements.md` — existing format
+- `problem-statements.md` — existing format (in this skill's folder)
 - `_shared/learnings.md` — healing history
 - `task-flows.md` — task flow descriptions

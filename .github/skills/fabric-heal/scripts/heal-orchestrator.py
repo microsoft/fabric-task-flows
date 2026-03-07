@@ -34,10 +34,11 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts" / "signal-mapper.py"
-PROBLEMS_PATH = REPO_ROOT / "_shared" / "problem-statements.md"
+SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-heal/
+PROBLEMS_PATH = SKILL_DIR / "problem-statements.md"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
 RESULTS_PATH = REPO_ROOT / "projects" / "_heal-loop-results.json"
-BACKUP_PATH = REPO_ROOT / "_shared" / "problem-statements.md.bak"
+BACKUP_PATH = SKILL_DIR / "problem-statements.md.bak"
 
 # Category rotation for agent prompts — diverse industries across iterations
 CATEGORY_ROTATION: list[list[str]] = [

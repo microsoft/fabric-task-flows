@@ -73,7 +73,7 @@ def test_scaffold_produces_valid_json():
     import importlib.util
     spec = importlib.util.spec_from_file_location(
         "taskflow_gen",
-        str(REPO_ROOT / "scripts" / "taskflow-gen.py")
+        str(REPO_ROOT / ".github" / "skills" / "fabric-deploy" / "scripts" / "taskflow-gen.py")
     )
     try:
         mod = importlib.util.module_from_spec(spec)

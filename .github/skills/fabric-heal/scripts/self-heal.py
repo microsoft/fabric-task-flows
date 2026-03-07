@@ -31,7 +31,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts" / "signal-mapper.py"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
-DEFAULT_PROBLEMS = REPO_ROOT / "_shared" / "problem-statements.md"
+DEFAULT_PROBLEMS = Path(__file__).resolve().parent.parent / "problem-statements.md"
 
 
 # ---------------------------------------------------------------------------

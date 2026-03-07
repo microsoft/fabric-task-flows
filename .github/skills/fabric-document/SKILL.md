@@ -63,12 +63,12 @@ The architect wrote initial ADR drafts during Phase 1a. Your job:
 5. Write any missing ADRs from the Architecture Handoff
 6. Include `006-cicd.md` only for multi-environment projects
 
-Use template from `_shared/adr-template.md`.
+Use template from `references/adr-template.md`.
 
 ## Constraints
 
 - Never re-state handoff content — use markdown links and YAML field references
-- Use `_shared/documentation-templates.md` for wiki structure
+- Use `references/documentation-templates.md` for wiki structure
 - Never deploy or modify Fabric items
 - Documents only — no architecture decisions
 

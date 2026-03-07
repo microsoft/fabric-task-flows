@@ -91,7 +91,7 @@ Perform BOTH deployment feasibility AND testability review in a single pass.
 
 1. `projects/[name]/prd/architecture-handoff.md` — the DRAFT
 2. `diagrams/[task-flow].md` — skip to `## Deployment Order`
-3. `_shared/fabric-cli-commands.md` — CLI verification reference
+3. `references/fabric-cli-commands.md` — CLI verification reference (bundled in fabric-deploy)
 4. `validation/[task-flow].md` — task-flow-specific validation checklist
 
 ### Step 2: Engineer Review (Deployment Feasibility)

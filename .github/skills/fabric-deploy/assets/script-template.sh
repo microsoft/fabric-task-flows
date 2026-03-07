@@ -17,21 +17,33 @@ print_banner() {
   local task_flow="${2:-unknown}"
   local mode="${3:-Deploy}"
 
+  # Trim text to max 53 chars
+  trim_text() {
+    local text="$1"
+    local max=53
+    if [[ ${#text} -gt $max ]]; then
+      echo "${text:0:$((max-1))}…"
+    else
+      echo "$text"
+    fi
+  }
+
+  project_name=$(trim_text "$project_name")
+  task_flow=$(trim_text "$task_flow")
+  mode=$(trim_text "$mode")
+
   echo ""
-  echo "╔═════════════════════════════════════════════╗"
-  echo "║                                             ║"
-  echo "║   ┌──────────────────────────────────────┐  ║"
-  echo "║   │ F A B R I C   T A S K   F L O W S    │  ║"
-  echo "║   │ ──────────────────────────────────── │  ║"
-  echo "║   │ Deploy Microsoft Fabric              │  ║"
-  echo "║   │ architectures to production          │  ║"
-  echo "║   └──────────────────────────────────────┘  ║"
-  echo "║                                             ║"
-  printf "║  Project:   %-45s ║\n" "$project_name"
-  printf "║  Task Flow: %-45s ║\n" "$task_flow"
-  printf "║  Mode:      %-45s ║\n" "$mode"
-  echo "║                                             ║"
-  echo "╚═════════════════════════════════════════════╝"
+  echo "╔══════════════════════════════════════════════════════════════════╗"
+  echo "║                                                                  ║"
+  echo "║       M I C R O S O F T   F A B R I C   T A S K   F L O W S      ║"
+  echo "║                                                                  ║"
+  echo "║  Deploy Microsoft Fabric architectures with guided wave rollout. ║"
+  echo "║                                                                  ║"
+  printf "║  Project:   %-53s║\n" "$project_name"
+  printf "║  Task Flow: %-53s║\n" "$task_flow"
+  printf "║  Mode:      %-53s║\n" "$mode"
+  echo "║                                                                  ║"
+  echo "╚══════════════════════════════════════════════════════════════════╝"
   echo ""
 }
 

@@ -256,22 +256,28 @@ class FabricDeployer:
 
 def print_banner(project: str, task_flow: str, mode: str = "Deploy to Fabric"):
     """Print the Fabric Task Flows banner."""
-    print("""
-╔══════════════════════════════════════════════════════════════════╗
-║                                                                  ║
-║        /@@@@@@@@@@@@/  ┌──────────────────────────────────────┐  ║
-║       /@@@@@@@@@@@@/   │ F A B R I C   T A S K   F L O W S    │  ║
-║      /@@@@@@@@@/       │ ──────────────────────────────────── │  ║
-║     /@@@@@@/           │ Deploy Microsoft Fabric              │  ║
-║    /@@@@@@/            │ architectures to production          │  ║
-║                        └──────────────────────────────────────┘  ║
-║                                                                  ║""")
-    print(f"║  Project:   {project:<52} ║")
-    print(f"║  Task Flow: {task_flow:<52} ║")
-    print(f"║  Mode:      {mode:<52} ║")
-    print("""║                                                                  ║
-╚══════════════════════════════════════════════════════════════════╝
-""")
+    def trim_text(text: str, max_len: int = 53) -> str:
+        if not text:
+            return ""
+        return text[:max_len - 1] + "…" if len(text) > max_len else text
+
+    project = trim_text(project)
+    task_flow = trim_text(task_flow)
+    mode = trim_text(mode)
+
+    print()
+    print("╔══════════════════════════════════════════════════════════════════╗")
+    print("║                                                                  ║")
+    print("║       M I C R O S O F T   F A B R I C   T A S K   F L O W S      ║")
+    print("║                                                                  ║")
+    print("║  Deploy Microsoft Fabric architectures with guided wave rollout. ║")
+    print("║                                                                  ║")
+    print(f"║  Project:   {project:<53}║")
+    print(f"║  Task Flow: {task_flow:<53}║")
+    print(f"║  Mode:      {mode:<53}║")
+    print("║                                                                  ║")
+    print("╚══════════════════════════════════════════════════════════════════╝")
+    print()
 
 
 def prompt_value(env_var: str, prompt_text: str, default: str = "", optional: bool = False) -> str:

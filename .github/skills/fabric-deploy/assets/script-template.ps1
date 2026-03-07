@@ -14,18 +14,6 @@ $ErrorActionPreference = "Stop"
 # ---------------------------------------------------------------------------
 # Brand Banner
 # ---------------------------------------------------------------------------
-function Write-BannerLine {
-  param(
-    [string]$Text = "",
-    [int]$InnerWidth = 70
-  )
-
-  if ($Text.Length -gt $InnerWidth) {
-    $Text = $Text.Substring(0, $InnerWidth)
-  }
-  Write-Host ("║ {0,-$InnerWidth} ║" -f $Text)
-}
-
 function Print-Banner {
   param(
     [string]$ProjectName = "Project",
@@ -33,35 +21,29 @@ function Print-Banner {
     [string]$Mode = "Deploy"
   )
 
-  $innerWidth = 70
-  $border = "╔" + ("═" * ($innerWidth + 2)) + "╗"
-  $footer = "╚" + ("═" * ($innerWidth + 2)) + "╝"
+  function Trim-BannerText {
+    param([string]$Text, [int]$Max = 53)
+    if ([string]::IsNullOrWhiteSpace($Text)) { return "" }
+    if ($Text.Length -le $Max) { return $Text }
+    return $Text.Substring(0, $Max - 1) + "…"
+  }
 
-  # Stylized "woven tiles" icon inspired by Microsoft Fabric
-  $icon = @(
-    "                      ╭─────╮   ╭─────╮"
-    "                      │╲   ╱│   │╲   ╱│"
-    "                      │ ╲ ╱ │╲ ╱│ ╲ ╱ │"
-    "                      │ ╱ ╲ │╳╳│ ╱ ╲ │"
-    "                      │╱   ╲│╱ ╲│╱   ╲│"
-    "                      ╰─────╯   ╰─────╯"
-  )
+  $project = Trim-BannerText -Text $ProjectName
+  $flow    = Trim-BannerText -Text $TaskFlow
+  $modeTxt = Trim-BannerText -Text $Mode
 
   Write-Host ""
-  Write-Host $border
-  Write-BannerLine -InnerWidth $innerWidth
-  Write-BannerLine -Text "FABRIC TASK FLOWS" -InnerWidth $innerWidth
-  Write-BannerLine -Text "Deploy Microsoft Fabric architectures with confidence" -InnerWidth $innerWidth
-  Write-BannerLine -InnerWidth $innerWidth
-  foreach ($line in $icon) {
-    Write-BannerLine -Text $line -InnerWidth $innerWidth
-  }
-  Write-BannerLine -InnerWidth $innerWidth
-  Write-BannerLine -Text ("Project   : {0}" -f $ProjectName) -InnerWidth $innerWidth
-  Write-BannerLine -Text ("Task Flow : {0}" -f $TaskFlow) -InnerWidth $innerWidth
-  Write-BannerLine -Text ("Mode      : {0}" -f $Mode) -InnerWidth $innerWidth
-  Write-BannerLine -InnerWidth $innerWidth
-  Write-Host $footer
+  Write-Host "╔══════════════════════════════════════════════════════════════════╗"
+  Write-Host "║                                                                  ║"
+  Write-Host "║       M I C R O S O F T   F A B R I C   T A S K   F L O W S      ║"
+  Write-Host "║                                                                  ║"
+  Write-Host "║  Deploy Microsoft Fabric architectures with guided wave rollout. ║"
+  Write-Host "║                                                                  ║"
+  Write-Host ("║  Project:   {0,-53}║" -f $project)
+  Write-Host ("║  Task Flow: {0,-53}║" -f $flow)
+  Write-Host ("║  Mode:      {0,-53}║" -f $modeTxt)
+  Write-Host "║                                                                  ║"
+  Write-Host "╚══════════════════════════════════════════════════════════════════╝"
   Write-Host ""
 }
 
