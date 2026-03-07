@@ -67,6 +67,23 @@ Each guide has YAML frontmatter with structured options, a `quick_decision` tree
 
 All agents include: three-tier boundaries (✅/⚠️/🚫), Signs of Drift, Quality Checklists, structured handoff templates, and `⚠️ ORCHESTRATION` blocks (use `run-pipeline.py advance && next` for phase transitions — no manual agent chaining except Phase 2b sign-off).
 
+### Agent Skills
+
+Skills are composable, auto-activating instruction packs stored in `.github/skills/`. Each skill is a focused, single-workflow unit with trigger phrases, bundled references, and scripts. Skills follow the [Agent Skills open standard](https://github.com/agentskills/agentskills) and activate automatically when Copilot detects a relevant prompt.
+
+| Skill | Phase | Extracted From | Trigger Examples |
+|-------|-------|---------------|-----------------|
+| `/fabric-discover` | 0a | @fabric-advisor | "analyze my data problem", "what task flow fits" |
+| `/fabric-design` | 1a | @fabric-architect (Mode 1) | "design architecture", "medallion vs lambda" |
+| `/fabric-finalize` | 1c | @fabric-architect (Mode 2) | "finalize architecture", "incorporate review feedback" |
+| `/fabric-review` | 1b | @fabric-reviewer | "review DRAFT", "check feasibility" |
+| `/fabric-test-plan` | 2a | @fabric-tester (Mode 1) | "create test plan", "map acceptance criteria" |
+| `/fabric-deploy` | 2c | @fabric-engineer (Mode 1) | "deploy items", "run deployment" |
+| `/fabric-validate` | 3 | @fabric-tester (Mode 2) | "validate deployment", "run validation" |
+| `/fabric-remediate` | 3+ | @fabric-engineer (Mode 2) | "fix deployment issues", "remediate" |
+| `/fabric-document` | 4 | @fabric-documenter | "generate docs", "write ADRs" |
+| `/fabric-heal` | Standalone | @fabric-healer | "heal signal mapper", "improve coverage" |
+
 ### Agent Pipeline
 
 ```
@@ -136,6 +153,17 @@ task-flows/
 │   │   ├── fabric-tester.agent.md
 │   │   ├── fabric-documenter.agent.md
 │   │   └── fabric-healer.agent.md
+│   ├── skills/                          # Agent skills (10 composable skills)
+│   │   ├── fabric-discover/SKILL.md     # Discovery & signal mapping
+│   │   ├── fabric-design/SKILL.md       # DRAFT architecture design
+│   │   ├── fabric-finalize/SKILL.md     # FINAL architecture from review feedback
+│   │   ├── fabric-review/SKILL.md       # Combined feasibility + testability review
+│   │   ├── fabric-test-plan/SKILL.md    # Test plan from acceptance criteria
+│   │   ├── fabric-deploy/SKILL.md       # Wave-based deployment
+│   │   ├── fabric-validate/SKILL.md     # Post-deployment validation
+│   │   ├── fabric-remediate/SKILL.md    # Fix deployment/config issues
+│   │   ├── fabric-document/SKILL.md     # Wiki + ADR documentation
+│   │   └── fabric-heal/SKILL.md         # Signal mapper self-healing
 │   └── copilot-instructions.md         # System-level agent context
 ├── task-flows.md                       # All 13 task flow patterns (consolidated)
 ├── decisions/                          # Decision guides (7 guides)
