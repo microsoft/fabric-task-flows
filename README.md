@@ -63,6 +63,7 @@ Each guide has YAML frontmatter with structured options, a `quick_decision` tree
 | **@fabric-tester** | 2a/3 — Plan/Validate | Mode 0: review DRAFT, Mode 1: test plan, Mode 2: post-deploy validation | Test Plan / Validation Report |
 | **@fabric-engineer** | 2c — Deploy | Parallel wave deployment via `fab` CLI or `fabric-cicd` | Deployment Handoff |
 | **@fabric-documenter** | 4 — Document | Synthesizes handoffs into wiki-style docs | ADRs + architecture docs |
+| **@fabric-healer** | Standalone | Self-healing signal mapper — generates problems, benchmarks, patches keywords | Improved keyword coverage |
 
 All agents include: three-tier boundaries (✅/⚠️/🚫), Signs of Drift, Quality Checklists, structured handoff templates, and `⚠️ ORCHESTRATION` blocks (use `run-pipeline.py advance && next` for phase transitions — no manual agent chaining except Phase 2b sign-off).
 
@@ -127,13 +128,14 @@ task-flows/
 ├── PROJECTS.md                        # Mission control — all projects at a glance
 ├── .gitignore                         # Excludes __pycache__, projects/, .env
 ├── .github/
-│   ├── agents/                         # GitHub Copilot custom agents (6 agents)
+│   ├── agents/                         # GitHub Copilot custom agents (7 agents)
 │   │   ├── fabric-advisor.agent.md
 │   │   ├── fabric-architect.agent.md
 │   │   ├── fabric-reviewer.agent.md
 │   │   ├── fabric-engineer.agent.md
 │   │   ├── fabric-tester.agent.md
-│   │   └── fabric-documenter.agent.md
+│   │   ├── fabric-documenter.agent.md
+│   │   └── fabric-healer.agent.md
 │   └── copilot-instructions.md         # System-level agent context
 ├── task-flows.md                       # All 13 task flow patterns (consolidated)
 ├── decisions/                          # Decision guides (7 guides)

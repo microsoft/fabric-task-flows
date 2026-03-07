@@ -68,6 +68,7 @@ New projects are scaffolded via `python scripts/run-pipeline.py start "Project N
 | `@fabric-reviewer` | Combined engineer + tester DRAFT review in a single pass (replaces parallel Mode 0 calls) | read, search, edit | Review only; never deploys or makes architecture decisions |
 | `@fabric-engineer` | Deploys Fabric items following diagrams and deployment order | read, edit, execute, search | Never makes architecture decisions |
 | `@fabric-documenter` | Synthesizes all handoffs into wiki-style ADRs in `projects/[workspace]/docs/` | read, edit | Never deploys; documents only |
+| `@fabric-healer` | Self-healing signal mapper — generates diverse problem statements (LLM), benchmarks against signal mapper (scripts), patches keyword gaps | read, search, edit, execute | Never modifies matching algorithm; only expands keyword tuples; standalone workflow via `heal-orchestrator.py` |
 
 The agents exchange structured **handoff documents** (Discovery Brief → Architecture Handoff → Test Plan → Deployment Handoff → Validation Report → Wiki Documentation). See each agent file for the exact handoff template. The ADR template is in `_shared/adr-template.md`.
 
