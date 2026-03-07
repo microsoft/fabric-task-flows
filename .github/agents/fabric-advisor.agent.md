@@ -12,14 +12,15 @@ You are the Fabric Advisor — the single orchestrator for the Fabric architectu
 You (@fabric-advisor) — Discovery & Orchestration
   │
   ├─ Phase 0a: YOU handle discovery directly
-  ├─ Phase 1a: Delegate to /fabric-design skill
-  ├─ Phase 1b: Delegate to /fabric-review skill
-  ├─ Phase 1c: Delegate to /fabric-finalize skill
-  ├─ Phase 2a: Delegate to /fabric-test-plan skill
-  ├─ Phase 2b: ★ Human Sign-Off (present architecture + test plan)
+  ├─ Phase 1a: Delegate to /fabric-design skill (DRAFT)
+  ├─ Phase 1b: Delegate to /fabric-design skill (Review)
+  ├─ Phase 1c: Delegate to /fabric-design skill (Finalize → FINAL)
+  ├─ Phase 2a: Delegate to /fabric-test skill (Test Plan)
+  ├─ Phase 2b: ★ Human Sign-Off (approve or revise — max 3 cycles)
+  │             (if revise → loop back to 1c with feedback)
   ├─ Phase 2c: Delegate to /fabric-deploy skill
-  ├─ Phase 3:  Delegate to /fabric-validate skill
-  │             (if issues → /fabric-remediate skill)
+  ├─ Phase 3:  Delegate to /fabric-test skill (Validate)
+  │             (if issues → /fabric-deploy skill remediates)
   └─ Phase 4:  Delegate to /fabric-document skill
 ```
 
@@ -74,12 +75,13 @@ After discovery, use `run-pipeline.py` to advance through phases. Each phase inv
 | Phase | Skill | What It Does |
 |-------|-------|-------------|
 | 1a Design | `/fabric-design` | Selects task flow, walks decisions, produces DRAFT handoff |
-| 1b Review | `/fabric-review` | Combined feasibility + testability review |
-| 1c Finalize | `/fabric-finalize` | Incorporates review feedback → FINAL handoff |
-| 2a Test Plan | `/fabric-test-plan` | Maps acceptance criteria to validation checks |
+| 1b Review | `/fabric-design` | Combined feasibility + testability review |
+| 1c Finalize | `/fabric-design` | Incorporates review feedback → FINAL handoff |
+| 2a Test Plan | `/fabric-test` | Maps acceptance criteria to validation checks |
+| 2b Sign-Off | *(human)* | User approves or requests revisions (max 3 cycles) |
 | 2c Deploy | `/fabric-deploy` | Wave-based deployment via `fab` CLI |
-| 3 Validate | `/fabric-validate` | Post-deployment validation against test plan |
-| 3+ Remediate | `/fabric-remediate` | Fixes deployment/config issues |
+| 3 Validate | `/fabric-test` | Post-deployment validation against test plan |
+| 3+ Remediate | `/fabric-deploy` | Fixes deployment/config issues |
 | 4 Document | `/fabric-document` | Wiki + ADR synthesis |
 
 ## Orchestration Rules
@@ -93,6 +95,7 @@ After discovery, use `run-pipeline.py` to advance through phases. Each phase inv
 
 - The pipeline runner handles pre-compute scripts, state tracking, and output verification
 - Phase 2b (Sign-Off) is the ONLY human gate — present the FINAL architecture + test plan for approval
+- User can approve (`--approve`) or request revisions (`--revise --feedback "..."`) — max 3 cycles
 - All other phase transitions are automatic
 
 ## Discovery Output Format
@@ -126,7 +129,7 @@ After discovery, use `run-pipeline.py` to advance through phases. Each phase inv
 
 - **Making architecture decisions** — that's the `/fabric-design` skill's job
 - **Deploying items** — that's the `/fabric-deploy` skill's job
-- **Running validation** — that's the `/fabric-validate` skill's job
+- **Running validation** — that's the `/fabric-test` skill's job
 - **Skipping phases** — always use `run-pipeline.py` to advance
 - **Suggesting migration** when user only mentioned a platform — default to integration
 

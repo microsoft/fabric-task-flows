@@ -27,7 +27,7 @@ Phase 4 — Document:    /fabric-document skill
 
 ### Content routing
 
-All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event-analytics`). The 11 task flow IDs map to:
+All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event-analytics`). The 13 task flow IDs map to:
 
 | Content | Path pattern |
 |---------|-------------|
@@ -39,7 +39,7 @@ All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event
 | Project documentation | `projects/{workspace}/docs/` |
 | Project deployments | `projects/{workspace}/deployments/` |
 
-Decision guides live in `decisions/` and are shared across task flows. Shared reference content (legend, prerequisites, parallel deployment, CI/CD practices, deployment patterns, rollback protocol, validation patterns, documentation templates, workflow guide) lives in `_shared/`.
+Decision guides live in `decisions/` and are shared across task flows. Shared reference content (workflow guide, item type registry, operational learnings) lives in `_shared/`. Skill-specific references (prerequisites, CLI commands, deployment patterns, templates) live in each skill's `references/` subdirectory.
 
 ### Directory indexes
 
@@ -72,17 +72,13 @@ Skills are composable, auto-activating instruction packs that do the actual work
 | Skill | Phase | Purpose | Constraint |
 |-------|-------|---------|------------|
 | `/fabric-discover` | 0a | Signal inference from problem statements | Read-only analysis; never decides task flow |
-| `/fabric-design` | 1a | DRAFT Architecture Handoff (task flow + decisions) | Never deploys |
-| `/fabric-finalize` | 1c | Incorporates review feedback → FINAL | No new design decisions |
-| `/fabric-review` | 1b | Combined feasibility + testability review | Review only; never redesigns |
-| `/fabric-test-plan` | 2a | Maps acceptance criteria to validation checks | Never invents ACs |
-| `/fabric-deploy` | 2c | Wave-based deployment via `fab` CLI | Never makes architecture decisions |
-| `/fabric-validate` | 3 | Post-deployment validation against test plan | Never modifies Fabric items |
-| `/fabric-remediate` | 3+ | Fixes deployment/config issues from validation | Escalates design issues |
+| `/fabric-design` | 1a, 1b, 1c | DRAFT → Review → FINAL architecture | Never deploys |
+| `/fabric-test` | 2a, 3 | Test plan + post-deployment validation | Never invents ACs |
+| `/fabric-deploy` | 2c, 3+ | Wave-based deployment + remediation | Never makes architecture decisions |
 | `/fabric-document` | 4 | Wiki + ADR synthesis from handoffs | Documents only |
 | `/fabric-heal` | Standalone | Self-healing signal mapper (problem generation + keyword patching) | Never modifies matching algorithm |
 
-Skills exchange structured **handoff documents** (Discovery Brief → Architecture Handoff → Test Plan → Deployment Handoff → Validation Report → Wiki Documentation). See each skill's `SKILL.md` for instructions. The ADR template is in `_shared/adr-template.md`.
+Skills exchange structured **handoff documents** (Discovery Brief → Architecture Handoff → Test Plan → Deployment Handoff → Validation Report → Wiki Documentation). See each skill's `SKILL.md` for instructions. At Phase 2b (sign-off), the user can approve or request revisions (max 3 cycles) — see `_shared/workflow-guide.md`.
 
 ### Decision guides (`decisions/`)
 
@@ -102,9 +98,16 @@ The Fabric CLI (`fab` via `pip install ms-fabric-cli`) is the preferred tool for
 - **Structural ACs** = verifiable after item creation. **Data Flow ACs** = verifiable after connections/data are configured.
 - **Architecture Blockers** = block sign-off. **Deployment Blockers** = block engineer only.
 
+### Sign-off revision loop
+
+At Phase 2b, the user can either approve the architecture or request revisions:
+- `advance --approve` → proceed to deployment
+- `advance --revise --feedback "..."` → save feedback, reset to Phase 1c (architect incorporates changes), then re-run test plan and sign-off
+- Maximum 3 revision cycles before the user must approve or abandon
+
 ### Deployment practices
 
-- **CLI:** `fab` (preferred) — see `_shared/fabric-cli-commands.md`
-- **CI/CD:** `fabric-cicd` library — see `_shared/cicd-practices.md`
+- **CLI:** `fab` (preferred) — see fabric-deploy skill's `references/fabric-cli-commands.md`
+- **CI/CD:** `fabric-cicd` library — see fabric-design skill's `references/cicd-practices.md`
 - **Parameterization:** Variable Library (preferred), parameter.yml, or env vars — see `decisions/parameterization-selection.md`
-- **Parallel deployment:** Waves from `diagrams/[task-flow].md` — see `_shared/parallel-deployment.md`
+- **Parallel deployment:** Waves from `diagrams/[task-flow].md` — see fabric-deploy skill's `references/parallel-deployment.md`

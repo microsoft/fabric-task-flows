@@ -207,7 +207,12 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Use the /fabric-design skill (Mode 3: Finalize). Read the skill at .github/skills/fabric-design/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
-            f"1. Read the engineer review from {pp}/prd/engineer-review.md\n"
+            + (
+                f"🔄 **SIGN-OFF REVISION {state.get('sign_off_revisions', 0)}/3** — The user requested changes at sign-off.\n"
+                f"Read their feedback from {pp}/prd/sign-off-feedback.md before revising.\n\n"
+                if state.get("sign_off_revisions", 0) > 0 else ""
+            )
+            + f"1. Read the engineer review from {pp}/prd/engineer-review.md\n"
             f"2. Read the tester review from {pp}/prd/tester-review.md\n"
             f"3. Incorporate feedback into the Architecture Handoff at {pp}/prd/architecture-handoff.md\n"
             f"4. Change status from DRAFT to FINAL. Populate the Design Review table.\n\n"
@@ -227,11 +232,15 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "2b-sign-off": (
-            f"🛑 HUMAN GATE — Phase 2b Sign-Off\n\n"
+            f"🛑 HUMAN GATE — Phase 2b Sign-Off"
+            + (f" (Revision {state.get('sign_off_revisions', 0)}/3)" if state.get('sign_off_revisions', 0) > 0 else "")
+            + f"\n\n"
             f"Review both documents before approving:\n"
             f"  - FINAL Architecture Handoff: {pp}/prd/architecture-handoff.md\n"
             f"  - Test Plan: {pp}/prd/test-plan.md\n\n"
-            f"Say 'approved' or 'go ahead' to continue to deployment.\n\n"
+            f"Options:\n"
+            f"  • Say 'approved' or 'go ahead' to continue to deployment\n"
+            f"  • Say 'revise' with your feedback to send back to the architect (max 3 cycles)\n\n"
             f"## Architecture Diagram\n\n"
             f"{{{{DIAGRAM_PLACEHOLDER}}}}"
         ),
@@ -454,15 +463,53 @@ def _verify_output(phase: str, project: str) -> tuple[bool, str]:
     return True, "All output files verified"
 
 
-def advance(project: str, approved: bool = False) -> dict:
+def advance(project: str, approved: bool = False, revise: bool = False,
+            feedback: str | None = None) -> dict:
     """Mark current phase complete and advance to next. Returns updated state.
 
     Verifies output files exist before advancing. Extracts task_flow from
     architecture handoff after Phase 1a. Blocks at human gates unless
-    approved=True.
+    approved=True. Supports --revise to loop back for architect revision
+    at Phase 2b (max 3 cycles).
     """
     state = _load_state(project)
     current = state["current_phase"]
+
+    # Handle revision request at human gate
+    if revise:
+        if current != "2b-sign-off":
+            print("⚠️  --revise is only valid at Phase 2b (Sign-Off).")
+            return state
+
+        revision_count = state.get("sign_off_revisions", 0)
+        if revision_count >= 3:
+            print("🛑  Maximum revision cycles (3) reached.")
+            print("   You must either --approve or reset the pipeline.")
+            return state
+
+        # Save feedback if provided
+        if feedback:
+            fb_path = REPO_ROOT / "projects" / project / "prd" / "sign-off-feedback.md"
+            fb_content = (
+                f"# Sign-Off Feedback (Revision {revision_count + 1})\n\n"
+                f"**Date:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n\n"
+                f"## User Feedback\n\n{feedback}\n"
+            )
+            fb_path.write_text(fb_content, encoding="utf-8")
+            print(f"  📝 Feedback saved to {fb_path.relative_to(REPO_ROOT)}")
+
+        state["sign_off_revisions"] = revision_count + 1
+        # Reset phases 1c through 2b for re-run
+        for phase in ["1c-finalize", "2a-test-plan", "2b-sign-off"]:
+            state["phases"][phase]["status"] = "pending"
+        state["current_phase"] = "1c-finalize"
+        state["phases"]["1c-finalize"]["status"] = "in_progress"
+
+        _save_state(project, state)
+        print(f"🔄  Revision {revision_count + 1}/3 — Pipeline reset to Phase 1c (Finalize).")
+        print(f"   The architect will incorporate your feedback and re-finalize.")
+        print(f"   Run 'next' to get the architect prompt.")
+        return state
 
     # Verify output before marking complete
     ok, msg = _verify_output(current, project)
@@ -644,6 +691,10 @@ def main() -> None:
     adv_p.add_argument("--project", required=True, help="Project folder name")
     adv_p.add_argument("--approve", action="store_true",
                        help="Explicitly approve a human gate (required for sign-off phases)")
+    adv_p.add_argument("--revise", action="store_true",
+                       help="Request revisions at sign-off (resets to architect for feedback incorporation, max 3 cycles)")
+    adv_p.add_argument("--feedback", type=str, default=None,
+                       help="Feedback text for --revise (saved to prd/sign-off-feedback.md)")
     adv_p.add_argument("--reconcile", action="store_true",
                        help="Run reconcile before advancing to heal any state drift")
 
@@ -695,7 +746,8 @@ def main() -> None:
             for line in recon_report:
                 print(line)
             print()
-        state = advance(args.project, approved=args.approve)
+        state = advance(args.project, approved=args.approve,
+                        revise=args.revise, feedback=args.feedback)
         _print_status(state)
         prompt, agent, phase, is_gate = get_next_prompt(args.project)
         if agent:

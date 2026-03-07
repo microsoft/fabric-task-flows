@@ -6,12 +6,11 @@ description: >
   "create documentation", "write ADRs", "produce wiki", "document the
   project", or after validation passes. Do NOT use for deployment (use
   fabric-deploy) or architecture design (use fabric-design).
-metadata:
-  author: task-flows-team
-  version: 1.0.0
-  category: documentation
-  tags: [fabric, documentation, adr, wiki]
-  pipeline-phase: 4-document
+# author: task-flows-team
+# version: 1.0.0
+# category: documentation
+# tags: [fabric, documentation, adr, wiki]
+# pipeline-phase: 4-document
 ---
 
 # Fabric Documentation

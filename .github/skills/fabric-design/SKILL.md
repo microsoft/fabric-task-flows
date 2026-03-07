@@ -8,13 +8,12 @@ description: >
   about Fabric architecture patterns. Do NOT use for deployment (use
   fabric-deploy), testing (use fabric-test), or discovery (use
   fabric-discover).
-metadata:
-  author: task-flows-team
-  version: 2.0.0
-  category: architecture
-  tags: [fabric, task-flow, architecture-design, review, decisions]
-  pipeline-phases: [1a-design, 1b-review, 1c-finalize]
-  pre-compute: [decision-resolver, handoff-scaffolder, review-prescan]
+pre-compute: [decision-resolver, handoff-scaffolder, review-prescan]
+# author: task-flows-team
+# version: 2.0.0
+# category: architecture
+# tags: [fabric, task-flow, architecture-design, review, decisions]
+# pipeline-phases: [1a-design, 1b-review, 1c-finalize]
 ---
 
 # Fabric Architecture Design (Architect Role)

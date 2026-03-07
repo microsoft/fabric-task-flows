@@ -6,14 +6,12 @@ description: >
   "create items", "fab mkdir", "run deployment", "fix deployment issues",
   "remediate", or after user sign-off is complete. Do NOT use for design
   (use fabric-design) or testing (use fabric-test).
-metadata:
-  author: task-flows-team
-  version: 2.0.0
-  category: deployment
-  tags: [fabric, deployment, fab-cli, waves, remediation]
-  pipeline-phases: [2c-deploy, 3-validate]
-  pre-compute: [deploy-script-gen]
-  pre-compute: [deploy-script-gen]
+pre-compute: [deploy-script-gen]
+# author: task-flows-team
+# version: 2.0.0
+# category: deployment
+# tags: [fabric, deployment, fab-cli, waves, remediation]
+# pipeline-phases: [2c-deploy, 3-validate]
 ---
 
 # Fabric Deployment

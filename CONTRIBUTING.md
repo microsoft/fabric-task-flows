@@ -24,29 +24,31 @@ Every validation file starts with a "Post-Deployment Manual Steps" table (Item T
 
 ## Scripts
 
-The `scripts/` directory contains pipeline utilities. Key scripts:
+The `scripts/` directory contains pipeline utilities. Pre-compute scripts live in each skill's `scripts/` subdirectory under `.github/skills/`.
 
-| Script | Purpose |
-|--------|---------|
-| `new-project.py` | Scaffolds a new project with all template files + `pipeline-state.json` |
-| `run-pipeline.py` | Pipeline orchestrator — `start`, `next`, `status`, `advance`, `reset` commands |
-| `deploy-script-gen.py` | Reads architecture handoff YAML, generates `.ps1` and `.sh` deploy scripts |
-| `signal-mapper.py` | Maps problem signals to task flow candidates |
-| `decision-resolver.py` | Resolves decision guide YAML frontmatter for agents |
-| `review-prescan.py` | Pre-scans architecture handoff for review flags |
-| `test-plan-prefill.py` | Prefills test plan from acceptance criteria |
-| `validate-items.ps1/.sh` | Runs `fab exists` per deployed item, outputs validation YAML |
-| `taskflow-gen.py` | Generates Fabric workspace task flow JSON for import |
-| `handoff-scaffolder.py` | Pre-fills handoff template YAML from diagram metadata |
-| `sync-item-types.py` | Syncs `_shared/item-type-registry.json` against installed Fabric CLI |
-| `generate-ps1-types.py` | Regenerates PowerShell item-type constants in `validate-items.ps1` from registry |
-| `registry_loader.py` | Shared module — all scripts import item type metadata from here |
+| Script | Location | Purpose |
+|--------|----------|---------|
+| `run-pipeline.py` | `scripts/` | Pipeline orchestrator — `start`, `next`, `status`, `advance`, `reset` commands |
+| `new-project.py` | `scripts/` | Scaffolds a new project with all template files + `pipeline-state.json` |
+| `fleet-runner.py` | `scripts/` | Batch runner for multiple problem statements |
+| `sync-item-types.py` | `scripts/` | Syncs `_shared/item-type-registry.json` against installed Fabric CLI |
+| `signal-mapper.py` | `fabric-discover/scripts/` | Maps problem signals to task flow candidates |
+| `decision-resolver.py` | `fabric-design/scripts/` | Resolves decision guide YAML frontmatter for agents |
+| `handoff-scaffolder.py` | `fabric-design/scripts/` | Pre-fills handoff template YAML from diagram metadata |
+| `review-prescan.py` | `fabric-design/scripts/` | Pre-scans architecture handoff for review flags |
+| `deploy-script-gen.py` | `fabric-deploy/scripts/` | Reads architecture handoff YAML, generates `.ps1` and `.sh` deploy scripts |
+| `taskflow-gen.py` | `fabric-deploy/scripts/` | Generates Fabric workspace task flow JSON for import |
+| `generate-ps1-types.py` | `fabric-deploy/scripts/` | Regenerates PowerShell item-type constants from registry |
+| `test-plan-prefill.py` | `fabric-test/scripts/` | Prefills test plan from acceptance criteria |
+| `check-drift.py` | `fabric-test/scripts/` | Documentation drift detection (26 cross-reference checks) |
+| `validate-items.ps1/.sh` | `fabric-test/scripts/` | Runs `fab exists` per deployed item, outputs validation YAML |
+| `registry_loader.py` | `_shared/` | Shared module — all scripts import item type metadata from here |
 
-> ⚠️ **Enforcement:** These scripts are NOT optional helpers — they are mandatory pre-compute steps. See `_shared/agent-boundaries.md` for the MUST/MUST NOT rules that govern when and how agents use each script.
+> ⚠️ **Enforcement:** These scripts are NOT optional helpers — they are mandatory pre-compute steps. Every pipeline phase has a pre-compute script that MUST run before the LLM adds judgment.
 
 ## Deploy script templates
 
-The deploy script templates (`_shared/script-template.ps1` and `_shared/script-template.sh`) use `{{PLACEHOLDER}}` tokens filled by `deploy-script-gen.py`. Template features:
+The deploy script templates (in `.github/skills/fabric-deploy/assets/script-template.ps1` and `script-template.sh`) use `{{PLACEHOLDER}}` tokens filled by `deploy-script-gen.py`. Template features:
 
 - **`Fab-Mkdir` / `fab_mkdir` wrapper** — Adds idempotency (`fab exists` check), retry with backoff (3 attempts), and result tracking
 - **Preflight check** — Verifies `fab` CLI is installed before proceeding
@@ -87,7 +89,7 @@ Key rules:
 
 ### ORCHESTRATION — Pipeline Runner
 
-All six agent files (`.github/agents/fabric-*.agent.md`) include an `⚠️ ORCHESTRATION` block in their Pipeline Handoff section. This instructs agents to use `run-pipeline.py advance && run-pipeline.py next` for all phase transitions — **never** manually chain to another agent via `AUTO-CHAIN` or ask "Want me to continue?". The runner manages `pipeline-state.json`, verifies output files, runs pre-compute scripts, and enforces the human gate at Phase 2b.
+The single agent file (`.github/agents/fabric-advisor.agent.md`) includes an `⚠️ ORCHESTRATION` section. Skills are invoked via `run-pipeline.py advance && run-pipeline.py next` for all phase transitions — **never** manually chain skills or ask "Want me to continue?". The runner manages `pipeline-state.json`, verifies output files, runs pre-compute scripts, and enforces the human gate at Phase 2b (which supports both `--approve` and `--revise`).
 
 > ⚠️ **Bypassing the runner** (e.g., calling `new-project.py` directly, manually editing `pipeline-state.json`, or telling agents to invoke each other) leaves pipeline state stale and breaks phase tracking.
 
@@ -109,7 +111,7 @@ All generated scripts (deploy, validation, rollback) MUST display the branded ba
 
 ### Rules
 
-- Copy the banner function from `_shared/script-template.sh` or `_shared/script-template.ps1` — do not maintain a separate banner file
+- Copy the banner function from the skill's `assets/script-template.sh` or `assets/script-template.ps1` — do not maintain a separate banner file
 - The `mode` parameter should reflect the script's purpose
 - If the banner design changes, update only the two template files
 

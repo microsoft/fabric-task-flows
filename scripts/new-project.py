@@ -579,16 +579,17 @@ def pipeline_state(project: str) -> str:
         "project": project,
         "task_flow": None,
         "current_phase": "0a-discovery",
+        "sign_off_revisions": 0,
         "phases": {
             "0a-discovery":  {"status": "pending", "agent": "fabric-advisor",    "output": "prd/discovery-brief.md"},
-            "1a-design":     {"status": "pending", "agent": "fabric-architect",  "output": "prd/architecture-handoff.md"},
-            "1b-review":     {"status": "pending", "agent": "fabric-reviewer",   "output": ["prd/engineer-review.md", "prd/tester-review.md"]},
-            "1c-finalize":   {"status": "pending", "agent": "fabric-architect",  "output": "prd/architecture-handoff.md"},
-            "2a-test-plan":  {"status": "pending", "agent": "fabric-tester",     "output": "prd/test-plan.md"},
+            "1a-design":     {"status": "pending", "agent": "fabric-design",     "output": "prd/architecture-handoff.md"},
+            "1b-review":     {"status": "pending", "agent": "fabric-design",     "output": ["prd/engineer-review.md", "prd/tester-review.md"]},
+            "1c-finalize":   {"status": "pending", "agent": "fabric-design",     "output": "prd/architecture-handoff.md"},
+            "2a-test-plan":  {"status": "pending", "agent": "fabric-test",       "output": "prd/test-plan.md"},
             "2b-sign-off":   {"status": "pending", "agent": None,               "gate": "human"},
-            "2c-deploy":     {"status": "pending", "agent": "fabric-engineer",   "output": "prd/deployment-handoff.md"},
-            "3-validate":    {"status": "pending", "agent": "fabric-tester",     "output": "prd/validation-report.md"},
-            "4-document":    {"status": "pending", "agent": "fabric-documenter", "output": "docs/"}
+            "2c-deploy":     {"status": "pending", "agent": "fabric-deploy",     "output": "prd/deployment-handoff.md"},
+            "3-validate":    {"status": "pending", "agent": "fabric-test",       "output": "prd/validation-report.md"},
+            "4-document":    {"status": "pending", "agent": "fabric-document",   "output": "docs/"}
         },
         "transitions": [
             {"from": "0a-discovery", "to": "1a-design",    "auto": True},
@@ -597,6 +598,7 @@ def pipeline_state(project: str) -> str:
             {"from": "1c-finalize",  "to": "2a-test-plan", "auto": True},
             {"from": "2a-test-plan", "to": "2b-sign-off",  "auto": False, "gate": "human"},
             {"from": "2b-sign-off",  "to": "2c-deploy",    "auto": True},
+            {"from": "2b-sign-off",  "to": "1c-finalize",  "auto": False, "gate": "revision", "max_cycles": 3},
             {"from": "2c-deploy",    "to": "3-validate",   "auto": True},
             {"from": "3-validate",   "to": "4-document",   "auto": True}
         ]

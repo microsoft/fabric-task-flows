@@ -9,13 +9,12 @@ description: >
   or "analyze my problem statement". Do NOT use for architecture design
   decisions (use fabric-design), deployment (use fabric-deploy), or
   validation (use fabric-validate).
-metadata:
-  author: task-flows-team
-  version: 1.0.0
-  category: discovery
-  tags: [fabric, signal-mapping, discovery, problem-analysis]
-  pipeline-phase: 0a-discovery
-  pre-compute: [signal-mapper]
+pre-compute: [signal-mapper]
+# author: task-flows-team
+# version: 1.0.0
+# category: discovery
+# tags: [fabric, signal-mapping, discovery, problem-analysis]
+# pipeline-phase: 0a-discovery
 ---
 
 # Fabric Discovery

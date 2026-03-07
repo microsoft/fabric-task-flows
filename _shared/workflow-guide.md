@@ -249,7 +249,43 @@ Walk through these before giving the go-ahead:
 
 ### When You're Ready
 
-Say "approved" or "go ahead and deploy" to continue the pipeline. If something doesn't look right, raise your concerns — the architect or tester will revise before the pipeline continues.
+- **Approve:** Say "approved" or "go ahead and deploy" to continue the pipeline.
+  ```bash
+  python scripts/run-pipeline.py advance --project my-project --approve
+  ```
+
+- **Request revisions:** If something doesn't look right, say "revise" with your feedback. The pipeline loops back to the architect (Phase 1c) to incorporate your changes, then regenerates the test plan and returns to sign-off.
+  ```bash
+  python scripts/run-pipeline.py advance --project my-project --revise --feedback "Change storage from Lakehouse to Warehouse for the Silver layer"
+  ```
+
+  The revision loop runs a maximum of **3 cycles**. After 3 revisions, you must either approve or reset the pipeline.
+
+```
+                         ✅ Your Approval ──────► Phase 2c: Deploy
+                                │
+                          ── OR ──
+                                │
+                         🔄 Request Revisions (max 3 cycles)
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │  Phase 1c: Finalize   │◄── Your feedback saved to
+                    │  (Architect revises)  │    prd/sign-off-feedback.md
+                    └───────────┬───────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │  Phase 2a: Test Plan  │
+                    │  (Tester regenerates) │
+                    └───────────┬───────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │  Phase 2b: Sign-Off   │──► Review again
+                    │  (You re-review)      │
+                    └───────────────────────┘
+```
 
 ---
 
@@ -348,14 +384,15 @@ The answer to all of these is always YES. Use `run-pipeline.py advance && next` 
 | 3 | 1b — Review (both `approved`) | 1c — Finalize | Reviews saved with `review_outcome: approved` | 🟢 `advance && next` |
 | 4 | 1c — Finalize (FINAL produced) | 2a — Test Plan | FINAL handoff saved to `prd/architecture-handoff.md` | 🟢 `advance && next` |
 | 5 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `prd/test-plan.md` | 🛑 **HUMAN GATE** — `advance --approve` required |
-| 6 | 2b — Sign-Off (user approved) | 2c — Deploy | User says "approved" / "go ahead" / "deploy" | 🟢 `advance && next` |
+| 5a | 2b — Sign-Off (`revise`) | 1c — Finalize (revise) | User runs `advance --revise --feedback "..."` | 🔄 Iterative (max 3 cycles, then must approve) |
+| 6 | 2b — Sign-Off (user approved) | 2c — Deploy | User runs `advance --approve` | 🟢 `advance && next` |
 | 7 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved to `prd/deployment-handoff.md` | 🟢 `advance && next` |
 | 7a | 3 — Validate (issues found) | 2c — Remediate | Remediation log created with `routed_to: engineer` issues | 🔄 Iterative (max 3 cycles, then escalate) |
 | 7b | 3 — Validate (design issues) | ESCALATE | `category: design` issues in remediation log | 🛑 **ESCALATION GATE** — human/architect intervention |
 | 8 | 3 — Validate (PASSED) | 4 — Document | Validation Report saved with `status: passed` | 🟢 `advance && next` |
 | 9 | 4 — Document (docs produced) | Complete | Wiki + ADRs saved | 🟢 `advance` (final) |
 
-**Key principle:** Only Rule #5 stops for user input. All other transitions use `run-pipeline.py advance && next`. If the orchestrator finds itself asking "should I continue?" at any transition other than Rule #5, the answer is always YES — run `advance && next` immediately.
+**Key principle:** Only Rule #5 stops for user input (approve or revise). All other transitions use `run-pipeline.py advance && next`. If the orchestrator finds itself asking "should I continue?" at any transition other than Rule #5, the answer is always YES — run `advance && next` immediately.
 
 ### How to Pass Context Between Phases
 

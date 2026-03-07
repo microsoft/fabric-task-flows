@@ -7,13 +7,12 @@ description: >
   "what should we test", or after architecture is finalized or deployment
   is complete. Do NOT use for architecture design (use fabric-design) or
   deployment (use fabric-deploy).
-metadata:
-  author: task-flows-team
-  version: 2.0.0
-  category: quality
-  tags: [fabric, testing, validation, acceptance-criteria, qa]
-  pipeline-phases: [2a-test-plan, 3-validate]
-  pre-compute: [test-plan-prefill, validate-items]
+pre-compute: [test-plan-prefill, validate-items]
+# author: task-flows-team
+# version: 2.0.0
+# category: quality
+# tags: [fabric, testing, validation, acceptance-criteria, qa]
+# pipeline-phases: [2a-test-plan, 3-validate]
 ---
 
 # Fabric Testing & Validation (QA Role)
