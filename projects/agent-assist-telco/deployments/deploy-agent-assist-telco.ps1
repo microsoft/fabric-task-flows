@@ -22,7 +22,7 @@ function Print-Banner {
   Write-Host "╔══════════════════════════════════════════════════════════════════╗"
   Write-Host "║                                                                  ║"
   Write-Host "║        /@@@@@@@@@@@@/  ┌──────────────────────────────────────┐  ║"
-  Write-Host "║       /@@@@@@@@@@@@/   │ F A B R I C   T A S K   F L O W S    │  ║"
+  Write-Host "║       /@@@@@@@@@@@@/   │ F A B R I C   T A S K   F L O W S    │  ║"  
   Write-Host "║      /@@@@@@@@@/       │ ──────────────────────────────────── │  ║"
   Write-Host "║     /@@@@@@/           │ Deploy Microsoft Fabric              │  ║"
   Write-Host "║    /@@@@@@/            │ architectures to production          │  ║"
@@ -78,6 +78,7 @@ function Fab-Mkdir {
     [int]$MaxRetries = 3
   )
 
+  # Idempotency: skip if item already exists
   fab exists "$Path" 2>$null | Out-Null
   if ($LASTEXITCODE -eq 0) {
     Write-Host "  $TreeChar ✅ $Label (already exists)"
@@ -85,6 +86,7 @@ function Fab-Mkdir {
     return
   }
 
+  # Retry with backoff for transient failures
   for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
     $allArgs = @("mkdir", $Path) + $ExtraArgs
     $errOutput = & fab @allArgs 2>&1
@@ -113,7 +115,9 @@ function Fab-Mkdir {
 function Main {
   Print-Banner -ProjectName $ProjectName -TaskFlow $TaskFlow -Mode "Deploy to Fabric"
 
-  # Preflight: CLI only
+  # ---------------------------------------------------------------------------
+  # Preflight: CLI only (auth comes after config)
+  # ---------------------------------------------------------------------------
   Write-Host "  Checking prerequisites..."
   $fabCmd = Get-Command fab -ErrorAction SilentlyContinue
   if (-not $fabCmd) {
@@ -124,8 +128,12 @@ function Main {
   Write-Host "  ── ✅ Fabric CLI found"
   Write-Host ""
 
+  # Track deployment results
   $script:DeployResults = @()
 
+  # ---------------------------------------------------------------------------
+  # Configuration — collect ALL inputs before authenticating
+  # ---------------------------------------------------------------------------
   Write-Host "┌──────────────────────────────────────────────────────────────────┐"
   Write-Host "│  CONFIGURATION                                                   │"
   Write-Host "│  Fill in the values below or set as environment variables.       │"
@@ -135,50 +143,49 @@ function Main {
   $WorkspaceName = Prompt-Value -EnvVarName "FABRIC_WORKSPACE_NAME" -PromptText "Workspace name" -DefaultValue "agent-assist-telco-dev"
   $CapacityId = Prompt-Value -EnvVarName "FABRIC_CAPACITY_ID" -PromptText "Fabric capacity ID (GUID from portal → Capacities)"
 
-  # Task-flow-specific prompts
-  $EventHubNamespace = Prompt-Value -EnvVarName "EVENT_HUB_NAMESPACE" -PromptText "Event Hub namespace (for telephony transcription stream)"
-  if (-not $EventHubNamespace) {
-    Write-Host "  ⚠️  No Event Hub namespace — Eventstream will be created but cannot ingest data"
-  }
-  $DataverseEnv = Prompt-Value -EnvVarName "DATAVERSE_ENV" -PromptText "Dataverse environment URL (for CRM sync)"
-  if (-not $DataverseEnv) {
-    Write-Host "  ⚠️  No Dataverse URL — Pipeline will be created but CRM sync won't function"
-  }
+  # Connection to source database
+  $SourceConnectionString = Prompt-Value -EnvVarName "SOURCE_CONNECTION_STRING" -PromptText "Source database connection string (e.g., SQL Server, PostgreSQL — used by Copy Job)" -Optional
+  # Azure Event Hub namespace for streaming
+  $EventHubNamespace = Prompt-Value -EnvVarName "EVENT_HUB_NAMESPACE" -PromptText "Event Hub namespace (Azure Event Hubs that streams events into Fabric)" -Optional
+  # Consumer group controls which reader offset Eventstream uses
+  $EventHubConsumerGroup = Prompt-Value -EnvVarName "EVENT_HUB_CONSUMER_GROUP" -PromptText "Event Hub consumer group (isolates this pipeline's read position — use $Default if unsure)" -DefaultValue "$Default"
 
   Write-Host ""
   Write-Host "┌──────────────────────────────────────────────────────────────────┐"
   Write-Host "│  DEPLOYMENT PLAN                                                 │"
-  Write-Host ("│{0,-66}│" -f "  Task flow: lambda  |  Items: 15  |  Waves: 6")
+  Write-Host ("│{0,-66}│" -f "  Task flow: $TaskFlow  |  Items: 16  |  Waves: 7")
   Write-Host "└──────────────────────────────────────────────────────────────────┘"
   Write-Host ""
-  Write-Host "  Wave 1 — Foundation + Compute"
-  Write-Host "  ├── ☐ Lakehouse:   call-transcripts-lakehouse"
-  Write-Host "  ├── ☐ Warehouse:   call-analytics-warehouse"
-  Write-Host "  ├── ☐ Eventhouse:  call-events-eventhouse"
+
+  Write-Host "  Wave 1 — Wave 1"
+  Write-Host "  ├── ☐ Lakehouse: call-transcripts-lakehouse"
+  Write-Host "  ├── ☐ Warehouse: call-analytics-warehouse"
+  Write-Host "  ├── ☐ Eventhouse: call-events-eventhouse"
   Write-Host "  └── ☐ Environment: spark-env"
   Write-Host ""
-  Write-Host "  Wave 2 — Ingestion"
+  Write-Host "  Wave 2 — Wave 2"
   Write-Host "  ├── ☐ Eventstream: call-stream-eventstream"
-  Write-Host "  └── ☐ Pipeline:    crm-sync-pipeline"
+  Write-Host "  └── ☐ Data Pipeline: crm-sync-pipeline"
   Write-Host ""
-  Write-Host "  Wave 3 — Processing"
-  Write-Host "  ├── ☐ Notebook:     transcript-etl-notebook"
+  Write-Host "  Wave 3 — Wave 3"
+  Write-Host "  ├── ☐ Notebook: transcript-etl-notebook"
   Write-Host "  └── ☐ KQL Queryset: call-insights-kql"
   Write-Host ""
-  Write-Host "  Wave 4 — Serving"
+  Write-Host "  Wave 4 — Wave 4"
   Write-Host "  ├── ☐ Semantic Model: call-analytics-model"
-  Write-Host "  └── ☐ RT Dashboard:  call-ops-rt-dash (portal)"
+  Write-Host "  └── ☐ [MANUAL] Real-Time Dashboard: call-ops-rt-dash"
   Write-Host ""
-  Write-Host "  Wave 5 — Visualization"
-  Write-Host "  ├── ☐ Report:    call-analytics-report"
-  Write-Host "  └── ☐ Activator: call-alert-activator (portal)"
+  Write-Host "  Wave 5 — Wave 5"
+  Write-Host "  ├── ☐ Report: call-analytics-report"
+  Write-Host "  └── ☐ [MANUAL] Activator: call-alert-activator"
   Write-Host ""
-  Write-Host "  Wave 6 — ML"
-  Write-Host "  ├── ☐ Experiment: transcript-ml-experiment"
-  Write-Host "  ├── ☐ ML Model:   transcript-ml-model"
-  Write-Host "  └── ☐ Notebook:   ml-scoring-notebook"
+  Write-Host "  Wave 6 — Wave 6"
+  Write-Host "  ├── ☐ ML Experiment: transcript-ml-experiment"
+  Write-Host "  ├── ☐ ML Model: transcript-ml-model"
+  Write-Host "  └── ☐ Notebook: ml-scoring-notebook"
   Write-Host ""
 
+  Write-Host ""
   $confirm = Read-Host "  ? Proceed with deployment? [Y/n]"
   if ($confirm -and $confirm -notmatch "^[Yy]") {
     Write-Host "  Deployment cancelled."
@@ -233,131 +240,92 @@ function Main {
   }
 
   # ---------------------------------------------------------------------------
-  # Wave 1 — Foundation + Compute
+  # Wave Deployment
   # ---------------------------------------------------------------------------
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 1 — Wave 1
+  # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 1 — Foundation + Compute"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-transcripts-lakehouse.Lakehouse" `
-    -Label "Lakehouse: call-transcripts-lakehouse" -TreeChar "├──"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-warehouse.Warehouse" `
-    -Label "Warehouse: call-analytics-warehouse" -TreeChar "├──"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-events-eventhouse.Eventhouse" `
-    -Label "Eventhouse: call-events-eventhouse" -TreeChar "├──"
+  Write-Host "  Wave 1 — Wave 1"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-transcripts-lakehouse.Lakehouse" -Label "Lakehouse: call-transcripts-lakehouse" -TreeChar "├──" -ExtraArgs @("-P", "enableSchemas=true")
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-warehouse.Warehouse" -Label "Warehouse: call-analytics-warehouse" -TreeChar "├──"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-events-eventhouse.Eventhouse" -Label "Eventhouse: call-events-eventhouse" -TreeChar "├──"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/spark-env.Environment" -Label "Environment: spark-env" -TreeChar "└──"
 
-  # Create KQL Database inside Eventhouse
-  try {
-    $ehInfo = fab get "$WorkspaceName.Workspace/call-events-eventhouse.Eventhouse" --output json 2>$null | ConvertFrom-Json
-    if ($ehInfo.id) {
-      Fab-Mkdir -Path "$WorkspaceName.Workspace/call-events-kqldb.KQLDatabase" `
-        -Label "KQL Database: call-events-kqldb" -TreeChar "├──" `
-        -ExtraArgs @("-P", "eventhouseId=$($ehInfo.id)")
-    } else {
-      Write-Host "  ├── ⚠️  KQL Database: could not retrieve Eventhouse ID — create manually in portal"
-    }
-  } catch {
-    Write-Host "  ├── ⚠️  KQL Database: could not retrieve Eventhouse ID — create manually in portal"
-  }
-
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/spark-env.Environment" `
-    -Label "Environment: spark-env" -TreeChar "└──"
-
-  # Publish Environment so notebooks can attach to it
-  Write-Host "  ── Publishing spark-env..."
-  fab publish "$WorkspaceName.Workspace/spark-env.Environment" 2>$null | Out-Null
-  if ($LASTEXITCODE -eq 0) {
-    Write-Host "  ── ✅ Environment published"
+  Write-Host "  ⏳ Waiting for Environment publish (may take 20+ min)..."
+  $maxWait = 1800; $elapsed = 0
+  do {
+    Start-Sleep -Seconds 30; $elapsed += 30
+    $envStatus = (fab get "$WorkspaceName.Workspace/spark-env.Environment" -q properties.publishStatus 2>&1)
+    Write-Host "    ⏱  $([math]::Floor($elapsed/60))m elapsed — status: $envStatus"
+  } while ($envStatus -ne "Published" -and $elapsed -lt $maxWait)
+  if ($envStatus -ne "Published") {
+    Write-Host "  ⚠️  Environment publish timed out — notebooks may fail until publish completes"
   } else {
-    Write-Host "  ── ⚠️  Environment publish failed — publish manually in portal before running notebooks"
+    Write-Host "  ── ✅ Environment published"
   }
 
-  # ---------------------------------------------------------------------------
-  # Wave 2 — Ingestion
-  # ---------------------------------------------------------------------------
+  $EventhouseId = (fab get "$WorkspaceName.Workspace/call-events-eventhouse.Eventhouse" -q id 2>&1).Trim()
+  Write-Host "  ── ℹ️  Captured Eventhouse ID: $EventhouseId"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 2 — Wave 2
+  # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 2 — Ingestion"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-stream-eventstream.Eventstream" `
-    -Label "Eventstream: call-stream-eventstream" -TreeChar "├──"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/crm-sync-pipeline.DataPipeline" `
-    -Label "Pipeline: crm-sync-pipeline" -TreeChar "└──"
+  Write-Host "  Wave 2 — Wave 2"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-stream-eventstream.Eventstream" -Label "Eventstream: call-stream-eventstream" -TreeChar "├──"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/crm-sync-pipeline.DataPipeline" -Label "Data Pipeline: crm-sync-pipeline" -TreeChar "└──"
 
-  # ---------------------------------------------------------------------------
-  # Wave 3 — Processing
-  # ---------------------------------------------------------------------------
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 3 — Wave 3
+  # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 3 — Processing"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-etl-notebook.Notebook" `
-    -Label "Notebook: transcript-etl-notebook" -TreeChar "├──"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-insights-kql.KQLQueryset" `
-    -Label "KQL Queryset: call-insights-kql" -TreeChar "└──"
+  Write-Host "  Wave 3 — Wave 3"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-etl-notebook.Notebook" -Label "Notebook: transcript-etl-notebook" -TreeChar "├──"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-insights-kql.KQLQueryset" -Label "KQL Queryset: call-insights-kql" -TreeChar "└──"
 
-  # Bind notebook to lakehouse
-  Write-Host "  ── Binding transcript-etl-notebook → call-transcripts-lakehouse..."
-  try {
-    $lhInfo = fab get "$WorkspaceName.Workspace/call-transcripts-lakehouse.Lakehouse" --output json 2>$null | ConvertFrom-Json
-    if ($lhInfo.id) {
-      $lhJson = "{`"id`":`"$($lhInfo.id)`"}"
-      fab set "$WorkspaceName.Workspace/transcript-etl-notebook.Notebook" -q lakehouse -i $lhJson 2>&1 | Out-Null
-      Write-Host "  ── ✅ Notebook bound to Lakehouse"
-    }
-  } catch {
-    Write-Host "  ── ⚠️  Manual binding needed (set default Lakehouse in portal)"
-  }
+  # Bind transcript-etl-notebook to dependencies
+  $lhId = (fab get "$WorkspaceName.Workspace/call-transcripts-lakehouse.Lakehouse" -q id 2>&1).Trim()
+  fab set "$WorkspaceName.Workspace/transcript-etl-notebook.Notebook" -q lakehouse -i "$lhId" 2>&1 | Out-Null
+  Write-Host "  ── ✅ transcript-etl-notebook bound to lakehouse call-transcripts-lakehouse"
+  $envId = (fab get "$WorkspaceName.Workspace/spark-env.Environment" -q id 2>&1).Trim()
+  fab set "$WorkspaceName.Workspace/transcript-etl-notebook.Notebook" -q environment -i "$envId" 2>&1 | Out-Null
+  Write-Host "  ── ✅ transcript-etl-notebook bound to environment spark-env"
 
-  # ---------------------------------------------------------------------------
-  # Wave 4 — Serving
-  # ---------------------------------------------------------------------------
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 4 — Wave 4
+  # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 4 — Serving"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-model.SemanticModel" `
-    -Label "Semantic Model: call-analytics-model" -TreeChar "├──"
-  Write-Host "  └── ⏭️  RT Dashboard: call-ops-rt-dash (portal-only — see manual steps)"
+  Write-Host "  Wave 4 — Wave 4"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-model.SemanticModel" -Label "Semantic Model: call-analytics-model" -TreeChar "├──"
+  Write-Host "  └── ⏭️  [MANUAL] Real-Time Dashboard: create via Fabric Portal"
 
-  # ---------------------------------------------------------------------------
-  # Wave 5 — Visualization
-  # ---------------------------------------------------------------------------
+  $SemanticModelId = (fab get "$WorkspaceName.Workspace/call-analytics-model.SemanticModel" -q id 2>&1).Trim()
+  Write-Host "  ── ℹ️  Captured SemanticModel ID: $SemanticModelId"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 5 — Wave 5
+  # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 5 — Visualization"
-  try {
-    $smInfo = fab get "$WorkspaceName.Workspace/call-analytics-model.SemanticModel" --output json 2>$null | ConvertFrom-Json
-    if ($smInfo.id) {
-      Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-report.Report" `
-        -Label "Report: call-analytics-report" -TreeChar "├──" `
-        -ExtraArgs @("-P", "semanticModelId=$($smInfo.id)")
-    } else {
-      Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-report.Report" `
-        -Label "Report: call-analytics-report" -TreeChar "├──"
-    }
-  } catch {
-    Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-report.Report" `
-      -Label "Report: call-analytics-report" -TreeChar "├──"
-  }
-  Write-Host "  └── ⏭️  Activator: call-alert-activator (portal-only — see manual steps)"
+  Write-Host "  Wave 5 — Wave 5"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/call-analytics-report.Report" -Label "Report: call-analytics-report" -TreeChar "├──" -ExtraArgs @("-P", "semanticModelId=$SemanticModelId")
+  Write-Host "  └── ⏭️  [MANUAL] Activator: create via Fabric Portal"
 
-  # ---------------------------------------------------------------------------
-  # Wave 6 — ML
-  # ---------------------------------------------------------------------------
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 6 — Wave 6
+  # ─────────────────────────────────────────────────────────────────
   Write-Host ""
-  Write-Host "  Wave 6 — ML"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-ml-experiment.MLExperiment" `
-    -Label "Experiment: transcript-ml-experiment" -TreeChar "├──"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-ml-model.MLModel" `
-    -Label "ML Model: transcript-ml-model" -TreeChar "├──"
-  Fab-Mkdir -Path "$WorkspaceName.Workspace/ml-scoring-notebook.Notebook" `
-    -Label "Notebook: ml-scoring-notebook" -TreeChar "└──"
+  Write-Host "  Wave 6 — Wave 6"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-ml-experiment.MLExperiment" -Label "ML Experiment: transcript-ml-experiment" -TreeChar "├──"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/transcript-ml-model.MLModel" -Label "ML Model: transcript-ml-model" -TreeChar "├──"
+  Fab-Mkdir -Path "$WorkspaceName.Workspace/ml-scoring-notebook.Notebook" -Label "Notebook: ml-scoring-notebook" -TreeChar "└──"
 
-  # Bind scoring notebook to lakehouse
-  try {
-    if ($lhInfo.id) {
-      fab set "$WorkspaceName.Workspace/ml-scoring-notebook.Notebook" -q lakehouse -i $lhJson 2>&1 | Out-Null
-      Write-Host "  ── ✅ Scoring notebook bound to Lakehouse"
-    }
-  } catch {
-    Write-Host "  ── ⚠️  Manual binding needed for ml-scoring-notebook"
-  }
+  # Bind ml-scoring-notebook to dependencies
+  $envId = (fab get "$WorkspaceName.Workspace/spark-env.Environment" -q id 2>&1).Trim()
+  fab set "$WorkspaceName.Workspace/ml-scoring-notebook.Notebook" -q environment -i "$envId" 2>&1 | Out-Null
+  Write-Host "  ── ✅ ml-scoring-notebook bound to environment spark-env"
 
-  # ---------------------------------------------------------------------------
-  # Summary
-  # ---------------------------------------------------------------------------
+
   Write-Host ""
   Write-Host "┌──────────────────────────────────────────────────────────────────┐"
   Write-Host "│  DEPLOYMENT SUMMARY                                              │"
@@ -373,46 +341,37 @@ function Main {
   Write-Host ""
   Write-Host "  Created: $created  |  Already existed: $existed  |  Failed: $failed"
 
-  Write-Host ""
-  Write-Host "┌──────────────────────────────────────────────────────────────────┐"
-  Write-Host "│  MANUAL STEPS REQUIRED                                           │"
-  Write-Host "└──────────────────────────────────────────────────────────────────┘"
-  Write-Host ""
-  Write-Host "  M-1: Configure telephony/transcription source in call-stream-eventstream"
-  Write-Host "  M-2: Set up Dataverse Fabric Link for CRM entity sync"
-  Write-Host "  M-3: Configure Activator alert thresholds for queue SLA"
-  Write-Host "  M-4: Build Real-Time Dashboard tiles in portal (call-ops-rt-dash)"
-  Write-Host "  M-5: Configure Activator rules in portal (call-alert-activator)"
-  Write-Host ""
-
   # ---------------------------------------------------------------------------
   # Post-Deployment Metadata
   # ---------------------------------------------------------------------------
+  Write-Host ""
   Write-Host "┌──────────────────────────────────────────────────────────────────┐"
   Write-Host "│  POST-DEPLOYMENT METADATA                                       │"
   Write-Host "└──────────────────────────────────────────────────────────────────┘"
   Write-Host ""
 
+  # Workspace ID
   $wsInfo = fab get "$WorkspaceName.Workspace" --output json 2>$null | ConvertFrom-Json
   $WorkspaceId = if ($wsInfo.id) { $wsInfo.id } else { "(unavailable)" }
   Write-Host "  Workspace ID:   $WorkspaceId"
 
+  # Tenant ID
   $authInfo = fab auth status --output json 2>$null | ConvertFrom-Json
   $TenantId = if ($authInfo.tenantId) { $authInfo.tenantId } else { "(unavailable)" }
   Write-Host "  Tenant ID:      $TenantId"
 
+  # Portal URL
   $portalBase = "https://app.fabric.microsoft.com/groups/$WorkspaceId"
   Write-Host "  Workspace URL:  $portalBase"
   Write-Host ""
 
+  # Per-item IDs
   Write-Host "  Item Details:"
   foreach ($r in $script:DeployResults) {
     if ($r.Status -eq "created" -or $r.Status -eq "exists") {
       $itemName = ($r.Label -split ":\s*", 2)[-1].Trim()
-      try {
-        $itemInfo = fab get "$WorkspaceName.Workspace/$itemName" --output json 2>$null | ConvertFrom-Json
-        $itemId = if ($itemInfo.id) { $itemInfo.id } else { "-" }
-      } catch { $itemId = "-" }
+      $itemInfo = fab get "$WorkspaceName.Workspace/$itemName" --output json 2>$null | ConvertFrom-Json
+      $itemId = if ($itemInfo.id) { $itemInfo.id } else { "-" }
       Write-Host "  ├── $($r.Label)  →  ID: $itemId"
     }
   }

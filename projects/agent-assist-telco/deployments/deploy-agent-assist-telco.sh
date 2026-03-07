@@ -36,7 +36,7 @@ print_banner() {
 }
 
 # ---------------------------------------------------------------------------
-# Configuration
+# Configuration — fill these or set as environment variables
 # ---------------------------------------------------------------------------
 PROJECT_NAME="Agent Assist Telco"
 TASK_FLOW="lambda"
@@ -82,6 +82,7 @@ fab_mkdir() {
   local max_retries=3
   local err_output
 
+  # Idempotency: skip if item already exists
   if fab exists "$path" 2>/dev/null; then
     echo "  $tree_char ✅ $label (already exists)"
     DEPLOY_EXISTS=$((DEPLOY_EXISTS + 1))
@@ -89,6 +90,7 @@ fab_mkdir() {
     return
   fi
 
+  # Retry with backoff for transient failures
   for attempt in $(seq 1 $max_retries); do
     err_output=$(fab mkdir "$path" "${extra_args[@]}" 2>&1)
     if [ $? -eq 0 ]; then
@@ -118,7 +120,9 @@ fab_mkdir() {
 main() {
   print_banner "$PROJECT_NAME" "$TASK_FLOW" "Deploy to Fabric"
 
-  # Preflight: CLI only
+  # ---------------------------------------------------------------------------
+  # Preflight: CLI only (auth comes after config)
+  # ---------------------------------------------------------------------------
   echo "  Checking prerequisites..."
   if ! command -v fab &> /dev/null; then
     echo "  ❌ Fabric CLI (fab) not found."
@@ -128,6 +132,9 @@ main() {
   echo "  ── ✅ Fabric CLI found"
   echo ""
 
+  # ---------------------------------------------------------------------------
+  # Configuration — collect ALL inputs before authenticating
+  # ---------------------------------------------------------------------------
   echo "┌──────────────────────────────────────────────────────────────────┐"
   echo "│  CONFIGURATION                                                   │"
   echo "│  Fill in the values below or set as environment variables.       │"
@@ -137,50 +144,49 @@ main() {
   FABRIC_WORKSPACE_NAME=$(prompt_value "FABRIC_WORKSPACE_NAME" "Workspace name" "agent-assist-telco-dev")
   FABRIC_CAPACITY_ID=$(prompt_value "FABRIC_CAPACITY_ID" "Fabric capacity ID (GUID from portal → Capacities)")
 
-  # Task-flow-specific prompts
-  EVENT_HUB_NAMESPACE=$(prompt_value "EVENT_HUB_NAMESPACE" "Event Hub namespace (for telephony transcription stream)")
-  if [[ -z "$EVENT_HUB_NAMESPACE" ]]; then
-    echo "  ⚠️  No Event Hub namespace — Eventstream will be created but cannot ingest data"
-  fi
-  DATAVERSE_ENV=$(prompt_value "DATAVERSE_ENV" "Dataverse environment URL (for CRM sync)")
-  if [[ -z "$DATAVERSE_ENV" ]]; then
-    echo "  ⚠️  No Dataverse URL — Pipeline will be created but CRM sync won't function"
-  fi
+  # Connection to source database
+  SOURCE_CONNECTION_STRING=$(prompt_value "SOURCE_CONNECTION_STRING" "Source database connection string (e.g., SQL Server, PostgreSQL — used by Copy Job)" "" "optional")
+  # Azure Event Hub namespace for streaming
+  EVENT_HUB_NAMESPACE=$(prompt_value "EVENT_HUB_NAMESPACE" "Event Hub namespace (Azure Event Hubs that streams events into Fabric)" "" "optional")
+  # Consumer group controls which reader offset Eventstream uses
+  EVENT_HUB_CONSUMER_GROUP=$(prompt_value "EVENT_HUB_CONSUMER_GROUP" "Event Hub consumer group (isolates this pipeline's read position — use $Default if unsure)" "$Default")
 
   echo ""
   echo "┌──────────────────────────────────────────────────────────────────┐"
   echo "│  DEPLOYMENT PLAN                                                 │"
-  printf "│%-66s│\n" "  Task flow: lambda  |  Items: 15  |  Waves: 6"
+  printf "│%-66s│\n" "  Task flow: $TASK_FLOW  |  Items: 16  |  Waves: 7"
   echo "└──────────────────────────────────────────────────────────────────┘"
   echo ""
-  echo "  Wave 1 ─ Foundation + Compute"
-  echo "  ├── ☐ Lakehouse:   call-transcripts-lakehouse"
-  echo "  ├── ☐ Warehouse:   call-analytics-warehouse"
-  echo "  ├── ☐ Eventhouse:  call-events-eventhouse"
+
+  echo "  Wave 1 — Wave 1"
+  echo "  ├── ☐ Lakehouse: call-transcripts-lakehouse"
+  echo "  ├── ☐ Warehouse: call-analytics-warehouse"
+  echo "  ├── ☐ Eventhouse: call-events-eventhouse"
   echo "  └── ☐ Environment: spark-env"
   echo ""
-  echo "  Wave 2 ─ Ingestion"
+  echo "  Wave 2 — Wave 2"
   echo "  ├── ☐ Eventstream: call-stream-eventstream"
-  echo "  └── ☐ Pipeline:    crm-sync-pipeline"
+  echo "  └── ☐ Data Pipeline: crm-sync-pipeline"
   echo ""
-  echo "  Wave 3 ─ Processing"
-  echo "  ├── ☐ Notebook:    transcript-etl-notebook"
+  echo "  Wave 3 — Wave 3"
+  echo "  ├── ☐ Notebook: transcript-etl-notebook"
   echo "  └── ☐ KQL Queryset: call-insights-kql"
   echo ""
-  echo "  Wave 4 ─ Serving"
+  echo "  Wave 4 — Wave 4"
   echo "  ├── ☐ Semantic Model: call-analytics-model"
-  echo "  └── ☐ RT Dashboard:  call-ops-rt-dash (portal)"
+  echo "  └── ☐ [MANUAL] Real-Time Dashboard: call-ops-rt-dash"
   echo ""
-  echo "  Wave 5 ─ Visualization"
-  echo "  ├── ☐ Report:    call-analytics-report"
-  echo "  └── ☐ Activator: call-alert-activator (portal)"
+  echo "  Wave 5 — Wave 5"
+  echo "  ├── ☐ Report: call-analytics-report"
+  echo "  └── ☐ [MANUAL] Activator: call-alert-activator"
   echo ""
-  echo "  Wave 6 ─ ML"
-  echo "  ├── ☐ Experiment: transcript-ml-experiment"
-  echo "  ├── ☐ ML Model:   transcript-ml-model"
-  echo "  └── ☐ Notebook:   ml-scoring-notebook"
+  echo "  Wave 6 — Wave 6"
+  echo "  ├── ☐ ML Experiment: transcript-ml-experiment"
+  echo "  ├── ☐ ML Model: transcript-ml-model"
+  echo "  └── ☐ Notebook: ml-scoring-notebook"
   echo ""
 
+  echo ""
   read -rp "  ? Proceed with deployment? [Y/n]: " confirm
   confirm="${confirm:-Y}"
   if [[ ! "$confirm" =~ ^[Yy] ]]; then
@@ -232,115 +238,93 @@ main() {
   fi
 
   # ---------------------------------------------------------------------------
-  # Wave 1 — Foundation + Compute
+  # Wave Deployment
   # ---------------------------------------------------------------------------
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 1 — Wave 1
+  # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 1 ─ Foundation + Compute"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-transcripts-lakehouse.Lakehouse" \
-    "Lakehouse: call-transcripts-lakehouse" "├──"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-warehouse.Warehouse" \
-    "Warehouse: call-analytics-warehouse" "├──"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-events-eventhouse.Eventhouse" \
-    "Eventhouse: call-events-eventhouse" "├──"
+  echo "  Wave 1 — Wave 1"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-transcripts-lakehouse.Lakehouse" "Lakehouse: call-transcripts-lakehouse" "├──" "-P" "enableSchemas=true"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-warehouse.Warehouse" "Warehouse: call-analytics-warehouse" "├──"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-events-eventhouse.Eventhouse" "Eventhouse: call-events-eventhouse" "├──"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/spark-env.Environment" "Environment: spark-env" "└──"
 
-  # Create KQL Database inside Eventhouse
-  local eh_id
-  eh_id=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/call-events-eventhouse.Eventhouse" --output json 2>/dev/null | grep -o '"id"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
-  if [[ -n "$eh_id" ]]; then
-    fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-events-kqldb.KQLDatabase" \
-      "KQL Database: call-events-kqldb" "├──" -P "eventhouseId=$eh_id"
+  echo "  ⏳ Waiting for Environment publish (may take 20+ min)..."
+  max_wait=1800; elapsed=0
+  while [ $elapsed -lt $max_wait ]; do
+    sleep 30; elapsed=$((elapsed + 30))
+    env_status=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/spark-env.Environment" -q properties.publishStatus 2>&1)
+    echo "    ⏱  $((elapsed / 60))m elapsed — status: $env_status"
+    [ "$env_status" = "Published" ] && break
+  done
+  if [ "$env_status" != "Published" ]; then
+    echo "  ⚠️  Environment publish timed out — notebooks may fail until publish completes"
   else
-    echo "  ├── ⚠️  KQL Database: could not retrieve Eventhouse ID — create manually in portal"
-  fi
-
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/spark-env.Environment" \
-    "Environment: spark-env" "└──"
-
-  # Publish Environment so notebooks can attach to it
-  echo "  ── Publishing spark-env..."
-  if fab publish "$FABRIC_WORKSPACE_NAME.Workspace/spark-env.Environment" 2>/dev/null; then
     echo "  ── ✅ Environment published"
-  else
-    echo "  ── ⚠️  Environment publish failed — publish manually in portal before running notebooks"
   fi
 
-  # ---------------------------------------------------------------------------
-  # Wave 2 — Ingestion
-  # ---------------------------------------------------------------------------
+  EVENTHOUSE_ID=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/call-events-eventhouse.Eventhouse" -q id 2>&1 | tr -d "[:space:]")
+  echo "  ── ℹ️  Captured Eventhouse ID: $EVENTHOUSE_ID"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 2 — Wave 2
+  # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 2 ─ Ingestion"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-stream-eventstream.Eventstream" \
-    "Eventstream: call-stream-eventstream" "├──"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/crm-sync-pipeline.DataPipeline" \
-    "Pipeline: crm-sync-pipeline" "└──"
+  echo "  Wave 2 — Wave 2"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-stream-eventstream.Eventstream" "Eventstream: call-stream-eventstream" "├──"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/crm-sync-pipeline.DataPipeline" "Data Pipeline: crm-sync-pipeline" "└──"
 
-  # ---------------------------------------------------------------------------
-  # Wave 3 — Processing
-  # ---------------------------------------------------------------------------
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 3 — Wave 3
+  # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 3 ─ Processing"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-etl-notebook.Notebook" \
-    "Notebook: transcript-etl-notebook" "├──"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-insights-kql.KQLQueryset" \
-    "KQL Queryset: call-insights-kql" "└──"
+  echo "  Wave 3 — Wave 3"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-etl-notebook.Notebook" "Notebook: transcript-etl-notebook" "├──"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-insights-kql.KQLQueryset" "KQL Queryset: call-insights-kql" "└──"
 
-  # Configure notebook → lakehouse binding
-  echo "  ── Binding transcript-etl-notebook → call-transcripts-lakehouse..."
-  local lh_id
-  lh_id=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/call-transcripts-lakehouse.Lakehouse" --output json 2>/dev/null | grep -o '"id"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
-  if [[ -n "$lh_id" ]]; then
-    fab set "$FABRIC_WORKSPACE_NAME.Workspace/transcript-etl-notebook.Notebook" -q lakehouse -i "{\"id\":\"$lh_id\"}" 2>&1 | cat > /dev/null && \
-      echo "  ── ✅ Notebook bound to Lakehouse" || \
-      echo "  ── ⚠️  Manual binding needed (set default Lakehouse in portal)"
-  fi
+  # Bind transcript-etl-notebook to dependencies
+  lh_id=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/call-transcripts-lakehouse.Lakehouse" -q id 2>&1 | tr -d "[:space:]")
+  fab set "$FABRIC_WORKSPACE_NAME.Workspace/transcript-etl-notebook.Notebook" -q lakehouse -i "$lh_id" 2>&1 | cat > /dev/null
+  echo "  ── ✅ transcript-etl-notebook bound to lakehouse call-transcripts-lakehouse"
+  env_id=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/spark-env.Environment" -q id 2>&1 | tr -d "[:space:]")
+  fab set "$FABRIC_WORKSPACE_NAME.Workspace/transcript-etl-notebook.Notebook" -q environment -i "$env_id" 2>&1 | cat > /dev/null
+  echo "  ── ✅ transcript-etl-notebook bound to environment spark-env"
 
-  # ---------------------------------------------------------------------------
-  # Wave 4 — Serving
-  # ---------------------------------------------------------------------------
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 4 — Wave 4
+  # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 4 ─ Serving"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-model.SemanticModel" \
-    "Semantic Model: call-analytics-model" "├──"
-  echo "  └── ⏭️  RT Dashboard: call-ops-rt-dash (portal-only — see manual steps)"
+  echo "  Wave 4 — Wave 4"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-model.SemanticModel" "Semantic Model: call-analytics-model" "├──"
+  echo "  └── ⏭️  [MANUAL] Real-Time Dashboard: create via Fabric Portal"
 
-  # ---------------------------------------------------------------------------
-  # Wave 5 — Visualization
-  # ---------------------------------------------------------------------------
+  SEMANTIC_MODEL_ID=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-model.SemanticModel" -q id 2>&1 | tr -d "[:space:]")
+  echo "  ── ℹ️  Captured SemanticModel ID: $SEMANTIC_MODEL_ID"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 5 — Wave 5
+  # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 5 ─ Visualization"
-  local sm_id
-  sm_id=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-model.SemanticModel" --output json 2>/dev/null | grep -o '"id"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
-  if [[ -n "$sm_id" ]]; then
-    fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-report.Report" \
-      "Report: call-analytics-report" "├──" -P "semanticModelId=$sm_id"
-  else
-    fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-report.Report" \
-      "Report: call-analytics-report" "├──"
-  fi
-  echo "  └── ⏭️  Activator: call-alert-activator (portal-only — see manual steps)"
+  echo "  Wave 5 — Wave 5"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/call-analytics-report.Report" "Report: call-analytics-report" "├──" "-P" "semanticModelId=$SEMANTIC_MODEL_ID"
+  echo "  └── ⏭️  [MANUAL] Activator: create via Fabric Portal"
 
-  # ---------------------------------------------------------------------------
-  # Wave 6 — ML
-  # ---------------------------------------------------------------------------
+  # ─────────────────────────────────────────────────────────────────
+  # Wave 6 — Wave 6
+  # ─────────────────────────────────────────────────────────────────
   echo ""
-  echo "  Wave 6 ─ ML"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-ml-experiment.MLExperiment" \
-    "Experiment: transcript-ml-experiment" "├──"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-ml-model.MLModel" \
-    "ML Model: transcript-ml-model" "├──"
-  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/ml-scoring-notebook.Notebook" \
-    "Notebook: ml-scoring-notebook" "└──"
+  echo "  Wave 6 — Wave 6"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-ml-experiment.MLExperiment" "ML Experiment: transcript-ml-experiment" "├──"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/transcript-ml-model.MLModel" "ML Model: transcript-ml-model" "├──"
+  fab_mkdir "$FABRIC_WORKSPACE_NAME.Workspace/ml-scoring-notebook.Notebook" "Notebook: ml-scoring-notebook" "└──"
 
-  # Bind scoring notebook to lakehouse
-  if [[ -n "$lh_id" ]]; then
-    fab set "$FABRIC_WORKSPACE_NAME.Workspace/ml-scoring-notebook.Notebook" -q lakehouse -i "{\"id\":\"$lh_id\"}" 2>&1 | cat > /dev/null && \
-      echo "  ── ✅ Scoring notebook bound to Lakehouse" || \
-      echo "  ── ⚠️  Manual binding needed for ml-scoring-notebook"
-  fi
+  # Bind ml-scoring-notebook to dependencies
+  env_id=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace/spark-env.Environment" -q id 2>&1 | tr -d "[:space:]")
+  fab set "$FABRIC_WORKSPACE_NAME.Workspace/ml-scoring-notebook.Notebook" -q environment -i "$env_id" 2>&1 | cat > /dev/null
+  echo "  ── ✅ ml-scoring-notebook bound to environment spark-env"
 
-  # ---------------------------------------------------------------------------
-  # Summary
-  # ---------------------------------------------------------------------------
+
   echo ""
   echo "┌──────────────────────────────────────────────────────────────────┐"
   echo "│  DEPLOYMENT SUMMARY                                              │"
@@ -350,26 +334,16 @@ main() {
   echo ""
   echo "  Created: $DEPLOY_CREATED  |  Already existed: $DEPLOY_EXISTS  |  Failed: $DEPLOY_FAILED"
 
-  echo ""
-  echo "┌──────────────────────────────────────────────────────────────────┐"
-  echo "│  MANUAL STEPS REQUIRED                                           │"
-  echo "└──────────────────────────────────────────────────────────────────┘"
-  echo ""
-  echo "  M-1: Configure telephony/transcription source in call-stream-eventstream"
-  echo "  M-2: Set up Dataverse Fabric Link for CRM entity sync"
-  echo "  M-3: Configure Activator alert thresholds for queue SLA"
-  echo "  M-4: Build Real-Time Dashboard tiles in portal (call-ops-rt-dash)"
-  echo "  M-5: Configure Activator rules in portal (call-alert-activator)"
-  echo ""
-
   # ---------------------------------------------------------------------------
   # Post-Deployment Metadata
   # ---------------------------------------------------------------------------
+  echo ""
   echo "┌──────────────────────────────────────────────────────────────────┐"
   echo "│  POST-DEPLOYMENT METADATA                                       │"
   echo "└──────────────────────────────────────────────────────────────────┘"
   echo ""
 
+  # Workspace ID
   local ws_json
   ws_json=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace" --output json 2>/dev/null || echo "{}")
   local workspace_id
@@ -377,6 +351,7 @@ main() {
   workspace_id="${workspace_id:-(unavailable)}"
   echo "  Workspace ID:   $workspace_id"
 
+  # Tenant ID
   local auth_json
   auth_json=$(fab auth status --output json 2>/dev/null || echo "{}")
   local tenant_id
@@ -384,11 +359,15 @@ main() {
   tenant_id="${tenant_id:-(unavailable)}"
   echo "  Tenant ID:      $tenant_id"
 
+  # Portal URL
   local portal_base="https://app.fabric.microsoft.com/groups/$workspace_id"
   echo "  Workspace URL:  $portal_base"
   echo ""
 
+  # Per-item IDs
   echo "  Item Details:"
+  # Re-parse deploy log for item names is not reliable; items were tracked above.
+  # Use fab ls to enumerate workspace items.
   local items_json
   items_json=$(fab ls "$FABRIC_WORKSPACE_NAME.Workspace" --output json 2>/dev/null || echo "[]")
   echo "$items_json" | grep -o '"displayName"\s*:\s*"[^"]*"\|"id"\s*:\s*"[^"]*"' | paste - - | while read -r line; do
