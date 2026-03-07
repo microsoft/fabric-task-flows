@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-SHARED_DIR = Path(__file__).resolve().parent.parent / "_shared"
+SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Item type → fab command mapping
@@ -33,6 +33,7 @@ SHARED_DIR = Path(__file__).resolve().parent.parent / "_shared"
 
 # Item type mappings — loaded from _shared/item-type-registry.json
 # Do NOT maintain these dicts manually. See _shared/agent-boundaries.md.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
 from registry_loader import build_fab_commands, build_display_names
 
 FAB_COMMANDS: dict[str, tuple[str, list[str]] | None] = build_fab_commands()

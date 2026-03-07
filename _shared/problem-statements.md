@@ -1,249 +1,153 @@
 # Problem Statements for Stress Testing
 
-> Generic data/analytics scenarios for testing agent pipeline inference. Intentionally vague — the system should ask clarifying questions to resolve ambiguity.
+> Fully-formed enterprise scenarios for stress-testing signal mapper keyword coverage. Each problem includes industry context, data specifics, team constraints, and business requirements.
 
-## Batch & Warehouse
+## Aquaculture & Marine Biology
 
-1. "We have sales data in spreadsheets across 12 regional offices. Leadership wants a single dashboard they can check weekly."
+1. "We operate 40 salmon farming pens across 8 fjords in Norway. Each pen has underwater cameras monitoring fish behavior at 15fps, dissolved oxygen sensors sampling every 30 seconds, and feeding systems that log pellet dispensing rates. We need to detect early signs of sea lice infestations from the camera feeds, optimize feeding schedules based on fish growth curves and water temperature, and produce weekly biomass estimates for our harvest planning team. Our marine biologists know R but nothing else."
 
-2. "Our data warehouse is too slow. Queries that used to take seconds now take minutes. We're thinking about moving to the cloud."
+2. "Our shrimp hatchery in Ecuador produces 500 million post-larvae per cycle across 200 tanks. We monitor water quality parameters — salinity, pH, ammonia, dissolved oxygen — every 5 minutes per tank. Survival rates vary wildly between batches and we suspect it's correlated with subtle water chemistry fluctuations overnight. We need pattern detection across all tanks and cycles to identify the optimal parameter ranges, plus export capabilities for SENASA regulatory reporting."
 
-3. "Finance exports CSVs from our ERP every night. We need to combine them with CRM data for quarterly reporting."
+## Semiconductor & Chip Manufacturing
 
-4. "We want to replace our on-prem data warehouse but can't afford downtime. Need a migration path that doesn't break existing reports."
+3. "Our 300mm wafer fab runs 24/7 with 400 process tools generating 50 million metrology measurements per day. Each wafer goes through 700+ process steps over 3 months. We need to build virtual metrology models that predict wafer quality from tool sensor data without waiting for physical measurements — currently the feedback loop is 48 hours. Our yield engineers also need root cause analysis tools that can trace defective dice back to specific tool-chamber-recipe combinations."
 
-5. "Marketing has 3 years of campaign data in flat files. They want self-service analytics but don't know SQL."
+4. "We're a fabless semiconductor company outsourcing to 3 foundries (TSMC, Samsung, GlobalFoundries). Each foundry provides test data in different formats — STDF, WAT, parametric — with different naming conventions. We need to normalize this data into a unified yield analytics platform, benchmark foundry performance on the same design, and feed wafer sort data back to our design team for design-for-manufacturability improvements. IP security is paramount — foundries must not see each other's data."
 
-## Real-Time & Streaming
+## Veterinary & Animal Health
 
-6. "Our IoT sensors generate temperature readings every 5 seconds. We need alerts when values exceed thresholds, plus daily trend reports."
+5. "We're a veterinary diagnostics company processing 50,000 blood panels per day from 15,000 veterinary clinics. Our analyzers produce CBC, chemistry, and endocrine results that feed into breed-specific reference ranges. We want to build population health models — tracking disease prevalence trends by geography and breed — while giving individual clinics dashboards showing their case mix compared to regional benchmarks. USDA reporting for notifiable diseases must be automated within 24 hours of detection."
 
-7. "We're tracking website clickstream data and want to detect anomalies in real-time — like sudden traffic drops or bot activity."
+6. "Our livestock management platform tracks 2 million head of cattle across 500 ranches. Each animal has an RFID ear tag scanned at feedlots, auction houses, and processing plants. We need full birth-to-harvest traceability to comply with USDA FSIS requirements, plus weight gain prediction models to optimize feed rations. Ranchers want a simple mobile app showing their herd's health metrics — they have intermittent cellular coverage and zero tolerance for complex interfaces."
 
-8. "Delivery trucks send GPS pings every 30 seconds. Operations wants a live map plus historical route analysis."
+## Aerospace & Defense Manufacturing
 
-9. "Our payment processing system needs fraud detection within 200ms of a transaction. Current batch approach catches fraud too late."
+7. "We manufacture turbine blades for military jet engines under ITAR export control restrictions. Every blade undergoes 23 non-destructive inspections — X-ray, fluorescent penetrant, eddy current, ultrasonic — generating 2GB of inspection data per part. We need automated accept/reject classification from NDI images with 99.97% accuracy (our current manual process is 99.5%), full AS9100 traceability linking each blade to its raw material heat lot, and all data must remain within our FedRAMP-certified enclave."
 
-10. "Factory floor sensors stream vibration data. We want predictive maintenance alerts before equipment fails."
+8. "Our satellite assembly facility builds 12 spacecraft per year on contract for NASA and DoD. Each build spans 18 months with 50,000 discrete assembly steps tracked in our MES. We need to predict schedule delays from work order completion velocity, identify process bottlenecks in our cleanroom operations, and generate earned value management (EVM) reports for our government customers. DCMA oversight requires all data to be audit-ready at any time."
 
-## Hybrid (Batch + Real-Time)
+## Wine & Spirits Production
 
-11. "We need both a real-time view of inventory levels and end-of-day reconciliation reports for accounting."
+9. "We're a premium winery producing 200,000 cases per year across 15 vineyard blocks. Our viticulturist uses weather stations, soil moisture probes, and NDVI satellite imagery to make canopy management decisions. We need to correlate vintage-level weather patterns with wine quality scores from our tasting panel to build a harvest timing model. The winemaker wants a simple dashboard showing ripeness indicators — Brix, pH, titratable acidity — across all blocks in real-time during crush season."
 
-12. "Customer support tickets come in throughout the day, but we also need weekly sentiment analysis trends for the executive team."
+10. "Our craft spirits distillery operates 8 pot stills and 4 column stills producing bourbon, rye, and gin. We track every barrel — fill date, entry proof, warehouse location (rick, tier, floor), temperature and humidity at that position. With 40,000 barrels aging from 2 to 12 years, we need to predict optimal maturation time for each barrel based on its environmental history, and model the financial impact of pulling barrels early vs. letting them age. Our master distiller makes decisions by tasting — we need data to supplement, not replace, their palate."
 
-13. "Our e-commerce site needs real-time stock updates while also feeding a nightly data warehouse for business intelligence."
+## Railway & Transit Operations
 
-## Analytics & ML
+11. "We operate 800 miles of commuter rail with 350 railcars. Each car has vibration sensors on wheelsets, traction motor temperature probes, and door cycle counters. We need condition-based maintenance to replace our current time-based schedule — the fleet is spending 40% of its time in the shop for inspections that find nothing wrong. We also need to feed on-time performance data to our state DOT sponsor and publish real-time service alerts via GTFS-realtime feeds."
 
-14. "We have 5 TB of customer transaction history. We want to build propensity-to-churn models but our data scientists spend 80% of their time on data prep."
+12. "Our freight railroad dispatches 200 trains per day across a 6,000-mile network. We need to optimize crew assignments based on Hours of Service regulations, predict dwell times at classification yards, and provide shippers with real-time ETA updates for their intermodal containers. Our dispatching system is a mainframe from 1985 — we can extract data via screen scraping but cannot modify it. Union rules complicate any changes to crew management processes."
 
-15. "Marketing wants to predict which leads will convert. We have CRM data but no ML infrastructure."
+## Waste-to-Energy & Circular Economy
 
-16. "We're sitting on years of support ticket text. Someone said we could use AI to auto-categorize incoming tickets."
+13. "We operate 5 waste-to-energy plants converting municipal solid waste into electricity. Each plant processes 1,500 tons per day with furnace temperatures, steam pressure, flue gas composition, and emissions continuously monitored. We need to optimize combustion efficiency (currently 78%, target 85%), predict maintenance needs for our grate systems, and generate continuous emissions monitoring (CEMS) reports for our air quality permits. EPA requires 15-minute data retention for 5 years."
 
-## Governance & Security
+14. "Our electronics recycling facility processes 10,000 tons of e-waste annually. We use XRF analyzers to identify material composition, robotic disassembly cells with vision systems, and manual sorting for precious metal recovery. We need to track material flow from intake through shredding, separation, and output — calculating recovery rates for gold, silver, palladium, and copper. R2 certification auditors need full chain of custody documentation showing responsible handling of hazardous materials."
 
-17. "We need to mask PII before analysts can query customer data. Currently it's all or nothing — either full access or no access."
+## Museum & Cultural Heritage
 
-18. "Auditors are asking for lineage reports. We can't tell them where a number in a dashboard actually came from."
+15. "We manage a national museum with 3 million artifacts, of which 50,000 are on display at any time. Our conservation team monitors gallery environments — temperature, relative humidity, light levels, vibration — with 2,000 sensors to ensure artifacts are within preservation limits. We need alert systems when conditions drift outside acceptable ranges, long-term trend analysis to identify HVAC issues, and integration with our collections management system (TMS) to assess cumulative light exposure on sensitive textiles and works on paper."
 
-19. "Different departments have their own data silos. We want a unified catalog but can't force everyone onto one platform."
+16. "Our digital humanities institute is digitizing 500,000 historical manuscripts using multispectral imaging. Each manuscript produces 12 spectral bands at 600 DPI, averaging 4GB per page. We need a searchable catalog with OCR-processed text, IIIF-compliant image serving for researchers worldwide, and machine learning models to identify handwriting styles across centuries of documents. Our grant requires us to publish all data as open access within 3 years. Storage is already at 2 PB and growing."
 
-## Vague / Ambiguous (Maximum Stress Test)
+## Precision Medicine & Pharmacogenomics
 
-20. "We want to be more data-driven. Not sure where to start — we have data everywhere but no insights."
+17. "Our health system is implementing a pharmacogenomics program. When a patient's genetic test results arrive from our lab, the EMR needs to display drug-gene interaction alerts at the point of prescribing — within 2 seconds of the physician opening the order entry screen. We need to match patient genotypes against CPIC guidelines, calculate metabolizer status for 15 gene-drug pairs, and log every alert-override for our quality committee review. All data is PHI under HIPAA and must go through our existing Epic integration engine."
 
-## Enterprise & Global Strategy
+18. "We're a precision oncology company running a tumor profiling service. Each patient's tumor biopsy generates whole-exome sequencing data that we compare against 600 actionable mutations across 50 cancer types. Turnaround time from biopsy to report must be under 14 days — currently it's 21. We need to automate our bioinformatics pipeline (alignment, variant calling, annotation, clinical interpretation), maintain a growing evidence database of 200,000 case-variant associations, and generate CAP/CLIA-compliant laboratory reports."
 
-21. "We're a Fortune 500 with 40,000 employees across 28 countries. We have Snowflake for our North American analytics, Databricks in EMEA for data science, and a legacy Oracle data warehouse in APAC. The CEO wants a single global view of revenue, but nobody wants to give up their regional tools."
+## Music & Audio Streaming
 
-22. "Our conglomerate has 14 business units each with their own data teams, different tech stacks, different maturity levels. Corporate wants a federated data mesh but with centralized governance. Some units are on Azure, some AWS, two are still fully on-prem."
+19. "Our music streaming service has 30 million active listeners generating 5 billion play events per month. We need real-time listening session analysis to power our recommendation engine — what songs are skipped within 10 seconds, what playlists have high completion rates, how does time of day affect genre preferences. Our content licensing team needs monthly royalty calculation reports that allocate payments across 40 million tracks based on pro-rata streaming share. Current royalty processing takes 6 weeks — labels want it in 2."
 
-23. "We're a global bank. We need to consolidate risk analytics across 6 trading desks, each using different models and data sources. Regulatory reporting deadlines are non-negotiable — we can't break anything during the transition. We also need real-time position monitoring for the trading floor."
+20. "We're a podcast hosting platform with 200,000 shows and 50 million monthly downloads. Podcasters want analytics — listener demographics, drop-off points within episodes, geographic distribution — but our download logs are in S3 and nobody has built reporting on them. Advertisers want verified impression counts with IAB 2.1 compliance. We also need to detect fraudulent downloads (bots inflating metrics) in near-real-time to maintain advertiser trust."
 
-24. "Our healthcare system spans 200 hospitals. We need to unify clinical data for population health analytics while maintaining HIPAA compliance. Each hospital has its own EMR — some Epic, some Cerner, some home-grown. We also want to pilot an AI model for readmission prediction."
+## Smart Agriculture & Vertical Farming
 
-25. "We're an energy company managing a smart grid across 3 states. We have 2 million smart meters streaming consumption data, SCADA systems for grid operations, a legacy billing system on Oracle, and weather API feeds. We need demand forecasting, outage prediction, and a customer-facing usage dashboard — all from the same platform."
+21. "Our vertical farming operation runs 40 indoor growing chambers producing leafy greens year-round. Each chamber has 500 sensors monitoring light spectrum, CO2, temperature, humidity, nutrient solution EC and pH — reporting every 60 seconds. We need closed-loop control optimization — automatically adjusting LED recipes and nutrient dosing based on plant growth stage. Our agronomists want to run yield experiments comparing growing protocols across chambers. Current decisions are made by gut feel."
 
-26. "We're a global retailer with 4,000 stores. We need customer 360 — combining POS transactions, loyalty program data, e-commerce clickstream, and social media sentiment. The marketing team wants real-time personalization for the website, the merchandising team wants weekly demand forecasting, and finance wants monthly P&L by store."
+22. "We're a regenerative agriculture cooperative with 200 member farms transitioning from conventional to no-till practices. We need to track soil carbon sequestration over time using a combination of soil samples (twice yearly), remote sensing (monthly NDVI), and weather data. Our members need to generate verified carbon credits for the voluntary carbon market, which requires MRV (measurement, reporting, verification) documentation that meets Verra VCS standards. Each farm's data situation is different — some have precision ag equipment, others use paper records."
 
-27. "Our manufacturing company has 12 plants worldwide. Each plant has its own historian database and SCADA system. We need a central operations dashboard showing real-time OEE across all plants, predictive maintenance for critical equipment, and monthly quality trend reports for the VP of Operations. The plants are on different time zones and some have spotty internet connectivity."
+## Dental & Orthodontic Technology
 
-## Power BI Users Exploring Fabric
+23. "Our dental AI startup analyzes panoramic X-rays and CBCT scans for 5,000 dental practices. Each scan is 50-200MB and our models detect 40 pathology types — caries, periapical lesions, bone loss, impacted teeth. We need sub-3-second inference time per scan, integration with 8 different practice management systems (Dentrix, Eaglesoft, Open Dental, etc.), and FDA 510(k) compliance requiring that we log every model prediction with the specific model version and confidence score. Our inference pipeline needs to scale from 2,000 scans/day now to 20,000/day by next year."
 
-28. "I've been using Power BI Desktop for years. My boss said we're getting Fabric and I should move my reports there. I don't really understand what Fabric adds — my reports work fine. What's in it for me?"
+24. "We manufacture clear aligners using 3D intraoral scans from 10,000 orthodontists. Each treatment plan involves 20-40 aligner stages, generated by our treatment planning AI from the patient's initial scan. We need to track treatment outcomes — comparing predicted tooth movements to actual movements from mid-treatment check scans — across 500,000 active cases to continuously improve our AI models. Our manufacturing facility also needs quality control dashboards correlating 3D printing parameters with aligner fit accuracy."
 
-29. "We have about 200 Power BI reports across the organization. Some use Import mode, some DirectQuery, and they're all over the place. Reports are slow, people complain, and we spend half our time managing gateway refreshes. Someone mentioned Direct Lake would fix everything?"
+## Ocean & Marine Conservation
 
-30. "I'm a Power BI developer. I know DAX and Power Query really well but I've never written Python or SQL. My manager wants me to start building lakehouses. I have no idea what a lakehouse even is or why I'd want one instead of just connecting Power BI to our SQL Server like I always have."
+25. "Our marine conservation NGO deploys acoustic monitoring buoys across 50 sites in the Pacific. Each buoy continuously records underwater sound — shipping noise, whale calls, seismic activity — producing 20GB of audio per day per site. We need automated species identification from the recordings (blue whales, humpbacks, orcas), noise pollution trend analysis for our advocacy reports, and real-time alerts when endangered species are detected near shipping lanes so we can notify vessel operators."
 
-31. "We're a small analytics team — 3 people, all Power BI. We currently use Power BI Pro with shared datasets. Now IT is talking about Fabric capacities, workspaces, lakehouses, warehouses, notebooks — it feels like 10x the complexity for not much benefit. Can you help us understand if we even need Fabric?"
+26. "We're tracking plastic pollution in the world's oceans using a combination of satellite imagery, beach cleanup survey data from 10,000 volunteers, and oceanographic current models. We need to build predictive maps showing plastic accumulation zones, correlate upstream waste sources with downstream pollution concentrations, and publish an interactive public dashboard for our annual State of Ocean Plastics report. Our science team uses Python and QGIS — they need a data platform, not a BI tool."
 
-32. "Our Power BI reports pull from 15 different data sources — some Excel files, some SQL databases, some SharePoint lists, a couple of Dataverse tables. Every Monday morning the dashboards break because someone moved a file or changed a column name. We need something more reliable but we don't want to learn a whole new platform."
+## Insurance Technology (Insurtech)
 
-## Multi-Platform Integration
+27. "Our usage-based auto insurance product collects driving telemetry from a smartphone app — acceleration, braking, cornering, phone usage, time of day — across 500,000 policyholders. We need real-time trip scoring (within 5 minutes of trip completion), monthly premium adjustment calculations based on driving behavior, and loss ratio analysis correlating driving scores with claims frequency. Privacy regulations in California and Illinois require that we can delete all telemetry data for any customer within 30 days of request."
 
-33. "We use Databricks for all our ML pipelines and it's working great. But our business users only know Power BI and they can't connect to Databricks easily. We don't want to move off Databricks — we just need a way to get the ML outputs into Power BI dashboards without manual CSV exports."
+28. "We're building a parametric flood insurance platform using NOAA river gauge data, FEMA flood zone maps, and commercial weather radar. When a gauge reading exceeds the trigger threshold for a policy, we need to automatically calculate the payout amount, notify the policyholder, and initiate payment — all within 6 hours. Our actuaries need to model portfolio exposure under different climate scenarios using IPCC projections. The state insurance commissioner requires annual rate filing support with full statistical justification."
 
-34. "We have a massive Snowflake investment — 500 TB, 200 users, years of dbt models. We're not migrating. But our board just mandated Microsoft 365 Copilot and they want it to be able to answer questions from our Snowflake data. How does Fabric fit in without replacing what we have?"
+## Space Debris & Orbital Mechanics
 
-35. "Our data lives in MongoDB for the app, PostgreSQL for billing, and S3 for log archives. We've been duct-taping Python scripts to pull it all together for monthly reports. We need a real analytics layer but we're a startup with 4 engineers and no dedicated data team."
+29. "Our space situational awareness company tracks 40,000 objects in Earth orbit using radar, optical telescopes, and data shared by the 18th Space Defense Squadron. Each object has an evolving orbital state vector that we propagate forward using SGP4/SDP4 models. We need to compute conjunction assessments — predicting close approaches between active satellites and debris within 72 hours — and issue collision avoidance alerts to satellite operators within 15 minutes of detecting a high-probability conjunction. Our computational pipeline processes 500 million conjunction pairs daily."
 
-## Ambiguous Intent
+30. "We're developing an orbital debris removal service. Our mission planning team needs to optimize rendezvous trajectories with target debris objects, accounting for orbital mechanics, fuel constraints, and target tumble rates. We need a simulation environment that can model thousands of what-if scenarios (different approach vectors, capture mechanisms, de-orbit burn profiles) and store the results for mission review boards. ESA and NASA debris catalogs provide our target lists — we need to ingest and cross-reference both."
 
-36. "We just got a Fabric trial capacity. What should we build first? We have some data in Azure SQL and some Power BI reports already."
+## Forensic Accounting & Financial Crime
 
-37. "Our competitor just announced an AI-powered analytics platform. Our CEO wants the same thing by Q3. We have data but no AI strategy, no ML engineers, and our analytics team is 2 people with Excel skills."
+31. "Our forensic accounting firm investigates financial fraud for litigation support. A typical engagement involves analyzing 5 million transactions across 200 bank accounts, credit cards, and brokerage statements. We need to build entity resolution graphs linking related accounts, detect structuring patterns (transactions just below reporting thresholds), and produce court-admissible timeline visualizations showing money flow. Chain of custody for all evidence must be maintained per Federal Rules of Evidence."
 
-38. "We're migrating from AWS to Azure. Part of that is figuring out what to do about our Redshift data warehouse and the QuickSight dashboards connected to it. But honestly some teams want to keep using AWS for certain workloads."
+32. "We're the financial intelligence unit of a central bank. We receive 2 million Suspicious Activity Reports (SARs) per year from 500 regulated institutions. We need to link SARs to our existing case management system, detect networks of related reports using entity matching (names, addresses, account numbers with fuzzy matching for misspellings), and prioritize cases using risk scoring models. Our analysts currently review cases manually using a 15-year-old Lotus Notes application."
 
-39. "I was told Fabric replaces Synapse, Data Factory, and Power BI all in one. Is that true? We use all three today and I'm worried about what breaks if we switch. Also our Synapse workspace has a lot of Spark notebooks that took months to build."
+## Wildfire & Natural Disaster Management
 
-40. "We need a data strategy. We've been collecting data for 10 years but nobody trusts it. Different teams have different numbers for the same KPIs. Before we build anything new, we need to figure out what data we actually have, who owns it, and which version is right."
+33. "Our state forestry agency monitors 20 million acres for wildfire risk. We ingest GOES satellite hotspot data every 15 minutes, RAWS weather station readings every hour, fuel moisture content surveys weekly, and aircraft-based infrared imagery during active fires. We need fire behavior prediction using the FARSITE model fed by real-time weather, resource tracking for 500 firefighters and 50 aircraft during incidents, and post-fire burn severity mapping for rehabilitation planning. During fire season our data volume increases 20x."
 
-## Telecom & Connectivity
+34. "We operate a landslide early warning system for a mountainous region with 2,000 instrumented slopes. Each slope has rain gauges, piezometers (pore water pressure), and inclinometers (ground movement) reporting every 10 minutes. We need real-time threshold exceedance alerts with less than 2-minute latency, an operator dashboard showing all slopes color-coded by risk level, and automated notifications to emergency services and highway authorities when we issue warnings. The system must maintain 99.99% uptime — lives depend on it."
 
-41. "We operate a 5G network across 14 metropolitan areas with 8,000 cell sites. Each site generates RAN performance metrics — throughput, latency, handover success rates — every 10 seconds. Our NOC team needs real-time network health dashboards, but our capacity planning team needs 90-day trend analysis to decide where to add small cells. Currently the RAN data lands in Splunk and nobody can query it for planning purposes."
+## Autonomous Vehicles & Mobility
 
-42. "Our MVNO billing platform processes 120 million CDR records per day from three upstream carriers. We reconcile these against our own rating engine outputs nightly, but discrepancies take 2 weeks to investigate because the data lives in 4 different Oracle databases. Finance wants a unified billing analytics view with drill-down to individual CDR mismatches, and they need it by end of quarter for the audit."
+35. "Our autonomous vehicle company operates a fleet of 200 self-driving delivery robots on university campuses. Each robot generates 500GB of sensor data per 8-hour shift — LiDAR point clouds, camera feeds, IMU data, wheel odometry. We need an offline data pipeline to process this into training datasets for our perception models, a labeling workflow where annotators tag objects in the data, and a simulation platform that can replay scenarios with modified parameters. Our ML team uses PyTorch and needs GPU-accelerated training on 200TB of accumulated data."
 
-43. "We're a rural broadband ISP serving 200,000 subscribers across 6 states. Our DOCSIS 3.1 cable modems report signal quality metrics (SNR, power levels, uncorrectable codewords) via SNMP every 5 minutes. We want to predict modem failures before they cause outages, but our engineering team has 3 people and they only know SQL. We also need FCC Form 477 compliance reports quarterly."
+36. "We manage a fleet of 2,000 electric scooters across 5 cities. Each scooter reports GPS location, battery level, and trip data every 30 seconds. We need real-time rebalancing recommendations (which scooters to move where based on predicted demand), battery degradation models to schedule replacements, and city compliance reporting — many cities require trip data submissions showing rides per zone per day, average trip length, and sidewalk riding violations detected by our accelerometers."
 
-## Insurance & Risk
+## Specialty Chemicals & Process Industry
 
-44. "Our P&C insurance company processes 45,000 claims per year across auto, home, and commercial lines. Claims adjusters use Guidewire ClaimCenter, but our actuarial team exports data to SAS for loss reserving models. We need to unify the claims data pipeline so actuaries can run IBNR calculations on fresh data daily instead of monthly, while maintaining SOX compliance for all financial data transformations."
+37. "Our specialty chemicals plant produces 200 different formulations for the coatings industry. Each batch involves 5-15 raw materials mixed in reactors with precise temperature, pressure, and agitation profiles over 4-24 hours. We need to build first-pass quality prediction models — currently 12% of batches fail viscosity or color specifications and require rework. Our process engineers want to identify which raw material lot variations correlate with off-spec batches. We also need to generate Safety Data Sheets (SDS) that are automatically updated when formulations change."
 
-45. "We're building a parametric insurance product for crop damage. When NOAA weather stations report hail events exceeding specific thresholds, we need to automatically trigger claim payouts within 4 hours. The system needs to ingest real-time weather feeds, correlate with policyholder GPS coordinates, calculate damage estimates using our proprietary models, and push payout authorizations to our claims system — all with a full audit trail for state regulators."
+38. "We operate a petroleum refinery processing 300,000 barrels per day through 15 process units — CDU, VDU, FCC, hydrocracker, reformer. Each unit has 5,000 process tags logging temperature, pressure, flow, and composition every second. We need process optimization models to maximize high-value product yields (gasoline, jet fuel, diesel), predictive maintenance for rotating equipment (compressors, pumps), and emissions tracking for our Title V air permit. Our Honeywell DCS exports data via OPC-DA but our advanced process control group wants to run models in Python."
 
-46. "Our reinsurance brokerage manages treaty placements for 200 cedents. Each treaty has complex layering structures with multiple reinsurers. We need a consolidated exposure analytics platform that can aggregate natural catastrophe exposure across all treaties, run PML calculations against RMS and AIR models, and produce bordereaux reports for Lloyd's. The data currently lives in spreadsheets managed by 30 different brokers."
+## Election & Civic Data
 
-## Agriculture & Food Supply
+39. "Our state election board administers elections across 3,000 precincts. On election night, we receive results feeds from 67 county boards of elections — some electronic, some via phone. We need a real-time results dashboard that the Secretary of State presents on live TV, with county-by-county drill-down, race-by-race tallies, and automatic projection calculations based on historical precinct-level voting patterns. Between elections, we manage the voter file — 8 million records that need continuous updates from DMV, USPS, and jury pool data."
 
-47. "We're a precision agriculture company with 50,000 connected soil sensors deployed across farms in the Midwest. Sensors report moisture, pH, nitrogen, and potassium levels every 15 minutes. We combine this with satellite imagery from Planet Labs (updated weekly), USDA crop progress reports, and 10-day weather forecasts from DTN. Our agronomists need field-level recommendations for fertilizer application, but farmers want a simple mobile dashboard showing just their fields."
+40. "We're building a civic engagement platform that tracks legislative activity across all 50 state legislatures and the US Congress. We scrape bill text, committee hearing schedules, floor vote records, and legislator profiles daily. Our users — advocacy organizations and lobbyists — want customizable alerts when bills matching their interest areas advance, voting pattern analysis for individual legislators, and impact modeling showing which districts are most affected by proposed legislation. We process 100,000 bills per legislative session."
 
-48. "Our grain trading operation handles 2 million metric tons annually across 40 elevators. We need to track basis prices at each elevator in real-time against CBOT futures, monitor rail car availability from BNSF and UP, and optimize logistics to minimize transportation costs. The margin on each bushel is $0.03 so every hour of delay matters. Currently our traders use 12 different spreadsheets updated manually."
+## Archaeology & Paleontology
 
-49. "We're a food safety company providing traceability solutions for the fresh produce supply chain. When the FDA issues a recall, we need to trace contaminated product from retail shelf back to the specific farm, harvest date, and lot number within 2 hours — that's the FDA's FSMA 204 requirement. Our data comes from 500 growers, 30 processing facilities, and 15 distribution centers, each with different ERP systems."
+41. "Our archaeological research institute conducts excavations at 20 sites across the Mediterranean. Each site generates photogrammetry data (3D models of trenches updated daily), artifact catalogs with 50 metadata fields per object, soil sample lab results, and geospatial data from total stations and RTK GPS. We need a unified field database that works offline (many sites have no internet), syncs when connectivity is available, and publishes linked open data following CIDOC-CRM ontology standards for cross-site comparison. Our field archaeologists use iPads and refuse to learn GIS software."
 
-## Construction & Infrastructure
+42. "Our paleontology museum has CT-scanned 5,000 dinosaur fossils at resolutions up to 50 microns, producing 3D volumetric datasets averaging 20GB each. Researchers want to measure bone density gradients, model biomechanical properties, and compare morphological features across species. We need a searchable specimen database with 3D visualization, FAIR data publishing for open science, and enough compute to run finite element analysis on mesh models with 50 million polygons. Our storage is at 100TB and growing 30TB per year."
 
-50. "We're a commercial construction company managing 25 active job sites. Each site has IoT-connected concrete sensors (maturity monitoring), crane load cells, and environmental monitors. Project managers need real-time safety dashboards, but our estimating team needs historical productivity data to improve bid accuracy on future projects. We're currently spending $40K/month on Procore and Autodesk BIM 360 but getting no cross-project analytics."
+## Microbrewery & Craft Beverage
 
-51. "Our DOT manages 12,000 miles of state highways. We have 3,000 traffic sensors, 800 weather stations, and 200 CCTV cameras feeding data 24/7. We need real-time traffic flow optimization and incident detection, but also quarterly pavement condition reports for the federal Highway Performance Monitoring System. The CCTV feeds generate 50TB of video per day and we only keep it for 30 days."
+43. "We're a craft brewery cooperative with 50 member breweries. Each brewery tracks recipes, batch parameters (mash temperature profiles, fermentation gravity curves, dry hop schedules), and QC lab results (IBU, SRM, dissolved oxygen, microbio counts). We want a shared analytics platform where members can benchmark their process metrics against anonymized cooperative averages, identify best practices for style consistency, and track ingredient lot traceability for recall readiness. Most of our members run QuickBooks and brewing software — not enterprise systems."
 
-52. "We're a structural engineering firm doing bridge inspections for 3 state DOTs. Each inspection generates a 200-page report with photos, LiDAR scans, and NDE test results. We have 15 years of inspection data across 4,000 bridges and want to build deterioration prediction models to prioritize maintenance spending. The engineers use AutoCAD and don't want to learn new tools."
+44. "Our hard seltzer brand produces 20 flavors across 3 contract manufacturing facilities. We need to monitor production quality in near-real-time — carbonation levels, flavor dosing accuracy, pH — and compare across facilities to ensure consistency. Consumer complaints (via social media and our website form) need to be correlated with specific production lots to identify systematic issues. Our marketing team also wants sales velocity data by SKU by region, blended with Nielsen panel data and our own DTC e-commerce analytics."
 
-## Maritime & Shipping
+## Carbon Markets & Climate Finance
 
-53. "Our container shipping line operates 45 vessels across 12 trade lanes. Each vessel has 2,000 sensors monitoring engine performance, fuel consumption, hull stress, and weather conditions — transmitting via Inmarsat satellite every 30 minutes. We need predictive maintenance for main engines (each overhaul costs $2M), voyage optimization for fuel savings, and emissions reporting for the IMO's Carbon Intensity Indicator requirements."
+45. "We're a carbon credit registry processing 5,000 projects across forestry, renewable energy, and methane capture. Each project submits monitoring reports annually with data proving emission reductions — satellite imagery for deforestation avoidance, meter readings for renewable energy generation, gas flow measurements for methane capture. We need automated MRV (measurement, reporting, verification) workflows that cross-reference reported data against independent sources, flag discrepancies for auditors, and mint verified credits on our registry. Our system must integrate with Verra, Gold Standard, and ACR methodologies."
 
-54. "We run a port terminal handling 3 million TEUs per year. Yard tractors, gantry cranes, and reach stackers all send telemetry data. We need to optimize container stacking and retrieval sequences to reduce vessel turnaround time. Currently a 10,000 TEU vessel takes 36 hours to work — our KPI target is 28 hours. We also need to track dwell times for customs compliance and generate SOLAS VGM certificates for every outbound container."
+46. "Our climate risk analytics firm models physical climate risk for institutional investors. We combine CMIP6 climate projections, property-level geospatial data, and engineering vulnerability curves to estimate expected losses from sea level rise, extreme heat, flooding, and wildfire for portfolios of 100,000+ commercial properties. Reports must be TCFD-aligned and generated within 48 hours of a portfolio upload. Our quants use Python and Julia — they need a data platform that can handle 500GB of climate model output per scenario."
 
-## Mining & Natural Resources
+## Nuclear & Radiation Safety
 
-55. "We operate 3 open-pit copper mines in Chile and Peru. Each mine has 200 haul trucks, 15 shovels, and 8 drill rigs — all equipped with Modular Mining dispatch systems. We need real-time fleet management dashboards showing cycle times, payload optimization, and fuel burn. Our geologists also need to correlate drill blast-hole assay data with the block model to improve grade control. The mines are at 4,000m altitude with unreliable cellular coverage."
+47. "Our nuclear power plant has 10,000 radiation monitoring points — area monitors, process monitors, effluent monitors, and personnel dosimeters. NRC regulations require us to demonstrate that public dose from our facility remains below 25 mrem/year at the site boundary. We need real-time radiation mapping, effluent tracking with meteorological dispersion modeling, and automated 10 CFR 50.75 reporting. All data must be retained for the life of the plant plus 5 years, and our cybersecurity requirements mandate an air-gapped historian network."
 
-56. "Our timber company manages 500,000 acres of managed forest. We use LiDAR surveys every 3 years, satellite change detection monthly, and ground-based inventory plots annually. We need to build a timber volume forecasting model that combines all three data sources with growth-and-yield projections. The forestry team uses R and wants to keep using it. We also need to generate Forest Stewardship Council audit reports annually."
+48. "We operate a radioactive waste management facility accepting low-level waste from hospitals, research labs, and decommissioned nuclear sites. Each waste package has a detailed manifest — radionuclide inventory, activity levels, waste form, packaging type. We need to track waste from receipt through processing, storage, and disposal, ensuring that our license limits for cumulative curie inventory are never exceeded. State regulators conduct quarterly inspections and require us to produce cradle-to-grave chain of custody reports within 2 hours of request."
 
-## Gaming & Entertainment
+## Offshore Wind & Marine Energy
 
-57. "We're a mid-size mobile gaming studio with 8 million DAU across 3 titles. Our games generate 2 billion events per day — session starts, level completions, IAP transactions, ad impressions. We need real-time A/B test monitoring (we run 20 concurrent experiments), daily LTV cohort analysis, and monthly financial reporting for our publisher. Our analytics team is 4 people using Amplitude and BigQuery, but we're hitting BigQuery's $50K/month spend limit."
+49. "We're developing a 1 GW offshore wind farm with 100 turbines in the North Sea. During the 3-year construction phase, we need to track vessel movements, foundation installation progress, cable laying operations, and weather windows — integrating data from marine traffic AIS, project management tools (Primavera P6), and metocean buoys. Once operational, each turbine will report 1,000 SCADA parameters every second. We need a platform that handles both the construction analytics now and operational monitoring later, with data sovereignty in the EU per GDPR."
 
-58. "Our casino operates 3,000 slot machines and 200 table games. Each slot machine reports every spin, win, and bonus trigger. We need real-time floor optimization — moving hot machines to high-traffic areas, detecting advantage players, and monitoring for Title 31 CTR compliance. The gaming commission requires us to retain all transaction data for 7 years with tamper-proof audit trails. We're currently on an AS/400 system from 1998."
-
-## Public Safety & Emergency Services
-
-59. "We're a county 911 dispatch center handling 500,000 calls per year. We need to analyze response time patterns, predict call volumes by hour and day of week for staffing optimization, and generate NENA i3 compliance reports. Our CAD system exports XML data nightly but the format changes with every vendor update. We also want to correlate 911 data with hospital ED admission times to measure the full emergency response chain."
-
-60. "Our state emergency management agency needs a common operating picture during natural disasters. We ingest data from NWS weather alerts, USGS earthquake sensors, FEMA damage assessments, social media sentiment (Twitter/X firehose), and field reports from 67 county EMAs. During Hurricane season, data volume spikes 100x and the platform must stay responsive. Between events, the same platform is used for training exercise after-action reports."
-
-## Biotech & Life Sciences
-
-61. "Our biotech company runs clinical trials across 45 sites in 12 countries. Each site submits electronic case report forms through Medidata Rave, adverse event reports through our safety database, and lab results from 8 different central labs. We need a unified trial analytics dashboard that shows enrollment velocity, protocol deviations, and safety signals in near-real-time. The FDA expects us to produce ISS/ISE datasets in CDISC SDTM format within 60 days of database lock."
-
-62. "We're a genomics startup processing whole-genome sequencing data. Each sequencing run produces 150GB of FASTQ files that need to be aligned, variant-called, and annotated. We process 200 samples per week. Our bioinformaticians use Nextflow pipelines on AWS Batch, but our clinical geneticists need a simple web interface to query variants against ClinVar, gnomAD, and our internal database of 50,000 previously processed genomes."
-
-63. "Our contract research organization runs bioequivalence studies for generic drug manufacturers. We generate pharmacokinetic datasets (Cmax, AUC, Tmax) from plasma sample analysis on LC-MS/MS instruments. We need automated PK parameter calculation, statistical analysis (ANOVA for crossover designs), and FDA submission-ready tables/listings/figures. Currently our biostatisticians spend 3 weeks per study on SAS programming that could be templated."
-
-## Fintech & Payments
-
-64. "We're a neobank with 2 million customers. Our core banking system processes 15 million transactions per day. We need real-time fraud scoring (sub-100ms per transaction), AML transaction monitoring with SAR filing automation, and customer 360 profiles that combine transaction patterns, app engagement, and customer support interactions. We're on AWS today but the board wants to evaluate Azure for our European expansion due to GDPR data residency requirements."
-
-65. "Our payment processing platform handles $2B in annual volume for 50,000 merchants. We need to detect payment anomalies in real-time — declined transaction spikes, unusual refund patterns, and potential merchant fraud. Merchants also want self-service analytics dashboards showing settlement reports, chargeback rates, and customer demographics. We process through Visa, Mastercard, and ACH and each network has different reconciliation file formats."
-
-## Hospitality & Travel
-
-66. "We manage 150 hotels across 3 brands. Our PMS (Opera) tracks 2 million room-nights per year. Revenue managers need real-time rate optimization based on demand signals — competitor pricing from OTAs, local event calendars, flight search volume, and historical booking patterns. Currently each hotel's RM adjusts rates manually using spreadsheets. We also need to consolidate guest profiles across brands for our loyalty program — same guest might be in 3 different PMS instances."
-
-67. "Our airline operates 400 daily flights with a fleet of 80 aircraft. We need to optimize crew scheduling, predict maintenance needs from aircraft sensor data (engine EGT trends, APU performance), and provide real-time irregular operations management when weather disrupts the network. Our ops control center currently uses 6 different legacy systems that don't talk to each other. DOT on-time performance reporting is also required monthly."
-
-## Renewable Energy & Sustainability
-
-68. "We operate 12 wind farms with 500 turbines total. Each turbine's SCADA system generates 200 data points every second — wind speed, blade pitch, generator temperature, vibration spectra. We need predictive maintenance to reduce unplanned downtime (currently 8% vs. industry target of 3%), wind power forecasting for grid dispatch obligations, and monthly ESG reporting for our investors. Our sites are remote with satellite-only connectivity at 4 of the 12 farms."
-
-69. "Our utility company is deploying 500,000 smart meters over the next 2 years. Meters report 15-minute interval consumption data via RF mesh network. We need a meter data management system that handles 48 million readings per day, calculates time-of-use billing, detects electricity theft through consumption pattern anomalies, and provides customers with real-time usage dashboards. Our existing MDM is a 15-year-old Oracle system that can't handle the volume."
-
-## Automotive & Manufacturing
-
-70. "We're a Tier 1 automotive supplier producing brake components for 6 OEMs. Each production line has 50 inspection stations with machine vision cameras capturing part images at 30fps. We need real-time defect detection using computer vision models, SPC chart monitoring for process drift, and traceability linking each part to its specific material batch, machine settings, and inspection images. IATF 16949 requires us to retain quality records for 15 years plus 1 year."
-
-71. "Our EV battery manufacturing plant produces 5,000 cells per day. Each cell goes through 47 process steps with 200+ parameters recorded per step — electrode coating thickness, electrolyte fill volume, formation cycling profiles. We need to correlate manufacturing parameters with cell performance data from our 6-month aging study to optimize yield. Currently our process engineers query a historian database with 2 billion rows using ad-hoc SQL and it takes 45 minutes per query."
-
-## Government & Civic Tech
-
-72. "Our city's transportation department needs to integrate data from 15,000 parking meters, 200 traffic signals with adaptive control, 50 bike-share stations, and 3 transit agencies. We want to build a mobility dashboard for city council showing congestion patterns, transit ridership trends, and parking utilization. We also need to publish open data feeds in GTFS and GBFS formats for third-party app developers. The data is currently siloed across 8 different vendor platforms."
-
-73. "We're a state tax authority processing 8 million individual and 500,000 business tax returns annually. We need to build fraud detection models to identify suspicious returns before refunds are issued — currently we lose $200M per year to fraudulent refunds. The model needs to score returns within 24 hours of filing, flag high-risk returns for auditor review, and maintain a full decision audit trail for legal proceedings. All data must stay within our state-operated data center per state law."
-
-## Legal & Compliance
-
-74. "Our AmLaw 100 law firm handles 500 matters per year, each generating 50GB-5TB of documents for e-discovery. We need a document review platform that uses NLP to classify documents by privilege, relevance, and responsiveness. TAR (Technology Assisted Review) models need to achieve 80%+ recall while reducing human review costs by 60%. We must maintain defensible chain of custody and produce EDRM XML load files for opposing counsel."
-
-75. "We're the compliance department of a global bank with operations in 40 countries. We need to monitor all employee communications — emails, Bloomberg chats, Teams messages, WhatsApp — for potential market abuse, insider trading, and conflicts of interest. That's 50 million messages per day. Regulators in the US (SEC), UK (FCA), and Hong Kong (SFC) each have different retention and surveillance requirements. Our current Relativity deployment can't keep up with the volume."
-
-## Logistics & Supply Chain
-
-76. "Our 3PL company manages warehouse operations across 25 fulfillment centers. We handle 500,000 orders per day during peak season (Black Friday through Christmas) with SKU counts exceeding 2 million unique items. We need real-time inventory visibility across all locations, predictive demand planning to pre-position inventory, and automated carrier selection based on cost, transit time, and delivery performance. Our WMS is Manhattan Associates and our TMS is BluJay — neither shares data well with the other."
-
-77. "We're a cold chain logistics provider transporting pharmaceuticals and biologics. Every shipment has IoT temperature loggers recording at 1-minute intervals. We need real-time excursion alerts (if temperature goes outside 2-8°C range), predictive analytics for which shipping lanes have the highest excursion risk, and automated GDP compliance documentation for each shipment. One temperature excursion on a biologic can destroy $500K worth of product."
-
-## PropTech & Real Estate
-
-78. "Our REIT manages 80 Class A office buildings totaling 30 million square feet. Each building has a BMS (Siemens or Johnson Controls) monitoring 10,000+ HVAC data points. Occupancy sensors track floor utilization in real-time. We need energy benchmarking against ENERGY STAR, predictive maintenance for chillers and air handlers, and tenant comfort scoring. We also need to model the ROI of LED retrofit projects across the portfolio. Our building engineers are not data people — they need simple dashboards."
-
-79. "We're a residential real estate marketplace processing 2 million listings per year. We want to build an automated valuation model (AVM) using MLS data, county assessor records, satellite imagery (for roof condition and lot characteristics), and neighborhood amenity data from OpenStreetMap. The model needs to predict sale prices within 5% accuracy for 80% of properties. Real estate agents want API access to embed valuations in their CRM, and consumers want a public-facing search tool."
-
-## EdTech & Higher Education
-
-80. "Our university's institutional research office needs to build a student success analytics platform. We have data in Banner (SIS), Canvas (LMS), Slate (admissions CRM), and TouchNet (financial). We want to predict first-year retention risk using pre-enrollment characteristics and early-semester engagement signals from Canvas — assignment submissions, LMS login frequency, discussion board participation. FERPA compliance is non-negotiable and our IR team of 4 only knows Tableau and Excel."
-
-81. "We're an online learning platform with 5 million registered learners. Our courses generate clickstream data — video plays, pauses, seeks, quiz attempts, forum posts — averaging 500 million events per day. We need real-time adaptive learning paths that adjust content difficulty based on learner performance, weekly engagement cohort analysis for our content team, and monthly completion rate reports for our B2B enterprise clients. Our current Snowflake setup costs $30K/month and leadership wants to evaluate alternatives."
-
-## Cybersecurity & InfoSec
-
-82. "Our MSSP monitors security events for 200 client organizations. We ingest 50 billion log events per day from firewalls, endpoint agents, cloud audit logs, and identity providers. Our SOC analysts need sub-5-second search across 90 days of data, automated alert correlation and triage, and MITRE ATT&CK mapping for threat hunting. We're currently on Splunk Enterprise at $1.2M/year and the board wants us to find a more cost-effective solution that can still handle the volume."
-
-83. "We're building an insider threat detection program for a defense contractor. We need to analyze badge access logs, VPN connections, file access patterns, email metadata (not content), and USB device usage across 15,000 employees. The system needs to establish behavioral baselines per user and flag anomalies — like an engineer accessing classified documents at 3am from a foreign IP. All analytics must run in our air-gapped SCIF network with no cloud connectivity."
-
-## Water & Waste Management
-
-84. "Our water utility serves 2 million customers across 3 counties. We have 500 SCADA-connected pump stations, 50 water treatment facilities, and 8,000 miles of distribution pipes. We need real-time pressure and flow monitoring to detect leaks and main breaks, demand forecasting for reservoir management, and EPA compliance reporting for Safe Drinking Water Act parameters. Our SCADA data is on OPC-DA protocol and our billing system is a 20-year-old COBOL application."
-
-85. "We're a waste management company operating 15 landfills and 8 MRFs (material recovery facilities). Each MRF has optical sorting machines that classify 200 tons of recyclables per day using computer vision. We need to optimize sort line efficiency, track contamination rates by collection route, and generate monthly diversion reports for municipal contracts. We also monitor landfill gas wells for methane levels — exceedances require immediate EPA notification within 1 hour."
-
-## Sports & Athlete Performance
-
-86. "Our professional soccer league tracks player movement using GPS vests during training and optical tracking (Hawk-Eye) during matches. Each match generates 25 million data points — player positions at 25fps, ball position, sprint distances, acceleration profiles. Coaching staff want post-match performance reports within 30 minutes of the final whistle. Sports scientists want to correlate training load with injury incidence over the season. Broadcast partners want real-time statistics for on-screen graphics."
-
-87. "We're building a sports betting analytics platform. We ingest odds feeds from 20 bookmakers updating every second, historical match results from 50 leagues worldwide, and real-time match event data (goals, cards, substitutions). We need to calculate implied probabilities, detect line movement anomalies that suggest sharp action, and provide our trading desk with real-time exposure monitoring across 10,000 concurrent markets. Our current system processes 500,000 odds updates per second during peak Premier League weekends."
-
-## Fashion & Retail Analytics
-
-88. "Our fashion brand has 300 stores globally and an e-commerce platform doing $500M in annual revenue. We need to optimize inventory allocation across channels — sizing and color assortments vary by region. We want to use sell-through velocity data combined with social media trend signals (Instagram, TikTok mentions) to predict which styles will be bestsellers 6 weeks before the season starts. The merchandising team currently makes allocation decisions using last year's sales data in Excel pivot tables."
-
-89. "We run a luxury resale marketplace authenticating and selling 50,000 items per month. Each item is photographed from 8 angles, measured, and assessed for condition by our authentication team. We want to build a pricing model that considers brand, condition, age, current retail price, and market demand. We also need computer vision models to assist with authentication — detecting counterfeit stitching patterns, hardware engravings, and material textures. Our catalog has 2 million items with 16 million images."
-
-## Space & Satellite
-
-90. "We operate a constellation of 150 Earth observation satellites. Each satellite generates 200GB of multispectral imagery per orbit (14 orbits per day). Ground stations download data during 10-minute pass windows. We need an automated imagery processing pipeline — radiometric correction, orthorectification, cloud masking, and change detection — that produces analysis-ready data within 6 hours of capture. Our government customers need to search and order imagery through a STAC-compliant API. Current processing backlog is 72 hours."
+50. "Our tidal energy company operates 30 underwater turbines in a high-current strait. The marine environment is extremely harsh — biofouling, corrosion, and sediment abrasion degrade components rapidly. Each turbine has accelerometers, strain gauges, and power output meters streaming data via subsea cables. We need predictive maintenance models trained on our 5-year operational history, tidal current forecasting for energy production planning, and environmental monitoring (marine mammal detection from hydrophones) to comply with our FERC license conditions."

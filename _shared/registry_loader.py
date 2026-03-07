@@ -15,7 +15,7 @@ import json
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-REGISTRY_PATH = REPO_ROOT / "_shared" / "item-type-registry.json"
+REGISTRY_PATH = Path(__file__).resolve().parent / "item-type-registry.json"
 
 _cache: dict | None = None
 

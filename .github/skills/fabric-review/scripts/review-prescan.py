@@ -23,6 +23,7 @@ import json
 import re
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 
@@ -33,6 +34,7 @@ from typing import Any
 
 # Portal-only items — loaded from _shared/item-type-registry.json
 # Do NOT maintain this dict manually. See _shared/agent-boundaries.md.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
 from registry_loader import build_portal_only_items
 
 PORTAL_ONLY_ITEMS: dict[str, str] = build_portal_only_items()

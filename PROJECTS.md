@@ -24,6 +24,28 @@
 | application-insights-finder | medallion | Deployed | Scripts generated (.sh + .ps1); design-only mode | B-1 SQL conn, B-2 tables, B-3 capacity | Resolve blockers → run scripts → Validate |
 | agent-assist-telco | lambda | Documented ✅ | Pipeline complete — 15 items, 5 ADRs, partial validation | B-1 telephony, B-2 Dataverse, B-3 capacity | Resolve blockers → deploy |
 | real-time-trigger-factory | event-analytics | Documented ✅ | Pipeline complete — 13 items, 5 ADRs, partial validation (design-only) | B-1 Event Hub, B-2 capacity | Resolve blockers → deploy |
+
+| energy-saver-pro | lambda | Test Plan ✅ | FINAL handoff + test plan (15 items, 6 waves, 21 ACs) | B-1 SCADA, B-2 DB engine, B-3 capacity, B-4 thresholds | User Sign-Off (Phase 2b) |
+| fleet-batch-warehouse-4 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-batch-warehouse-3 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-batch-warehouse-5 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-real-time-streaming-6 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-real-time-streaming-7 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-real-time-streaming-9 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-hybrid-batch-real-time-11 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-hybrid-batch-real-time-12 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-hybrid-batch-real-time-13 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-analytics-ml-14 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-analytics-ml-15 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-governance-security-17 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-governance-security-18 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-governance-security-19 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-vague-ambiguous-maximum-stress-test-20 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| fleet-batch-warehouse-1 | TBD | Discovery ✅ | Fleet run — candidates: basic-data-analytics, medallion | None | Architecture Design (Phase 1a) |
+| fleet-batch-warehouse-2 | TBD | Discovery ✅ | Fleet run — candidates: basic-data-analytics, medallion | None | Architecture Design (Phase 1a) |
+| fleet-real-time-streaming-8 | TBD | Discovery ✅ | Fleet run — candidates: event-analytics, event-medallion | None | Architecture Design (Phase 1a) |
+| fleet-real-time-streaming-10 | TBD | Discovery ✅ | Fleet run — candidates: event-analytics, event-medallion | None | Architecture Design (Phase 1a) |
+| fleet-analytics-ml-16 | TBD | Discovery ✅ | Fleet run — candidates: basic-machine-learning-models | None | Architecture Design (Phase 1a) |
 > Project rows are generated locally by agents. See `projects/` folder (gitignored) for per-project artifacts.
 
 ## Phase Legend
@@ -50,3 +72,4 @@
 3. **Agents update this table** as part of their handoff output
 
 See [`_shared/workflow-guide.md`](_shared/workflow-guide.md) for step-by-step prompts for each phase transition.
+.

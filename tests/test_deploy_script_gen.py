@@ -3,6 +3,7 @@
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "_shared"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -85,7 +86,7 @@ def test_generated_python_script_path():
     """Verify the generated Python script is self-contained (no external imports)."""
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        "deploy_script_gen", str(REPO_ROOT / "scripts" / "deploy-script-gen.py")
+        "deploy_script_gen", str(REPO_ROOT / ".github" / "skills" / "fabric-deploy" / "scripts" / "deploy-script-gen.py")
     )
     try:
         mod = importlib.util.module_from_spec(spec)

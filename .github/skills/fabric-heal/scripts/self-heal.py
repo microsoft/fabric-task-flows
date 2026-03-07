@@ -28,8 +28,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS_DIR = REPO_ROOT / "scripts"
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts" / "signal-mapper.py"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
 DEFAULT_PROBLEMS = REPO_ROOT / "_shared" / "problem-statements.md"
 
@@ -72,7 +72,7 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
     category_coverage: dict[str, list[float]] = {}
 
     for p in problems:
-        cmd = [sys.executable, str(SCRIPTS_DIR / "signal-mapper.py"),
+        cmd = [sys.executable, str(SIGNAL_MAPPER_PATH),
                "--text", p["text"], "--format", "json"]
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"

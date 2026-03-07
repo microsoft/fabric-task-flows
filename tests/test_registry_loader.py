@@ -3,8 +3,8 @@
 import sys
 from pathlib import Path
 
-# Ensure scripts/ is importable
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+# Ensure _shared/ is importable (registry_loader lives there now)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "_shared"))
 
 from registry_loader import (
     load_registry,

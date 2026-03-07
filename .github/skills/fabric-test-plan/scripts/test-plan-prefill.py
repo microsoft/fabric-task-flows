@@ -24,7 +24,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 
 # ---------------------------------------------------------------------------
 # Item type → validation phase mapping
@@ -32,6 +32,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Phase mapping — loaded from _shared/item-type-registry.json
 # Do NOT maintain this dict manually. See _shared/agent-boundaries.md.
+sys.path.insert(0, str(REPO_ROOT / "_shared"))
 from registry_loader import build_phase_map
 
 PHASE_MAP: dict[str, tuple[str, int]] = build_phase_map()

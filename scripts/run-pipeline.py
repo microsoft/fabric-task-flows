@@ -37,6 +37,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+SKILLS_DIR = REPO_ROOT / ".github" / "skills"
 
 # Phase ordering (linear)
 PHASE_ORDER = [
@@ -71,23 +72,24 @@ PHASE_AGENTS = PHASE_SKILLS
 PHASE_PRECOMPUTE: dict[str, list[list[str]]] = {
     "0a-discovery": [
         # signal-mapper pre-processes user text → draft signal table
-        # Args filled dynamically: ["python", "scripts/signal-mapper.py", "--text", problem_text]
+        # Args filled dynamically: ["python", ".github/skills/fabric-discover/scripts/signal-mapper.py", "--text", problem_text]
     ],
     "1a-design": [
         # decision-resolver + handoff-scaffolder run after architect selects task flow
         # These are invoked dynamically when task_flow is known
+        # Located in .github/skills/fabric-design/scripts/
     ],
     "1b-review": [
         # review-prescan does mechanical checks before LLM review
-        # ["python", "scripts/review-prescan.py", "--handoff", handoff_path]
+        # ["python", ".github/skills/fabric-review/scripts/review-prescan.py", "--handoff", handoff_path]
     ],
     "2a-test-plan": [
         # test-plan-prefill maps ACs to validation phases
-        # ["python", "scripts/test-plan-prefill.py", "--handoff", handoff_path]
+        # ["python", ".github/skills/fabric-test-plan/scripts/test-plan-prefill.py", "--handoff", handoff_path]
     ],
     "2c-deploy": [
         # deploy-script-gen produces the deploy script
-        # ["python", "scripts/deploy-script-gen.py", "--handoff", handoff_path, ...]
+        # ["python", ".github/skills/fabric-deploy/scripts/deploy-script-gen.py", "--handoff", handoff_path, ...]
     ],
 }
 
@@ -295,7 +297,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
 
     if phase == "0a-discovery" and state.get("problem_statement"):
         # Run signal mapper
-        cmd = [sys.executable, str(REPO_ROOT / "scripts" / "signal-mapper.py"),
+        cmd = [sys.executable, str(SKILLS_DIR / "fabric-discover" / "scripts" / "signal-mapper.py"),
                "--text", state["problem_statement"], "--format", "json"]
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -308,7 +310,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
 
     elif phase == "1b-review" and os.path.exists(handoff_path):
         # Run review prescan
-        cmd = [sys.executable, str(REPO_ROOT / "scripts" / "review-prescan.py"),
+        cmd = [sys.executable, str(SKILLS_DIR / "fabric-review" / "scripts" / "review-prescan.py"),
                "--handoff", handoff_path]
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -319,7 +321,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
 
     elif phase == "2a-test-plan" and os.path.exists(handoff_path):
         # Run test plan prefill
-        cmd = [sys.executable, str(REPO_ROOT / "scripts" / "test-plan-prefill.py"),
+        cmd = [sys.executable, str(SKILLS_DIR / "fabric-test-plan" / "scripts" / "test-plan-prefill.py"),
                "--handoff", handoff_path]
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -379,7 +381,7 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
             try:
                 env = os.environ.copy()
                 env["PYTHONIOENCODING"] = "utf-8"
-                cmd = [sys.executable, str(REPO_ROOT / "scripts" / "diagram-gen.py"),
+                cmd = [sys.executable, str(SKILLS_DIR / "fabric-design" / "scripts" / "diagram-gen.py"),
                        "--handoff", handoff_path]
                 result = subprocess.run(cmd, capture_output=True, text=True,
                                         timeout=30, encoding="utf-8", env=env)
