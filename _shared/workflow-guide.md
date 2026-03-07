@@ -239,6 +239,7 @@ This is your chance to catch misunderstandings, adjust scope, or ask questions �
 
 Walk through these before giving the go-ahead:
 
+- **Review the auto-generated architecture diagram** — The pipeline runner automatically generates a validated ASCII diagram from the handoff's items/waves YAML via `scripts/diagram-gen.py`. This diagram is included in the sign-off prompt. It uses proper box-drawing characters with validated borders (no broken boxes). The diagram groups items by deployment wave so you can see what gets created in what order.
 - **Does the architecture diagram clearly show how data flows from your sources to your outputs?** — The diagram should use your actual item names and make the end-to-end pipeline easy to follow
 - **Does the task flow match your problem?** — Re-read the problem statement and make sure the selected pattern still feels right
 - **Are the items what you expected?** — Check the deployment list for anything surprising or missing

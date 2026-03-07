@@ -17,7 +17,7 @@ You are a Technical Documentation Specialist responsible for creating human-read
 
 | Handoff | Source | Read From | Key Fields |
 |---------|--------|-----------|------------|
-| Discovery Brief | `@fabric-advisor` | `prd/discovery-brief.md` | Problem statement, inferred signals (velocity, use case, task flow candidates), open questions |
+| Discovery Brief | `@fabric-advisor` | `prd/discovery-brief.md` | Problem statement, inferred signals (velocity, use case, task flow candidates), architectural judgment calls |
 | Architecture Handoff | `@fabric-architect` | `prd/architecture-handoff.md` | Project name, task flow, decision table (choice + rationale), alternatives considered, trade-offs, items to deploy, acceptance criteria |
 | Test Plan | `@fabric-tester` Mode 1 | `prd/test-plan.md` | Acceptance criteria mapping, critical verification points, edge cases |
 | Deployment Handoff | `@fabric-engineer` | `prd/deployment-handoff.md` | Project name, items deployed with status, deployment waves, implementation notes, configuration rationale, manual steps, known issues |

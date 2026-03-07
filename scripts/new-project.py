@@ -63,9 +63,9 @@ def discovery_brief(project: str) -> str:
 - [ ] Project name confirmed
 - [ ] Signals confirmed or corrected
 
-### Open Questions for Architect
+### Architectural Judgment Calls
 
-- <!-- list open questions -->
+- <!-- design trade-offs only — NOT customer-answerable questions -->
 """
 
 

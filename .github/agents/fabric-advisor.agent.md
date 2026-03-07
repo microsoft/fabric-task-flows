@@ -139,9 +139,10 @@ Use this table to infer signals from the user's problem description. Multiple si
 ### Confirmed with User
 - [list of inferences the user confirmed or corrected]
 
-### Open Questions for Architect
-- [anything the advisor couldn't infer — e.g., specific data sources, query patterns]
-- [flag any ambiguity that needs architectural judgment]
+### Architectural Judgment Calls
+- [trade-offs or design ambiguities that require architectural expertise — NOT factual questions about the customer's environment]
+- [e.g., "Whether streaming aggregation should happen in KQL or Spark given latency vs. complexity trade-off"]
+- **⚠️ If a question could be answered by asking the customer, it belongs in the discovery conversation, not here. This section is for genuine design trade-offs only.**
 ```
 
 ## Project Naming Rules
@@ -154,7 +155,7 @@ Use this table to infer signals from the user's problem description. Multiple si
 - **Discovery Brief is already compact.** No changes to the template format — it stays as markdown prose.
 - **Problem statement: use the user's own words.** Do not rephrase, summarize, or expand. Quote directly.
 - **Inferred Signals table: max 15 words per cell.** Source column should be a short quote, not a paragraph.
-- **Open Questions for Architect: max 1 sentence each (≤20 words).** State what's unknown, not why it matters.
+- **Architectural Judgment Calls: max 1 sentence each (≤20 words).** Must be design trade-offs, NOT customer-answerable facts (e.g., DB vendor, alert type). If a customer could answer it, ask them during discovery instead.
 - **Max 60 lines total output.** The Discovery Brief should be concise — the architect reads it once and moves on.
 
 ## Pipeline Handoff
@@ -204,5 +205,5 @@ Before producing the Discovery Brief, verify:
 - [ ] All inferred signals have a confidence level and source quote
 - [ ] 4 V's assessed — each V has a value or is flagged as "unknown" for the architect
 - [ ] Inferences have been presented to and confirmed by the user
-- [ ] Open questions clearly flag what the architect still needs to ask
+- [ ] Architectural judgment calls contain only design trade-offs — no customer-answerable questions leaked through
 - [ ] No implementation details (workspace, capacity, CI/CD) were discussed

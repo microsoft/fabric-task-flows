@@ -226,7 +226,9 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Review both documents before approving:\n"
             f"  - FINAL Architecture Handoff: {pp}/prd/architecture-handoff.md\n"
             f"  - Test Plan: {pp}/prd/test-plan.md\n\n"
-            f"Say 'approved' or 'go ahead' to continue to deployment."
+            f"Say 'approved' or 'go ahead' to continue to deployment.\n\n"
+            f"## Architecture Diagram\n\n"
+            f"{{{{DIAGRAM_PLACEHOLDER}}}}"
         ),
 
         "2c-deploy": (
@@ -365,6 +367,30 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
     precompute_output = _run_precompute(phase, project, state)
     if precompute_output:
         prompt += "\n\n## Pre-computed Data\n\n" + "\n\n".join(precompute_output)
+
+    # Generate architecture diagram for sign-off phase
+    if phase == "2b-sign-off" and "{{DIAGRAM_PLACEHOLDER}}" in prompt:
+        pp = _project_path(project)
+        handoff_path = str(REPO_ROOT / pp / "prd" / "architecture-handoff.md")
+        if os.path.exists(handoff_path):
+            try:
+                env = os.environ.copy()
+                env["PYTHONIOENCODING"] = "utf-8"
+                cmd = [sys.executable, str(REPO_ROOT / "scripts" / "diagram-gen.py"),
+                       "--handoff", handoff_path]
+                result = subprocess.run(cmd, capture_output=True, text=True,
+                                        timeout=30, encoding="utf-8", env=env)
+                if result.returncode == 0 and result.stdout.strip():
+                    prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}", result.stdout.strip())
+                else:
+                    prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
+                                            "(Diagram generation failed — review handoff directly)")
+            except Exception:
+                prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
+                                        "(Diagram generation unavailable — review handoff directly)")
+        else:
+            prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
+                                    "(Architecture handoff not found)")
 
     return (prompt, agent, phase, is_gate)
 

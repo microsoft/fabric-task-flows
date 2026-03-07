@@ -592,6 +592,78 @@ def _truncate(text: str, max_words: int = 15) -> str:
     return " ".join(words[:max_words])
 
 
+def _check_diagram(content: str, items: list[dict]) -> list[dict]:
+    """Validate the architecture diagram in the handoff for structural correctness."""
+    findings: list[dict] = []
+
+    # Extract diagram from Architecture Diagram section
+    section = re.split(r"##\s+Architecture Diagram", content, maxsplit=1)
+    if len(section) < 2:
+        findings.append({
+            "area": "Diagram",
+            "severity": "yellow",
+            "finding": "No Architecture Diagram section found",
+            "suggestion": "Add ## Architecture Diagram with ASCII data flow",
+        })
+        return findings
+
+    match = re.search(r"```\s*\n(.*?)```", section[1], re.DOTALL)
+    if not match:
+        findings.append({
+            "area": "Diagram",
+            "severity": "yellow",
+            "finding": "No code block found in Architecture Diagram section",
+            "suggestion": "Wrap diagram in ``` code fences",
+        })
+        return findings
+
+    diagram = match.group(1)
+    stripped = diagram.strip()
+    if not stripped or "Replace this block" in stripped:
+        findings.append({
+            "area": "Diagram",
+            "severity": "yellow",
+            "finding": "Architecture diagram is empty or placeholder",
+            "suggestion": "Draw project-specific data flow diagram",
+        })
+        return findings
+
+    # Check box balance
+    top_left = sum(line.count("┌") for line in diagram.split("\n"))
+    bot_right = sum(line.count("┘") for line in diagram.split("\n"))
+    top_right = sum(line.count("┐") for line in diagram.split("\n"))
+    bot_left = sum(line.count("└") for line in diagram.split("\n"))
+
+    if top_left != bot_right or top_right != bot_left:
+        findings.append({
+            "area": "Diagram",
+            "severity": "yellow",
+            "finding": f"Unbalanced box corners: ┌={top_left} ┘={bot_right} ┐={top_right} └={bot_left}",
+            "suggestion": "Fix box-drawing characters to close all boxes",
+        })
+    else:
+        findings.append({
+            "area": "Diagram",
+            "severity": "green",
+            "finding": f"Diagram box characters balanced ({top_left} boxes)",
+            "suggestion": "",
+        })
+
+    # Check item name coverage
+    item_names = [i.get("name", "") for i in items if i.get("name")]
+    diagram_lower = diagram.lower()
+    missing = [n for n in item_names if n.lower() not in diagram_lower]
+    if missing:
+        findings.append({
+            "area": "Diagram",
+            "severity": "yellow",
+            "finding": f"{len(missing)} item(s) missing from diagram: {', '.join(missing[:5])}",
+            "suggestion": "Ensure all items appear in the architecture diagram",
+        })
+
+    return findings
+
+
 # ---------------------------------------------------------------------------
 # Core prescan function
 # ---------------------------------------------------------------------------
@@ -687,6 +759,10 @@ def prescan(handoff_path: str) -> dict:
     if items and waves:
         wave_findings, wave_opt = _check_wave_count(items, waves)
         all_findings.extend(wave_findings)
+
+    # 6. Architecture diagram validation
+    diagram_findings = _check_diagram(content, items)
+    all_findings.extend(diagram_findings)
 
     # Number findings
     for idx, f in enumerate(all_findings, start=1):
