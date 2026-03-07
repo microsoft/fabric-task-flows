@@ -36,10 +36,10 @@ fab ls <ws>.Workspace -l
 
 ## Partial Deployment Handoff
 
-If deployment ends in a partial state, the handoff to `@fabric-tester` must clearly indicate:
+If deployment ends in a partial state, the handoff to `/fabric-test` must clearly indicate:
 - Which waves completed successfully
 - Which wave failed and why
 - Which items exist vs. which are missing
 - Whether the user chose to leave items for debugging or rolled back
 
-The `@fabric-tester` agent will adjust validation to only check deployed items.
+The `/fabric-test` agent will adjust validation to only check deployed items.

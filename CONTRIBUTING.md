@@ -62,11 +62,11 @@ Each project has a `pipeline-state.json` (scaffolded by `new-project.py`) that t
 
 ## ADR write-through
 
-Architecture Decision Records (ADRs) are written by the `@fabric-architect` during Phase 1a (DRAFT) and refined during Phase 1c (FINAL) — not deferred to Phase 4 (Documentation). This ensures:
+Architecture Decision Records (ADRs) are written by the `/fabric-design` skill during Phase 1a (DRAFT) and refined during Phase 1c (FINAL) — not deferred to Phase 4 (Documentation). This ensures:
 
 - Reviewers in Phase 1b can reference the full decision rationale
 - The "why" behind each decision is captured while context is fresh
-- The `@fabric-documenter` polishes language and adds cross-links rather than writing ADRs from scratch
+- The `/fabric-document` skill polishes language and adds cross-links rather than writing ADRs from scratch
 
 The 5 standard ADR files (`docs/decisions/001-task-flow.md` through `005-visualization.md`) are scaffolded by `new-project.py`. The architect fills them using the format from `_shared/adr-template.md`.
 

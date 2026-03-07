@@ -1,6 +1,6 @@
 # Fabric CLI Operational Learnings
 
-> Operational knowledge captured by `@fabric-engineer` and `@fabric-tester` during deployments and validations. This file is a living document — agents append learnings as they encounter new patterns, gotchas, and workarounds.
+> Operational knowledge captured by `/fabric-deploy` and `/fabric-test` skills during deployments and validations. This file is a living document — skills append learnings as they encounter new patterns, gotchas, and workarounds.
 
 <!-- INSTRUCTIONS FOR AGENTS:
   - Append new learnings under the appropriate section heading
@@ -17,14 +17,14 @@
 
 ## Deployment
 
-<!-- @fabric-engineer appends learnings here after deployment phases -->
+<!-- /fabric-deploy skill appends learnings here after deployment phases -->
 
 - **Mirrored SQL Server Database has no `fab mkdir` support.** Must create via Fabric Portal; document as manual step M-1 with guided portal instructions in deploy scripts.
 - **Environment publish delay requires explicit wait.** Add interactive confirmation prompt in deploy scripts between Environment creation and Notebook binding to prevent attachment failures.
 
 ## Validation
 
-<!-- @fabric-tester appends learnings here after validation phases -->
+<!-- /fabric-test skill appends learnings here after validation phases -->
 
 ## Timing & Propagation
 

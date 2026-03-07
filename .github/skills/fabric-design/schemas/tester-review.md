@@ -1,6 +1,6 @@
 # Tester Review Schema
 
-> Schema for `@fabric-tester` Mode 0 output (DRAFT architecture testability review).
+> Schema for `/fabric-test` Mode 0 output (DRAFT architecture testability review).
 > Save as: `projects/[name]/prd/tester-review.md`
 
 Use the YAML template below. Every field has a max length noted in comments.

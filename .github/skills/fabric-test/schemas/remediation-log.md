@@ -2,7 +2,7 @@
 
 > Schema for tracking issues found during validation that require engineer remediation.
 > Save as: `projects/[name]/prd/remediation-log.md`
-> Created by `@fabric-tester` (Mode 2), consumed by `@fabric-engineer` (remediation mode).
+> Created by `/fabric-test` (Mode 2), consumed by `/fabric-deploy` (remediation mode).
 
 Use the YAML template below. The tester populates `issues` when validation finds deployment problems.
 The engineer updates `status` and `resolution` fields after fixing each issue.

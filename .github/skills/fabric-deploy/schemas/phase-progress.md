@@ -2,7 +2,7 @@
 
 > Schema for tracking per-item progress within deploy and validate phases.
 > Save as: `projects/[name]/prd/phase-progress.md`
-> Read/updated by `@fabric-engineer` and `@fabric-tester` to enable resume-from-failure.
+> Read/updated by `/fabric-deploy` and `/fabric-test` to enable resume-from-failure.
 
 Use the YAML template below. The agent updates this file as it progresses through items.
 On restart or retry, the agent reads this file to know where to resume.

@@ -50,4 +50,4 @@ Use this template when producing the Validation Report in Mode 2, Step 6.
 [Operational learnings discovered during validation - scaling concerns, monitoring gaps, improvement opportunities]
 ```
 
-> **HARD REQUIREMENT:** The `Validation Context` and `Future Considerations` sections are MANDATORY. The `@fabric-documenter` agent requires this information to complete the project documentation and capture lessons learned.
+> **HARD REQUIREMENT:** The `Validation Context` and `Future Considerations` sections are MANDATORY. The `/fabric-document` agent requires this information to complete the project documentation and capture lessons learned.

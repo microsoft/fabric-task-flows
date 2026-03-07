@@ -1,6 +1,6 @@
 # Test Plan Schema
 
-> Schema for `@fabric-tester` Mode 1 output (Test Plan from FINAL architecture).
+> Schema for `/fabric-test` Mode 1 output (Test Plan from FINAL architecture).
 > Save as: `projects/[name]/prd/test-plan.md`
 
 Use the YAML template below. Every field has a max length noted in comments.

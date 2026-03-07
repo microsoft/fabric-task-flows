@@ -2,12 +2,11 @@
 
 > Technical architecture guidance for Microsoft Fabric projects.
 
-A documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. Six GitHub Copilot custom agents collaborate in phases — from problem discovery through deployment and documentation:
+A documentation-only knowledge base of pre-defined architectures, decision guides, and deployment validation for Microsoft Fabric. One orchestrator agent (`@fabric-advisor`) delegates to six composable skills — from problem discovery through deployment and documentation:
 
 ```
-@fabric-advisor ──► @fabric-architect (DRAFT) ──► @fabric-reviewer (Review)
-──► @fabric-architect (FINAL) ──► @fabric-tester (Test Plan) ──► ★ YOU (Sign-Off)
-──► @fabric-engineer (Deploy) ──► @fabric-tester (Validate) ──► @fabric-documenter (ADRs)
+@fabric-advisor ──► /fabric-design (DRAFT → Review → FINAL) ──► /fabric-test (Plan)
+──► ★ YOU (Sign-Off) ──► /fabric-deploy ──► /fabric-test (Validate) ──► /fabric-document (ADRs)
 ```
 
 ## 🚀 Quick Start
@@ -58,13 +57,6 @@ Each guide has YAML frontmatter with structured options, a `quick_decision` tree
 | Agent | Phase | Purpose | Key Output |
 |-------|-------|---------|------------|
 | **@fabric-advisor** | 0 — Discover | Infers signals from problem description | Discovery Brief |
-| **@fabric-architect** | 1 — Design | Selects task flow, walks through decisions | Architecture Handoff (DRAFT → FINAL) |
-| **@fabric-reviewer** | 1 — Design | Combined feasibility + testability review | Consolidated feedback |
-| **@fabric-tester** | 2a/3 — Plan/Validate | Mode 0: review DRAFT, Mode 1: test plan, Mode 2: post-deploy validation | Test Plan / Validation Report |
-| **@fabric-engineer** | 2c — Deploy | Parallel wave deployment via `fab` CLI or `fabric-cicd` | Deployment Handoff |
-| **@fabric-documenter** | 4 — Document | Synthesizes handoffs into wiki-style docs | ADRs + architecture docs |
-| **@fabric-healer** | Standalone | Self-healing signal mapper — generates problems, benchmarks, patches keywords | Improved keyword coverage |
-
 All agents include: three-tier boundaries (✅/⚠️/🚫), Signs of Drift, Quality Checklists, structured handoff templates, and `⚠️ ORCHESTRATION` blocks (use `run-pipeline.py advance && next` for phase transitions — no manual agent chaining except Phase 2b sign-off).
 
 ### Agent Skills
@@ -74,15 +66,11 @@ Skills are composable, auto-activating instruction packs stored in `.github/skil
 | Skill | Phase | Extracted From | Trigger Examples |
 |-------|-------|---------------|-----------------|
 | `/fabric-discover` | 0a | @fabric-advisor | "analyze my data problem", "what task flow fits" |
-| `/fabric-design` | 1a | @fabric-architect (Mode 1) | "design architecture", "medallion vs lambda" |
-| `/fabric-finalize` | 1c | @fabric-architect (Mode 2) | "finalize architecture", "incorporate review feedback" |
-| `/fabric-review` | 1b | @fabric-reviewer | "review DRAFT", "check feasibility" |
-| `/fabric-test-plan` | 2a | @fabric-tester (Mode 1) | "create test plan", "map acceptance criteria" |
-| `/fabric-deploy` | 2c | @fabric-engineer (Mode 1) | "deploy items", "run deployment" |
-| `/fabric-validate` | 3 | @fabric-tester (Mode 2) | "validate deployment", "run validation" |
-| `/fabric-remediate` | 3+ | @fabric-engineer (Mode 2) | "fix deployment issues", "remediate" |
-| `/fabric-document` | 4 | @fabric-documenter | "generate docs", "write ADRs" |
-| `/fabric-heal` | Standalone | @fabric-healer | "heal signal mapper", "improve coverage" |
+| `/fabric-design` | 1a, 1b, 1c | Architect role | "design architecture", "medallion vs lambda" |
+| `/fabric-test` | 2a, 3 | QA role | "create test plan", "map acceptance criteria" |
+| `/fabric-deploy` | 2c | Engineer role | "deploy items", "run deployment" |
+| `/fabric-document` | 4 | Documentation role | "generate docs", "write ADRs" |
+| `/fabric-heal` | Standalone | Maintenance | "heal signal mapper", "improve coverage" |
 
 ### Agent Pipeline
 

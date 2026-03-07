@@ -1,6 +1,6 @@
 # Engineer Review Schema
 
-> Schema for `@fabric-engineer` Mode 0 output (DRAFT architecture review).
+> Schema for `/fabric-deploy` Mode 0 output (DRAFT architecture review).
 > Save as: `projects/[name]/prd/engineer-review.md`
 
 Use the YAML template below. Every field has a max length noted in comments.

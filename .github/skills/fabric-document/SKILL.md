@@ -27,10 +27,10 @@ Read all 5 handoff documents (parse YAML fields directly, not prose):
 | Handoff | Source | File |
 |---------|--------|------|
 | Discovery Brief | @fabric-advisor | `prd/discovery-brief.md` |
-| Architecture Handoff | @fabric-architect | `prd/architecture-handoff.md` |
-| Test Plan | @fabric-tester | `prd/test-plan.md` |
-| Deployment Handoff | @fabric-engineer | `prd/deployment-handoff.md` |
-| Validation Report | @fabric-tester | `prd/validation-report.md` |
+| Architecture Handoff | /fabric-design | `prd/architecture-handoff.md` |
+| Test Plan | /fabric-test | `prd/test-plan.md` |
+| Deployment Handoff | /fabric-deploy | `prd/deployment-handoff.md` |
+| Validation Report | /fabric-test | `prd/validation-report.md` |
 
 ### Step 2: Generate Wiki Pages
 

@@ -1,15 +1,15 @@
 # Workflow Guide
 
-> The Fabric agent pipeline runs as a continuous flow. You start by mentioning `@fabric-advisor` — everything else chains automatically. Your only required intervention is **Phase 2b: Sign-Off**, where you approve the architecture before deployment begins.
+> The Fabric pipeline runs as a continuous flow. You start by mentioning `@fabric-advisor` — everything else chains automatically via skills. Your only required intervention is **Phase 2b: Sign-Off**, where you approve the architecture before deployment begins.
 
 ## Overview
 
 ```
-@fabric-advisor ──► @fabric-architect ──► Design Review ──► Test Plan
+@fabric-advisor ──► /fabric-design (DRAFT → Review → FINAL) ──► /fabric-test (Plan)
                                                                 │
                                                            YOU (Sign-Off)
                                                                 │
-                                                           Deploy ──► Validate ──► Document
+                                                           /fabric-deploy ──► /fabric-test (Validate) ──► /fabric-document
 ```
 
 ---
@@ -110,7 +110,7 @@ When an agent loses shell/powershell access mid-session, the pipeline would norm
 
 Check `PROJECTS.md` for your project's current phase and next action. If your project already exists, the pipeline resumes from wherever it left off.
 
-To start a new project, mention `@fabric-advisor` in chat with a description of your problem.
+To start a new project, mention `@fabric-advisor` in chat (the orchestrator) with a description of your problem.
 
 ---
 
@@ -136,7 +136,7 @@ This creates:
 
 ## Phase 0a: Discovery
 
-Mention `@fabric-advisor` and describe what you need — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports." The advisor asks clarifying questions, infers architectural signals (data velocity, volume, use cases), and produces a **Discovery Brief** with task flow candidates.
+Mention `@fabric-advisor` and describe your problem — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports." The advisor asks clarifying questions, infers architectural signals (data velocity, volume, use cases), and produces a **Discovery Brief** with task flow candidates.
 
 **Produces:** Discovery Brief → `projects/[name]/prd/discovery-brief.md`
 
@@ -159,7 +159,7 @@ The DRAFT is reviewed in parallel by two agents:
 - **Engineer** — checks deployment order, per-item gotchas, prerequisites, capacity, and parallel deployment potential
 - **Tester** — checks acceptance criteria specificity, test coverage gaps, pre-deployment blockers, edge cases, and validation feasibility
 
-> **Performance optimization:** Use `@fabric-reviewer` instead of invoking `@fabric-engineer` and `@fabric-tester` separately. The combined reviewer reads the architecture once and produces both reviews in a single pass, cutting review time roughly in half.
+> **Performance note:** The `/fabric-design` skill handles design, review, AND finalization in a single skill — no need to invoke separate agents.
 
 ### Review Quality Gate (Iterative)
 
@@ -325,7 +325,7 @@ The documenter gathers all handoffs — architecture, test plan, deployment log,
 
 ### ⚠️ For LLM Orchestrators (Copilot CLI, GitHub Copilot Chat, etc.)
 
-**You are the orchestrator.** When you invoke a custom agent (e.g., `@fabric-advisor`) and it completes, you MUST immediately invoke the next agent in the pipeline. Do NOT:
+**You are the orchestrator.** When `@fabric-advisor` completes a phase, `run-pipeline.py` automatically generates the prompt for the next skill. Do NOT:
 - Say "Want me to continue?"
 - Say "Should I proceed to the next phase?"
 - Present a summary and wait for user input
@@ -363,16 +363,16 @@ Each agent reads the previous agent's output from the project folder. The orches
 
 | Agent | Reads From | Writes To | Format |
 |-------|-----------|-----------|--------|
-| @fabric-advisor | (user input) | `projects/[name]/prd/discovery-brief.md` | Markdown |
-| @fabric-architect | `prd/discovery-brief.md` | `projects/[name]/prd/architecture-handoff.md` | Markdown + YAML data blocks |
-| @fabric-engineer (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/engineer-review.md` | YAML schema |
-| @fabric-tester (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/tester-review.md` | YAML schema |
-| @fabric-architect (finalize) | `prd/engineer-review.md` + `prd/tester-review.md` | `prd/architecture-handoff.md` (updated to FINAL) | Markdown + YAML data blocks |
-| @fabric-tester (test plan) | `prd/architecture-handoff.md` (FINAL) | `projects/[name]/prd/test-plan.md` | YAML schema |
-| @fabric-engineer (deploy) | `prd/architecture-handoff.md` + `prd/test-plan.md` | `projects/[name]/prd/deployment-handoff.md` + `prd/phase-progress.md` | YAML schema |
-| @fabric-tester (validate) | `prd/deployment-handoff.md` + `validation/[task-flow].md` | `projects/[name]/prd/validation-report.md` + `prd/remediation-log.md` | YAML schema |
-| @fabric-engineer (remediate) | `prd/remediation-log.md` | `prd/remediation-log.md` (updated) + `prd/phase-progress.md` | YAML schema |
-| @fabric-documenter | All 5 documents in `prd/` | `projects/[name]/docs/` | Markdown (wiki output) |
+| /fabric-discover | (user input) | `projects/[name]/prd/discovery-brief.md` | Markdown |
+| /fabric-design | `prd/discovery-brief.md` | `projects/[name]/prd/architecture-handoff.md` | Markdown + YAML data blocks |
+| /fabric-design (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/engineer-review.md` | YAML schema |
+| /fabric-design (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/tester-review.md` | YAML schema |
+| /fabric-design (finalize) | `prd/engineer-review.md` + `prd/tester-review.md` | `prd/architecture-handoff.md` (updated to FINAL) | Markdown + YAML data blocks |
+| /fabric-test (plan) | `prd/architecture-handoff.md` (FINAL) | `projects/[name]/prd/test-plan.md` | YAML schema |
+| /fabric-deploy | `prd/architecture-handoff.md` + `prd/test-plan.md` | `projects/[name]/prd/deployment-handoff.md` + `prd/phase-progress.md` | YAML schema |
+| /fabric-test (validate) | `prd/deployment-handoff.md` + `validation/[task-flow].md` | `projects/[name]/prd/validation-report.md` + `prd/remediation-log.md` | YAML schema |
+| /fabric-deploy (remediate) | `prd/remediation-log.md` | `prd/remediation-log.md` (updated) + `prd/phase-progress.md` | YAML schema |
+| /fabric-document | All 5 documents in `prd/` | `projects/[name]/docs/` | Markdown (wiki output) |
 
 ---
 
@@ -407,13 +407,13 @@ All YAML schemas live in `_shared/schemas/`:
 
 | Schema | Agent | Mode | Output File |
 |--------|-------|------|-------------|
-| `engineer-review.md` | @fabric-engineer | Review (Mode 0) | `prd/engineer-review.md` |
-| `tester-review.md` | @fabric-tester | Review (Mode 0) | `prd/tester-review.md` |
-| `test-plan.md` | @fabric-tester | Test Plan (Mode 1) | `prd/test-plan.md` |
-| `deployment-handoff.md` | @fabric-engineer | Deploy | `prd/deployment-handoff.md` |
-| `validation-report.md` | @fabric-tester | Validate (Mode 2) | `prd/validation-report.md` |
-| `remediation-log.md` | @fabric-tester / @fabric-engineer | Validate → Remediate loop | `prd/remediation-log.md` |
-| `phase-progress.md` | @fabric-engineer / @fabric-tester | Deploy / Validate / Remediate | `prd/phase-progress.md` |
+| `engineer-review.md` | /fabric-design | Review | `prd/engineer-review.md` |
+| `tester-review.md` | /fabric-design | Review | `prd/tester-review.md` |
+| `test-plan.md` | /fabric-test | Test Plan | `prd/test-plan.md` |
+| `deployment-handoff.md` | /fabric-deploy | Deploy | `prd/deployment-handoff.md` |
+| `validation-report.md` | /fabric-test | Validate | `prd/validation-report.md` |
+| `remediation-log.md` | /fabric-test + /fabric-deploy | Validate → Remediate loop | `prd/remediation-log.md` |
+| `phase-progress.md` | /fabric-deploy + /fabric-test | Deploy / Validate / Remediate | `prd/phase-progress.md` |
 
 ### Output Rules
 

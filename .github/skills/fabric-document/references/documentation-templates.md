@@ -1,6 +1,6 @@
 # Documentation Templates
 
-Templates used by `@fabric-documenter` to generate project wiki documentation in `projects/[workspace]/docs/`.
+Templates used by `/fabric-document` to generate project wiki documentation in `projects/[workspace]/docs/`.
 
 ## Directory Structure
 

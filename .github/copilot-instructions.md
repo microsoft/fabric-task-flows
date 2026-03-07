@@ -94,7 +94,7 @@ Each guide uses **YAML frontmatter** with `id`, `title`, `description`, `trigger
 
 ### Deployment tooling
 
-The Fabric CLI (`fab` via `pip install ms-fabric-cli`) is the preferred tool for deploying and verifying Fabric items. The `@fabric-engineer` agent uses `fab mkdir` to create items and `fab set` to configure them; the `@fabric-tester` agent uses `fab exists`, `fab ls`, and `fab get` for verification. See `_shared/fabric-cli-commands.md` for the full command reference and `_shared/prerequisites.md` for setup.
+The Fabric CLI (`fab` via `pip install ms-fabric-cli`) is the preferred tool for deploying and verifying Fabric items. The `/fabric-deploy` skill uses `fab mkdir` to create items and `fab set` to configure them; the `/fabric-test` skill uses `fab exists`, `fab ls`, and `fab get` for verification. See the deploy skill's `references/fabric-cli-commands.md` for the full command reference and `references/prerequisites.md` for setup.
 
 ### Architecture vs. deployment details
 
