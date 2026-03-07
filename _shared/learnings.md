@@ -102,3 +102,10 @@
 | Zero-candidate problems | 3/20 | 0/20 | -3 |
 | Lambda suggested | 0/20 | 7/20 | +7 |
 | Ambiguous signals | 4/20 | 0/20 | -4 |
+
+### Loop Run: 2026-03-07 06:54 UTC (10 iterations, 250 problems)
+
+- Average coverage across all batches: 13.2%
+- Total zero-candidate problems: 21
+- Coverage range: 5.2% – 19.3%
+- Uncovered terms across all batches: adls, analytics, apis, automated, billing, churn, churn prediction, code, customer, customer churn, customers, dashboards, data, data from, data team, database, databricks, demand, demand forecasting, everything
