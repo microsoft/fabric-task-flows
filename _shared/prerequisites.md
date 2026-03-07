@@ -40,6 +40,12 @@ For the full command reference, see [Fabric CLI Commands](fabric-cli-commands.md
 ```bash
 # Optional: Set workspace ID
 export FABRIC_WORKSPACE_ID="<workspace-guid>"
+
+# Optional: Pre-set capacity ID (skips interactive prompt in deploy scripts)
+export FABRIC_CAPACITY_ID="<capacity-guid>"
+
+# Optional: Pre-set workspace name (skips interactive prompt in deploy scripts)
+export FABRIC_WORKSPACE_NAME="<workspace-name>"
 ```
 
 ## Workspace Setup
@@ -126,20 +132,20 @@ When using design-only mode (selected during architecture), the Fabric CLI and a
 
 **At deploy time (when running the generated scripts):**
 - Python 3.10+ and `fab` CLI (`pip install ms-fabric-cli`)
-- Valid Fabric authentication (interactive, service principal, or managed identity)
-- Fabric Capacity ID (F2 or higher SKU)
-- Azure AD Tenant ID
+- Valid Fabric authentication — run `fab auth login` before the script (the script verifies auth and exits with instructions if not authenticated)
+- Fabric Capacity ID (GUID) — the script prompts for this interactively (or set `FABRIC_CAPACITY_ID` env var)
 - Workspace Contributor permissions (the script creates the workspace if needed)
 
-The generated scripts prompt for all required values interactively, with environment variable fallbacks:
+The generated scripts prompt for **workspace name** and **capacity ID** interactively (with environment variable fallback). The script runs a preflight check for authentication and exits with clear instructions if `fab auth status` fails.
 
 ```bash
-# Pre-set values as environment variables (optional)
-export FABRIC_CAPACITY_ID="your-capacity-guid"
-export FABRIC_TENANT_ID="your-tenant-guid"
-export FABRIC_WORKSPACE_NAME="my-project-dev"
-export FABRIC_ENVIRONMENT="dev"
+# Step 1: Authenticate (one-time)
+fab auth login
 
-# Run the deploy script
+# Step 2 (optional): Pre-set values as environment variables
+export FABRIC_WORKSPACE_NAME="my-project-dev"
+export FABRIC_CAPACITY_ID="00000000-0000-0000-0000-000000000000"
+
+# Step 3: Run the deploy script
 ./deploy-my-project.sh
 ```
