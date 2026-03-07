@@ -12,20 +12,20 @@ task_flow: ""                  # from architecture handoff
 review_date: ""                # YYYY-MM-DD
 architecture_version: draft    # draft | final
 
-# Each finding: max 1 sentence per field (≤15 words)
+# Each finding: max 1 sentence per field (Γëñ15 words)
 findings:
   - id: F-1
-    area: ""                   # category — e.g., "Wave structure", "Missing step"
+    area: ""                   # category ΓÇö e.g., "Wave structure", "Missing step"
     severity: green            # red | yellow | green
-    finding: ""                # what you found (≤15 words)
-    suggestion: ""             # recommended change (≤15 words)
+    finding: ""                # what you found (Γëñ15 words)
+    suggestion: ""             # recommended change (Γëñ15 words)
 
 wave_optimization:
   current_waves: 0
   proposed_waves: 0
   changes:                     # list only if proposing changes
-    - description: ""          # e.g., "Merge waves 2+3" (≤10 words)
-      reason: ""               # why (≤15 words)
+    - description: ""          # e.g., "Merge waves 2+3" (Γëñ10 words)
+      reason: ""               # why (Γëñ15 words)
 
 cli_verification:              # only list items with issues or unknowns
   - item_type: ""
@@ -35,14 +35,14 @@ cli_verification:              # only list items with issues or unknowns
 
 prerequisites:                 # only list items needing attention
   - id: ""                     # e.g., D-1
-    description: ""            # ≤15 words
+    description: ""            # Γëñ15 words
     status: external           # blocking | external | ready
-    deployment_impact: ""      # what it blocks (≤10 words)
+    deployment_impact: ""      # what it blocks (Γëñ10 words)
 
-# Summary — architect reads this first
+# Summary ΓÇö architect reads this first
 assessment: needs-changes      # ready | needs-changes | blocked
-review_outcome: approved       # approved | revise — drives iteration loop
-must_fix: []                   # finding IDs — e.g., ["F-6", "F-7"]
+review_outcome: approved       # approved | revise ΓÇö drives iteration loop
+must_fix: []                   # finding IDs ΓÇö e.g., ["F-6", "F-7"]
 should_fix: []                 # finding IDs
 no_change: []                  # finding IDs
 review_iteration: 1            # current review cycle (1, 2, 3)
@@ -58,4 +58,4 @@ review_iteration: 1            # current review cycle (1, 2, 3)
 - **Wave optimization is optional.** Only include if proposing structural changes to the wave plan.
 - **`review_outcome: approved`** = Architecture is deployment-ready. No blocking issues remain.
 - **`review_outcome: revise`** = Architecture has `red` severity findings. Architect must revise and re-submit for review.
-- **`review_iteration`** = Tracks which review cycle this is. Max 3 iterations — after 3, escalate to user regardless of outcome.
+- **`review_iteration`** = Tracks which review cycle this is. Max 3 iterations ΓÇö after 3, escalate to user regardless of outcome.

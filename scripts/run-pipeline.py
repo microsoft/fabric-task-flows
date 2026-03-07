@@ -56,12 +56,12 @@ PHASE_ORDER = [
 PHASE_SKILLS = {
     "0a-discovery":  "fabric-discover",
     "1a-design":     "fabric-design",
-    "1b-review":     "fabric-review",
-    "1c-finalize":   "fabric-finalize",
-    "2a-test-plan":  "fabric-test-plan",
-    "2b-sign-off":   None,  # human gate
+    "1b-review":     "fabric-design",      # Architect reviews their own DRAFT
+    "1c-finalize":   "fabric-design",      # Architect finalizes after review
+    "2a-test-plan":  "fabric-test",
+    "2b-sign-off":   None,                 # human gate
     "2c-deploy":     "fabric-deploy",
-    "3-validate":    "fabric-validate",
+    "3-validate":    "fabric-test",        # QA validates after deployment
     "4-document":    "fabric-document",
 }
 
@@ -81,11 +81,11 @@ PHASE_PRECOMPUTE: dict[str, list[list[str]]] = {
     ],
     "1b-review": [
         # review-prescan does mechanical checks before LLM review
-        # ["python", ".github/skills/fabric-review/scripts/review-prescan.py", "--handoff", handoff_path]
+        # ["python", ".github/skills/fabric-design/scripts/review-prescan.py", "--handoff", handoff_path]
     ],
     "2a-test-plan": [
         # test-plan-prefill maps ACs to validation phases
-        # ["python", ".github/skills/fabric-test-plan/scripts/test-plan-prefill.py", "--handoff", handoff_path]
+        # ["python", ".github/skills/fabric-test/scripts/test-plan-prefill.py", "--handoff", handoff_path]
     ],
     "2c-deploy": [
         # deploy-script-gen produces the deploy script
@@ -186,7 +186,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "1b-review": (
-            f"Use the /fabric-review skill. Read the skill at .github/skills/fabric-review/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-design skill (Mode 2: Review). Read the skill at .github/skills/fabric-design/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the DRAFT Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
@@ -204,7 +204,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "1c-finalize": (
-            f"Use the /fabric-finalize skill. Read the skill at .github/skills/fabric-finalize/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-design skill (Mode 3: Finalize). Read the skill at .github/skills/fabric-design/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the engineer review from {pp}/prd/engineer-review.md\n"
@@ -215,7 +215,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "2a-test-plan": (
-            f"Use the /fabric-test-plan skill. Read the skill at .github/skills/fabric-test-plan/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-test skill (Mode 1: Test Plan). Read the skill at .github/skills/fabric-test/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the FINAL Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
@@ -252,7 +252,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "3-validate": (
-            f"Use the /fabric-validate skill. Read the skill at .github/skills/fabric-validate/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-test skill (Mode 2: Validate). Read the skill at .github/skills/fabric-test/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the Deployment Handoff from {pp}/prd/deployment-handoff.md\n"
@@ -262,7 +262,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"5. Validate deployment against the checklist and test plan\n"
             f"6. Write the Validation Report to {pp}/prd/validation-report.md\n"
             f"7. If issues found: categorize and write to {pp}/prd/remediation-log.md\n"
-            f"   - deployment/configuration/transient issues → route to engineer (use /fabric-remediate skill)\n"
+            f"   - deployment/configuration/transient issues → route to engineer (use /fabric-deploy skill Mode 2: Remediate)\n"
             f"   - design issues → escalate (pipeline pauses)\n"
             f"   - Max 3 remediation iterations before escalating to user\n"
             f"8. Append any new operational learnings to _shared/learnings.md\n\n"
@@ -310,7 +310,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
 
     elif phase == "1b-review" and os.path.exists(handoff_path):
         # Run review prescan
-        cmd = [sys.executable, str(SKILLS_DIR / "fabric-review" / "scripts" / "review-prescan.py"),
+        cmd = [sys.executable, str(SKILLS_DIR / "fabric-design" / "scripts" / "review-prescan.py"),
                "--handoff", handoff_path]
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -321,7 +321,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
 
     elif phase == "2a-test-plan" and os.path.exists(handoff_path):
         # Run test plan prefill
-        cmd = [sys.executable, str(SKILLS_DIR / "fabric-test-plan" / "scripts" / "test-plan-prefill.py"),
+        cmd = [sys.executable, str(SKILLS_DIR / "fabric-test" / "scripts" / "test-plan-prefill.py"),
                "--handoff", handoff_path]
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)

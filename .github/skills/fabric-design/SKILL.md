@@ -1,28 +1,27 @@
 ---
 name: fabric-design
 description: >
-  Designs Microsoft Fabric architectures by selecting task flows and walking
-  through storage, ingestion, processing, and visualization decisions.
-  Produces a DRAFT Architecture Handoff. Use when user says "design
-  architecture", "which task flow", "medallion vs lambda", "choose storage",
-  "lakehouse vs warehouse", "create architecture", or asks about Fabric
-  architecture patterns. Do NOT use for finalizing after review (use
-  fabric-finalize), deployment (use fabric-deploy), or discovery (use
+  The Architect skill — designs Microsoft Fabric architectures, reviews drafts
+  for feasibility and testability, and finalizes based on feedback. Use when
+  user says "design architecture", "which task flow", "medallion vs lambda",
+  "review DRAFT", "finalize architecture", "incorporate feedback", or asks
+  about Fabric architecture patterns. Do NOT use for deployment (use
+  fabric-deploy), testing (use fabric-test), or discovery (use
   fabric-discover).
 metadata:
   author: task-flows-team
-  version: 1.0.0
+  version: 2.0.0
   category: architecture
-  tags: [fabric, task-flow, architecture-design, decisions]
-  pipeline-phase: 1a-design
-  pre-compute: [decision-resolver, handoff-scaffolder]
+  tags: [fabric, task-flow, architecture-design, review, decisions]
+  pipeline-phases: [1a-design, 1b-review, 1c-finalize]
+  pre-compute: [decision-resolver, handoff-scaffolder, review-prescan]
 ---
 
-# Fabric Architecture Design
+# Fabric Architecture Design (Architect Role)
 
-Select the best-fit task flow and walk through architectural decisions to produce a DRAFT Architecture Handoff.
+Covers the full architect lifecycle: design the DRAFT, review it, finalize it.
 
-## Instructions
+## Mode 1: DRAFT Design (Phase 1a)
 
 ### Step 1: Load Discovery Brief
 
@@ -75,25 +74,77 @@ Write to `projects/[name]/prd/architecture-handoff.md`:
 
 ### Step 5: Write ADRs 001-005
 
-Write sequentially with read-back:
+Write sequentially with read-back (use `references/adr-template.md`):
 1. `001-task-flow.md` — Task flow selection rationale
 2. `002-storage.md` — Storage decision (read 001 first)
 3. `003-ingestion.md` — Ingestion decision (read 001+002)
 4. `004-processing.md` — Processing decision (read 001-003)
 5. `005-visualization.md` — Visualization decision (read 001-004)
 
-Use template from `_shared/adr-template.md`.
+---
+
+## Mode 2: Review DRAFT (Phase 1b)
+
+Perform BOTH deployment feasibility AND testability review in a single pass.
+
+### Step 1: Load Context (Read Each File ONCE)
+
+1. `projects/[name]/prd/architecture-handoff.md` — the DRAFT
+2. `diagrams/[task-flow].md` — skip to `## Deployment Order`
+3. `_shared/fabric-cli-commands.md` — CLI verification reference
+4. `validation/[task-flow].md` — task-flow-specific validation checklist
+
+### Step 2: Engineer Review (Deployment Feasibility)
+
+Assess: dependency graph, per-item gotchas, wave optimization, prerequisites, CLI commands.
+
+### Step 3: Tester Review (Testability)
+
+Assess: AC specificity, test coverage, untestable criteria, edge cases, CLI syntax.
+
+### Step 4: Write Both Reviews
+
+1. **Engineer Review** → `projects/[name]/prd/engineer-review.md` (schema: `schemas/engineer-review.md`)
+2. **Tester Review** → `projects/[name]/prd/tester-review.md` (schema: `schemas/tester-review.md`)
+
+Set `review_outcome`: ANY red → `revise`, NO red → `approved`.
+
+---
+
+## Mode 3: Finalize (Phase 1c)
+
+Incorporate review feedback into the DRAFT to produce the FINAL handoff.
+
+### Step 1: Read Reviews
+
+Load `projects/[name]/prd/engineer-review.md` and `projects/[name]/prd/tester-review.md`.
+
+### Step 2: Address Findings
+
+- `severity: red` → address the concern, update items/waves/ACs
+- `severity: yellow` → document acknowledgment and mitigation
+
+### Step 3: Update Architecture Handoff
+
+1. Add `## Design Review` section with table: Finding | Severity | Action Taken
+2. Update items/waves/ACs if design changed
+3. Change phase from `DRAFT` to `FINAL` in frontmatter
+
+### Step 4: Update ADRs if decisions changed
+
+Max 3 review iterations. After 3 cycles, proceed to FINAL regardless.
+
+---
 
 ## Constraints
 
 - Architecture Handoff: max 220 lines
 - YAML fields: max 15 words
+- Review fields: max 15 words
 - Never deploy or create Fabric items
 - Never skip "Alternatives Considered" or "Trade-offs"
-- Present both single and multi-workspace options
+- Read each reference file ONCE during review
 
 ## Pipeline Handoff
 
 > **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance && next` for phase transitions.
-
-After producing DRAFT, advance to Phase 1b (Review).
