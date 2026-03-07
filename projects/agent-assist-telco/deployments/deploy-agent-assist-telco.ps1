@@ -193,28 +193,24 @@ function Main {
   }
 
   # ---------------------------------------------------------------------------
-  # Authenticate — runs after config so user isn't blocked before providing inputs
+  # Authenticate — verify auth; user must pre-authenticate since fab is a REPL
   # ---------------------------------------------------------------------------
   Write-Host ""
-  Write-Host "  Authenticating..."
+  Write-Host "  Checking authentication..."
   fab auth status 2>$null | Out-Null
   if ($LASTEXITCODE -eq 0) {
-    Write-Host "  ── ✅ Already authenticated"
+    Write-Host "  ── ✅ Authenticated"
   } else {
-    Write-Host "  ── Opening Fabric login (browser)..."
-    fab auth login
-    fab auth status 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) {
-      Write-Host "  ── ✅ Authentication successful"
-    } else {
-      Write-Host "  ── ❌ Authentication failed."
-      Write-Host ""
-      Write-Host "     Retry manually with one of:"
-      Write-Host "     Interactive:        fab auth login"
-      Write-Host "     Service principal:  fab auth login -u <client_id> -p <client_secret> --tenant <tenant_id>"
-      Write-Host "     Managed identity:   fab auth login --identity"
-      return
-    }
+    Write-Host "  ── ❌ Not authenticated."
+    Write-Host ""
+    Write-Host "     The Fabric CLI is interactive — authenticate before running this script:"
+    Write-Host ""
+    Write-Host "       fab            # opens the CLI"
+    Write-Host "       auth login     # authenticate in browser"
+    Write-Host "       exit           # return to shell"
+    Write-Host ""
+    Write-Host "     Then re-run this script."
+    return
   }
 
   # ---------------------------------------------------------------------------

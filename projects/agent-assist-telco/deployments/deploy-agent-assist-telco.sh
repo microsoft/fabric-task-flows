@@ -195,26 +195,23 @@ main() {
   fi
 
   # ---------------------------------------------------------------------------
-  # Authenticate — runs after config so user isn't blocked before providing inputs
+  # Authenticate — verify auth; user must pre-authenticate since fab is a REPL
   # ---------------------------------------------------------------------------
   echo ""
-  echo "  Authenticating..."
+  echo "  Checking authentication..."
   if fab auth status 2>/dev/null; then
-    echo "  ── ✅ Already authenticated"
+    echo "  ── ✅ Authenticated"
   else
-    echo "  ── Opening Fabric login (browser)..."
-    fab auth login
-    if fab auth status 2>/dev/null; then
-      echo "  ── ✅ Authentication successful"
-    else
-      echo "  ── ❌ Authentication failed."
-      echo ""
-      echo "     Retry manually with one of:"
-      echo "     Interactive:        fab auth login"
-      echo "     Service principal:  fab auth login -u <client_id> -p <client_secret> --tenant <tenant_id>"
-      echo "     Managed identity:   fab auth login --identity"
-      exit 1
-    fi
+    echo "  ── ❌ Not authenticated."
+    echo ""
+    echo "     The Fabric CLI is interactive — authenticate before running this script:"
+    echo ""
+    echo "       fab            # opens the CLI"
+    echo "       auth login     # authenticate in browser"
+    echo "       exit           # return to shell"
+    echo ""
+    echo "     Then re-run this script."
+    exit 1
   fi
 
   # ---------------------------------------------------------------------------
