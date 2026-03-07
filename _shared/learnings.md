@@ -65,34 +65,32 @@
 
 ## Healing History
 
-### Cycle 2: 2026-03-07 06:47 UTC (40 problems — expanded test suite)
+### Cycle 3: 2026-03-07 14:50 UTC (250 enterprise problems — 10-iteration loop)
 
-| Metric | Pre-heal baseline | Post-heal | Delta |
+| Metric | Before (Cycle 2) | After (Cycle 3) | Delta |
 |--------|--------|-------|-------|
-| Avg keyword coverage | 11.3% | 17.9% | **+6.6%** |
-| Zero-candidate problems | 6/40 | 0/40 | **-6** |
-| Lambda suggested (hybrids) | 0/40 | 11/40 | **+11** |
-| Ambiguous signals | 4/40 | 0/40 | **-4** |
+| Avg keyword coverage (40 std) | 17.9% | 19.9% | **+2.0%** |
+| Avg keyword coverage (250 enterprise) | 13.2% | 17.1% | **+3.9%** |
+| Zero-candidate problems (250) | 21/250 | 7/250 | **-14** |
 
-**Healing actions applied (cumulative):**
-- Expanded signal mapper keywords (+30 terms across 6 categories)
-- Fixed lambda inference: Cat 1+2 now synthesizes Cat 3 instead of `pass`
-- Added enterprise keywords: conglomerate, business units, federated, global view, multi-cloud
-- Added Power BI keywords: DirectQuery, Import mode, Direct Lake, gateway, refresh, semantic model
-- Added healthcare/finance: EMR, Epic, Cerner, FHIR, trading, regulatory reporting
-- Added streaming: SCADA, smart meters, OPC-UA, position monitoring, grid operations
+**Healing actions applied (Cycle 3 — 60+ keywords across 9 categories):**
+- Real-time: bid requests, surge pricing, delivery events, cell towers, crowd flow, ride-sharing
+- Batch: billing, analytics platform, compliance reporting, USDA/FAA/FDA, usage dashboards
+- Lambda: "plus daily", "while also feeding", "real-time view", "end-of-day", "reconciliation"
+- ML: actuarial, simulations, risk scores, cohort/funnel analysis, backtesting, model drift, NLP, digital twin
+- Sensitive: chain of custody, e-discovery, SOX/PCI-DSS, de-identified, audit trail, data sovereignty
+- Unstructured: documents, contracts, reviews, genomic, user-generated content, precedents
+- Layered: SSIS packages, Informatica, ETL jobs, data contracts, versioning, standardize
+- App Backend: SaaS, multi-tenant, embedded analytics, chatbot, natural language, AI-powered search
+- Semantic: naming standards, ESG reporting, carbon emissions, Scope 1/2/3
 
-**Per-category coverage (pre-heal → post-heal):**
-- Ambiguous Intent: 5.7% → 15.6% (+9.9%)
-- Analytics & ML: 8.5% → 16.0% (+7.5%)
-- Batch & Warehouse: 7.2% → 17.4% (+10.2%)
-- Enterprise & Global Strategy: 8.2% → 23.3% (+15.1%)
-- Governance & Security: 7.0% → 13.0% (+6.0%)
-- Hybrid (Batch + Real-Time): 17.7% → 23.0% (+5.3%)
-- Multi-Platform Integration: 5.5% → 7.7% (+2.2%)
-- Power BI Users Exploring Fabric: 4.7% → 11.8% (+7.1%)
-- Real-Time & Streaming: 13.2% → 27.0% (+13.8%)
-- Vague / Ambiguous: 0.0% → 16.0% (+16.0%)
+**Enterprise batch performance (hand-crafted, hardest problems):**
+- Batch 1 (Industry verticals): 8.9% → 18.3% (+9.4%)
+- Batch 2 (Technical complexity): 7.5% → 11.9% (+4.4%)
+- Batch 3 (Conversational/unclear): 6.8% → 10.0% (+3.2%)
+- Batch 4 (Cross-cutting concerns): 5.2% → 11.6% (+6.4%)
+
+**Remaining hard problems (7 zero-candidates):** Mostly confused-user and conversational phrasing that uses no domain keywords — e.g., "my boss told me to set up a lakehouse, I don't know what that is."
 
 ### Cycle 1: 2026-03-07 06:41 UTC (20 problems — original test suite)
 
@@ -108,4 +106,11 @@
 - Average coverage across all batches: 13.2%
 - Total zero-candidate problems: 21
 - Coverage range: 5.2% – 19.3%
+- Uncovered terms across all batches: adls, analytics, apis, automated, billing, churn, churn prediction, code, customer, customer churn, customers, dashboards, data, data from, data team, database, databricks, demand, demand forecasting, everything
+
+### Loop Run: 2026-03-07 14:49 UTC (10 iterations, 250 problems)
+
+- Average coverage across all batches: 17.1%
+- Total zero-candidate problems: 7
+- Coverage range: 10.0% – 21.2%
 - Uncovered terms across all batches: adls, analytics, apis, automated, billing, churn, churn prediction, code, customer, customer churn, customers, dashboards, data, data from, data team, database, databricks, demand, demand forecasting, everything
