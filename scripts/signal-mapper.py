@@ -46,6 +46,8 @@ CATEGORIES: tuple[SignalCategory, ...] = (
             "real-time", "streaming", "IoT", "sensors", "alerts", "live",
             "events", "telemetry", "event-driven", "kafka", "event hub",
             "pub/sub", "push notifications", "webhooks", "continuous",
+            "GPS", "pings", "clickstream", "traffic", "fraud detection",
+            "200ms", "sub-second", "low latency", "live map",
         ),
         velocity="Real-time",
         use_case="Event analytics",
@@ -57,7 +59,10 @@ CATEGORIES: tuple[SignalCategory, ...] = (
         keywords=(
             "batch", "daily", "weekly", "nightly", "ETL", "historical",
             "reports", "scheduled", "periodic", "cron", "overnight",
-            "data warehouse", "monthly", "quarterly",
+            "data warehouse", "monthly", "quarterly", "dashboard",
+            "spreadsheets", "flat files", "CSV export", "ERP",
+            "self-service analytics", "data-driven", "insights",
+            "slow queries", "cloud migration", "modernize",
         ),
         velocity="Batch",
         use_case="Analytics / Reporting",
@@ -83,7 +88,10 @@ CATEGORIES: tuple[SignalCategory, ...] = (
             "ML", "predict", "train models", "forecast", "scoring",
             "classification", "regression", "neural network",
             "deep learning", "feature engineering", "model", "inference",
-            "AI", "machine learning",
+            "AI", "machine learning", "churn", "propensity",
+            "data prep", "data preparation", "data scientists",
+            "anomaly detection", "recommendation", "sentiment",
+            "auto-categorize", "predictive", "predictive maintenance",
         ),
         velocity="Batch (typically)",
         use_case="Machine learning",
@@ -132,7 +140,9 @@ CATEGORIES: tuple[SignalCategory, ...] = (
         keywords=(
             "data quality", "bronze/silver/gold", "layers", "curated",
             "cleanse", "transform stages", "raw", "refined", "aggregated",
-            "medallion", "data governance", "lineage",
+            "medallion", "data governance", "lineage", "data silos",
+            "unified catalog", "data catalog", "single source of truth",
+            "consolidate", "combine", "centralize",
         ),
         velocity="Varies",
         use_case="Layered analytics",
@@ -281,7 +291,10 @@ def map_signals(text: str) -> dict:
     # Boost Cat 3 if both Cat 1 and Cat 2 also match
     cat3 = results[3]
     if 1 in active and 2 in active and 3 not in active:
-        pass  # ambiguous — Cat 1+2 without explicit Cat 3
+        # Synthesize lambda signal — both batch and real-time detected
+        cat3.matches.append(
+            KeywordMatch(keyword="(inferred: batch+real-time → lambda)", start=-1, end=-1)
+        )
     elif 1 in active and 2 in active and 3 in active:
         if cat3.confidence != "high":
             cat3.matches.append(

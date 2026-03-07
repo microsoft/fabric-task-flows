@@ -62,3 +62,27 @@
 
 - **LLM-drawn architecture diagrams have structural issues** — unbalanced box characters found across projects. The `diagram-gen.py` script now addresses this at sign-off, but the handoff-phase diagram is still LLM-generated.
 - **Customer-answerable questions leaked into Architectural Judgment Calls** — found in existing projects (now fixed with section rename + guard text).
+
+## Healing History
+
+### Cycle: 2026-03-07 06:41 UTC
+
+| Metric | Before (pre-heal) | After (post-heal) | Delta |
+|--------|--------|-------|-------|
+| Avg keyword coverage | 10.9% | 18.1% | +7.2% |
+| Zero-candidate problems | 3/20 | 0/20 | -3 |
+| Lambda suggested (hybrids) | 0/20 | 7/20 | +7 |
+| Ambiguous signals | 4/20 | 0/20 | -4 |
+
+**Healing actions applied:**
+- Expanded signal mapper keywords (+15 terms across 4 categories)
+- Fixed lambda inference: Cat 1+2 now synthesizes Cat 3 instead of `pass`
+- Added natural language keywords: churn, propensity, data silos, GPS, clickstream, dashboard, etc.
+
+**Per-category coverage (before → after):**
+- Analytics & ML: 8.5% → 16.0% (+7.5%)
+- Batch & Warehouse: 7.2% → 15.6% (+8.4%)
+- Governance & Security: 7.0% → 13.0% (+6.0%)
+- Hybrid (Batch + Real-Time): 17.7% → 19.3% (+1.6%)
+- Real-Time & Streaming: 13.2% → 24.6% (+11.4%)
+- Vague / Ambiguous: 0.0% → 16.0% (+16.0%)

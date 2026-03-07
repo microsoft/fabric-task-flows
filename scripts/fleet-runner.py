@@ -339,9 +339,22 @@ def main():
                         help="Parallel workers (default: 4)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Run signal mapper only, don't scaffold")
+    parser.add_argument("--heal", action="store_true",
+                        help="Run self-heal.py before fleet deployment")
     parser.add_argument("--ids", type=str, default=None,
                         help="Comma-separated problem IDs to run (default: all)")
     args = parser.parse_args()
+
+    # Run self-heal before fleet if requested
+    if args.heal:
+        print(f"\n  🔧 Running self-heal before fleet deployment...")
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        cmd = [sys.executable, str(SCRIPTS_DIR / "self-heal.py"),
+               "--problem-file", args.problem_file]
+        if args.dry_run:
+            cmd.append("--dry-run")
+        subprocess.run(cmd, env=env, encoding="utf-8")
 
     problems = parse_problem_file(args.problem_file)
 
