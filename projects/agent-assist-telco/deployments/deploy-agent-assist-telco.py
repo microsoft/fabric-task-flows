@@ -17,8 +17,9 @@ import argparse
 import os
 import sys
 
-# Add _shared to path for fabric_deploy utility
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "_shared"))
+# Add repo _shared to path for fabric_deploy utility
+_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+sys.path.insert(0, os.path.join(_repo_root, "_shared"))
 from fabric_deploy import (
     FabricDeployer, print_banner, prompt_value,
     run_fab, check_auth,

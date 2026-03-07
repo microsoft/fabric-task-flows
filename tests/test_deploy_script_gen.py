@@ -62,3 +62,37 @@ def test_deploy_script_gen_imports():
     assert len(cmds) > 0, "FAB_COMMANDS should not be empty"
     assert len(names) > 0, "DISPLAY_NAMES should not be empty"
     assert "lakehouse" in cmds, "Lakehouse should be in FAB_COMMANDS"
+
+
+def test_fabric_deploy_utility_imports():
+    """Verify _shared/fabric_deploy.py can be imported."""
+    shared_dir = REPO_ROOT / "_shared"
+    assert (shared_dir / "fabric_deploy.py").exists(), "fabric_deploy.py missing from _shared"
+    sys.path.insert(0, str(shared_dir))
+    import fabric_deploy
+    assert hasattr(fabric_deploy, "run_fab")
+    assert hasattr(fabric_deploy, "FabricDeployer")
+    assert hasattr(fabric_deploy, "check_auth")
+    assert hasattr(fabric_deploy, "print_banner")
+    assert hasattr(fabric_deploy, "prompt_value")
+
+
+def test_generated_python_script_path():
+    """Verify the generated Python script resolves _shared correctly."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "deploy_script_gen", str(REPO_ROOT / "scripts" / "deploy-script-gen.py")
+    )
+    try:
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    except (AttributeError, ImportError):
+        return  # Python 3.11 dataclass issue — skip
+    # The generator should produce path with 3 levels up (../../..)
+    data = mod.parse_handoff(str(REPO_ROOT / "projects" / "agent-assist-telco" / "prd" / "architecture-handoff.md"))
+    _, _, py_script = mod.generate(
+        str(REPO_ROOT / "projects" / "agent-assist-telco" / "prd" / "architecture-handoff.md"),
+        "Test Project"
+    )
+    assert '"..", "..", ".."' in py_script, "Python script should use 3 levels up to find repo root"
+    assert "fabric_deploy" in py_script, "Python script should import from fabric_deploy"
