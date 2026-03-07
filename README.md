@@ -175,7 +175,6 @@ task-flows/
 │   ├── review-prescan.py               # Architecture review pre-scanner
 │   ├── test-plan-prefill.py            # Test plan prefiller from acceptance criteria
 │   ├── taskflow-gen.py                 # Task flow JSON generator (scaffold + finalize modes)
-│   ├── fabric-logo.py                  # ASCII logo generator
 │   ├── check-drift.py                  # Documentation drift detection (204 checks)
 │   ├── sync-item-types.py              # Registry ↔ Fabric CLI sync
 │   ├── generate-ps1-types.py           # PowerShell item-type constant generator

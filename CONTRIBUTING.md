@@ -37,7 +37,6 @@ The `scripts/` directory contains pipeline utilities. Key scripts:
 | `test-plan-prefill.py` | Prefills test plan from acceptance criteria |
 | `validate-items.ps1/.sh` | Runs `fab exists` per deployed item, outputs validation YAML |
 | `taskflow-gen.py` | Generates Fabric workspace task flow JSON for import |
-| `fabric-logo.py` | ASCII logo generator for banners |
 | `handoff-scaffolder.py` | Pre-fills handoff template YAML from diagram metadata |
 | `sync-item-types.py` | Syncs `_shared/item-type-registry.json` against installed Fabric CLI |
 | `generate-ps1-types.py` | Regenerates PowerShell item-type constants in `validate-items.ps1` from registry |
@@ -60,6 +59,16 @@ Only **workspace name** is prompted by the script (with env var fallback). Authe
 ## Pipeline state
 
 Each project has a `pipeline-state.json` (scaffolded by `new-project.py`) that tracks which phase is current, which phases are complete, and whether transitions are automatic or require human approval. The `run-pipeline.py` script manages this file.
+
+## ADR write-through
+
+Architecture Decision Records (ADRs) are written by the `@fabric-architect` during Phase 1a (DRAFT) and refined during Phase 1c (FINAL) — not deferred to Phase 4 (Documentation). This ensures:
+
+- Reviewers in Phase 1b can reference the full decision rationale
+- The "why" behind each decision is captured while context is fresh
+- The `@fabric-documenter` polishes language and adds cross-links rather than writing ADRs from scratch
+
+The 5 standard ADR files (`docs/decisions/001-task-flow.md` through `005-visualization.md`) are scaffolded by `new-project.py`. The architect fills them using the format from `_shared/adr-template.md`.
 
 ## Agent boundaries
 
