@@ -428,7 +428,7 @@ def main():
 
     output_dir = os.path.join(repo_root, "projects", args.project, "deployments")
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, "task-flow.json")
+    output_path = os.path.join(output_dir, f"{args.project}-task-flow.json")
 
     # Parse and build
     items, metadata = parse_items_from_handoff(handoff_path)

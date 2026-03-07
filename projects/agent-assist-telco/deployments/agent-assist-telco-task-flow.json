@@ -1,0 +1,158 @@
+{
+  "name": "agent-assist-telco",
+  "description": "Task flow for agent-assist-telco (lambda architecture)",
+  "tasks": [
+    {
+      "type": "store data",
+      "id": "task-000568ab-fcaf-47fd-9b06-de9a3f4fffcf",
+      "name": "call-transcripts-lakehouse",
+      "description": "Batch storage for transcripts, CRM data, ML features"
+    },
+    {
+      "type": "store data",
+      "id": "task-266901dd-66f7-4f8e-b6d7-636c2893380c",
+      "name": "call-analytics-warehouse",
+      "description": "Gold serving layer for curated analytics"
+    },
+    {
+      "type": "store data",
+      "id": "task-b6d99fff-18f2-4243-a30b-aa24117871b7",
+      "name": "call-events-eventhouse",
+      "description": "Real-time call event stream storage (KQL)"
+    },
+    {
+      "type": "develop",
+      "id": "task-373ecab9-59eb-4151-9c60-a63a9144b847",
+      "name": "spark-env",
+      "description": "Spark/Python runtime for notebooks"
+    },
+    {
+      "type": "get data",
+      "id": "task-9470d0ab-b0ac-4dfd-a1f1-520c7a848f55",
+      "name": "call-stream-eventstream",
+      "description": "Ingest real-time transcription stream into Eventhouse"
+    },
+    {
+      "type": "get data",
+      "id": "task-a48c314e-c0bd-41a3-846a-2f31b74fcab2",
+      "name": "crm-sync-pipeline",
+      "description": "Orchestrate Dataverse CRM data sync to Lakehouse"
+    },
+    {
+      "type": "prepare data",
+      "id": "task-26b23205-30ea-44bd-b8b4-3bc0ec6137d7",
+      "name": "transcript-etl-notebook",
+      "description": "Transform raw transcripts \u2192 curated features"
+    },
+    {
+      "type": "prepare data",
+      "id": "task-29fe8269-8017-47fe-b721-b66a521fab55",
+      "name": "call-insights-kql",
+      "description": "Real-time aggregations and call event analysis"
+    },
+    {
+      "type": "visualize",
+      "id": "task-f62eeb3e-6b49-4aca-a2e8-63365cf6197a",
+      "name": "call-analytics-model",
+      "description": "Direct Lake model over Warehouse for Power BI"
+    },
+    {
+      "type": "visualize",
+      "id": "task-33f5c8db-7938-4d7f-9307-d7fdc43c81ae",
+      "name": "call-ops-rt-dash",
+      "description": "Live call queue and active call monitoring"
+    },
+    {
+      "type": "visualize",
+      "id": "task-d66afa6c-0bdc-495b-9920-b25ba56ae7d3",
+      "name": "call-analytics-report",
+      "description": "Historical call volume, trends, agent performance"
+    },
+    {
+      "type": "track data",
+      "id": "task-6a99a3dd-c49c-4ebc-a09a-bc35bd0182d1",
+      "name": "call-alert-activator",
+      "description": "Queue backup and SLA breach alerts"
+    },
+    {
+      "type": "analyze and train data",
+      "id": "task-3d060edb-036d-4940-90fe-5be862b3eee2",
+      "name": "transcript-ml-experiment",
+      "description": "ML experiment tracking for transcript models"
+    },
+    {
+      "type": "analyze and train data",
+      "id": "task-e596f748-244b-4041-994b-a14ebbeca1cb",
+      "name": "transcript-ml-model",
+      "description": "Trained model for call routing/classification"
+    },
+    {
+      "type": "prepare data",
+      "id": "task-e3840005-d5ab-444f-a6ad-6b8032392eb4",
+      "name": "ml-scoring-notebook",
+      "description": "Score new transcripts with trained model"
+    }
+  ],
+  "edges": [
+    {
+      "source": "task-000568ab-fcaf-47fd-9b06-de9a3f4fffcf",
+      "target": "task-373ecab9-59eb-4151-9c60-a63a9144b847"
+    },
+    {
+      "source": "task-b6d99fff-18f2-4243-a30b-aa24117871b7",
+      "target": "task-9470d0ab-b0ac-4dfd-a1f1-520c7a848f55"
+    },
+    {
+      "source": "task-000568ab-fcaf-47fd-9b06-de9a3f4fffcf",
+      "target": "task-a48c314e-c0bd-41a3-846a-2f31b74fcab2"
+    },
+    {
+      "source": "task-000568ab-fcaf-47fd-9b06-de9a3f4fffcf",
+      "target": "task-26b23205-30ea-44bd-b8b4-3bc0ec6137d7"
+    },
+    {
+      "source": "task-373ecab9-59eb-4151-9c60-a63a9144b847",
+      "target": "task-26b23205-30ea-44bd-b8b4-3bc0ec6137d7"
+    },
+    {
+      "source": "task-b6d99fff-18f2-4243-a30b-aa24117871b7",
+      "target": "task-29fe8269-8017-47fe-b721-b66a521fab55"
+    },
+    {
+      "source": "task-266901dd-66f7-4f8e-b6d7-636c2893380c",
+      "target": "task-f62eeb3e-6b49-4aca-a2e8-63365cf6197a"
+    },
+    {
+      "source": "task-b6d99fff-18f2-4243-a30b-aa24117871b7",
+      "target": "task-33f5c8db-7938-4d7f-9307-d7fdc43c81ae"
+    },
+    {
+      "source": "task-f62eeb3e-6b49-4aca-a2e8-63365cf6197a",
+      "target": "task-d66afa6c-0bdc-495b-9920-b25ba56ae7d3"
+    },
+    {
+      "source": "task-9470d0ab-b0ac-4dfd-a1f1-520c7a848f55",
+      "target": "task-6a99a3dd-c49c-4ebc-a09a-bc35bd0182d1"
+    },
+    {
+      "source": "task-000568ab-fcaf-47fd-9b06-de9a3f4fffcf",
+      "target": "task-3d060edb-036d-4940-90fe-5be862b3eee2"
+    },
+    {
+      "source": "task-373ecab9-59eb-4151-9c60-a63a9144b847",
+      "target": "task-3d060edb-036d-4940-90fe-5be862b3eee2"
+    },
+    {
+      "source": "task-3d060edb-036d-4940-90fe-5be862b3eee2",
+      "target": "task-e596f748-244b-4041-994b-a14ebbeca1cb"
+    },
+    {
+      "source": "task-e596f748-244b-4041-994b-a14ebbeca1cb",
+      "target": "task-e3840005-d5ab-444f-a6ad-6b8032392eb4"
+    },
+    {
+      "source": "task-373ecab9-59eb-4151-9c60-a63a9144b847",
+      "target": "task-e3840005-d5ab-444f-a6ad-6b8032392eb4"
+    }
+  ]
+}
