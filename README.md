@@ -200,9 +200,8 @@ task-flows/
 │   ├── documentation-templates.md      # Wiki output templates
 │   ├── workflow-guide.md               # Pipeline orchestration guide
 │   ├── learnings.md                    # Accumulated learnings
-│   ├── script-banner.md                # Brand banner for scripts
-│   ├── script-template.ps1             # PowerShell deploy script template
-│   ├── script-template.sh              # Bash deploy script template
+│   ├── script-template.ps1             # PowerShell deploy script template (banner source of truth)
+│   ├── script-template.sh              # Bash deploy script template (banner source of truth)
 │   └── schemas/                        # Handoff document schemas
 │       ├── deployment-handoff.md
 │       ├── engineer-review.md

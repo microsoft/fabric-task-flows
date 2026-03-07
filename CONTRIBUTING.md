@@ -53,7 +53,7 @@ The deploy script templates (`_shared/script-template.ps1` and `_shared/script-t
 - **Preflight check** — Verifies `fab` CLI is installed before proceeding
 - **Workspace auto-creation** — Creates workspace if it doesn't exist
 - **Deployment summary** — Final ✅/⏭️/❌ report per item
-- **Brand banner** — Canonical banner from `_shared/script-banner.md`
+- **Brand banner** — `print_banner` / `Print-Banner` function embedded in each template (single source of truth)
 
 Only **workspace name** is prompted by the script (with env var fallback). Authentication, capacity, and tenant are delegated to the `fab` CLI.
 
@@ -85,6 +85,24 @@ All six agent files (`.github/agents/fabric-*.agent.md`) include an `⚠️ ORCH
 ### Agent tool lists
 
 Keep the `tools:` frontmatter in each agent file synchronized with the agent table in `.github/copilot-instructions.md`.
+
+## Script generation
+
+All generated scripts (deploy, validation, rollback) MUST display the branded banner as the first thing the user sees. The `print_banner` (bash) and `Print-Banner` (PowerShell) functions in the script templates are the **single source of truth** for the banner. Agents copy the function from the matching template into each generated script so scripts remain self-contained.
+
+### Banner placeholders
+
+| Placeholder | Source | Example |
+|-------------|--------|---------|
+| `{PROJECT_NAME}` | Architecture Handoff → project name | `Energy Field Intelligence` |
+| `{TASK_FLOW}` | Architecture Handoff → task flow ID | `medallion` |
+| `{MODE}` | Script purpose | `Deploy to Fabric`, `Validation`, `Rollback` |
+
+### Rules
+
+- Copy the banner function from `_shared/script-template.sh` or `_shared/script-template.ps1` — do not maintain a separate banner file
+- The `mode` parameter should reflect the script's purpose
+- If the banner design changes, update only the two template files
 
 ## Git workflow
 

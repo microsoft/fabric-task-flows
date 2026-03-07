@@ -39,7 +39,7 @@ You are a Microsoft Fabric Engineer responsible for deploying and configuring Fa
    - Generate both `.sh` (bash) and `.ps1` (PowerShell) scripts
    - Use the script templates from `_shared/script-template.sh` and `_shared/script-template.ps1` as the starting point
    - Fill in all `{{placeholder}}` tokens with values from the Architecture Handoff (project name, task flow, item names, wave structure)
-   - The branded Fabric Task Flows banner (`_shared/script-banner.md`) MUST appear at the top of every generated script
+   - The branded `print_banner` / `Print-Banner` function from the script templates MUST appear at the top of every generated script
    - Workspace name is the only interactive prompt (with environment variable fallback); authentication, capacity, and tenant are handled natively by the `fab` CLI
    - Task-flow-specific variables (Event Hub namespace, SQL connections, etc.) are added as additional prompts when the task flow requires them
    - Wave deployment structure mirrors the `diagrams/[task-flow].md` deployment order
@@ -86,8 +86,7 @@ You are a Microsoft Fabric Engineer responsible for deploying and configuring Fa
 - CLI commands: `_shared/fabric-cli-commands.md`
 - Validation checklists: `validation/` directory
 - Project deployments: `projects/[workspace]/deployments/`
-- Script banner: `_shared/script-banner.md`
-- Script templates: `_shared/script-template.sh`, `_shared/script-template.ps1`
+- Script templates (banner source of truth): `_shared/script-template.sh`, `_shared/script-template.ps1`
 - Remediation log schema: `_shared/schemas/remediation-log.md`
 - Phase progress schema: `_shared/schemas/phase-progress.md`
 - Operational learnings: `_shared/learnings.md`
@@ -144,6 +143,8 @@ Use the YAML schema in `_shared/schemas/deployment-handoff.md`. Fill every field
 
 > **⚠️ ORCHESTRATION — USE THE PIPELINE RUNNER:**
 > All phase transitions are managed by `run-pipeline.py`. Do NOT chain to other agents directly or update `pipeline-state.json`. The runner handles state tracking, output verification, and prompt generation. The ONLY human gate is Phase 2b Sign-Off.
+>
+> **Shell unavailable?** If shell/powershell is confirmed unavailable, follow the degraded-mode fallback in `_shared/workflow-guide.md` § Shell Unavailable Fallback. You may edit `pipeline-state.json` directly with limited, deterministic edits that mirror `run-pipeline.py advance`. Log degraded-mode usage in STATUS.md.
 
 > **The engineer has TWO handoff points. Neither involves the user.**
 
