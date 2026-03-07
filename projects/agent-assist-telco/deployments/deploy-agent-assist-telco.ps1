@@ -193,25 +193,24 @@ function Main {
   }
 
   # ---------------------------------------------------------------------------
-  # Authenticate — verify auth; user must pre-authenticate since fab is a REPL
+  # Authenticate — verify auth; if not logged in, auto-login via browser
   # ---------------------------------------------------------------------------
   Write-Host ""
   Write-Host "  Checking authentication..."
-  fab auth status 2>$null | Out-Null
-  if ($LASTEXITCODE -eq 0) {
-    Write-Host "  ── ✅ Authenticated"
-  } else {
-    Write-Host "  ── ❌ Not authenticated."
-    Write-Host ""
-    Write-Host "     The Fabric CLI is interactive — authenticate before running this script:"
-    Write-Host ""
-    Write-Host "       fab            # opens the CLI"
-    Write-Host "       auth login     # authenticate in browser"
-    Write-Host "       exit           # return to shell"
-    Write-Host ""
-    Write-Host "     Then re-run this script."
-    return
+  $authOut = & fab auth status 2>&1 | Out-String
+  if ($authOut -match "Not logged in") {
+    Write-Host "  ── Not authenticated — launching browser login..."
+    & fab auth login 2>$null
+    $authOut = & fab auth status 2>&1 | Out-String
+    if ($authOut -match "Not logged in") {
+      Write-Host "  ── ❌ Authentication failed."
+      Write-Host ""
+      Write-Host "     Run manually:  fab auth login"
+      Write-Host "     Then re-run this script."
+      return
+    }
   }
+  Write-Host "  ── ✅ Authenticated"
 
   # ---------------------------------------------------------------------------
   # Workspace

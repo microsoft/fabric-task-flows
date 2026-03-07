@@ -195,24 +195,25 @@ main() {
   fi
 
   # ---------------------------------------------------------------------------
-  # Authenticate — verify auth; user must pre-authenticate since fab is a REPL
+  # Authenticate — verify auth; if not logged in, auto-login via browser
   # ---------------------------------------------------------------------------
   echo ""
   echo "  Checking authentication..."
-  if fab auth status 2>/dev/null; then
-    echo "  ── ✅ Authenticated"
-  else
-    echo "  ── ❌ Not authenticated."
-    echo ""
-    echo "     The Fabric CLI is interactive — authenticate before running this script:"
-    echo ""
-    echo "       fab            # opens the CLI"
-    echo "       auth login     # authenticate in browser"
-    echo "       exit           # return to shell"
-    echo ""
-    echo "     Then re-run this script."
-    exit 1
+  local auth_out
+  auth_out=$(fab auth status 2>&1)
+  if echo "$auth_out" | grep -qi "Not logged in"; then
+    echo "  ── Not authenticated — launching browser login..."
+    fab auth login 2>/dev/null
+    auth_out=$(fab auth status 2>&1)
+    if echo "$auth_out" | grep -qi "Not logged in"; then
+      echo "  ── ❌ Authentication failed."
+      echo ""
+      echo "     Run manually:  fab auth login"
+      echo "     Then re-run this script."
+      exit 1
+    fi
   fi
+  echo "  ── ✅ Authenticated"
 
   # ---------------------------------------------------------------------------
   # Workspace
