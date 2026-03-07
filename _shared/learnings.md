@@ -65,52 +65,41 @@
 
 ## Healing History
 
-### Cycle 3: 2026-03-07 14:50 UTC (250 enterprise problems — 10-iteration loop)
+### Cycle 4: 2026-03-07 15:34 UTC (90 problems — 50 new industry-specific + 40 original, 10 healing iterations)
 
-| Metric | Before (Cycle 2) | After (Cycle 3) | Delta |
+| Metric | Before (pre-heal) | After (10 iterations) | Delta |
 |--------|--------|-------|-------|
-| Avg keyword coverage (40 std) | 17.9% | 19.9% | **+2.0%** |
-| Avg keyword coverage (250 enterprise) | 13.2% | 17.1% | **+3.9%** |
-| Zero-candidate problems (250) | 21/250 | 7/250 | **-14** |
+| Avg keyword coverage (90 problems) | 13.2% | 16.1% | **+2.9%** |
+| Zero-candidate problems | 2/90 | 1/90 | **-1** |
+| Lambda suggested (hybrids) | 40/90 | 42/90 | **+2** |
+| Ambiguous signals | 0/90 | 0/90 | 0 |
 
-**Healing actions applied (Cycle 3 — 60+ keywords across 9 categories):**
-- Real-time: bid requests, surge pricing, delivery events, cell towers, crowd flow, ride-sharing
-- Batch: billing, analytics platform, compliance reporting, USDA/FAA/FDA, usage dashboards
-- Lambda: "plus daily", "while also feeding", "real-time view", "end-of-day", "reconciliation"
-- ML: actuarial, simulations, risk scores, cohort/funnel analysis, backtesting, model drift, NLP, digital twin
-- Sensitive: chain of custody, e-discovery, SOX/PCI-DSS, de-identified, audit trail, data sovereignty
-- Unstructured: documents, contracts, reviews, genomic, user-generated content, precedents
-- Layered: SSIS packages, Informatica, ETL jobs, data contracts, versioning, standardize
-- App Backend: SaaS, multi-tenant, embedded analytics, chatbot, natural language, AI-powered search
-- Semantic: naming standards, ESG reporting, carbon emissions, Scope 1/2/3
+**50 new problem statements added** across 17 industry categories: Telecom, Insurance, Agriculture, Construction, Maritime, Mining, Gaming, Public Safety, Biotech, Fintech, Hospitality, Renewable Energy, Automotive, Government, Legal, Logistics, PropTech, EdTech, Cybersecurity, Water/Waste, Sports, Fashion, Space.
 
-**Enterprise batch performance (hand-crafted, hardest problems):**
-- Batch 1 (Industry verticals): 8.9% → 18.3% (+9.4%)
-- Batch 2 (Technical complexity): 7.5% → 11.9% (+4.4%)
-- Batch 3 (Conversational/unclear): 6.8% → 10.0% (+3.2%)
-- Batch 4 (Cross-cutting concerns): 5.2% → 11.6% (+6.4%)
+**Healing actions applied (10 iterations — 90+ keywords across 10 categories):**
+- Real-time (Cat 1): fleet management, dispatch, excursion alerts, real-time scoring, odds feeds, tracking data, SNMP, pressure/flow monitoring, leak detection, incident detection, player/optical tracking
+- Batch (Cat 2): bordereaux, loss reserving, IBNR, settlement reports, chargeback rates, diversion reports, pavement condition, NENA, DOT, ENERGY STAR, sell-through, inventory allocation, crop progress, basis prices, staffing optimization
+- Lambda (Cat 3): also need monthly, plus quarterly, real-time alerts plus, daily trend, monitoring and reporting, near-real-time and compliance
+- ML (Cat 4): computer vision, defect detection, machine vision, AVM, automated valuation, deterioration prediction, yield optimization, adaptive learning, behavioral baselines, PML calculations, grade control, timber volume forecasting, TAR, pharmacokinetic, bioequivalence
+- Sensitive (Cat 5): FERPA, FSMA, Safe Drinking Water Act, Title 31, CTR, SOLAS, IMO, gaming commission, tamper-proof, insider threat, air-gapped, SCIF, CDISC, SDTM, AML, SAR filing, KYC, IATF 16949, EDRM, EPA notification
+- Transactional (Cat 6): POS terminals, slot machines, vending machines, payout, trigger claim, booking, rate optimization, container stacking, dispatch systems, carrier selection, restocking
+- Unstructured (Cat 7): LiDAR, satellite imagery, multispectral, FASTQ, variant-called, inspection reports, case report forms, CDR records, log events, CCTV, video feeds, communications
+- Layered (Cat 8): reconcile, reconciliation, discrepancies, traceability, provenance, recall, siloed, vendor platforms, integrate, integration, unify, processing pipeline, migration strategy, decommissioning
+- App Backend (Cat 9): STAC-compliant API, API access, open data feeds, GTFS, GBFS, customer portal, web interface, marketplace, self-service dashboards
+- Semantic (Cat 11): ClinVar, gnomAD, MITRE ATT&CK, Carbon Intensity Indicator, open data, data product, taxonomy, classification schema, retention policy
 
-**Remaining hard problems (7 zero-candidates):** Mostly confused-user and conversational phrasing that uses no domain keywords — e.g., "my boss told me to set up a lakehouse, I don't know what that is."
+**Per-category coverage improvement (selected):**
+- Fashion & Retail Analytics: 3.5% → 8.0% (+4.5%)
+- Space & Satellite: 4.0% → 11.0% (+7.0%)
+- Government & Civic Tech: 5.0% → 11.0% (+6.0%)
+- Maritime & Shipping: 5.5% → 10.5% (+5.0%)
+- Mining & Natural Resources: 5.5% → 16.5% (+11.0%)
+- Telecom & Connectivity: 6.0% → 8.7% (+2.7%)
+- Cybersecurity & InfoSec: 6.5% → 13.0% (+6.5%)
+- Biotech & Life Sciences: 7.0% → 14.3% (+7.3%)
+- Agriculture & Food Supply: 7.7% → 12.0% (+4.3%)
+- Insurance & Risk: 8.0% → 13.0% (+5.0%)
+- Automotive & Manufacturing: 8.0% → 20.0% (+12.0%)
+- Legal & Compliance: 8.5% → 18.5% (+10.0%)
 
-### Cycle 1: 2026-03-07 06:41 UTC (20 problems — original test suite)
-
-| Metric | Pre-heal | Post-heal | Delta |
-|--------|--------|-------|-------|
-| Avg keyword coverage | 10.9% | 18.1% | +7.2% |
-| Zero-candidate problems | 3/20 | 0/20 | -3 |
-| Lambda suggested | 0/20 | 7/20 | +7 |
-| Ambiguous signals | 4/20 | 0/20 | -4 |
-
-### Loop Run: 2026-03-07 06:54 UTC (10 iterations, 250 problems)
-
-- Average coverage across all batches: 13.2%
-- Total zero-candidate problems: 21
-- Coverage range: 5.2% – 19.3%
-- Uncovered terms across all batches: adls, analytics, apis, automated, billing, churn, churn prediction, code, customer, customer churn, customers, dashboards, data, data from, data team, database, databricks, demand, demand forecasting, everything
-
-### Loop Run: 2026-03-07 14:49 UTC (10 iterations, 250 problems)
-
-- Average coverage across all batches: 17.1%
-- Total zero-candidate problems: 7
-- Coverage range: 10.0% – 21.2%
-- Uncovered terms across all batches: adls, analytics, apis, automated, billing, churn, churn prediction, code, customer, customer churn, customers, dashboards, data, data from, data team, database, databricks, demand, demand forecasting, everything
+**Remaining hard problem (1 zero-candidate):** Extremely vague phrasing with no domain-specific keywords.
