@@ -78,7 +78,7 @@ def test_fabric_deploy_utility_imports():
 
 
 def test_generated_python_script_path():
-    """Verify the generated Python script resolves _shared correctly."""
+    """Verify the generated Python script is self-contained (no external imports)."""
     import importlib.util
     spec = importlib.util.spec_from_file_location(
         "deploy_script_gen", str(REPO_ROOT / "scripts" / "deploy-script-gen.py")
@@ -88,11 +88,12 @@ def test_generated_python_script_path():
         spec.loader.exec_module(mod)
     except (AttributeError, ImportError):
         return  # Python 3.11 dataclass issue — skip
-    # The generator should produce path with 3 levels up (../../..)
-    data = mod.parse_handoff(str(REPO_ROOT / "projects" / "agent-assist-telco" / "prd" / "architecture-handoff.md"))
     _, _, py_script = mod.generate(
         str(REPO_ROOT / "projects" / "agent-assist-telco" / "prd" / "architecture-handoff.md"),
         "Test Project"
     )
-    assert '"..", "..", ".."' in py_script, "Python script should use 3 levels up to find repo root"
-    assert "fabric_deploy" in py_script, "Python script should import from fabric_deploy"
+    assert "fabric_deploy" not in py_script.split("# =")[0], "Python script should not import from fabric_deploy"
+    assert "sys.path.insert" not in py_script, "Python script should not modify sys.path"
+    assert "def run_fab(" in py_script, "Python script should embed run_fab inline"
+    assert "class FabricDeployer" in py_script, "Python script should embed FabricDeployer inline"
+    assert "Self-contained" in py_script, "Python script should note it's self-contained"

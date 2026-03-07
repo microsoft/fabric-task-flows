@@ -948,12 +948,40 @@ def _fill_template(
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _gen_python_script(data: HandoffData, project: str) -> str:
-    """Generate a complete Python deploy script using fabric_deploy utility."""
+    """Generate a self-contained Python deploy script with embedded utility code."""
     slug = _slugify(project)
     item_lookup = _build_item_lookup(data)
     total_items = len(data.items)
     total_waves = len(data.waves)
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Read the utility module and embed it inline
+    utility_path = SHARED_DIR / "fabric_deploy.py"
+    utility_code = utility_path.read_text(encoding="utf-8")
+    # Strip the module docstring and imports that we'll add at the top
+    # Keep everything after the imports block
+    utility_lines = utility_code.split("\n")
+    # Find where the actual code starts (after imports and docstring)
+    code_start = 0
+    in_docstring = False
+    for i, line in enumerate(utility_lines):
+        if line.strip().startswith('"""') and not in_docstring:
+            in_docstring = True
+            if line.strip().endswith('"""') and len(line.strip()) > 3:
+                in_docstring = False
+            continue
+        if in_docstring:
+            if '"""' in line:
+                in_docstring = False
+            continue
+        if line.startswith("import ") or line.startswith("from "):
+            continue
+        if line.strip() == "":
+            continue
+        code_start = i
+        break
+
+    embedded_utility = "\n".join(utility_lines[code_start:])
 
     lines: list[str] = []
     lines.append('#!/usr/bin/env python3')
@@ -965,6 +993,9 @@ def _gen_python_script(data: HandoffData, project: str) -> str:
     lines.append(f'Task Flow: {data.task_flow}')
     lines.append(f'Generated: {date_str}')
     lines.append(f'')
+    lines.append(f'Self-contained — no external dependencies beyond Python 3.10+ and ms-fabric-cli.')
+    lines.append(f'Can be zipped and distributed independently.')
+    lines.append(f'')
     lines.append(f'Usage:')
     lines.append(f'    python deploy-{slug}.py')
     lines.append(f'    python deploy-{slug}.py --spn-auth')
@@ -973,16 +1004,22 @@ def _gen_python_script(data: HandoffData, project: str) -> str:
     lines.append('')
     lines.append('import argparse')
     lines.append('import os')
+    lines.append('import subprocess')
     lines.append('import sys')
+    lines.append('import time')
+    lines.append('from dataclasses import dataclass, field')
     lines.append('')
-    lines.append('# Add repo _shared to path for fabric_deploy utility')
-    lines.append('_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))')
-    lines.append('sys.path.insert(0, os.path.join(_repo_root, "_shared"))')
-    lines.append('from fabric_deploy import (')
-    lines.append('    FabricDeployer, print_banner, prompt_value,')
-    lines.append('    run_fab, check_auth,')
-    lines.append(')')
     lines.append('')
+    lines.append('# ' + '=' * 77)
+    lines.append('# Fabric Deploy Utility (embedded — no external imports needed)')
+    lines.append('# ' + '=' * 77)
+    lines.append('')
+    lines.append(embedded_utility)
+    lines.append('')
+    lines.append('')
+    lines.append('# ' + '=' * 77)
+    lines.append(f'# Deploy: {project}')
+    lines.append('# ' + '=' * 77)
     lines.append('')
     lines.append('def main():')
     lines.append('    parser = argparse.ArgumentParser(')
