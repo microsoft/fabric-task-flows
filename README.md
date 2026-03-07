@@ -82,9 +82,9 @@ Phase 0 — Discover:
        │ Discovery Brief
        ▼
 Phase 1 — Design:
-┌──────────────┐         ┌─────────────┐
+┌──────────────┐          ┌────────────┐
 │  Architect   │──DRAFT──►│  Reviewer  │── Combined Review
-│              │◄─feedback─┘            │
+│              │◄─feedback─┘ __________│
 │  (Finalizes) │
 └──────┬───────┘
        │ FINAL Architecture Handoff
@@ -152,28 +152,28 @@ task-flows/
 │   │   ├── fabric-remediate/SKILL.md    # Fix deployment/config issues
 │   │   ├── fabric-document/SKILL.md     # Wiki + ADR documentation
 │   │   └── fabric-heal/SKILL.md         # Signal mapper self-healing
-│   └── copilot-instructions.md         # System-level agent context
-├── task-flows.md                       # All 13 task flow patterns (consolidated)
-├── decisions/                          # Decision guides (7 guides)
-│   ├── _index.md                       # Routing table — agents read this first
-│   ├── storage-selection.md            # Lakehouse vs Warehouse vs Eventhouse vs SQL DB vs Cosmos DB vs PostgreSQL
-│   ├── ingestion-selection.md          # Copy Job vs Dataflow vs Pipeline vs Eventstream vs Mirroring vs Shortcuts vs Fabric Link vs Notebook
-│   ├── processing-selection.md         # Notebook vs Spark Job vs Dataflow vs KQL Queryset
-│   ├── visualization-selection.md      # Report vs Dashboard vs Paginated + Direct Lake + Data Agent
-│   ├── skillset-selection.md           # Code-First [CF] vs Low-Code [LC]
-│   ├── parameterization-selection.md   # Variable Library vs parameter.yml vs env vars
-│   └── api-selection.md                # GraphQL API vs User Data Functions vs Direct Connection
-├── diagrams/                           # Deployment diagrams per task flow
-│   ├── _index.md                       # Routing table with item/wave counts
-│   └── {task-flow}.md                  # Phased deployment flow, dependency order, OR blocks
-├── validation/                         # Post-deployment checklists
-│   ├── _index.md                       # Routing table with phase names
-│   └── {task-flow}.md                  # Phase-by-phase validation checklist
-├── projects/                           # Per-project documentation (local only — gitignored)
+│   └── copilot-instructions.md          # System-level agent context
+├── task-flows.md                        # All 13 task flow patterns (consolidated)
+├── decisions/                           # Decision guides (7 guides)
+│   ├── _index.md                        # Routing table — agents read this first
+│   ├── storage-selection.md             # Lakehouse vs Warehouse vs Eventhouse vs SQL DB vs Cosmos DB vs PostgreSQL
+│   ├── ingestion-selection.md           # Copy Job vs Dataflow vs Pipeline vs Eventstream vs Mirroring vs Shortcuts vs Fabric Link vs Notebook
+│   ├── processing-selection.md          # Notebook vs Spark Job vs Dataflow vs KQL Queryset
+│   ├── visualization-selection.md       # Report vs Dashboard vs Paginated + Direct Lake + Data Agent
+│   ├── skillset-selection.md            # Code-First [CF] vs Low-Code [LC]
+│   ├── parameterization-selection.md    # Variable Library vs parameter.yml vs env vars
+│   └── api-selection.md                 # GraphQL API vs User Data Functions vs Direct Connection
+├── diagrams/                            # Deployment diagrams per task flow
+│   ├── _index.md                        # Routing table with item/wave counts
+│   └── {task-flow}.md                   # Phased deployment flow, dependency order, OR blocks
+├── validation/                          # Post-deployment checklists
+│   ├── _index.md                        # Routing table with phase names
+│   └── {task-flow}.md                   # Phase-by-phase validation checklist
+├── projects/                            # Per-project documentation (local only — gitignored)
 │   └── {workspace-name}/
-│       ├── STATUS.md                   # Phase log, blockers, wave progress
-│       ├── pipeline-state.json         # Pipeline orchestration state
-│       ├── prd/                        # Agent handoff documents
+│       ├── STATUS.md                    # Phase log, blockers, wave progress
+│       ├── pipeline-state.json          # Pipeline orchestration state
+│       ├── prd/                         # Agent handoff documents
 │       │   ├── discovery-brief.md
 │       │   ├── architecture-handoff.md
 │       │   ├── engineer-review.md
@@ -181,43 +181,43 @@ task-flows/
 │       │   ├── test-plan.md
 │       │   ├── deployment-handoff.md
 │       │   └── validation-report.md
-│       ├── docs/                       # Architecture docs, ADRs
-│       └── deployments/                # Generated deploy scripts
-├── scripts/                            # Pipeline utilities & code generation
-│   ├── new-project.py                  # Project scaffolder
-│   ├── run-pipeline.py                 # Pipeline orchestrator
-│   ├── deploy-script-gen.py            # Deploy script generator
-│   ├── signal-mapper.py                # Problem signal → task flow mapper
-│   ├── decision-resolver.py            # Decision guide YAML resolver
-│   ├── handoff-scaffolder.py           # Handoff template filler
-│   ├── review-prescan.py               # Architecture review pre-scanner
-│   ├── test-plan-prefill.py            # Test plan prefiller from acceptance criteria
-│   ├── taskflow-gen.py                 # Task flow JSON generator (scaffold + finalize modes)
-│   ├── check-drift.py                  # Documentation drift detection (204 checks)
-│   ├── sync-item-types.py              # Registry ↔ Fabric CLI sync
-│   ├── generate-ps1-types.py           # PowerShell item-type constant generator
-│   ├── registry_loader.py              # Shared module — item type metadata loader
-│   ├── validate-items.ps1              # PowerShell item validation helper
-│   └── validate-items.sh               # Bash item validation helper
-├── _shared/                            # Shared reference content
-│   ├── item-type-registry.json         # Single source of truth for Fabric item types (45 types)
-│   ├── agent-boundaries.md             # Shared agent boundary reference
-│   ├── legend.md                       # Diagram symbols ([LC], [CF], ──►, OR)
-│   ├── prerequisites.md                # Setup: Fabric CLI, fabric-cicd, capacity
-│   ├── adr-template.md                 # Architecture Decision Record template
-│   ├── cicd-practices.md               # CI/CD reference: fabric-cicd, parameter.yml
-│   ├── parallel-deployment.md          # Dependency-wave analysis
-│   ├── fabric-cli-commands.md          # fab CLI command reference
-│   ├── deployment-patterns.md          # fab mkdir patterns per item type
-│   ├── rollback-protocol.md            # Wave failure recovery
-│   ├── validation-patterns.md          # Item-type verification commands
-│   ├── validation-report-template.md   # Validation Report output template
-│   ├── documentation-templates.md      # Wiki output templates
-│   ├── workflow-guide.md               # Pipeline orchestration guide
-│   ├── learnings.md                    # Accumulated learnings
-│   ├── script-template.ps1             # PowerShell deploy script template (banner source of truth)
-│   ├── script-template.sh              # Bash deploy script template (banner source of truth)
-│   └── schemas/                        # Handoff document schemas
+│       ├── docs/                        # Architecture docs, ADRs
+│       └── deployments/                 # Generated deploy scripts
+├── scripts/                             # Pipeline utilities & code generation
+│   ├── new-project.py                   # Project scaffolder
+│   ├── run-pipeline.py                  # Pipeline orchestrator
+│   ├── deploy-script-gen.py             # Deploy script generator
+│   ├── signal-mapper.py                 # Problem signal → task flow mapper
+│   ├── decision-resolver.py             # Decision guide YAML resolver
+│   ├── handoff-scaffolder.py            # Handoff template filler
+│   ├── review-prescan.py                # Architecture review pre-scanner
+│   ├── test-plan-prefill.py             # Test plan prefiller from acceptance criteria
+│   ├── taskflow-gen.py                  # Task flow JSON generator (scaffold + finalize modes)
+│   ├── check-drift.py                   # Documentation drift detection (204 checks)
+│   ├── sync-item-types.py               # Registry ↔ Fabric CLI sync
+│   ├── generate-ps1-types.py            # PowerShell item-type constant generator
+│   ├── registry_loader.py               # Shared module — item type metadata loader
+│   ├── validate-items.ps1               # PowerShell item validation helper
+│   └── validate-items.sh                # Bash item validation helper
+├── _shared/                             # Shared reference content
+│   ├── item-type-registry.json          # Single source of truth for Fabric item types (45 types)
+│   ├── agent-boundaries.md              # Shared agent boundary reference
+│   ├── legend.md                        # Diagram symbols ([LC], [CF], ──►, OR)
+│   ├── prerequisites.md                 # Setup: Fabric CLI, fabric-cicd, capacity
+│   ├── adr-template.md                  # Architecture Decision Record template
+│   ├── cicd-practices.md                # CI/CD reference: fabric-cicd, parameter.yml
+│   ├── parallel-deployment.md           # Dependency-wave analysis
+│   ├── fabric-cli-commands.md           # fab CLI command reference
+│   ├── deployment-patterns.md           # fab mkdir patterns per item type
+│   ├── rollback-protocol.md             # Wave failure recovery
+│   ├── validation-patterns.md           # Item-type verification commands
+│   ├── validation-report-template.md    # Validation Report output template
+│   ├── documentation-templates.md       # Wiki output templates
+│   ├── workflow-guide.md                # Pipeline orchestration guide
+│   ├── learnings.md                     # Accumulated learnings
+│   ├── script-template.ps1              # PowerShell deploy script template (banner source of truth)
+│   ├── script-template.sh               # Bash deploy script template (banner source of truth)
+│   └── schemas/                         # Handoff document schemas
 │       ├── deployment-handoff.md
 │       ├── engineer-review.md
 │       ├── phase-progress.md
