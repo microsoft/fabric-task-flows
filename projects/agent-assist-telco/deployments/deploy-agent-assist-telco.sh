@@ -118,7 +118,7 @@ fab_mkdir() {
 main() {
   print_banner "$PROJECT_NAME" "$TASK_FLOW" "Deploy to Fabric"
 
-  # Preflight checks
+  # Preflight: CLI only
   echo "  Checking prerequisites..."
   if ! command -v fab &> /dev/null; then
     echo "  ❌ Fabric CLI (fab) not found."
@@ -126,18 +126,6 @@ main() {
     exit 1
   fi
   echo "  ── ✅ Fabric CLI found"
-
-  # Authentication check
-  if fab auth status 2>&1 | cat > /dev/null; then
-    echo "  ── ✅ Authenticated"
-  else
-    echo "  ── ❌ Not authenticated. Run 'fab auth login' first."
-    echo ""
-    echo "     Interactive:        fab auth login"
-    echo "     Service principal:  fab auth login -u <client_id> -p <client_secret> --tenant <tenant_id>"
-    echo "     Managed identity:   fab auth login --identity"
-    exit 1
-  fi
   echo ""
 
   echo "┌──────────────────────────────────────────────────────────────────┐"
@@ -198,6 +186,28 @@ main() {
   if [[ ! "$confirm" =~ ^[Yy] ]]; then
     echo "  Deployment cancelled."
     exit 0
+  fi
+
+  # ---------------------------------------------------------------------------
+  # Authenticate — runs after config so user isn't blocked before providing inputs
+  # ---------------------------------------------------------------------------
+  echo ""
+  echo "  Authenticating..."
+  if fab auth status 2>/dev/null; then
+    echo "  ── ✅ Already authenticated"
+  else
+    echo "  ── Launching Fabric auth login..."
+    if fab auth login 2>&1; then
+      echo "  ── ✅ Authentication successful"
+    else
+      echo "  ── ❌ Authentication failed."
+      echo ""
+      echo "     Retry manually with one of:"
+      echo "     Interactive:        fab auth login"
+      echo "     Service principal:  fab auth login -u <client_id> -p <client_secret> --tenant <tenant_id>"
+      echo "     Managed identity:   fab auth login --identity"
+      exit 1
+    fi
   fi
 
   # ---------------------------------------------------------------------------

@@ -113,7 +113,7 @@ function Fab-Mkdir {
 function Main {
   Print-Banner -ProjectName $ProjectName -TaskFlow $TaskFlow -Mode "Deploy to Fabric"
 
-  # Preflight checks
+  # Preflight: CLI only
   Write-Host "  Checking prerequisites..."
   $fabCmd = Get-Command fab -ErrorAction SilentlyContinue
   if (-not $fabCmd) {
@@ -122,19 +122,6 @@ function Main {
     return
   }
   Write-Host "  ── ✅ Fabric CLI found"
-
-  # Authentication check
-  fab auth status 2>&1 | Out-Null
-  if ($LASTEXITCODE -eq 0) {
-    Write-Host "  ── ✅ Authenticated"
-  } else {
-    Write-Host "  ── ❌ Not authenticated. Run 'fab auth login' first."
-    Write-Host ""
-    Write-Host "     Interactive:        fab auth login"
-    Write-Host "     Service principal:  fab auth login -u <client_id> -p <client_secret> --tenant <tenant_id>"
-    Write-Host "     Managed identity:   fab auth login --identity"
-    return
-  }
   Write-Host ""
 
   $script:DeployResults = @()
@@ -196,6 +183,30 @@ function Main {
   if ($confirm -and $confirm -notmatch "^[Yy]") {
     Write-Host "  Deployment cancelled."
     return
+  }
+
+  # ---------------------------------------------------------------------------
+  # Authenticate — runs after config so user isn't blocked before providing inputs
+  # ---------------------------------------------------------------------------
+  Write-Host ""
+  Write-Host "  Authenticating..."
+  fab auth status 2>$null | Out-Null
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "  ── ✅ Already authenticated"
+  } else {
+    Write-Host "  ── Launching Fabric auth login..."
+    fab auth login 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+      Write-Host "  ── ✅ Authentication successful"
+    } else {
+      Write-Host "  ── ❌ Authentication failed."
+      Write-Host ""
+      Write-Host "     Retry manually with one of:"
+      Write-Host "     Interactive:        fab auth login"
+      Write-Host "     Service principal:  fab auth login -u <client_id> -p <client_secret> --tenant <tenant_id>"
+      Write-Host "     Managed identity:   fab auth login --identity"
+      return
+    }
   }
 
   # ---------------------------------------------------------------------------
