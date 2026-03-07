@@ -79,8 +79,8 @@ function Fab-Mkdir {
   )
 
   # Idempotency: skip if item already exists
-  fab exists "$Path" 2>$null | Out-Null
-  if ($LASTEXITCODE -eq 0) {
+  $existsOut = & fab -c "exists $Path" 2>&1 | Out-String
+  if ($existsOut -notmatch "does not exist") {
     Write-Host "  $TreeChar ✅ $Label (already exists)"
     $script:DeployResults += @{ Label = $Label; Status = "exists" }
     return
@@ -88,8 +88,8 @@ function Fab-Mkdir {
 
   # Retry with backoff for transient failures
   for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
-    $allArgs = @("mkdir", $Path) + $ExtraArgs
-    $errOutput = & fab @allArgs 2>&1
+    $extraStr = if ($ExtraArgs.Count -gt 0) { " " + ($ExtraArgs -join " ") } else { "" }
+    $errOutput = & fab -c "mkdir $Path$extraStr" 2>&1 | Out-String
     if ($LASTEXITCODE -eq 0) {
       Write-Host "  $TreeChar ✅ $Label"
       $script:DeployResults += @{ Label = $Label; Status = "created" }
@@ -168,15 +168,15 @@ function Main {
   # ---------------------------------------------------------------------------
   Write-Host ""
   Write-Host "  Checking authentication..."
-  $authOut = & fab auth status 2>&1 | Out-String
+  $authOut = & fab -c "auth status" 2>&1 | Out-String
   if ($authOut -match "Not logged in") {
     Write-Host "  ── Not authenticated — launching browser login..."
-    & fab auth login 2>$null
-    $authOut = & fab auth status 2>&1 | Out-String
+    & fab -c "auth login" 2>$null
+    $authOut = & fab -c "auth status" 2>&1 | Out-String
     if ($authOut -match "Not logged in") {
       Write-Host "  ── ❌ Authentication failed."
       Write-Host ""
-      Write-Host "     Run manually:  fab auth login"
+      Write-Host "     Run manually:  fab -c 'auth login'"
       Write-Host "     Then re-run this script."
       return
     }
@@ -187,8 +187,8 @@ function Main {
   # Workspace
   # ---------------------------------------------------------------------------
   Write-Host ""
-  fab exists "$WorkspaceName.Workspace" 2>$null | Out-Null
-  if ($LASTEXITCODE -eq 0) {
+  $wsCheck = & fab -c "exists $WorkspaceName.Workspace" 2>&1 | Out-String
+  if ($wsCheck -notmatch "does not exist") {
     Write-Host "  ── ✅ Workspace already exists: $WorkspaceName"
   } else {
     Write-Host "  Creating workspace..."
@@ -198,7 +198,7 @@ function Main {
   # Assign capacity to workspace
   if ($CapacityId) {
     Write-Host "  ── Assigning capacity..."
-    fab set "$WorkspaceName.Workspace" -q capacityId -i "$CapacityId" 2>$null | Out-Null
+    & fab -c "set $WorkspaceName.Workspace -q capacityId -i $CapacityId" 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
       Write-Host "  ── ✅ Capacity assigned"
     } else {
@@ -237,12 +237,14 @@ function Main {
   Write-Host ""
 
   # Workspace ID
-  $wsInfo = fab get "$WorkspaceName.Workspace" --output json 2>$null | ConvertFrom-Json
+  $wsJson = & fab -c "get $WorkspaceName.Workspace --output json" 2>$null | Out-String
+  try { $wsInfo = $wsJson | ConvertFrom-Json } catch { $wsInfo = $null }
   $WorkspaceId = if ($wsInfo.id) { $wsInfo.id } else { "(unavailable)" }
   Write-Host "  Workspace ID:   $WorkspaceId"
 
   # Tenant ID
-  $authInfo = fab auth status --output json 2>$null | ConvertFrom-Json
+  $authJson = & fab -c "auth status --output json" 2>$null | Out-String
+  try { $authInfo = $authJson | ConvertFrom-Json } catch { $authInfo = $null }
   $TenantId = if ($authInfo.tenantId) { $authInfo.tenantId } else { "(unavailable)" }
   Write-Host "  Tenant ID:      $TenantId"
 
@@ -256,7 +258,8 @@ function Main {
   foreach ($r in $script:DeployResults) {
     if ($r.Status -eq "created" -or $r.Status -eq "exists") {
       $itemName = ($r.Label -split ":\s*", 2)[-1].Trim()
-      $itemInfo = fab get "$WorkspaceName.Workspace/$itemName" --output json 2>$null | ConvertFrom-Json
+      $itemJson = & fab -c "get $WorkspaceName.Workspace/$itemName --output json" 2>$null | Out-String
+      try { $itemInfo = $itemJson | ConvertFrom-Json } catch { $itemInfo = $null }
       $itemId = if ($itemInfo.id) { $itemInfo.id } else { "-" }
       Write-Host "  ├── $($r.Label)  →  ID: $itemId"
     }

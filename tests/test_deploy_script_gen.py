@@ -21,7 +21,7 @@ def test_bash_template_has_required_sections():
     content = (SHARED_DIR / "script-template.sh").read_text(encoding="utf-8")
     assert "fab_mkdir()" in content, "Missing fab_mkdir function"
     assert "prompt_value()" in content, "Missing prompt_value function"
-    assert "fab auth status" in content, "Missing auth status check"
+    assert 'fab -c "auth status"' in content, "Missing fab -c auth status check"
     assert "FABRIC_CAPACITY_ID" in content, "Missing capacity prompt"
     assert "capacityId" in content, "Missing capacity assignment"
     assert "CONFIGURATION" in content, "Missing CONFIGURATION section"
@@ -34,7 +34,7 @@ def test_ps1_template_has_required_sections():
     content = (SHARED_DIR / "script-template.ps1").read_text(encoding="utf-8")
     assert "Fab-Mkdir" in content, "Missing Fab-Mkdir function"
     assert "Prompt-Value" in content, "Missing Prompt-Value function"
-    assert "fab auth status" in content, "Missing auth status check"
+    assert 'fab -c "auth status"' in content, "Missing fab -c auth status check"
     assert "FABRIC_CAPACITY_ID" in content, "Missing capacity prompt"
     assert "capacityId" in content, "Missing capacity assignment"
     assert "CONFIGURATION" in content, "Missing CONFIGURATION section"

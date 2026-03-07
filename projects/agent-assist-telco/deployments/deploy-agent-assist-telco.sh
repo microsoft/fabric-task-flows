@@ -83,7 +83,7 @@ fab_mkdir() {
   local err_output
 
   # Idempotency: skip if item already exists
-  if fab exists "$path" 2>/dev/null; then
+  if fab -c "exists $path" 2>/dev/null; then
     echo "  $tree_char ✅ $label (already exists)"
     DEPLOY_EXISTS=$((DEPLOY_EXISTS + 1))
     DEPLOY_LOG="${DEPLOY_LOG}\n  ✅ Exists   $label"
@@ -92,7 +92,7 @@ fab_mkdir() {
 
   # Retry with backoff for transient failures
   for attempt in $(seq 1 $max_retries); do
-    err_output=$(fab mkdir "$path" "${extra_args[@]}" 2>&1)
+    err_output=$(fab -c "mkdir $path ${extra_args[*]}" 2>&1)
     if [ $? -eq 0 ]; then
       echo "  $tree_char ✅ $label"
       DEPLOY_CREATED=$((DEPLOY_CREATED + 1))
@@ -200,15 +200,15 @@ main() {
   echo ""
   echo "  Checking authentication..."
   local auth_out
-  auth_out=$(fab auth status 2>&1)
+  auth_out=$(fab -c "auth status" 2>&1)
   if echo "$auth_out" | grep -qi "Not logged in"; then
     echo "  ── Not authenticated — launching browser login..."
-    fab auth login 2>/dev/null
-    auth_out=$(fab auth status 2>&1)
+    fab -c "auth login" 2>/dev/null
+    auth_out=$(fab -c "auth status" 2>&1)
     if echo "$auth_out" | grep -qi "Not logged in"; then
       echo "  ── ❌ Authentication failed."
       echo ""
-      echo "     Run manually:  fab auth login"
+      echo "     Run manually:  fab -c \"auth login\""
       echo "     Then re-run this script."
       exit 1
     fi
@@ -219,7 +219,7 @@ main() {
   # Workspace
   # ---------------------------------------------------------------------------
   echo ""
-  if fab exists "$FABRIC_WORKSPACE_NAME.Workspace" 2>/dev/null; then
+  if fab -c "exists $FABRIC_WORKSPACE_NAME.Workspace" 2>/dev/null; then
     echo "  ── ✅ Workspace already exists: $FABRIC_WORKSPACE_NAME"
   else
     echo "  Creating workspace..."
@@ -229,7 +229,7 @@ main() {
   # Assign capacity to workspace
   if [[ -n "$FABRIC_CAPACITY_ID" ]]; then
     echo "  ── Assigning capacity..."
-    if fab set "$FABRIC_WORKSPACE_NAME.Workspace" -q capacityId -i "$FABRIC_CAPACITY_ID" 2>/dev/null; then
+    if fab -c "set $FABRIC_WORKSPACE_NAME.Workspace -q capacityId -i $FABRIC_CAPACITY_ID" 2>/dev/null; then
       echo "  ── ✅ Capacity assigned"
     else
       echo "  ── ⚠️  Could not assign capacity — verify ID in portal (Admin → Capacities)"
@@ -344,7 +344,7 @@ main() {
 
   # Workspace ID
   local ws_json
-  ws_json=$(fab get "$FABRIC_WORKSPACE_NAME.Workspace" --output json 2>/dev/null || echo "{}")
+  ws_json=$(fab -c "get $FABRIC_WORKSPACE_NAME.Workspace --output json" 2>/dev/null || echo "{}")
   local workspace_id
   workspace_id=$(echo "$ws_json" | grep -o '"id"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"id"\s*:\s*"\([^"]*\)".*/\1/')
   workspace_id="${workspace_id:-(unavailable)}"
@@ -352,7 +352,7 @@ main() {
 
   # Tenant ID
   local auth_json
-  auth_json=$(fab auth status --output json 2>/dev/null || echo "{}")
+  auth_json=$(fab -c "auth status --output json" 2>/dev/null || echo "{}")
   local tenant_id
   tenant_id=$(echo "$auth_json" | grep -o '"tenantId"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"tenantId"\s*:\s*"\([^"]*\)".*/\1/')
   tenant_id="${tenant_id:-(unavailable)}"
@@ -365,10 +365,8 @@ main() {
 
   # Per-item IDs
   echo "  Item Details:"
-  # Re-parse deploy log for item names is not reliable; items were tracked above.
-  # Use fab ls to enumerate workspace items.
   local items_json
-  items_json=$(fab ls "$FABRIC_WORKSPACE_NAME.Workspace" --output json 2>/dev/null || echo "[]")
+  items_json=$(fab -c "ls $FABRIC_WORKSPACE_NAME.Workspace --output json" 2>/dev/null || echo "[]")
   echo "$items_json" | grep -o '"displayName"\s*:\s*"[^"]*"\|"id"\s*:\s*"[^"]*"' | paste - - | while read -r line; do
     local item_name item_id
     item_name=$(echo "$line" | sed 's/.*"displayName"\s*:\s*"\([^"]*\)".*/\1/')
