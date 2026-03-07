@@ -1,9 +1,15 @@
 # Reference Sources
 
-Load these shared reference documents when executing this skill:
+These references are bundled directly in this skill:
+
+- `references/deployment-patterns.md` — fab mkdir templates and item configuration
+- `references/parallel-deployment.md` — wave parallelization patterns
+- `references/rollback-protocol.md` — failure recovery procedures
+- `assets/script-template.sh` — bash deploy script template
+- `assets/script-template.ps1` — PowerShell deploy script template
+- `assets/fabric_deploy.py` — Python FabricDeployer utility class
+
+External shared references (load from `_shared/`):
 
 - `_shared/fabric-cli-commands.md` — fab CLI command reference
-- `_shared/deployment-patterns.md` — fab mkdir templates and item configuration
-- `_shared/parallel-deployment.md` — wave parallelization patterns
-- `_shared/rollback-protocol.md` — failure recovery procedures
 - `_shared/learnings.md` — operational gotchas (check before deploying)

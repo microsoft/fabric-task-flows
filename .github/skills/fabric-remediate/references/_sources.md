@@ -1,5 +1,9 @@
 # Reference Sources
 
-Load these shared reference documents when executing this skill:
+These references are bundled directly in this skill:
 
-- `_shared/rollback-protocol.md` — failure recovery procedures
+- `references/rollback-protocol.md` — failure recovery procedures
+
+External shared references:
+
+- `_shared/learnings.md` — known deployment gotchas

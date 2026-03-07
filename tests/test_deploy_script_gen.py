@@ -8,18 +8,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SHARED_DIR = REPO_ROOT / "_shared"
+DEPLOY_SKILL = REPO_ROOT / ".github" / "skills" / "fabric-deploy"
+ASSETS_DIR = DEPLOY_SKILL / "assets"
 
 
 def test_bash_template_exists():
-    assert (SHARED_DIR / "script-template.sh").exists()
+    assert (ASSETS_DIR / "script-template.sh").exists()
 
 
 def test_ps1_template_exists():
-    assert (SHARED_DIR / "script-template.ps1").exists()
+    assert (ASSETS_DIR / "script-template.ps1").exists()
 
 
 def test_bash_template_has_required_sections():
-    content = (SHARED_DIR / "script-template.sh").read_text(encoding="utf-8")
+    content = (ASSETS_DIR / "script-template.sh").read_text(encoding="utf-8")
     assert "fab_mkdir()" in content, "Missing fab_mkdir function"
     assert "prompt_value()" in content, "Missing prompt_value function"
     assert "fab auth status" in content, "Missing fab auth status check"
@@ -33,7 +35,7 @@ def test_bash_template_has_required_sections():
 
 
 def test_ps1_template_has_required_sections():
-    content = (SHARED_DIR / "script-template.ps1").read_text(encoding="utf-8")
+    content = (ASSETS_DIR / "script-template.ps1").read_text(encoding="utf-8")
     assert "New-FabItem" in content, "Missing New-FabItem function"
     assert "Prompt-Value" in content, "Missing Prompt-Value function"
     assert "Test-FabAuth" in content, "Missing Test-FabAuth function"
@@ -47,14 +49,14 @@ def test_ps1_template_has_required_sections():
 
 def test_bash_template_shows_errors():
     """Verify fab_mkdir captures errors instead of suppressing to /dev/null."""
-    content = (SHARED_DIR / "script-template.sh").read_text(encoding="utf-8")
+    content = (ASSETS_DIR / "script-template.sh").read_text(encoding="utf-8")
     assert "err_output" in content, "fab_mkdir should capture error output"
     assert 'Error: $err_output' in content, "fab_mkdir should display error on failure"
 
 
 def test_ps1_template_shows_errors():
     """Verify New-FabItem captures errors instead of piping to Out-Null."""
-    content = (SHARED_DIR / "script-template.ps1").read_text(encoding="utf-8")
+    content = (ASSETS_DIR / "script-template.ps1").read_text(encoding="utf-8")
     assert "$errOutput" in content, "New-FabItem should capture error output"
     assert 'errOutput.Trim()' in content, "New-FabItem should display trimmed error on failure"
 
@@ -70,10 +72,9 @@ def test_deploy_script_gen_imports():
 
 
 def test_fabric_deploy_utility_imports():
-    """Verify _shared/fabric_deploy.py can be imported."""
-    shared_dir = REPO_ROOT / "_shared"
-    assert (shared_dir / "fabric_deploy.py").exists(), "fabric_deploy.py missing from _shared"
-    sys.path.insert(0, str(shared_dir))
+    """Verify fabric_deploy.py can be imported from skill assets."""
+    assert (ASSETS_DIR / "fabric_deploy.py").exists(), "fabric_deploy.py missing from fabric-deploy/assets"
+    sys.path.insert(0, str(ASSETS_DIR))
     import fabric_deploy
     assert hasattr(fabric_deploy, "run_fab")
     assert hasattr(fabric_deploy, "FabricDeployer")

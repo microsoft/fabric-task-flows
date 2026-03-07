@@ -26,6 +26,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
+SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-deploy/
+ASSETS_DIR = SKILL_DIR / "assets"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Item type → fab command mapping
@@ -957,7 +959,7 @@ def _gen_python_script(data: HandoffData, project: str) -> str:
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     # Read the utility module and embed it inline
-    utility_path = SHARED_DIR / "fabric_deploy.py"
+    utility_path = ASSETS_DIR / "fabric_deploy.py"
     utility_code = utility_path.read_text(encoding="utf-8")
     # Strip the module docstring and imports that we'll add at the top
     # Keep everything after the imports block
@@ -1181,8 +1183,8 @@ def generate(handoff_path: str, project: str) -> tuple[str, str, str]:
     """
     data = parse_handoff(handoff_path)
 
-    bash_template = (SHARED_DIR / "script-template.sh").read_text(encoding="utf-8")
-    ps1_template = (SHARED_DIR / "script-template.ps1").read_text(encoding="utf-8")
+    bash_template = (ASSETS_DIR / "script-template.sh").read_text(encoding="utf-8")
+    ps1_template = (ASSETS_DIR / "script-template.ps1").read_text(encoding="utf-8")
 
     bash_script = _fill_template(
         template=bash_template,

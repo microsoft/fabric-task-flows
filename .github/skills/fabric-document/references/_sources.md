@@ -1,6 +1,6 @@
 # Reference Sources
 
-Load these shared reference documents when executing this skill:
+These references are bundled directly in this skill:
 
-- `_shared/adr-template.md` — ADR format template
-- `_shared/documentation-templates.md` — Wiki page templates
+- `references/adr-template.md` — ADR format template
+- `references/documentation-templates.md` — Wiki page templates
