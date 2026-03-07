@@ -51,18 +51,21 @@ PHASE_ORDER = [
     "4-document",
 ]
 
-# Agent mapping
-PHASE_AGENTS = {
-    "0a-discovery":  "fabric-advisor",
-    "1a-design":     "fabric-architect",
-    "1b-review":     "fabric-reviewer",
-    "1c-finalize":   "fabric-architect",
-    "2a-test-plan":  "fabric-tester",
+# Skill mapping — each phase delegates to a skill (except human gate)
+PHASE_SKILLS = {
+    "0a-discovery":  "fabric-discover",
+    "1a-design":     "fabric-design",
+    "1b-review":     "fabric-review",
+    "1c-finalize":   "fabric-finalize",
+    "2a-test-plan":  "fabric-test-plan",
     "2b-sign-off":   None,  # human gate
-    "2c-deploy":     "fabric-engineer",
-    "3-validate":    "fabric-tester",
-    "4-document":    "fabric-documenter",
+    "2c-deploy":     "fabric-deploy",
+    "3-validate":    "fabric-validate",
+    "4-document":    "fabric-document",
 }
+
+# Legacy alias for backward compatibility
+PHASE_AGENTS = PHASE_SKILLS
 
 # Pre-compute scripts to run before each agent phase
 PHASE_PRECOMPUTE: dict[str, list[list[str]]] = {
@@ -158,7 +161,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
 
     prompts = {
         "0a-discovery": (
-            f"You are @fabric-advisor. Read the agent file at .github/agents/fabric-advisor.agent.md for your instructions.\n\n"
+            f"Use the /fabric-discover skill. Read the skill at .github/skills/fabric-discover/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Problem statement from user: {state.get('problem_statement', '(see conversation history)')}\n\n"
             f"The project is already scaffolded at {pp}/. Edit the pre-existing files — do NOT create new ones.\n\n"
@@ -169,7 +172,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "1a-design": (
-            f"You are @fabric-architect. Read the agent file at .github/agents/fabric-architect.agent.md for your instructions.\n\n"
+            f"Use the /fabric-design skill. Read the skill at .github/skills/fabric-design/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Read the Discovery Brief from {pp}/prd/discovery-brief.md.\n\n"
             f"1. Read decisions/_index.md to find decision guides\n"
@@ -181,7 +184,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "1b-review": (
-            f"You are @fabric-reviewer. Read the agent file at .github/agents/fabric-reviewer.agent.md for your instructions.\n\n"
+            f"Use the /fabric-review skill. Read the skill at .github/skills/fabric-review/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the DRAFT Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
@@ -199,7 +202,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "1c-finalize": (
-            f"You are @fabric-architect (finalize mode). Read the agent file at .github/agents/fabric-architect.agent.md.\n\n"
+            f"Use the /fabric-finalize skill. Read the skill at .github/skills/fabric-finalize/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the engineer review from {pp}/prd/engineer-review.md\n"
@@ -210,7 +213,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "2a-test-plan": (
-            f"You are @fabric-tester (Mode 1). Read the agent file at .github/agents/fabric-tester.agent.md.\n\n"
+            f"Use the /fabric-test-plan skill. Read the skill at .github/skills/fabric-test-plan/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the FINAL Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
@@ -232,7 +235,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "2c-deploy": (
-            f"You are @fabric-engineer. Read the agent file at .github/agents/fabric-engineer.agent.md.\n\n"
+            f"Use the /fabric-deploy skill. Read the skill at .github/skills/fabric-deploy/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the FINAL Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
@@ -247,7 +250,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "3-validate": (
-            f"You are @fabric-tester (Mode 2). Read the agent file at .github/agents/fabric-tester.agent.md.\n\n"
+            f"Use the /fabric-validate skill. Read the skill at .github/skills/fabric-validate/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the Deployment Handoff from {pp}/prd/deployment-handoff.md\n"
@@ -257,7 +260,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"5. Validate deployment against the checklist and test plan\n"
             f"6. Write the Validation Report to {pp}/prd/validation-report.md\n"
             f"7. If issues found: categorize and write to {pp}/prd/remediation-log.md\n"
-            f"   - deployment/configuration/transient issues → route to engineer (auto-chain remediation)\n"
+            f"   - deployment/configuration/transient issues → route to engineer (use /fabric-remediate skill)\n"
             f"   - design issues → escalate (pipeline pauses)\n"
             f"   - Max 3 remediation iterations before escalating to user\n"
             f"8. Append any new operational learnings to _shared/learnings.md\n\n"
@@ -265,7 +268,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "4-document": (
-            f"You are @fabric-documenter. Read the agent file at .github/agents/fabric-documenter.agent.md.\n\n"
+            f"Use the /fabric-document skill. Read the skill at .github/skills/fabric-document/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read all handoffs from {pp}/prd/ (discovery-brief, architecture-handoff, test-plan, deployment-handoff, validation-report)\n"

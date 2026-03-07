@@ -2,24 +2,25 @@
 
 ## Project Overview
 
-This is a **documentation-only** knowledge base — there is no source code, build system, or tests. All content is Markdown. The repo provides pre-defined Microsoft Fabric architectures via six custom Copilot agents that collaborate in phases:
+This is a **documentation-only** knowledge base — there is no source code, build system, or tests. All content is Markdown. The repo provides pre-defined Microsoft Fabric architectures via one orchestrator agent (`@fabric-advisor`) that delegates to 10 composable skills:
 
 ```
-Phase 0 — Discover:   @fabric-advisor (Discovery Brief)
+Phase 0 — Discover:   @fabric-advisor + /fabric-discover skill
                         │ automatic
-Phase 1 — Design:     @fabric-architect (DRAFT) ──► @fabric-reviewer (Combined Review)
-                      @fabric-architect (incorporates feedback → FINAL Handoff)
+Phase 1 — Design:     /fabric-design skill (DRAFT) ──► /fabric-review skill
+                      /fabric-finalize skill (incorporates feedback → FINAL)
                         │ automatic
 Phase 2 — Plan+Approve+Deploy:
-                      @fabric-tester (Test Plan)
+                      /fabric-test-plan skill
                         │
                       ★ User Sign-Off (ONLY human gate)
                         │
-                      @fabric-engineer (Deploy)
+                      /fabric-deploy skill
                         │ automatic
-Phase 3 — Validate:    @fabric-tester (Validate against checklist)
+Phase 3 — Validate:    /fabric-validate skill
+                        (if issues → /fabric-remediate skill)
                         │ automatic
-Phase 4 — Document:    @fabric-documenter (ADRs + wiki)
+Phase 4 — Document:    /fabric-document skill
 ```
 
 ## Architecture
@@ -58,19 +59,30 @@ Each content directory has an `_index.md` routing table that agents should read 
 
 New projects are scaffolded via `python scripts/run-pipeline.py start "Project Name" --problem "description"`, which calls `new-project.py` internally to create all directories and template files, then initializes `pipeline-state.json` for phase tracking. Agents edit pre-existing files — they do not create directories or boilerplate. See `_shared/workflow-guide.md` for details.
 
-### Custom agents (`.github/agents/`)
+### Orchestrator agent (`.github/agents/`)
 
 | Agent | Role | Tools | Constraint |
 |-------|------|-------|------------|
-| `@fabric-advisor` | Discovers the problem, infers architectural signals, produces Discovery Brief | read, search, edit, execute | Read-only analysis; never makes architecture decisions or deploys |
-| `@fabric-architect` | Selects task flow, walks through decision guides, produces Architecture Handoff | read, search, edit | Never deploys |
-| `@fabric-tester` | Mode 0: reviews DRAFT architecture for testability; Mode 1: produces Test Plan; Mode 2: validates deployment | read, search, edit, execute | Never modifies Fabric items; edit is for STATUS.md/PROJECTS.md updates |
-| `@fabric-reviewer` | Combined engineer + tester DRAFT review in a single pass (replaces parallel Mode 0 calls) | read, search, edit | Review only; never deploys or makes architecture decisions |
-| `@fabric-engineer` | Deploys Fabric items following diagrams and deployment order | read, edit, execute, search | Never makes architecture decisions |
-| `@fabric-documenter` | Synthesizes all handoffs into wiki-style ADRs in `projects/[workspace]/docs/` | read, edit | Never deploys; documents only |
-| `@fabric-healer` | Self-healing signal mapper — generates diverse problem statements (LLM), benchmarks against signal mapper (scripts), patches keyword gaps | read, search, edit, execute | Never modifies matching algorithm; only expands keyword tuples; standalone workflow via `heal-orchestrator.py` |
+| `@fabric-advisor` | Orchestrates the full pipeline. Handles discovery directly, delegates all other phases to skills | read, search, edit, execute | Never makes architecture decisions or deploys; delegates via skills |
 
-The agents exchange structured **handoff documents** (Discovery Brief → Architecture Handoff → Test Plan → Deployment Handoff → Validation Report → Wiki Documentation). See each agent file for the exact handoff template. The ADR template is in `_shared/adr-template.md`.
+### Skills (`.github/skills/`)
+
+Skills are composable, auto-activating instruction packs that do the actual work. Each skill has a `SKILL.md` with trigger phrases, bundled references, and focused single-workflow instructions.
+
+| Skill | Phase | Purpose | Constraint |
+|-------|-------|---------|------------|
+| `/fabric-discover` | 0a | Signal inference from problem statements | Read-only analysis; never decides task flow |
+| `/fabric-design` | 1a | DRAFT Architecture Handoff (task flow + decisions) | Never deploys |
+| `/fabric-finalize` | 1c | Incorporates review feedback → FINAL | No new design decisions |
+| `/fabric-review` | 1b | Combined feasibility + testability review | Review only; never redesigns |
+| `/fabric-test-plan` | 2a | Maps acceptance criteria to validation checks | Never invents ACs |
+| `/fabric-deploy` | 2c | Wave-based deployment via `fab` CLI | Never makes architecture decisions |
+| `/fabric-validate` | 3 | Post-deployment validation against test plan | Never modifies Fabric items |
+| `/fabric-remediate` | 3+ | Fixes deployment/config issues from validation | Escalates design issues |
+| `/fabric-document` | 4 | Wiki + ADR synthesis from handoffs | Documents only |
+| `/fabric-heal` | Standalone | Self-healing signal mapper (problem generation + keyword patching) | Never modifies matching algorithm |
+
+Skills exchange structured **handoff documents** (Discovery Brief → Architecture Handoff → Test Plan → Deployment Handoff → Validation Report → Wiki Documentation). See each skill's `SKILL.md` for instructions. The ADR template is in `_shared/adr-template.md`.
 
 ### Decision guides (`decisions/`)
 
