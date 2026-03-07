@@ -65,24 +65,40 @@
 
 ## Healing History
 
-### Cycle: 2026-03-07 06:41 UTC
+### Cycle 2: 2026-03-07 06:47 UTC (40 problems — expanded test suite)
 
-| Metric | Before (pre-heal) | After (post-heal) | Delta |
+| Metric | Pre-heal baseline | Post-heal | Delta |
+|--------|--------|-------|-------|
+| Avg keyword coverage | 11.3% | 17.9% | **+6.6%** |
+| Zero-candidate problems | 6/40 | 0/40 | **-6** |
+| Lambda suggested (hybrids) | 0/40 | 11/40 | **+11** |
+| Ambiguous signals | 4/40 | 0/40 | **-4** |
+
+**Healing actions applied (cumulative):**
+- Expanded signal mapper keywords (+30 terms across 6 categories)
+- Fixed lambda inference: Cat 1+2 now synthesizes Cat 3 instead of `pass`
+- Added enterprise keywords: conglomerate, business units, federated, global view, multi-cloud
+- Added Power BI keywords: DirectQuery, Import mode, Direct Lake, gateway, refresh, semantic model
+- Added healthcare/finance: EMR, Epic, Cerner, FHIR, trading, regulatory reporting
+- Added streaming: SCADA, smart meters, OPC-UA, position monitoring, grid operations
+
+**Per-category coverage (pre-heal → post-heal):**
+- Ambiguous Intent: 5.7% → 15.6% (+9.9%)
+- Analytics & ML: 8.5% → 16.0% (+7.5%)
+- Batch & Warehouse: 7.2% → 17.4% (+10.2%)
+- Enterprise & Global Strategy: 8.2% → 23.3% (+15.1%)
+- Governance & Security: 7.0% → 13.0% (+6.0%)
+- Hybrid (Batch + Real-Time): 17.7% → 23.0% (+5.3%)
+- Multi-Platform Integration: 5.5% → 7.7% (+2.2%)
+- Power BI Users Exploring Fabric: 4.7% → 11.8% (+7.1%)
+- Real-Time & Streaming: 13.2% → 27.0% (+13.8%)
+- Vague / Ambiguous: 0.0% → 16.0% (+16.0%)
+
+### Cycle 1: 2026-03-07 06:41 UTC (20 problems — original test suite)
+
+| Metric | Pre-heal | Post-heal | Delta |
 |--------|--------|-------|-------|
 | Avg keyword coverage | 10.9% | 18.1% | +7.2% |
 | Zero-candidate problems | 3/20 | 0/20 | -3 |
-| Lambda suggested (hybrids) | 0/20 | 7/20 | +7 |
+| Lambda suggested | 0/20 | 7/20 | +7 |
 | Ambiguous signals | 4/20 | 0/20 | -4 |
-
-**Healing actions applied:**
-- Expanded signal mapper keywords (+15 terms across 4 categories)
-- Fixed lambda inference: Cat 1+2 now synthesizes Cat 3 instead of `pass`
-- Added natural language keywords: churn, propensity, data silos, GPS, clickstream, dashboard, etc.
-
-**Per-category coverage (before → after):**
-- Analytics & ML: 8.5% → 16.0% (+7.5%)
-- Batch & Warehouse: 7.2% → 15.6% (+8.4%)
-- Governance & Security: 7.0% → 13.0% (+6.0%)
-- Hybrid (Batch + Real-Time): 17.7% → 19.3% (+1.6%)
-- Real-Time & Streaming: 13.2% → 24.6% (+11.4%)
-- Vague / Ambiguous: 0.0% → 16.0% (+16.0%)
