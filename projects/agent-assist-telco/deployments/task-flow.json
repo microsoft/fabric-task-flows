@@ -1,178 +1,158 @@
 {
-  "name": "Agent Assist Telco — Lambda",
-  "description": "Dual-speed lambda architecture for telco call center AI. Real-time call event streaming via Eventhouse for live ops dashboards, batch transcript storage in Lakehouse for data science/ML, Warehouse gold layer for BI, and Dataverse CRM integration.",
+  "name": "agent-assist-telco",
+  "description": "Task flow for agent-assist-telco (lambda architecture)",
   "tasks": [
     {
+      "type": "store data",
+      "id": "task-2d268ad9-bb5b-404a-bd6d-78a1a7d7c740",
+      "name": "call-transcripts-lakehouse",
+      "description": "Batch storage for transcripts, CRM data, ML features"
+    },
+    {
+      "type": "store data",
+      "id": "task-2a7aedac-2a8e-4952-bcc4-9a7f33c0dbf1",
+      "name": "call-analytics-warehouse",
+      "description": "Gold serving layer for curated analytics"
+    },
+    {
+      "type": "store data",
+      "id": "task-d3dd2711-0add-4770-aff3-fe154046a090",
+      "name": "call-events-eventhouse",
+      "description": "Real-time call event stream storage (KQL)"
+    },
+    {
+      "type": "develop",
+      "id": "task-c7d99fde-b9d4-4e0b-ac00-952266323713",
+      "name": "spark-env",
+      "description": "Spark/Python runtime for notebooks"
+    },
+    {
       "type": "get data",
-      "id": "task-c61c11c3-c903-43b3-a2e9-65ba4656ed01",
-      "name": "Real-time call stream",
-      "description": "Ingest live telephony transcription events via Eventstream (call-stream-eventstream) from Event Hub."
+      "id": "task-ab12e9bc-3bfa-4798-93d3-d470419cdbfb",
+      "name": "call-stream-eventstream",
+      "description": "Ingest real-time transcription stream into Eventhouse"
     },
     {
       "type": "get data",
-      "id": "task-5ba07563-1cfa-40d6-b425-80b091339ec5",
-      "name": "CRM batch sync",
-      "description": "Sync Dataverse CRM entities (contacts, cases, agents) via Pipeline (crm-sync-pipeline) using Fabric Link."
-    },
-    {
-      "type": "store data",
-      "id": "task-2729c3ce-c74c-4c8e-a722-fd1cfe828dc1",
-      "name": "Speed layer store",
-      "description": "Capture raw call events in near-real-time in Eventhouse (call-events-eventhouse) for sub-second query latency."
-    },
-    {
-      "type": "store data",
-      "id": "task-dd8e73be-8987-4395-9546-ec007b95cc1c",
-      "name": "KQL database",
-      "description": "KQL Database (call-events-kqldb) inside the Eventhouse for structured KQL queries on streaming call data."
-    },
-    {
-      "type": "store data",
-      "id": "task-bba16f02-60e6-4b4e-9c6f-05beadd82b4b",
-      "name": "Batch layer store",
-      "description": "Store raw and processed call transcripts in Lakehouse (call-transcripts-lakehouse) as Delta tables for data science."
+      "id": "task-bf9306a3-d762-4dfc-a874-b4b8fdfee2ed",
+      "name": "crm-sync-pipeline",
+      "description": "Orchestrate Dataverse CRM data sync to Lakehouse"
     },
     {
       "type": "prepare data",
-      "id": "task-b1cad814-8e2a-44b6-b330-d090075a10b6",
-      "name": "Spark environment",
-      "description": "Shared compute environment (spark-env) with Python libraries for notebooks. Published before notebook attachment."
+      "id": "task-e4590a48-2508-40cd-951d-e36f081336de",
+      "name": "transcript-etl-notebook",
+      "description": "Transform raw transcripts \u2192 curated features"
     },
     {
       "type": "prepare data",
-      "id": "task-0459f55f-d07c-44e5-ad92-ae45adfc55b5",
-      "name": "Real-time aggregation",
-      "description": "KQL Queryset (call-insights-kql) computes live call metrics — queue depth, avg handle time, SLA breach alerts."
+      "id": "task-5d7882e1-0a60-4625-b6df-015216c3af65",
+      "name": "call-insights-kql",
+      "description": "Real-time aggregations and call event analysis"
+    },
+    {
+      "type": "visualize",
+      "id": "task-c5232431-74e2-4963-bfc4-879fd9601368",
+      "name": "call-analytics-model",
+      "description": "Direct Lake model over Warehouse for Power BI"
+    },
+    {
+      "type": "visualize",
+      "id": "task-2c541538-896e-41e7-84d1-ecb36fa625be",
+      "name": "call-ops-rt-dash",
+      "description": "Live call queue and active call monitoring"
+    },
+    {
+      "type": "visualize",
+      "id": "task-fd5cedae-5ed2-4855-b371-c0ddf4c11fdd",
+      "name": "call-analytics-report",
+      "description": "Historical call volume, trends, agent performance"
+    },
+    {
+      "type": "track data",
+      "id": "task-f0d2a26f-9f34-45ea-b4c2-601d8e372780",
+      "name": "call-alert-activator",
+      "description": "Queue backup and SLA breach alerts"
+    },
+    {
+      "type": "analyze and train data",
+      "id": "task-ee8bd0a3-47eb-4503-b4fe-af5889987393",
+      "name": "transcript-ml-experiment",
+      "description": "ML experiment tracking for transcript models"
+    },
+    {
+      "type": "analyze and train data",
+      "id": "task-34991e73-111a-42e5-af46-0a286c89e800",
+      "name": "transcript-ml-model",
+      "description": "Trained model for call routing/classification"
     },
     {
       "type": "prepare data",
-      "id": "task-ea72300f-1f07-44cf-a505-b2add34cd5e7",
-      "name": "Batch ETL",
-      "description": "Notebook (transcript-etl-notebook) transforms raw transcripts → silver (cleaned) → gold (enriched with CRM data) in Lakehouse."
-    },
-    {
-      "type": "store data",
-      "id": "task-af35a945-807a-4fd9-b999-900479f2fc2d",
-      "name": "Gold serving layer",
-      "description": "Warehouse (call-analytics-warehouse) stores gold-layer dimensional model for BI — fact_calls, dim_agents, dim_customers."
-    },
-    {
-      "type": "visualize",
-      "id": "task-7ec60ccd-b028-4fef-8795-822a44cc2c75",
-      "name": "Semantic model",
-      "description": "Semantic Model (call-analytics-model) in Direct Lake mode over Warehouse for fast Power BI without import refresh."
-    },
-    {
-      "type": "visualize",
-      "id": "task-7ef41643-4390-4619-b827-2c79e4676d4b",
-      "name": "Real-time dashboard",
-      "description": "Real-Time Dashboard (call-ops-rt-dash) showing live call queue, agent status, SLA gauges from Eventhouse KQL queries."
-    },
-    {
-      "type": "visualize",
-      "id": "task-88e86968-3a8b-488b-a3aa-ad4ec12c4875",
-      "name": "Analytics report",
-      "description": "Power BI Report (call-analytics-report) for historical call analytics — trends, agent performance, customer satisfaction."
-    },
-    {
-      "type": "analyze and train data",
-      "id": "task-98f40a2f-ba74-4513-9157-8aff277a85cb",
-      "name": "ML experimentation",
-      "description": "ML Experiment (transcript-ml-experiment) for training models on transcript data — sentiment, intent classification, churn."
-    },
-    {
-      "type": "analyze and train data",
-      "id": "task-e0ede2c4-4aab-4853-9223-649e5c6e51f8",
-      "name": "ML model registry",
-      "description": "ML Model (transcript-ml-model) stores the promoted model version for production scoring."
-    },
-    {
-      "type": "analyze and train data",
-      "id": "task-0168e7e3-4e00-4bef-b7c5-feda60aeab57",
-      "name": "ML scoring",
-      "description": "Notebook (ml-scoring-notebook) runs batch inference on new transcripts using the registered model, writes predictions to Lakehouse."
+      "id": "task-6310103a-b1a4-40f7-8ffd-f68839336ac4",
+      "name": "ml-scoring-notebook",
+      "description": "Score new transcripts with trained model"
     }
   ],
   "edges": [
     {
-      "source": "task-c61c11c3-c903-43b3-a2e9-65ba4656ed01",
-      "target": "task-2729c3ce-c74c-4c8e-a722-fd1cfe828dc1",
-      "label": "stream → speed layer"
+      "source": "task-2d268ad9-bb5b-404a-bd6d-78a1a7d7c740",
+      "target": "task-c7d99fde-b9d4-4e0b-ac00-952266323713"
     },
     {
-      "source": "task-2729c3ce-c74c-4c8e-a722-fd1cfe828dc1",
-      "target": "task-dd8e73be-8987-4395-9546-ec007b95cc1c",
-      "label": "eventhouse → kql database"
+      "source": "task-d3dd2711-0add-4770-aff3-fe154046a090",
+      "target": "task-ab12e9bc-3bfa-4798-93d3-d470419cdbfb"
     },
     {
-      "source": "task-dd8e73be-8987-4395-9546-ec007b95cc1c",
-      "target": "task-0459f55f-d07c-44e5-ad92-ae45adfc55b5",
-      "label": "kql db → real-time queries"
+      "source": "task-2d268ad9-bb5b-404a-bd6d-78a1a7d7c740",
+      "target": "task-bf9306a3-d762-4dfc-a874-b4b8fdfee2ed"
     },
     {
-      "source": "task-0459f55f-d07c-44e5-ad92-ae45adfc55b5",
-      "target": "task-7ef41643-4390-4619-b827-2c79e4676d4b",
-      "label": "rt aggregations → rt dashboard"
+      "source": "task-2d268ad9-bb5b-404a-bd6d-78a1a7d7c740",
+      "target": "task-e4590a48-2508-40cd-951d-e36f081336de"
     },
     {
-      "source": "task-c61c11c3-c903-43b3-a2e9-65ba4656ed01",
-      "target": "task-bba16f02-60e6-4b4e-9c6f-05beadd82b4b",
-      "label": "stream → batch store (dual write)"
+      "source": "task-c7d99fde-b9d4-4e0b-ac00-952266323713",
+      "target": "task-e4590a48-2508-40cd-951d-e36f081336de"
     },
     {
-      "source": "task-5ba07563-1cfa-40d6-b425-80b091339ec5",
-      "target": "task-bba16f02-60e6-4b4e-9c6f-05beadd82b4b",
-      "label": "crm sync → batch store"
+      "source": "task-d3dd2711-0add-4770-aff3-fe154046a090",
+      "target": "task-5d7882e1-0a60-4625-b6df-015216c3af65"
     },
     {
-      "source": "task-b1cad814-8e2a-44b6-b330-d090075a10b6",
-      "target": "task-ea72300f-1f07-44cf-a505-b2add34cd5e7",
-      "label": "env → notebook (compute dependency)"
+      "source": "task-2a7aedac-2a8e-4952-bcc4-9a7f33c0dbf1",
+      "target": "task-c5232431-74e2-4963-bfc4-879fd9601368"
     },
     {
-      "source": "task-bba16f02-60e6-4b4e-9c6f-05beadd82b4b",
-      "target": "task-ea72300f-1f07-44cf-a505-b2add34cd5e7",
-      "label": "lakehouse → batch etl"
+      "source": "task-d3dd2711-0add-4770-aff3-fe154046a090",
+      "target": "task-2c541538-896e-41e7-84d1-ecb36fa625be"
     },
     {
-      "source": "task-ea72300f-1f07-44cf-a505-b2add34cd5e7",
-      "target": "task-af35a945-807a-4fd9-b999-900479f2fc2d",
-      "label": "batch etl → gold warehouse"
+      "source": "task-c5232431-74e2-4963-bfc4-879fd9601368",
+      "target": "task-fd5cedae-5ed2-4855-b371-c0ddf4c11fdd"
     },
     {
-      "source": "task-af35a945-807a-4fd9-b999-900479f2fc2d",
-      "target": "task-7ec60ccd-b028-4fef-8795-822a44cc2c75",
-      "label": "warehouse → semantic model"
+      "source": "task-ab12e9bc-3bfa-4798-93d3-d470419cdbfb",
+      "target": "task-f0d2a26f-9f34-45ea-b4c2-601d8e372780"
     },
     {
-      "source": "task-7ec60ccd-b028-4fef-8795-822a44cc2c75",
-      "target": "task-88e86968-3a8b-488b-a3aa-ad4ec12c4875",
-      "label": "semantic model → report"
+      "source": "task-2d268ad9-bb5b-404a-bd6d-78a1a7d7c740",
+      "target": "task-ee8bd0a3-47eb-4503-b4fe-af5889987393"
     },
     {
-      "source": "task-bba16f02-60e6-4b4e-9c6f-05beadd82b4b",
-      "target": "task-98f40a2f-ba74-4513-9157-8aff277a85cb",
-      "label": "lakehouse → ml training"
+      "source": "task-c7d99fde-b9d4-4e0b-ac00-952266323713",
+      "target": "task-ee8bd0a3-47eb-4503-b4fe-af5889987393"
     },
     {
-      "source": "task-98f40a2f-ba74-4513-9157-8aff277a85cb",
-      "target": "task-e0ede2c4-4aab-4853-9223-649e5c6e51f8",
-      "label": "experiment → model registry"
+      "source": "task-ee8bd0a3-47eb-4503-b4fe-af5889987393",
+      "target": "task-34991e73-111a-42e5-af46-0a286c89e800"
     },
     {
-      "source": "task-e0ede2c4-4aab-4853-9223-649e5c6e51f8",
-      "target": "task-0168e7e3-4e00-4bef-b7c5-feda60aeab57",
-      "label": "model → scoring notebook"
+      "source": "task-34991e73-111a-42e5-af46-0a286c89e800",
+      "target": "task-6310103a-b1a4-40f7-8ffd-f68839336ac4"
     },
     {
-      "source": "task-b1cad814-8e2a-44b6-b330-d090075a10b6",
-      "target": "task-0168e7e3-4e00-4bef-b7c5-feda60aeab57",
-      "label": "env → scoring notebook (compute dependency)"
-    },
-    {
-      "source": "task-0168e7e3-4e00-4bef-b7c5-feda60aeab57",
-      "target": "task-bba16f02-60e6-4b4e-9c6f-05beadd82b4b",
-      "label": "predictions → lakehouse (writeback)"
+      "source": "task-c7d99fde-b9d4-4e0b-ac00-952266323713",
+      "target": "task-6310103a-b1a4-40f7-8ffd-f68839336ac4"
     }
   ]
 }
