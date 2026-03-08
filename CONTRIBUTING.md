@@ -83,6 +83,7 @@ Key rules:
 - **MUST** use `run-pipeline.py` to orchestrate — not ad-hoc agent chaining
 - **MUST** run pre-compute scripts before LLM reasoning (e.g., `signal-mapper.py` before discovery, `review-prescan.py` before review, `deploy-script-gen.py` before deploy)
 - **MUST** use each skill's `schemas/` directory for handoff output format
+- **MUST** use `fabric-cicd` as the sole deployment and validation dependency — do NOT introduce `ms-fabric-cli` (`fab`) or other CLI tools
 - **MUST NOT** hand-write deployment scripts, handoff YAML structure, or pipeline state
 - **MUST NOT** skip pre-compute steps even if the LLM "knows" the answer
 

@@ -108,8 +108,8 @@ Read `projects/[name]/prd/remediation-log.md`. Filter issues where `routed_to: e
 
 ### Step 2: Fix Issues
 
-- **Deployment issues** — re-deploy item via `fabric-cicd`, verify with `fab exists`
-- **Configuration issues** — update settings via Fabric REST API or portal, verify with `fab get`
+- **Deployment issues** — re-deploy item via `fabric-cicd`, verify with `validate-items.py`
+- **Configuration issues** — update settings via Fabric REST API or portal, re-run validation
 - **Transient issues** — wait appropriate interval, retry validation
 
 ### Step 3: Update Remediation Log

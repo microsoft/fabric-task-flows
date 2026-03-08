@@ -89,7 +89,9 @@ Each guide uses **YAML frontmatter** with `id`, `title`, `description`, `trigger
 
 ### Deployment tooling
 
-The `fabric-cicd` library (`pip install fabric-cicd`) is the only deployment dependency. The `/fabric-deploy` skill's `deploy-script-gen.py` generates `fabric-cicd` workspace directories, config files, and deploy scripts. Post-deployment validation uses `validate-items.py` which calls the Fabric REST API directly using the same auth (`DefaultAzureCredential`) that `fabric-cicd` provides — no additional installs needed. Legacy `validate-items.ps1/.sh` scripts using `fab exists` are still available as alternatives. See the deploy skill's `references/prerequisites.md` for setup.
+> **⚠️ `fabric-cicd` is the ONLY deployment dependency.** Do NOT introduce `ms-fabric-cli` (`fab`) or other CLI tools. All deployment and validation uses `fabric-cicd` and the Fabric REST API.
+
+The `fabric-cicd` library (`pip install fabric-cicd`) handles deployment and provides the transitive dependencies (`azure-identity`, `requests`) used for REST API validation. The `/fabric-deploy` skill's `deploy-script-gen.py` generates `fabric-cicd` workspace directories, config files, and deploy scripts. Post-deployment validation uses `validate-items.py` which calls the Fabric REST API directly. See the deploy skill's `references/prerequisites.md` for setup.
 
 ### Architecture vs. deployment details
 
@@ -106,8 +108,8 @@ At Phase 2b, the user can either approve the architecture or request revisions:
 
 ### Deployment practices
 
-- **Deployment:** `fabric-cicd` library (primary) — see fabric-deploy skill's `references/prerequisites.md`
-- **Validation:** `validate-items.py` (REST API, no CLI dependency) or legacy `fab exists`
+- **Deployment:** `fabric-cicd` library — see fabric-deploy skill's `references/prerequisites.md`
+- **Validation:** `validate-items.py` (REST API) — see fabric-test skill
 - **CI/CD:** `fabric-cicd` library — see fabric-design skill's `references/cicd-practices.md`
 - **Parameterization:** Variable Library (preferred), parameter.yml, or env vars — see `decisions/parameterization-selection.md`
 - **Parallel deployment:** Waves from `diagrams/[task-flow].md` — see fabric-deploy skill's `references/parallel-deployment.md`

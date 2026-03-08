@@ -46,27 +46,9 @@ Items are separated into workspace categories (e.g., storage, engineering, orche
 
 ---
 
-## Deployment Tools
+## Deployment Tool
 
-Two tools are available. They complement each other — choose based on your workflow.
-
-### Fabric CLI (`fab`)
-
-**Best for:** Interactive development, ad-hoc deployments, first-time item creation, verification.
-
-```bash
-pip install ms-fabric-cli
-fab auth login
-fab mkdir <ws>.Workspace/<name>.Lakehouse
-fab set <ws>.Workspace/<nb>.Notebook -q lakehouse -i '<json>'
-fab exists <ws>.Workspace/<name>.Lakehouse
-```
-
-See `_shared/fabric-cli-commands.md` for the full command reference.
-
-### fabric-cicd Python Library
-
-**Best for:** Automated CI/CD pipelines, Git-integrated deployments, multi-environment promotion.
+> **⚠️ `fabric-cicd` is the sole deployment tool.** Do NOT use `ms-fabric-cli` (`fab`) for deployment or validation.
 
 ```bash
 pip install fabric-cicd
@@ -93,19 +75,6 @@ Key characteristics:
 - **Cross-workspace references need parameterization** via `parameter.yml`
 - Docs: https://microsoft.github.io/fabric-cicd/0.1.23/
 
-### When to Use Which
-
-| Scenario | Tool |
-|----------|------|
-| First-time workspace setup | `fab` CLI |
-| Interactive exploration / debugging | `fab` CLI |
-| Ad-hoc item creation | `fab` CLI |
-| Automated CI/CD pipeline | `fabric-cicd` |
-| Multi-environment promotion (PPE → PROD) | `fabric-cicd` |
-| Git-integrated deployments | `fabric-cicd` |
-| Item verification / listing | `fab` CLI |
-| Both in same project | `fab` for manual steps, `fabric-cicd` for automated pipeline |
-
 ---
 
 ## Parameterization
@@ -116,7 +85,7 @@ Three approaches for environment-specific configuration, from Fabric-native to c
 |----------|----------|------|
 | Variable Library | Fabric-native, multi-env, item references | Portal / REST API / Git |
 | `parameter.yml` | Automated `fabric-cicd` pipelines, deployment-time replacement | `fabric-cicd` Python library |
-| Environment variables | Single-env, simple `fab` CLI scripts | Shell / CI/CD variables |
+| Environment variables | Single-env, simple deploy scripts | Shell / CI/CD variables |
 
 ### Variable Library (Fabric-Native)
 
