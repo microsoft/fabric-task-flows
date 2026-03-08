@@ -51,10 +51,10 @@ The `scripts/` directory contains pipeline utilities. Pre-compute scripts live i
 
 ## Deploy script generation
 
-The deploy script generator (`.github/skills/fabric-deploy/scripts/deploy-script-gen.py`) produces a self-contained Python deploy script from architecture handoffs. The generated script embeds the `FabricDeployer` utility module inline — no external imports needed. Key features:
+The deploy script generator (`.github/skills/fabric-deploy/scripts/deploy-script-gen.py`) produces `fabric-cicd` workspace directories and a self-contained Python deploy script from architecture handoffs. Key features:
 
-- **`FabricDeployer` class** — Manages workspace creation, item deployment with idempotency, retry with backoff, and result tracking
-- **Workspace selection** — Interactive "Create new or use existing" picker via `fab ls`
+- **`fabric-cicd` integration** — Generates workspace directory structure with `.platform` files and `config.yml` for `fabric-cicd` deployment
+- **Workspace selection** — Interactive "Create new or use existing" picker
 - **Descriptions file** — Loads `descriptions-{slug}.json` for workspace and item descriptions
 - **Folder organization** — Creates workspace folders (Storage, Configuration, Ingestion, Processing, Analytics, Machine Learning) before item deployment
 - **Post-deploy metadata** — Exports `post-deploy-metadata-{slug}.json` with workspace and item IDs
