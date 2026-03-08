@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 # =============================================================================
+# ⚠️ DEPRECATED — Use validate-items.py (REST API) instead.
+# This script requires ms-fabric-cli which is no longer a project dependency.
+# Retained for backward compatibility only.
+# =============================================================================
 # Fabric Task Flows — Validation Script
 # Parses a deployment-handoff.md, runs `fab exists` for each deployed item,
 # and outputs a pre-filled validation-report.md YAML block to stdout.
@@ -105,7 +109,7 @@ declare -A FAB_TYPES=(
   ["MLModel"]="MLModel"
 )
 
-PORTAL_ONLY=("Activator" "RealTimeDashboard" "GraphQLApi" "UserDataFunctions" "VariableLibrary" "Dataflow" "CosmosDB" "Mirroring" "Ontology" "DataAgent")
+PORTAL_ONLY=("Activator" "RealTimeDashboard" "GraphQLApi" "UserDataFunctions" "Dataflow" "CosmosDB" "Mirroring" "Ontology" "DataAgent")
 
 is_portal_only() {
   local t="$1"

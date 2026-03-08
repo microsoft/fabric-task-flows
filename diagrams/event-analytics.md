@@ -86,6 +86,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │   1   │ Eventhouse       │ [LC]     │ (none - foundation)    │ All ingestion, queries, dash │
 ├───────┼──────────────────┼──────────┼────────────────────────┼──────────────────────────────┤
 │  1b   │ Environment      │ [CF]     │ (optional)             │ Notebooks                    │
+│  1b   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────┼──────────┼────────────────────────┼──────────────────────────────┤
 │  2a   │ Eventstream      │ [LC]     │ Eventhouse             │ Real-time data ingestion     │
 │  2b   │ Copy Job         │ [LC]     │ Eventhouse             │ Batch data ingestion         │

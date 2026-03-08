@@ -57,6 +57,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both   [Portal] = Fab
 │   1   │ Lakehouse or     │ [LC/CF]  │ (none - foundation)    │ Semantic Model     │
 │       │ Warehouse        │          │ Deploy via another     │                    │
 │       │                  │          │ task flow if needed    │                    │
+│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2   │ Semantic Model   │ [LC/CF]  │ Storage (populated)    │ Data Agent         │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤

@@ -87,6 +87,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   1   │ Eventhouse       │ [LC]     │ (none - foundation)    │ KQL Databases      │
+│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2a  │ Eventstream      │ [LC]     │ Eventhouse             │ Real-time data     │
 │   2b  │ Copy Job         │ [LC]     │ Eventhouse             │ Batch data         │

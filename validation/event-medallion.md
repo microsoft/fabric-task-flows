@@ -24,7 +24,14 @@ Post-deployment validation for Event Medallion task flow.
 - [ ] KQL Database (Silver) created
 - [ ] KQL Database (Gold) created
 
-### Phase 2: Ingestion
+### Phase 2: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 3: Ingestion
 
 - [ ] Real-time ingestion configured:
   - [ ] Eventstream connected to source
@@ -33,7 +40,7 @@ Post-deployment validation for Event Medallion task flow.
   - [ ] Copy Job or Pipeline configured
   - [ ] Data loading to Bronze
 
-### Phase 3: Transformation
+### Phase 4: Transformation
 
 - [ ] KQL Queryset created
 - [ ] Bronze → Silver transformation working
@@ -41,14 +48,14 @@ Post-deployment validation for Event Medallion task flow.
 - [ ] Update policies configured (continuous ingestion)
 - [ ] Materialized views created
 
-### Phase 4: Visualization
+### Phase 5: Visualization
 
 - [ ] Real-Time Dashboard created
 - [ ] Dashboard tiles connected to Gold
 - [ ] Report created (for historical analysis)
 - [ ] Refresh configured
 
-### Phase 5: Monitoring
+### Phase 6: Monitoring
 
 - [ ] Activator configured (if applicable)
 - [ ] Alert conditions defined

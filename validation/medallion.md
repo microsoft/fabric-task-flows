@@ -31,23 +31,30 @@ Post-deployment validation for Medallion task flow.
 - [ ] Environment created and published
 - [ ] Libraries installed
 
-### Phase 3: Ingestion
+### Phase 3: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 4: Ingestion
 
 - [ ] Ingestion items configured
 - [ ] Data flowing to Bronze layer
 
-### Phase 4: Transformation
+### Phase 5: Transformation
 
 - [ ] Bronze → Silver notebook working
 - [ ] Silver → Gold notebook working
 - [ ] Data quality validated per layer
 
-### Phase 5: Visualization
+### Phase 6: Visualization
 
 - [ ] Semantic Model bound to Gold
 - [ ] Reports rendering correctly
 
-### Phase 6: ML (optional)
+### Phase 7: ML (optional)
 
 - [ ] Experiment runs successfully
 - [ ] Model registered

@@ -23,32 +23,39 @@ Post-deployment validation for Basic Machine Learning Models task flow.
 - [ ] Environment created and published
 - [ ] ML libraries installed (sklearn, mlflow, etc.)
 
-### Phase 2: Data Exploration
+### Phase 2: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 3: Data Exploration
 
 - [ ] Exploration notebook attached to environment
 - [ ] Notebook can read data from Lakehouse
 - [ ] Data profiling complete
 
-### Phase 3: Training
+### Phase 4: Training
 
 - [ ] Experiment created
 - [ ] Training notebook runs successfully
 - [ ] MLflow logging working
 - [ ] Metrics tracked in experiment
 
-### Phase 4: Model Registration
+### Phase 5: Model Registration
 
 - [ ] Best run identified
 - [ ] Model registered from experiment
 - [ ] Model version tagged
 
-### Phase 5: Batch Predictions
+### Phase 6: Batch Predictions
 
 - [ ] Prediction notebook loads model successfully
 - [ ] Predictions written to Lakehouse
 - [ ] Prediction table accessible
 
-### Phase 6: Visualization
+### Phase 7: Visualization
 
 - [ ] Report built on Lakehouse data
 - [ ] Predictions visible in report

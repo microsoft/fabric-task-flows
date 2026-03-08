@@ -23,7 +23,14 @@ Post-deployment validation for Data Analytics Using SQL Endpoint task flow.
 - [ ] SQL analytics endpoint accessible
 - [ ] Delta tables created
 
-### Phase 2: Data Processing
+### Phase 2: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 3: Data Processing
 
 - [ ] Processing method configured:
   - [ ] OPTION A: Notebook (for ad-hoc/development)
@@ -31,7 +38,7 @@ Post-deployment validation for Data Analytics Using SQL Endpoint task flow.
 - [ ] Data transformations complete
 - [ ] Delta tables populated
 
-### Phase 3: Semantic Layer
+### Phase 4: Semantic Layer
 
 - [ ] Semantic Model created
 - [ ] Connected to SQL analytics endpoint
@@ -39,7 +46,7 @@ Post-deployment validation for Data Analytics Using SQL Endpoint task flow.
 - [ ] Measures created
 - [ ] Refresh configured
 
-### Phase 4: Visualization
+### Phase 5: Visualization
 
 - [ ] Report created and rendering
 - [ ] Dashboard configured (if applicable)

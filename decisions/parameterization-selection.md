@@ -33,14 +33,14 @@ options:
       tool: Shell / Python scripts
       approach: OS-level environment variables in deployment scripts
       value_types: ["any string value"]
-      best_for: ["simple projects", "single environment", "fab CLI scripts"]
+      best_for: ["simple projects", "single environment", "deploy scripts"]
       stage_management: Set vars before running script
       git_integration: Variables not in git (secrets stay out of repo)
 quick_decision: |
   Single environment → Environment Variables (or skip)
   Multi-env + Fabric Git → Variable Library
   Multi-env + fabric-cicd → parameter.yml
-  Multi-env + fab CLI → Environment Variables or Variable Library
+  Multi-env + deploy scripts → Environment Variables or Variable Library
 ---
 
 # Parameterization Selection
@@ -60,7 +60,7 @@ How many deployment environments?
     │
     ├─► Using fabric-cicd library? ──────► parameter.yml
     │
-    └─► Using fab CLI scripts? ──────────► ENVIRONMENT VARIABLES or VARIABLE LIBRARY
+    └─► Using deploy scripts? ─────────► ENVIRONMENT VARIABLES or VARIABLE LIBRARY
 ```
 
 ## Comparison Table
@@ -73,7 +73,7 @@ How many deployment environments?
 | **Value Sets / Stages** | ✅ Built-in — one active per workspace | ✅ Per-environment YAML sections | ⚠️ Manual — set before each run |
 | **Runtime Consumption** | ✅ NotebookUtils, Shortcuts, UDFs | ❌ Deploy-time only | ⚠️ Script-time only |
 | **Git Integration** | ✅ JSON definition syncs | ✅ YAML in repo | ❌ Not in repo (by design) |
-| **Supported Consumers** | Notebooks, Pipelines, Shortcuts, UDFs | Any Fabric item (at deploy time) | fab CLI scripts |
+| **Supported Consumers** | Notebooks, Pipelines, Shortcuts, UDFs | Any Fabric item (at deploy time) | Deploy scripts |
 | **Max Complexity** | 1,000 variables × 1,000 value sets | Unlimited (file-based) | Unlimited (env-based) |
 | **Learning Curve** | Low (portal UI) | Medium (YAML syntax + library) | Low (shell basics) |
 | **Secrets Handling** | ⚠️ Not for secrets — values visible | ⚠️ Not for secrets in YAML | ✅ Secrets stay in env/vault |

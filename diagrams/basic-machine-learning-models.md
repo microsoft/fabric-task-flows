@@ -81,6 +81,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │       │                      │          │                        │ Report             │
 ├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2   │ Environment          │ [CF]     │ (none)                 │ Notebooks (compute)│
+│   2   │ Variable Library     │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   3   │ Notebook (explore)   │ [CF]     │ Lakehouse, Environment │ Training           │
 ├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤

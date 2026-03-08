@@ -1,6 +1,7 @@
-"""Tests for deploy-script-gen.py — verifies generated scripts have required sections."""
+"""Tests for deploy-script-gen.py — verifies fabric-cicd artifact generation."""
 
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "_shared"))
@@ -9,56 +10,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SHARED_DIR = REPO_ROOT / "_shared"
 DEPLOY_SKILL = REPO_ROOT / ".github" / "skills" / "fabric-deploy"
-ASSETS_DIR = DEPLOY_SKILL / "assets"
-
-
-def test_bash_template_exists():
-    assert (ASSETS_DIR / "script-template.sh").exists()
-
-
-def test_ps1_template_exists():
-    assert (ASSETS_DIR / "script-template.ps1").exists()
-
-
-def test_bash_template_has_required_sections():
-    content = (ASSETS_DIR / "script-template.sh").read_text(encoding="utf-8")
-    assert "fab_mkdir()" in content, "Missing fab_mkdir function"
-    assert "prompt_value()" in content, "Missing prompt_value function"
-    assert "fab auth status" in content, "Missing fab auth status check"
-    assert "FABRIC_CAPACITY_NAME" in content, "Missing capacity prompt"
-    assert "fab assign" in content or "fab config set default_capacity" in content, "Missing capacity assignment"
-    assert "CONFIGURATION" in content, "Missing CONFIGURATION section"
-    assert "DEPLOYMENT PLAN" in content, "Missing DEPLOYMENT PLAN section"
-    assert "DEPLOYMENT SUMMARY" in content, "Missing DEPLOYMENT SUMMARY section"
-    assert "POST-DEPLOYMENT METADATA" in content, "Missing POST-DEPLOYMENT METADATA section"
-    assert '* true' in content, "Missing verified exists check pattern"
-
-
-def test_ps1_template_has_required_sections():
-    content = (ASSETS_DIR / "script-template.ps1").read_text(encoding="utf-8")
-    assert "New-FabItem" in content, "Missing New-FabItem function"
-    assert "Prompt-Value" in content, "Missing Prompt-Value function"
-    assert "Test-FabAuth" in content, "Missing Test-FabAuth function"
-    assert "Test-FabExists" in content, "Missing Test-FabExists function"
-    assert "Select-FabCapacity" in content, "Missing Select-FabCapacity function"
-    assert "CONFIGURATION" in content, "Missing CONFIGURATION section"
-    assert '* true' in content, "Missing verified exists check pattern"
-    assert "fab assign" in content or "fab config set default_capacity" in content, "Missing capacity assignment"
-    assert "Description" in content, "Missing Description parameter support"
-
-
-def test_bash_template_shows_errors():
-    """Verify fab_mkdir captures errors instead of suppressing to /dev/null."""
-    content = (ASSETS_DIR / "script-template.sh").read_text(encoding="utf-8")
-    assert "err_output" in content, "fab_mkdir should capture error output"
-    assert 'Error: $err_output' in content, "fab_mkdir should display error on failure"
-
-
-def test_ps1_template_shows_errors():
-    """Verify New-FabItem captures errors instead of piping to Out-Null."""
-    content = (ASSETS_DIR / "script-template.ps1").read_text(encoding="utf-8")
-    assert "$errOutput" in content, "New-FabItem should capture error output"
-    assert 'errOutput.Trim()' in content, "New-FabItem should display trimmed error on failure"
 
 
 def test_deploy_script_gen_imports():
@@ -71,35 +22,47 @@ def test_deploy_script_gen_imports():
     assert "lakehouse" in cmds, "Lakehouse should be in FAB_COMMANDS"
 
 
-def test_fabric_deploy_utility_imports():
-    """Verify fabric_deploy.py can be imported from skill assets."""
-    assert (ASSETS_DIR / "fabric_deploy.py").exists(), "fabric_deploy.py missing from fabric-deploy/assets"
-    sys.path.insert(0, str(ASSETS_DIR))
-    import fabric_deploy
-    assert hasattr(fabric_deploy, "run_fab")
-    assert hasattr(fabric_deploy, "FabricDeployer")
-    assert hasattr(fabric_deploy, "check_auth")
-    assert hasattr(fabric_deploy, "print_banner")
-    assert hasattr(fabric_deploy, "prompt_value")
-
-
-def test_generated_python_script_path():
-    """Verify the generated Python script is self-contained (no external imports)."""
+def test_generated_artifacts():
+    """Verify deploy-script-gen.py generates fabric-cicd artifacts."""
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        "deploy_script_gen", str(REPO_ROOT / ".github" / "skills" / "fabric-deploy" / "scripts" / "deploy-script-gen.py")
+        "deploy_script_gen", str(DEPLOY_SKILL / "scripts" / "deploy-script-gen.py")
     )
     try:
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
     except (AttributeError, ImportError):
-        return  # Python 3.11 dataclass issue — skip
-    _, _, py_script = mod.generate(
-        str(REPO_ROOT / "projects" / "agent-assist-telco" / "prd" / "architecture-handoff.md"),
-        "Test Project"
-    )
-    assert "fabric_deploy" not in py_script.split("# =")[0], "Python script should not import from fabric_deploy"
-    assert "sys.path.insert" not in py_script, "Python script should not modify sys.path"
-    assert "def run_fab(" in py_script, "Python script should embed run_fab inline"
-    assert "class FabricDeployer" in py_script, "Python script should embed FabricDeployer inline"
-    assert "Self-contained" in py_script, "Python script should note it's self-contained"
+        return
+
+    handoff = REPO_ROOT / "projects" / "agent-assist-telco" / "prd" / "architecture-handoff.md"
+    if not handoff.exists():
+        return
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Simulate CLI call
+        sys.argv = ["deploy-script-gen.py", "--handoff", str(handoff), "--project", "Test", "--output-dir", tmpdir]
+        try:
+            mod.main()
+        except SystemExit:
+            pass
+
+        out = Path(tmpdir)
+        assert (out / "workspace").is_dir(), "Should generate workspace directory"
+        assert (out / "config.yml").exists(), "Should generate config.yml"
+        assert (out / "deploy-test.py").exists(), "Should generate deploy script"
+        assert (out / "descriptions-test.json").exists(), "Should generate descriptions"
+
+        # Verify config.yml has core settings
+        config = (out / "config.yml").read_text(encoding="utf-8")
+        assert "core:" in config
+        assert "repository_directory:" in config
+        assert "item_types_in_scope:" in config
+
+        # Verify deploy script uses fabric-cicd
+        deploy = (out / "deploy-test.py").read_text(encoding="utf-8")
+        assert "fabric_cicd" in deploy
+        assert "deploy_with_config" in deploy
+
+        # Verify workspace has .platform files
+        platforms = list((out / "workspace").rglob(".platform"))
+        assert len(platforms) > 0, "Should generate .platform files for items"

@@ -24,27 +24,34 @@ Post-deployment validation for Event Analytics task flow.
 - [ ] KQL database(s) provisioned
 - [ ] Environment configured (if using notebooks)
 
-### Phase 2: Real-Time Ingestion
+### Phase 2: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 3: Real-Time Ingestion
 
 - [ ] Eventstream created and connected to source
 - [ ] Data flowing into Eventhouse
 - [ ] Activator alerts configured (if using)
 - [ ] Test alert triggered
 
-### Phase 3: Batch Ingestion
+### Phase 4: Batch Ingestion
 
 - [ ] Copy job / Pipeline / Dataflow created
 - [ ] Batch data loaded into Eventhouse
 - [ ] Schedule configured
 
-### Phase 4: Query & Analysis
+### Phase 5: Query & Analysis
 
 - [ ] KQL Queryset connected to database
 - [ ] Queries returning results
 - [ ] Notebooks running (if using data science)
 - [ ] ML experiment tracking (if applicable)
 
-### Phase 5: Visualization
+### Phase 6: Visualization
 
 - [ ] Real-Time Dashboard rendering live data
 - [ ] Report created with correct data bindings

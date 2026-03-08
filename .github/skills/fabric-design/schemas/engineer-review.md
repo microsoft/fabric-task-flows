@@ -29,7 +29,7 @@ wave_optimization:
 
 cli_verification:              # only list items with issues or unknowns
   - item_type: ""
-    fab_type: ""               # fab CLI type name (e.g., "Eventhouse")
+    api_path: ""               # REST API path (e.g., "eventhouses")
     supported: true            # true | false | unknown
     fallback: ""               # "portal" | "rest-api" | "" (if supported)
 

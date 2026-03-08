@@ -32,8 +32,8 @@ Read `validation/[task-flow].md` for task-flow-specific validation phases.
 ### Step 3: Map ACs to Test Methods
 
 For each acceptance criterion:
-1. Determine test method (fab CLI command, manual UI check, or dependency check)
-2. Write verification command (exact fab CLI syntax)
+1. Determine test method (REST API check, manual UI check, or dependency check)
+2. Write verification command (REST API endpoint or manual step)
 3. Define expected result (max 20 words)
 4. Assign criticality (critical / high / medium)
 5. Map to validation phase (Foundation → Environment → Ingestion → Transformation → Visualization → ML)
@@ -66,7 +66,7 @@ Write to `projects/[name]/prd/test-plan.md` using schema `schemas/test-plan.md`.
 
 ### Step 2: Validate by Phase
 
-Run `validate-items.py` (REST API, no `fab` CLI dependency) or the legacy `validate-items.ps1`/`.sh` scripts:
+Run `validate-items.py` to verify deployed items via the Fabric REST API:
 
 ```bash
 python .github/skills/fabric-test/scripts/validate-items.py projects/[name]/prd/deployment-handoff.md

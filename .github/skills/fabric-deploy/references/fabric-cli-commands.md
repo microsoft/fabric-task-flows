@@ -1,6 +1,8 @@
 # Fabric CLI Command Reference
 
-The Fabric CLI (`fab`) is the preferred tool for deploying and managing Microsoft Fabric items. Install with `pip install ms-fabric-cli`.
+> ⚠️ **DEPRECATED** — This file documents the legacy `fab` CLI (`ms-fabric-cli`). The project standard is `fabric-cicd` for deployment and the Fabric REST API for validation. This reference is retained for historical context only. See `prerequisites.md` for current setup.
+
+The Fabric CLI (`fab`) was previously used for deploying and managing Microsoft Fabric items.
 
 Full documentation: https://microsoft.github.io/fabric-cli/
 
@@ -21,7 +23,7 @@ fab auth login --identity
 
 > **Workspace creation requires a capacity.** Pass `-P capacityName=<name>` or set `fab config set default_capacity <name>` first. List capacities with `fab ls .capacities`. Prefer `config set` — it handles special characters in capacity names that `-P` may strip.
 
-> **Naming restrictions:** Some item types reject hyphens (`-`) in names. Use underscores (`_`) instead for: **Eventstream**, **MLExperiment**, **MLModel**. All other types accept hyphens.
+> **Naming restrictions:** Fabric CLI rejects hyphens (`-`) in item names for multiple item types. Use underscores (`_`) instead for **all** item names to avoid `[Special characters not supported]` errors. The deploy script generator handles this conversion automatically.
 
 ### Storage
 
@@ -65,6 +67,12 @@ fab mkdir <workspace>.Workspace/<name>.KQLQueryset
 ```bash
 fab mkdir <workspace>.Workspace/<name>.MLExperiment
 fab mkdir <workspace>.Workspace/<name>.MLModel
+```
+
+### Configuration
+
+```bash
+fab mkdir <workspace>.Workspace/<name>.VariableLibrary
 ```
 
 ### Serving

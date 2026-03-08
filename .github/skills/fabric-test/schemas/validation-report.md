@@ -35,7 +35,7 @@ phases:
 items_validated:
   - name: ""                   # item name
     verified: true             # true | false
-    method: ""                 # e.g., "fab exists" (≤10 words)
+    method: ""                 # e.g., "REST API" (≤10 words)
     issue: ""                  # only if verified: false (≤15 words)
 
 manual_steps:

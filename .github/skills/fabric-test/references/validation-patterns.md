@@ -1,6 +1,8 @@
 # Validation Patterns by Item Type
 
-Fabric CLI (`fab`) commands and criteria for verifying each item type after deployment.
+> ⚠️ **DEPRECATED** — This file documents legacy `fab exists` patterns. The project standard is `validate-items.py` (REST API). This reference is retained for historical context only.
+
+Legacy `fab` CLI commands and criteria for verifying each item type after deployment.
 
 ## Storage Validation
 

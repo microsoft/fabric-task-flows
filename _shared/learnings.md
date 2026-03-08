@@ -1,4 +1,4 @@
-# Fabric CLI Operational Learnings
+# Operational Learnings
 
 > Operational knowledge captured by `/fabric-deploy` and `/fabric-test` skills during deployments and validations. This file is a living document — skills append learnings as they encounter new patterns, gotchas, and workarounds.
 
@@ -19,8 +19,11 @@
 
 <!-- /fabric-deploy skill appends learnings here after deployment phases -->
 
-- **Mirrored SQL Server Database has no `fab mkdir` support.** Must create via Fabric Portal; document as manual step M-1 with guided portal instructions in deploy scripts.
+- **Mirrored SQL Server Database cannot be created programmatically.** Must create via Fabric Portal; document as manual step M-1 with guided portal instructions in deploy scripts.
 - **Environment publish delay requires explicit wait.** Add interactive confirmation prompt in deploy scripts between Environment creation and Notebook binding to prevent attachment failures.
+- **Eventstream, MLExperiment, MLModel reject hyphens in names.** Use underscores instead (e.g., `social_feed_eventstream`). Deploy scripts auto-convert hyphenated names from the architecture handoff.
+- **Lakehouse also rejects hyphens** — the initial assumption that only 3 types needed underscores was wrong. Universal policy: convert ALL item names to underscores in deploy scripts. The `_cli_safe_name()` function in `deploy-script-gen.py` handles this automatically.
+- **Variable Library has no programmatic creation via fabric-cicd but has full REST API.** Use `POST /v1/workspaces/{id}/variableLibraries` to create. Must be in Wave 1 — consuming items (Notebooks, Pipelines, Shortcuts) need it to exist before they can reference it. Create value sets per deployment stage (Dev, PPE, Prod). See `decisions/parameterization-selection.md` for when to use VL vs parameter.yml vs env vars.
 
 ## Validation
 

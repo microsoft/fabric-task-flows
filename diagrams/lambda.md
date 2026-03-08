@@ -105,6 +105,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │   1c  │ Eventhouse       │ [LC]     │ (none - foundation)    │ Real-time layer    │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2   │ Environment      │ [CF]     │ Lakehouse              │ Notebooks, Spark   │
+│   2   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   3a  │ Copy Job         │ [LC]     │ Lakehouse              │ Batch ingestion    │
 │   3b  │ Dataflow Gen2    │ [LC]     │ Lakehouse              │ Batch + transform  │

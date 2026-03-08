@@ -116,7 +116,7 @@ flowchart LR
 |--------|--------|
 | Workspace approach | [Single / Multi-workspace — from Architect handoff] |
 | Environments | [DEV, PPE, PROD — from Architect handoff] |
-| CI/CD tool | [fab CLI / fabric-cicd / Both] |
+| CI/CD tool | fabric-cicd |
 | Branching model | [PPE-first / Main-first / N/A] |
 
 [If multi-environment: describe workspace naming, connection management, parameterization approach]
@@ -165,17 +165,12 @@ flowchart LR
 
 ## CI/CD Configuration
 
-**Deployment Tool:** [fab CLI / fabric-cicd]
-**Parameterization:** [parameter.yml / environment variables / none]
+**Deployment Tool:** fabric-cicd
+**Parameterization:** [parameter.yml / Variable Library / environment variables / none]
 
-[If fabric-cicd used:]
 - parameter.yml location and key replacements configured
 - Spark pool mappings applied
 - Dynamic variables used ($workspace.id, $items references)
-
-[If fab CLI used:]
-- Environment variables used in script ($WORKSPACE_ID, etc.)
-- Connection dictionary notebook generated (yes/no)
 
 ## Lessons Learned
 

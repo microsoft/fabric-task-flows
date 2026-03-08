@@ -20,7 +20,14 @@ Post-deployment validation for Translytical task flow.
 - [ ] Write permissions granted to app identity
 - [ ] Schema supports writeback scenario
 
-### Phase 2: Semantic Layer
+### Phase 2: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 3: Semantic Layer
 
 - [ ] Semantic Model created
 - [ ] Connected to SQL Database
@@ -28,7 +35,7 @@ Post-deployment validation for Translytical task flow.
 - [ ] Relationships defined
 - [ ] Measures created
 
-### Phase 3: Visualization (Writeback)
+### Phase 4: Visualization (Writeback)
 
 - [ ] Report created
 - [ ] Writeback features enabled
@@ -36,7 +43,7 @@ Post-deployment validation for Translytical task flow.
 - [ ] Write operations working
 - [ ] User actions triggering updates
 
-### Phase 4: Development (Actions)
+### Phase 5: Development (Actions)
 
 - [ ] User Data Functions deployed:
   - [ ] Write to SQL function working

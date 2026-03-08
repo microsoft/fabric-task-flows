@@ -33,7 +33,14 @@ Post-deployment validation for Sensitive Data Insights task flow.
 - [ ] Network restrictions configured
 - [ ] Managed identity configured
 
-### Phase 3: Secure Ingestion
+### Phase 3: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 4: Secure Ingestion
 
 - [ ] Ingestion method configured:
   - [ ] Managed identity used (no secrets in code)
@@ -41,7 +48,7 @@ Post-deployment validation for Sensitive Data Insights task flow.
   - [ ] Source connection secured
 - [ ] Data flowing to raw Lakehouse
 
-### Phase 4: Secure Transformation
+### Phase 5: Secure Transformation
 
 - [ ] Masking/anonymization logic implemented:
   - [ ] PII columns identified
@@ -50,7 +57,7 @@ Post-deployment validation for Sensitive Data Insights task flow.
 - [ ] Anonymized data in masked Lakehouse
 - [ ] Aggregated data in Warehouse
 
-### Phase 5: Secure Visualization
+### Phase 6: Secure Visualization
 
 - [ ] Semantic Model created
 - [ ] Row-Level Security (RLS) configured

@@ -31,7 +31,7 @@ The `scripts/` directory contains pipeline utilities. Pre-compute scripts live i
 | `run-pipeline.py` | `scripts/` | Pipeline orchestrator — `start`, `next`, `status`, `advance`, `reset` commands |
 | `new-project.py` | `scripts/` | Scaffolds a new project with all template files + `pipeline-state.json` |
 | `fleet-runner.py` | `scripts/` | Batch runner for multiple problem statements |
-| `sync-item-types.py` | `scripts/` | Syncs `_shared/item-type-registry.json` against installed Fabric CLI |
+| `sync-item-types.py` | `scripts/` | Syncs `_shared/item-type-registry.json` against Fabric item types |
 | `signal-mapper.py` | `fabric-discover/scripts/` | Maps problem signals to task flow candidates |
 | `decision-resolver.py` | `fabric-design/scripts/` | Resolves decision guide YAML frontmatter for agents |
 | `handoff-scaffolder.py` | `fabric-design/scripts/` | Pre-fills handoff template YAML from diagram metadata |
@@ -44,8 +44,8 @@ The `scripts/` directory contains pipeline utilities. Pre-compute scripts live i
 | `diagram-validator.py` | `fabric-design/scripts/` | Validates ASCII diagram structure (balanced boxes, edges) |
 | `test-plan-prefill.py` | `fabric-test/scripts/` | Prefills test plan from acceptance criteria |
 | `check-drift.py` | `fabric-test/scripts/` | Documentation drift detection (26 cross-reference checks) |
-| `validate-items.py` | `fabric-test/scripts/` | REST API validation — verifies deployed items exist (no fab CLI needed) |
-| `validate-items.ps1/.sh` | `fabric-test/scripts/` | Legacy validation via `fab exists` (requires ms-fabric-cli) |
+| `validate-items.py` | `fabric-test/scripts/` | Validates deployed items via Fabric REST API |
+| `validate-items.ps1/.sh` | `fabric-test/scripts/` | ⚠️ DEPRECATED — legacy validation via `fab exists` |
 | `registry_loader.py` | `_shared/` | Shared module — all scripts import item type metadata from here |
 
 > ⚠️ **Enforcement:** These scripts are NOT optional helpers — they are mandatory pre-compute steps. Every pipeline phase has a pre-compute script that MUST run before the LLM adds judgment.

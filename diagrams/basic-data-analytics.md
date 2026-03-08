@@ -74,6 +74,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   1   │ Warehouse        │ [LC]     │ (none - foundation)    │ All ingestion,     │
 │       │                  │          │                        │ Semantic Model     │
+│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2a  │ Copy Job         │ [LC]     │ Warehouse              │ Data in Warehouse  │
 │   2b  │ Dataflow Gen2    │ [LC]     │ Warehouse              │ Data in Warehouse  │

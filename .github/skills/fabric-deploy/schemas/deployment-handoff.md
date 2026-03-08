@@ -61,10 +61,10 @@ After the YAML block, include two **brief** prose sections:
 
 ## Field Rules
 
-- **`status: deployed`** = `fab mkdir` succeeded and `fab exists` confirms the item.
-- **`status: failed`** = `fab mkdir` failed. Include error in `notes`.
+- **`status: deployed`** = `fabric-cicd` succeeded and REST API confirms the item exists.
+- **`status: failed`** = Deployment failed. Include error in `notes`.
 - **`status: skipped`** = Intentionally not deployed. Include reason in `notes`.
-- **`command`** = The exact `fab mkdir` or `fab set` command used. This is auditable evidence.
+- **`command`** = The deployment method used (e.g., `fabric-cicd deploy_with_config` or REST API call). This is auditable evidence.
 - **Do NOT re-describe items.** The architecture handoff has descriptions. This document records what was actually deployed and what happened.
 - **Implementation Notes are MANDATORY** even if "No deviations." The documenter requires them.
 - **Configuration Rationale is MANDATORY.** The documenter requires it.

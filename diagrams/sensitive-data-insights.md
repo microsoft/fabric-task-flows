@@ -108,6 +108,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   🔐 = Security control
 │   1c  │ Warehouse        │ [LC]     │ (none - foundation)    │ Aggregated layer   │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2   │ Environment      │ [CF]     │ Lakehouses             │ Notebooks, Spark   │
+│   2   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   3a  │ Copy Job         │ [LC]     │ Lakehouse (raw)        │ Raw data           │
 │   3b  │ Dataflow Gen2    │ [LC]     │ Lakehouse (raw)        │ Masked ingestion   │

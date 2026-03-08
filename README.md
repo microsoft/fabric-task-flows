@@ -121,7 +121,7 @@ See the fabric-deploy skill's `references/` for CI/CD practices and parallel dep
 | `run-pipeline.py` | Pipeline orchestrator — tracks phase state, auto-chains skills | `python scripts/run-pipeline.py start "Project"` |
 | `new-project.py` | Project scaffolder — creates all template files | `python scripts/new-project.py "Project Name"` |
 | `fleet-runner.py` | Batch runner — runs all problem statements through the pipeline | `python scripts/fleet-runner.py --problem-file ...` |
-| `sync-item-types.py` | Registry ↔ Fabric CLI alignment | `python scripts/sync-item-types.py --check` |
+| `sync-item-types.py` | Registry alignment | `python scripts/sync-item-types.py --check` |
 
 Each skill also bundles pre-compute scripts (e.g., `signal-mapper.py`, `deploy-script-gen.py`, `check-drift.py`) in its own `scripts/` subdirectory. The `check-drift.py` script (in `/fabric-test`) runs 26 cross-reference checks across 6 categories: Task Flow Cross-References, Decision Guide Consistency, Ingestion Guide Internal Consistency, Signal Mapping Validity, Registry Cross-References, Integration First / Better Together compliance.
 
@@ -184,7 +184,7 @@ task-flows/
 │   ├── run-pipeline.py                # Pipeline orchestrator
 │   ├── new-project.py                 # Project scaffolder
 │   ├── fleet-runner.py                # Batch project runner
-│   └── sync-item-types.py            # Registry ↔ Fabric CLI sync
+│   └── sync-item-types.py            # Registry alignment
 ├── tests/                             # Automated tests
 │   ├── test_registry_loader.py        # Item-type registry validation
 │   ├── test_deploy_script_gen.py      # Deploy script correctness

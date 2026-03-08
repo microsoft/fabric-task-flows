@@ -70,6 +70,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   ✏️ = Writeback enabled
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   1   │ SQL Database     │ [LC]     │ (none - foundation)    │ Semantic Model,    │
 │       │                  │          │                        │ User Data Functions│
+│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2   │ Semantic Model   │ [LC/CF]  │ SQL Database           │ Report             │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤

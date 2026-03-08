@@ -30,23 +30,30 @@ Post-deployment validation for Lambda task flow.
 
 - [ ] Environment created and published
 
-### Phase 3: Ingestion
+### Phase 3: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 4: Ingestion
 
 - [ ] Batch ingestion working (Copy Job / Pipeline)
 - [ ] Real-time ingestion working (Eventstream)
 
-### Phase 4: Transformation
+### Phase 5: Transformation
 
 - [ ] Batch notebooks running
 - [ ] KQL queries processing stream data
 
-### Phase 5: Serving Layer
+### Phase 6: Serving Layer
 
 - [ ] Semantic Model bound to batch data
 - [ ] Reports rendering batch views
 - [ ] Real-Time Dashboard showing live data
 
-### Phase 6: Monitoring & ML
+### Phase 7: Monitoring & ML
 
 - [ ] Activator configured for both layers
 - [ ] ML models registered and scoring

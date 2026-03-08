@@ -20,14 +20,21 @@ Post-deployment validation for Basic Data Analytics task flow.
 - [ ] Warehouse created and accessible
 - [ ] Permissions configured
 
-### Phase 2: Ingestion
+### Phase 2: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 3: Ingestion
 
 - [ ] Ingestion item created (Copy Job / Dataflow / Pipeline)
 - [ ] Connections configured
 - [ ] Test run successful
 - [ ] Data visible in Warehouse
 
-### Phase 3: Semantic Layer
+### Phase 4: Semantic Layer
 
 - [ ] Semantic Model created
 - [ ] Bound to Warehouse
@@ -35,7 +42,7 @@ Post-deployment validation for Basic Data Analytics task flow.
 - [ ] Report created
 - [ ] Visuals rendering correctly
 
-### Phase 4: Monitoring
+### Phase 5: Monitoring
 
 - [ ] Scorecard created (if using)
 - [ ] Activator alerts configured (if using)

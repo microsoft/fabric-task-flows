@@ -107,10 +107,10 @@ See `_shared/cicd-practices.md` for parameterization, per-item considerations, a
 
 ## Design-Only Mode
 
-When using design-only mode (selected during architecture), the Fabric CLI and authentication are **not required at design time**. The architect and tester agents work normally — only deployment is deferred.
+When using design-only mode (selected during architecture), authentication and deployment tools are **not required at design time**. The architect and tester agents work normally — only deployment is deferred.
 
 **At design time (no prerequisites):**
-- Architecture decisions, task flow selection, and test planning proceed without any CLI or workspace access
+- Architecture decisions, task flow selection, and test planning proceed without any workspace access
 - The engineer generates self-contained deploy scripts instead of deploying
 
 **At deploy time (when running the generated scripts):**
@@ -119,16 +119,16 @@ When using design-only mode (selected during architecture), the Fabric CLI and a
 - Fabric Capacity — the script presents an interactive capacity picker (or set `FABRIC_CAPACITY_NAME` env var to skip)
 - Workspace Contributor permissions (the script creates the workspace if needed)
 
-The generated scripts prompt for **workspace name** and present an **interactive capacity picker** (with environment variable fallback). The script runs a preflight check for authentication and exits with clear instructions if `fab auth status` fails.
+The generated scripts prompt for **workspace name** and present an **interactive capacity picker** (with environment variable fallback). The script runs a preflight check for authentication and exits with instructions if not authenticated.
 
 ```bash
 # Step 1: Authenticate (one-time)
-fab auth login
+az login
 
 # Step 2 (optional): Pre-set values as environment variables
 export FABRIC_WORKSPACE_NAME="my-project-dev"
 export FABRIC_CAPACITY_NAME="My Capacity Name"
 
 # Step 3: Run the deploy script
-./deploy-my-project.ps1
+python deploy-my-project.py
 ```

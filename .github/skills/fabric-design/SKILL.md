@@ -59,6 +59,18 @@ Read `decisions/_index.md` first. For each decision:
 
 Decisions: Storage → Ingestion → Processing → Visualization → Skillset
 
+### Step 3b: Parameterization Decision (Multi-Environment Only)
+
+If the user selected **multi-environment** workspace strategy (Dev/PPE/Prod):
+1. Read `decisions/parameterization-selection.md` — use `quick_decision` in frontmatter
+2. **Variable Library** is preferred for Fabric-native CI/CD with runtime item references
+3. If Variable Library is chosen, add it as a **Wave 1 item** (foundation) — it must exist before consuming items (Notebooks, Pipelines, Shortcuts)
+4. Define variables for: workspace-specific Lakehouse IDs, connection strings, environment names, capacity settings
+5. Create value sets per deployment stage (Dev, PPE, Prod)
+6. Record the choice in the Deployment Strategy table of the architecture handoff
+
+If the user selected **single environment**, default to Environment Variables and skip this step.
+
 ### Step 4: Produce DRAFT Architecture Handoff
 
 Write to `projects/[name]/prd/architecture-handoff.md`:
@@ -66,8 +78,8 @@ Write to `projects/[name]/prd/architecture-handoff.md`:
 - **YAML frontmatter:** phase, task_flow, deployment_mode
 - **Architecture diagram:** ASCII data flow with actual item names
 - **Decisions table:** Decision | Outcome | Rationale | Alternatives | Trade-offs
-- **Items (YAML):** id, name, type, dependencies
-- **Deployment Waves (YAML):** wave number, items, parallel eligibility
+- **Items (YAML):** id, name, type, dependencies — include Variable Library if multi-env
+- **Deployment Waves (YAML):** wave number, items, parallel eligibility — Variable Library in Wave 1
 - **Acceptance Criteria (YAML):** AC-ID, criterion, type, verification method
 - **Alternatives Considered** and **Trade-offs** sections
 

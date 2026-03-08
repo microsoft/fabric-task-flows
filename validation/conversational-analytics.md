@@ -19,7 +19,14 @@ Post-deployment validation for Conversational Analytics task flow.
 - [ ] Data is current (ingestion pipeline from upstream task flow is running)
 - [ ] Workspace permissions configured for agent consumers
 
-### Phase 2: Semantic Layer
+### Phase 2: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 3: Semantic Layer
 
 - [ ] Semantic Model created and bound to storage
 - [ ] Key measures defined (aggregations, KPIs)
@@ -27,7 +34,7 @@ Post-deployment validation for Conversational Analytics task flow.
 - [ ] Direct Lake mode configured (if using Lakehouse)
 - [ ] Data refresh working (if using Import mode)
 
-### Phase 3: Agent Deployment
+### Phase 4: Agent Deployment
 
 - [ ] Data Agent created in Fabric workspace portal
 - [ ] Agent bound to Semantic Model
@@ -35,7 +42,7 @@ Post-deployment validation for Conversational Analytics task flow.
 - [ ] Access permissions set (who can chat with the agent)
 - [ ] Agent published and accessible to end users
 
-### Phase 4: Agent Testing
+### Phase 5: Agent Testing
 
 - [ ] Natural language query returns correct data (test 3-5 representative questions)
 - [ ] Agent correctly handles ambiguous questions (asks for clarification)
@@ -43,7 +50,7 @@ Post-deployment validation for Conversational Analytics task flow.
 - [ ] Agent handles "I don't know" gracefully (questions outside data scope)
 - [ ] Response latency is acceptable for interactive use
 
-### Phase 5: Optional Governance
+### Phase 6: Optional Governance
 
 - [ ] Ontology created (if using) with business terms mapped to semantic model fields
 - [ ] Activator alerts configured (if monitoring agent usage patterns)

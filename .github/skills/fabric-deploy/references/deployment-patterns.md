@@ -1,6 +1,8 @@
 # Deployment Patterns by Item Type
 
-Reference for `fab mkdir` commands and item-specific configuration when deploying Fabric items.
+> ⚠️ **DEPRECATED** — This file documents legacy `fab mkdir` patterns. The project standard is `fabric-cicd` via `deploy-script-gen.py`. This reference is retained for historical context only.
+
+Reference for legacy `fab mkdir` commands and item-specific configuration.
 
 ## Storage Items
 

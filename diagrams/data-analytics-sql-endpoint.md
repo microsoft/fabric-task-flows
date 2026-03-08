@@ -65,6 +65,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 ├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
 │   1   │ Lakehouse              │ [LC]     │ (none - foundation)        │ SQL analytics endpoint │
 │       │                        │          │                            │ (auto), All processing │
+│   1   │ Variable Library       │ [LC]     │ (depends on: none)         │ Stage-specific config (if multi-env) │
 ├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
 │   1a  │ SQL analytics endpoint │ [auto]   │ Lakehouse (auto-created)   │ Semantic Model         │
 ├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤

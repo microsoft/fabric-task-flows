@@ -132,6 +132,7 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │   1c  │ Warehouse Gold   │ [LC]     │ (none - foundation)    │ Semantic Model, BI │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2   │ Environment      │ [CF]     │ Lakehouses             │ Notebooks, Spark   │
+│   2   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   3a  │ Copy Job         │ [LC]     │ Bronze Lakehouse       │ Raw data ingestion │
 │   3b  │ Dataflow Gen2    │ [LC]     │ Bronze Lakehouse       │ Raw data ingestion │

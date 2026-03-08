@@ -21,14 +21,21 @@ Post-deployment validation for Semantic Governance task flow.
 - [ ] Workspace permissions configured for governance team
 - [ ] Data sources identified for ontology scope
 
-### Phase 2: Semantic Model
+### Phase 2: Variable Library (if parameterization = variable-library)
+
+- [ ] Variable Library item exists in workspace
+- [ ] Variables defined for stage-specific configuration
+- [ ] Active value set matches current deployment stage
+- [ ] Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library
+
+### Phase 3: Semantic Model
 
 - [ ] Semantic Model created and bound to storage
 - [ ] Key measures and relationships defined
 - [ ] Field descriptions populated (these inform the Ontology)
 - [ ] Model endorsed (Certified or Promoted) if using endorsement
 
-### Phase 3: Ontology Definition
+### Phase 4: Ontology Definition
 
 - [ ] Ontology created in Fabric workspace portal
 - [ ] Business domains defined (e.g., Sales, Finance, Operations)
@@ -37,7 +44,7 @@ Post-deployment validation for Semantic Governance task flow.
 - [ ] Synonyms and abbreviations documented
 - [ ] Domain owners assigned
 
-### Phase 4: Knowledge Graph
+### Phase 5: Knowledge Graph
 
 - [ ] Graph Model created with entity types and relationships
 - [ ] Entity types correspond to ontology business terms
@@ -46,7 +53,7 @@ Post-deployment validation for Semantic Governance task flow.
 - [ ] Graph queries return expected traversal results
 - [ ] Graph relationships are consistent with Semantic Model relationships
 
-### Phase 5: Governance Validation
+### Phase 6: Governance Validation
 
 - [ ] Business terms are consistent across Ontology and Semantic Model
 - [ ] No orphaned terms (terms without data mapping)
@@ -55,7 +62,7 @@ Post-deployment validation for Semantic Governance task flow.
 - [ ] Governance report/dashboard created (if using)
 - [ ] Data Agent configured with ontology context (if using)
 
-### Phase 6: External Integration (Optional)
+### Phase 7: External Integration (Optional)
 
 - [ ] Purview catalog synced (if using Microsoft Purview)
 - [ ] Data classification labels applied
