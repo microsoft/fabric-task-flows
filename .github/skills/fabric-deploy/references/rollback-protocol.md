@@ -5,8 +5,8 @@ Protocol for handling deployment failures in Microsoft Fabric item deployments.
 ## On Wave Failure
 
 1. **Stop immediately** — do not proceed to subsequent waves
-2. **Log the failure** — record which item failed, the error message, and the `fab` command that was attempted
-3. **Assess the state** — list what exists in the workspace with `fab ls <ws>.Workspace -l`
+2. **Log the failure** — record which item failed, the error message, and the deployment method attempted
+3. **Assess the state** — list what exists in the workspace via `GET /v1/workspaces/{ws_id}/items`
 
 ## Cleanup Decision
 
@@ -14,24 +14,21 @@ Ask the user which recovery path to take:
 
 | Option | When to Use | Action |
 |--------|-------------|--------|
-| **Retry** | Transient error (timeout, auth token expired) | Re-run `fab auth login` and retry the failed wave |
+| **Retry** | Transient error (timeout, auth token expired) | Re-authenticate (`az login`) and retry the failed wave |
 | **Skip & Continue** | Non-critical optional item failed (e.g., Scorecard, Activator) | Mark item as skipped in handoff, proceed to next wave |
-| **Rollback** | Fundamental issue (wrong config, missing dependency) | Delete items created in the failed wave, then optionally delete prior waves |
+| **Rollback** | Fundamental issue (wrong config, missing dependency) | Delete items created in the failed wave via REST API, then optionally delete prior waves |
 | **Leave for debugging** | Unknown error requiring investigation | Leave all items in place, flag in handoff as partial deployment |
 
 ## Rollback Commands
 
 ```bash
-# Delete a specific item
-fab delete <ws>.Workspace/<item>.Type
+# Delete a specific item via REST API
+curl -X DELETE "https://api.fabric.microsoft.com/v1/workspaces/{ws_id}/items/{item_id}" \
+  -H "Authorization: Bearer $TOKEN"
 
-# Delete all items in a wave (example - Wave 2 of Lambda)
-fab delete <ws>.Workspace/<name>.Environment
-fab delete <ws>.Workspace/<name>.Eventhouse
-fab delete <ws>.Workspace/<name>.DataPipeline
-
-# Verify cleanup
-fab ls <ws>.Workspace -l
+# List all items in workspace to verify cleanup
+curl "https://api.fabric.microsoft.com/v1/workspaces/{ws_id}/items" \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Partial Deployment Handoff

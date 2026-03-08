@@ -23,7 +23,7 @@ Authentication is handled by `DefaultAzureCredential` (provided by `azure-identi
 3. **Azure CLI** — `az login` (for local development)
 4. **Interactive browser** — fallback
 
-For the full command reference, see [Fabric CLI Commands](fabric-cli-commands.md) (legacy reference).
+For local development, authenticate with `az login` before running deploy or validation scripts.
 
 ## Required Permissions
 

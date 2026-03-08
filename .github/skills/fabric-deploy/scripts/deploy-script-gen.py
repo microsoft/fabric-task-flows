@@ -427,21 +427,6 @@ def _cli_safe_name(name: str) -> str:
     return name.replace("-", "_")
 
 
-def _get_fab_command(item: Item) -> tuple[str, list[str]] | None:
-    """Return (path_template, extra_args) for an item, or None if portal-only.
-    Items are created at workspace root — folders are for Portal organization."""
-    key = _type_key(item.type)
-    entry = FAB_COMMANDS.get(key)
-    if entry is None:
-        entry = FAB_COMMANDS.get(item.type.lower())
-    if entry is not None:
-        path_tpl, extra_args = entry
-        safe_name = _cli_safe_name(item.name)
-        path = path_tpl.replace("{name}", safe_name)
-        return (path, extra_args)
-    return None
-
-
 def _get_display_type(item_type: str) -> str:
     key = _type_key(item_type)
     return DISPLAY_NAMES.get(key, DISPLAY_NAMES.get(item_type.lower(), item_type))

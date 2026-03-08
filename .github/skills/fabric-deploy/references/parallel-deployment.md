@@ -95,13 +95,12 @@ run_wave() {
 # --- Deploy in dependency waves ---
 
 run_wave "WAVE 1: Foundation" \
-    "fab mkdir $WORKSPACE_ID.Workspace/item1.Lakehouse" \
-    "fab mkdir $WORKSPACE_ID.Workspace/item2.Warehouse" \
-    "fab mkdir $WORKSPACE_ID.Workspace/item3.Eventhouse"
+    "python -c \"from fabric_cicd import deploy_with_config; deploy_with_config(config_file_path='config.yml')\"" \
+    # fabric-cicd handles item creation in dependency order within the wave
 
-run_wave "WAVE 2: Environment + Speed Layer" \
-    "fab mkdir $WORKSPACE_ID.Workspace/item4.Environment" \
-    "fab mkdir $WORKSPACE_ID.Workspace/item5.Eventstream"
+# For fine-grained wave control, use REST API:
+# POST /v1/workspaces/{ws_id}/lakehouses  { "displayName": "item1" }
+# POST /v1/workspaces/{ws_id}/warehouses  { "displayName": "item2" }
 
 # ... continue for each wave ...
 
@@ -134,9 +133,9 @@ Always include timing output so users can measure the speedup:
 
 Some operations must remain sequential:
 
-- **Items that need IDs from earlier items** — e.g., Report creation needs Semantic Model ID from `fab get`. Put these in a later wave.
-- **`fab set` configuration calls** — these reference items that must already exist. They run after the `fab mkdir` wave.
-- **Verification phase** — `fab exists` checks are read-only and fast; sequential is fine.
+- **Items that need IDs from earlier items** — e.g., Report creation needs Semantic Model ID from the REST API. Put these in a later wave.
+- **Configuration calls** — these reference items that must already exist. They run after the creation wave.
+- **Verification phase** — REST API existence checks are read-only and fast; sequential is fine.
 
 ## Applying to Any Task Flow
 

@@ -13,10 +13,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [
-        "-P",
-        "enableSchemas=true"
-      ],
       "aliases": [
         "lakehouse"
       ],
@@ -38,7 +34,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [],
       "aliases": [
         "warehouse"
       ],
@@ -60,7 +55,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [],
       "aliases": [
         "eventhouse"
       ],
@@ -86,7 +80,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [],
       "aliases": [
         "kqldatabase",
         "kql database"
@@ -111,7 +104,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [],
       "aliases": [
         "sqldatabase",
         "sql database"
@@ -136,7 +128,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [],
       "aliases": [
         "sqlendpoint",
         "sql endpoint",
@@ -153,7 +144,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [],
       "aliases": [
         "cosmosdb",
         "cosmos db",
@@ -169,7 +159,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [],
       "aliases": [
         "datamart"
       ],
@@ -184,7 +173,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "mirror data",
-      "mkdir_args": [],
       "aliases": [
         "mirroredwarehouse",
         "mirrored warehouse"
@@ -199,7 +187,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "mirror data",
-      "mkdir_args": [],
       "aliases": [
         "mirroreddatabase",
         "mirrored database"
@@ -241,7 +228,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "mirror data",
-      "mkdir_args": [],
       "aliases": [
         "mirroreddataverse",
         "mirrored dataverse",
@@ -259,7 +245,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "get data",
-      "mkdir_args": [],
       "aliases": [
         "mounteddatafactory",
         "mounted data factory",
@@ -286,7 +271,6 @@
       "phase": "Environment",
       "phase_order": 2,
       "task_type": "develop",
-      "mkdir_args": [],
       "aliases": [
         "environment"
       ],
@@ -310,7 +294,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "get data",
-      "mkdir_args": [],
       "aliases": [
         "copyjob",
         "copy job"
@@ -353,7 +336,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "get data",
-      "mkdir_args": [],
       "aliases": [
         "datapipeline",
         "pipeline",
@@ -385,7 +367,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "get data",
-      "mkdir_args": [],
       "aliases": [
         "eventstream"
       ],
@@ -420,7 +401,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "get data",
-      "mkdir_args": [],
       "aliases": [
         "dataflowgen2",
         "dataflow gen2",
@@ -436,7 +416,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "mirror data",
-      "mkdir_args": [],
       "aliases": [
         "mirroring",
         "mirrored azure cosmos db",
@@ -453,7 +432,6 @@
       "phase": "Transformation",
       "phase_order": 4,
       "task_type": "prepare data",
-      "mkdir_args": [],
       "aliases": [
         "notebook"
       ],
@@ -477,7 +455,6 @@
       "phase": "Transformation",
       "phase_order": 4,
       "task_type": "prepare data",
-      "mkdir_args": [],
       "aliases": [
         "sparkjobdefinition",
         "spark job def",
@@ -509,7 +486,6 @@
       "phase": "Transformation",
       "phase_order": 4,
       "task_type": "prepare data",
-      "mkdir_args": [],
       "aliases": [
         "kqlqueryset",
         "kql queryset"
@@ -542,7 +518,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "visualize",
-      "mkdir_args": [],
       "aliases": [
         "semanticmodel",
         "semantic model"
@@ -567,7 +542,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "visualize",
-      "mkdir_args": [],
       "aliases": [
         "report"
       ],
@@ -592,7 +566,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "visualize",
-      "mkdir_args": [],
       "aliases": [
         "paginatedreport",
         "paginated report"
@@ -607,7 +580,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "visualize",
-      "mkdir_args": [],
       "aliases": [
         "dashboard"
       ]
@@ -621,7 +593,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "track data",
-      "mkdir_args": [],
       "aliases": [
         "kqldashboard",
         "real-time dashboard",
@@ -648,7 +619,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "track data",
-      "mkdir_args": [],
       "aliases": [
         "realtimemap",
         "real-time map"
@@ -663,7 +633,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "visualize",
-      "mkdir_args": [],
       "aliases": [
         "metricsscorecard",
         "metrics scorecard",
@@ -679,7 +648,6 @@
       "phase": "ML",
       "phase_order": 6,
       "task_type": "analyze and train data",
-      "mkdir_args": [],
       "aliases": [
         "mlexperiment",
         "ml experiment",
@@ -704,7 +672,6 @@
       "phase": "ML",
       "phase_order": 6,
       "task_type": "analyze and train data",
-      "mkdir_args": [],
       "aliases": [
         "mlmodel",
         "ml model"
@@ -726,7 +693,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "track data",
-      "mkdir_args": [],
       "aliases": [
         "reflex",
         "activator"
@@ -754,7 +720,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "distribute data",
-      "mkdir_args": [],
       "aliases": [
         "graphqlapi",
         "graphql api",
@@ -785,7 +750,6 @@
       "phase": "Transformation",
       "phase_order": 4,
       "task_type": "distribute data",
-      "mkdir_args": [],
       "aliases": [
         "userdatafunctions",
         "user data functions",
@@ -813,7 +777,6 @@
       "phase": "Environment",
       "phase_order": 1,
       "task_type": "govern data",
-      "mkdir_args": [],
       "aliases": [
         "variablelibrary",
         "variable library"
@@ -838,7 +801,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "govern data",
-      "mkdir_args": [],
       "aliases": [
         "ontology"
       ]
@@ -852,7 +814,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "govern data",
-      "mkdir_args": [],
       "aliases": [
         "dataagent",
         "data agent"
@@ -876,7 +837,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "get data",
-      "mkdir_args": [],
       "aliases": [
         "apacheairflowproject",
         "apache airflow job",
@@ -922,7 +882,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "visualize",
-      "mkdir_args": [],
       "aliases": [
         "exploration"
       ],
@@ -937,7 +896,6 @@
       "phase": "Transformation",
       "phase_order": 4,
       "task_type": "prepare data",
-      "mkdir_args": [],
       "aliases": [
         "dbtjob",
         "dbt job",
@@ -953,7 +911,6 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": [],
       "aliases": [
         "postgresqldatabase",
         "postgresql database",
@@ -970,7 +927,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "mirror data",
-      "mkdir_args": [],
       "aliases": [
         "mirroreddatabrickscatalog",
         "mirrored azure databricks catalog",
@@ -987,7 +943,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "mirror data",
-      "mkdir_args": [],
       "aliases": [
         "mirroredcatalog",
         "mirrored catalog"
@@ -1002,7 +957,6 @@
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "mirror data",
-      "mkdir_args": [],
       "aliases": [
         "snowflakedatabase",
         "snowflake database",
@@ -1019,7 +973,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "govern data",
-      "mkdir_args": [],
       "aliases": [
         "graphmodel",
         "graph model",
@@ -1035,7 +988,6 @@
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "govern data",
-      "mkdir_args": [],
       "aliases": [
         "graphqueryset",
         "graph queryset",

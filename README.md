@@ -150,12 +150,12 @@ task-flows/
 │       │   └── schemas/               # engineer-review, tester-review
 │       ├── fabric-test/               # Phases 2a, 3 — test plan + validation
 │       │   ├── SKILL.md
-│       │   ├── scripts/               # check-drift, test-plan-prefill, validate-items (.ps1/.sh)
+│       │   ├── scripts/               # check-drift, test-plan-prefill, validate-items.py
 │       │   ├── references/            # validation-patterns, validation-report-template
 │       │   └── schemas/               # test-plan, validation-report, remediation-log
 │       ├── fabric-deploy/             # Phase 2c — wave-based deployment
 │       │   ├── SKILL.md
-│       │   ├── scripts/               # deploy-script-gen, taskflow-gen, taskflow-template-gen, generate-ps1-types
+│       │   ├── scripts/               # deploy-script-gen, taskflow-gen, taskflow-template-gen
 │       │   ├── references/            # prerequisites, fabric-cli-commands, deployment-patterns, parallel-deployment, rollback-protocol, verified-item-definitions
 │       │   └── schemas/               # deployment-handoff, phase-progress
 │       ├── fabric-document/           # Phase 4 — wiki + ADR synthesis

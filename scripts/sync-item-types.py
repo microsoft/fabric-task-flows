@@ -2,12 +2,17 @@
 """
 Sync item type registry against the installed Fabric CLI.
 
+Optional maintenance script — requires ms-fabric-cli to be installed
+separately (it is NOT a project dependency). Use this periodically to
+check if Microsoft has added new Fabric item types.
+
 Compares _shared/item-type-registry.json against the ItemType enum in the
 installed ms-fabric-cli package. Reports new types, missing types, and
 naming mismatches.
 
 Usage:
-    python scripts/sync-item-types.py --check     # CI: exit 1 if drift detected
+    pip install ms-fabric-cli  # install separately for this script only
+    python scripts/sync-item-types.py --check     # exit 1 if drift detected
     python scripts/sync-item-types.py --diff      # Show differences
     python scripts/sync-item-types.py --update    # Add stubs for new types
 

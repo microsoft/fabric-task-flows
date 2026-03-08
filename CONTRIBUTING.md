@@ -39,13 +39,11 @@ The `scripts/` directory contains pipeline utilities. Pre-compute scripts live i
 | `deploy-script-gen.py` | `fabric-deploy/scripts/` | Reads architecture handoff YAML, generates fabric-cicd artifacts and deploy scripts |
 | `taskflow-gen.py` | `fabric-deploy/scripts/` | Generates Fabric workspace task flow JSON for import |
 | `taskflow-template-gen.py` | `fabric-deploy/scripts/` | Generates task flow template JSON from handoff items |
-| `generate-ps1-types.py` | `fabric-deploy/scripts/` | Regenerates PowerShell item-type constants from registry |
 | `diagram-gen.py` | `fabric-design/scripts/` | Generates validated ASCII architecture diagrams from handoff YAML |
 | `diagram-validator.py` | `fabric-design/scripts/` | Validates ASCII diagram structure (balanced boxes, edges) |
 | `test-plan-prefill.py` | `fabric-test/scripts/` | Prefills test plan from acceptance criteria |
 | `check-drift.py` | `fabric-test/scripts/` | Documentation drift detection (26 cross-reference checks) |
 | `validate-items.py` | `fabric-test/scripts/` | Validates deployed items via Fabric REST API |
-| `validate-items.ps1/.sh` | `fabric-test/scripts/` | ⚠️ DEPRECATED — legacy validation via `fab exists` |
 | `registry_loader.py` | `_shared/` | Shared module — all scripts import item type metadata from here |
 
 > ⚠️ **Enforcement:** These scripts are NOT optional helpers — they are mandatory pre-compute steps. Every pipeline phase has a pre-compute script that MUST run before the LLM adds judgment.

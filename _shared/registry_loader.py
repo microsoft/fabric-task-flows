@@ -30,10 +30,11 @@ def load_registry() -> dict[str, dict]:
 
 
 def build_fab_commands() -> dict[str, tuple[str, list[str]] | None]:
-    """Build the FAB_COMMANDS dict for deploy-script-gen.py.
+    """Build a creation-support map for deploy-script-gen.py.
 
-    Returns a dict mapping lowercase alias → (path_template, extra_args) or None
-    if the item can't be created via fab mkdir.
+    Returns a dict mapping lowercase alias → (path_template, []) or None
+    if the item can only be created via Fabric Portal.
+    Used to identify portal-only items during deployment.
     """
     registry = load_registry()
     result: dict[str, tuple[str, list[str]] | None] = {}
@@ -44,14 +45,11 @@ def build_fab_commands() -> dict[str, tuple[str, list[str]] | None]:
 
         if mkdir_supported:
             path_template = "{ws}.Workspace/{name}." + fab_type
-            args = list(data.get("mkdir_args", []))
-            value = (path_template, args)
+            value = (path_template, [])
         else:
             value = None
 
-        # Add canonical lowercase
         result[canonical.lower()] = value
-        # Add all aliases
         for alias in data.get("aliases", []):
             result[alias.lower()] = value
 
@@ -163,31 +161,3 @@ def build_fab_type_map() -> dict[str, str]:
                 result[" ".join(w.capitalize() for w in parts)] = fab_type
 
     return result
-
-
-def build_ps1_fab_types() -> dict[str, str]:
-    """Build the $FabTypes hashtable content for validate-items.ps1.
-
-    Returns a dict mapping fab_type → fab_type for types where CLI is supported.
-    """
-    registry = load_registry()
-    result: dict[str, str] = {}
-
-    for canonical, data in registry.items():
-        if data.get("cli_supported", False):
-            result[data["fab_type"]] = data["fab_type"]
-
-    return result
-
-
-def build_ps1_portal_only() -> list[str]:
-    """Build the $PortalOnly array content for validate-items.ps1.
-
-    Returns a list of fab_type values for portal-only items.
-    """
-    registry = load_registry()
-    return sorted({
-        data["fab_type"]
-        for data in registry.values()
-        if not data.get("mkdir_supported", False)
-    })

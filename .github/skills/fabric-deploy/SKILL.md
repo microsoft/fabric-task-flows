@@ -31,7 +31,6 @@ Read in this order:
 2. `diagrams/[task-flow].md` — skip to `## Deployment Order`
 3. `projects/[name]/prd/test-plan.md` — awareness of what will be validated
 4. `_shared/learnings.md` — known gotchas before deploying
-5. `references/fabric-cli-commands.md` — legacy CLI reference (deprecated)
 
 ### Step 3: Deploy by Wave
 
