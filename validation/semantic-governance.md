@@ -8,9 +8,9 @@ Post-deployment validation for Semantic Governance task flow.
 |-----------|------------------------|
 | Lakehouse | Verify data is populated from upstream task flow |
 | Semantic Model | Bind to storage; validate measures and relationships |
-| Ontology | Create in Fabric workspace portal; define business terms, domains, relationships |
-| Graph Model | Create in Fabric workspace portal; define entity types and edge types |
-| Graph Queryset | Create in Fabric workspace portal; author graph queries |
+| Ontology | Define business terms, domains, relationships |
+| Graph Model | Define entity types and edge types |
+| Graph Queryset | Create in Fabric workspace portal; author graph queries (portal-only) |
 | Data Agent | (Optional) Create and bind to Semantic Model + Ontology |
 
 ## Checklist
@@ -37,7 +37,7 @@ Post-deployment validation for Semantic Governance task flow.
 
 ### Phase 4: Ontology Definition
 
-- [ ] Ontology created in Fabric workspace portal
+- [ ] Ontology created in workspace
 - [ ] Business domains defined (e.g., Sales, Finance, Operations)
 - [ ] Key business terms created with definitions
 - [ ] Terms mapped to Semantic Model fields/tables

@@ -99,6 +99,10 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │   4b  │ Report           │ [LC]     │ KQL Database           │ Historical views   │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   5   │ Activator        │ [LC]     │ Eventstream OR KQL     │ (optional alerts)  │
+├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
+│   5a  │ Data Agent       │ [LC]     │ KQL Database Gold OR   │ (optional)         │
+│       │                  │          │ Eventhouse             │                    │
+│   5b  │ Ontology         │ [LC]     │ (optional)             │ (optional)         │
 └───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 

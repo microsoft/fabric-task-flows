@@ -59,3 +59,13 @@ Post-deployment validation for Translytical task flow.
 - [ ] Changes visible on report refresh
 - [ ] Notifications triggering (if configured)
 - [ ] Downstream workflows executing (if configured)
+
+### AI & Governance (Optional)
+
+- [ ] Data Agent created (if using)
+- [ ] Data Agent bound to appropriate data source (Lakehouse, Warehouse, KQL Database, or Semantic Model)
+- [ ] Data Agent greeting and instructions configured
+- [ ] Data Agent access permissions set
+- [ ] Natural language query returns correct data (test 3-5 representative questions)
+- [ ] Agent handles out-of-scope questions gracefully
+- [ ] Ontology created (if using) with business terms mapped to data fields

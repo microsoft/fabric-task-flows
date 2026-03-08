@@ -29,8 +29,8 @@
 │  PHASE 3: AGENT DEPLOYMENT (Deploy Agent)                                       │
 │  ════════════════════════════════════════                                       │
 │  ┌─────────────────┐                                                            │
-│  │   Data Agent    │ ◄── Portal-only: configure in Fabric workspace UI         │
-│  │    [Portal]     │     Bind to Semantic Model, set access controls            │
+│  │   Data Agent    │ ◄── Configure and bind to Semantic Model                  │
+│  │      [LC]       │     Set access controls, greeting prompts                 │
 │  └────────┬────────┘                                                            │
 │           │                                                                    │
 │           ▼                                                                    │
@@ -39,13 +39,13 @@
 │  ════════════════════════════                                                  │
 │  ┌─────────────────┐         ┌─────────────────┐                                │
 │  │    Ontology     │         │    Activator    │                                │
-│  │    [Portal]     │         │      [LC]       │                                │
+│  │      [LC]       │         │      [LC]       │                                │
 │  │ (Business       │         │ (Usage alerts)  │                                │
 │  │  vocabulary)    │         │                 │                                │
 │  └─────────────────┘         └─────────────────┘                                │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
-Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both   [Portal] = Fabric Portal only
+Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both
 ```
 
 ## Deployment Order
@@ -61,12 +61,9 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both   [Portal] = Fab
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   2   │ Semantic Model   │ [LC/CF]  │ Storage (populated)    │ Data Agent         │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3   │ Data Agent       │ [Portal] │ Semantic Model         │ (end-user access)  │
-│       │                  │          │ ⚠ Portal-only: create  │                    │
-│       │                  │          │ in Fabric workspace UI │                    │
+│   3   │ Data Agent       │ [LC]     │ Semantic Model         │ (end-user access)  │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4a  │ Ontology         │ [Portal] │ (optional)             │ (optional)         │
-│       │                  │          │ ⚠ Portal-only          │                    │
+│   4a  │ Ontology         │ [LC]     │ (optional)             │ (optional)         ││
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   4b  │ Activator        │ [LC]     │ Data Agent or          │ (optional)         │
 │       │                  │          │ Semantic Model         │                    │

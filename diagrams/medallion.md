@@ -150,6 +150,10 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   7a  │ Experiment       │ [CF]     │ Gold Lakehouse, Env    │ ML Model           │
 │   7b  │ ML Model         │ [CF]     │ Experiment             │ (optional)         │
+├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
+│   7c  │ Data Agent       │ [LC]     │ Gold Lakehouse OR      │ (optional)         │
+│       │                  │          │ Semantic Model         │                    │
+│   7d  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
 └───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 

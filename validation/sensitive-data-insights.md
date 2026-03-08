@@ -72,3 +72,14 @@ Post-deployment validation for Sensitive Data Insights task flow.
 - [ ] OLS hides sensitive columns
 - [ ] Audit logs capturing access
 - [ ] Managed identities used throughout
+
+### AI & Governance (Optional)
+
+- [ ] Data Agent created (if using)
+- [ ] Data Agent bound to anonymized Warehouse or Semantic Model (with RLS/OLS)
+- [ ] Data Agent greeting and instructions configured
+- [ ] Data Agent access permissions set (⚠️ verify RLS/OLS inheritance)
+- [ ] Natural language query returns correct data (test 3-5 representative questions)
+- [ ] Agent does NOT expose masked/redacted data
+- [ ] Agent handles out-of-scope questions gracefully
+- [ ] Ontology created (if using) with business terms mapped to data fields

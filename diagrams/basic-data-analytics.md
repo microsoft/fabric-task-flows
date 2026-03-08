@@ -61,6 +61,18 @@
 │           │      [LC]       │                   │      [LC]       │             │
 │           │  (KPI Tracking) │                   │ (Alert Actions) │             │
 │           └─────────────────┘                   └─────────────────┘             │
+│                                       │                                         │
+│                                       ▼                                         │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  PHASE 5: AI & GOVERNANCE (Optional)                                            │
+│  ════════════════════════════════════                                           │
+│                    ┌──────────────────┴──────────────────┐                      │
+│                    ▼                                     ▼                      │
+│           ┌─────────────────┐                   ┌─────────────────┐             │
+│           │   Data Agent    │                   │    Ontology     │             │
+│           │      [LC]       │                   │      [LC]       │             │
+│           │  (NL Queries)   │                   │ (Business Terms)│             │
+│           └─────────────────┘                   └─────────────────┘             │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
@@ -90,6 +102,10 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │   6a  │ Scorecard        │ [LC]     │ Semantic Model         │ (optional)         │
 │   6b  │ Activator        │ [LC]     │ Semantic Model OR      │ (optional)         │
 │       │                  │          │ Report                 │                    │
+├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
+│   6c  │ Data Agent       │ [LC]     │ Warehouse OR           │ (optional)         │
+│       │                  │          │ Semantic Model         │                    │
+│   6d  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
 └───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 

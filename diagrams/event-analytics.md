@@ -103,6 +103,10 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │  5a   │ Real-Time Dash   │ [LC]     │ Eventhouse             │ Live monitoring              │
 │  5b   │ Report           │ [LC]     │ Eventhouse / Sem Model │ Analytics                    │
 │  5c   │ Dashboard        │ [LC]     │ Report(s)              │ Combined view                │
+├───────┼──────────────────┼──────────┼────────────────────────┼──────────────────────────────┤
+│  5d   │ Data Agent       │ [LC]     │ Eventhouse OR          │ (optional)                   │
+│       │                  │          │ Semantic Model         │                              │
+│  5e   │ Ontology         │ [LC]     │ Semantic Model         │ (optional)                   │
 └───────┴──────────────────┴──────────┴────────────────────────┴──────────────────────────────┘
 ```
 

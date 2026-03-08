@@ -143,6 +143,35 @@ def build_portal_only_items() -> dict[str, str]:
     return result
 
 
+def build_api_creatable_items() -> set[str]:
+    """Return the set of fab_type values that are creatable via the Fabric REST API.
+
+    Uses the ``rest_api.creatable`` field added to each type record.
+    Agents and scripts can call this instead of scanning the flat
+    ``cicd_supported_types`` array.
+    """
+    registry = load_registry()
+    return {
+        data["fab_type"]
+        for data in registry.values()
+        if data.get("rest_api", {}).get("creatable", False)
+    }
+
+
+def build_api_name_remap() -> dict[str, str]:
+    """Return a mapping of fab_type → REST API name where they differ.
+
+    Derived from ``rest_api.api_name`` fields so the root-level
+    ``cicd_type_remap`` dict can be deprecated.
+    """
+    registry = load_registry()
+    return {
+        data["fab_type"]: data["rest_api"]["api_name"]
+        for data in registry.values()
+        if "api_name" in data.get("rest_api", {})
+    }
+
+
 def build_fab_type_map() -> dict[str, str]:
     """Build the FAB_TYPE_MAP dict for handoff-scaffolder.py.
 

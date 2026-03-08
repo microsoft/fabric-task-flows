@@ -29,8 +29,8 @@
 │  PHASE 3: ONTOLOGY (Define Vocabulary)                                          │
 │  ═════════════════════════════════════                                          │
 │  ┌─────────────────┐                                                            │
-│  │    Ontology     │ ◄── Portal-only: define business terms, domains,          │
-│  │    [Portal]     │     and relationships in Fabric workspace UI              │
+│  │    Ontology     │ ◄── Define business terms, domains,                       │
+│  │      [LC]       │     and relationships                                     │
 │  └────────┬────────┘                                                            │
 │           │                                                                    │
 │           ▼                                                                    │
@@ -39,7 +39,7 @@
 │  ══════════════════════════════════════                                         │
 │  ┌─────────────────┐         ┌─────────────────┐                                │
 │  │   Graph Model   │ ──────► │ Graph Queryset  │                                │
-│  │    [Portal]     │         │    [Portal]     │                                │
+│  │      [LC]       │         │    [Portal]     │                                │
 │  │ (Entity/edge    │         │ (Query graph    │                                │
 │  │  definitions)   │         │  relationships) │                                │
 │  └─────────────────┘         └─────────────────┘                                │
@@ -51,13 +51,13 @@
 │  ═══════════════════════════════                                               │
 │  ┌─────────────────┐         ┌─────────────────┐                                │
 │  │   Data Agent    │         │     Report      │                                │
-│  │    [Portal]     │         │      [LC]       │                                │
+│  │      [LC]       │         │      [LC]       │                                │
 │  │ (Chat over      │         │ (Governance     │                                │
 │  │  governed data) │         │  dashboards)    │                                │
 │  └─────────────────┘         └─────────────────┘                                │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
-Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both   [Portal] = Fabric Portal only
+Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both   [Portal] = Fabric Portal only (Graph Queryset)
 ```
 
 ## Deployment Order
@@ -74,19 +74,15 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both   [Portal] = Fab
 │   2   │ Semantic Model   │ [LC/CF]  │ Lakehouse (or          │ Ontology,          │
 │       │                  │          │ Warehouse/SQL DB)      │ Data Agent         │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3   │ Ontology         │ [Portal] │ Semantic Model         │ Graph Model        │
-│       │                  │          │ ⚠ Portal-only: create  │                    │
-│       │                  │          │ in Fabric workspace UI │                    │
+│   3   │ Ontology         │ [LC]     │ Semantic Model         │ Graph Model        │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4   │ Graph Model      │ [Portal] │ Ontology               │ Graph Queryset     │
-│       │                  │          │ ⚠ Portal-only          │                    │
+│   4   │ Graph Model      │ [LC]     │ Ontology               │ Graph Queryset     │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   5   │ Graph Queryset   │ [Portal] │ Graph Model            │ (consumption)      │
 │       │                  │          │ ⚠ Portal-only          │                    │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6a  │ Data Agent       │ [Portal] │ Semantic Model +       │ (optional)         │
-│       │                  │          │ Ontology               │                    │
-│       │                  │          │ ⚠ Portal-only          │                    │
+│   6a  │ Data Agent       │ [LC]     │ Semantic Model +       │ (optional)         │
+│       │                  │          │ Ontology               │                    ││
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   6b  │ Report           │ [LC]     │ Semantic Model         │ (optional)         │
 │       │                  │          │                        │ Governance         │

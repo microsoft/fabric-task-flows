@@ -60,3 +60,13 @@ Post-deployment validation for Basic Machine Learning Models task flow.
 - [ ] Report built on Lakehouse data
 - [ ] Predictions visible in report
 - [ ] Model metrics dashboard (optional)
+
+### AI & Governance (Optional)
+
+- [ ] Data Agent created (if using)
+- [ ] Data Agent bound to appropriate data source (Lakehouse, Warehouse, KQL Database, or Semantic Model)
+- [ ] Data Agent greeting and instructions configured
+- [ ] Data Agent access permissions set
+- [ ] Natural language query returns correct data (test 3-5 representative questions)
+- [ ] Agent handles out-of-scope questions gracefully
+- [ ] Ontology created (if using) with business terms mapped to data fields

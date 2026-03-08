@@ -79,6 +79,10 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │   4b  │ Dashboard              │ [LC]     │ Report(s)                  │ (optional)             │
 │   4c  │ Paginated Report       │ [LC]     │ Semantic Model             │ (optional)             │
 │   4d  │ Scorecard              │ [LC]     │ Semantic Model             │ (optional)             │
+├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
+│   4e  │ Data Agent             │ [LC]     │ Lakehouse SQL endpoint OR  │ (optional)             │
+│       │                        │          │ Semantic Model             │                        │
+│   4f  │ Ontology               │ [LC]     │ Semantic Model             │ (optional)             │
 └───────┴────────────────────────┴──────────┴────────────────────────────┴────────────────────────┘
 ```
 

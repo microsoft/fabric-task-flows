@@ -52,3 +52,13 @@ Post-deployment validation for Data Analytics Using SQL Endpoint task flow.
 - [ ] Dashboard configured (if applicable)
 - [ ] Paginated Report working (if applicable)
 - [ ] Scorecard metrics populated (if applicable)
+
+### AI & Governance (Optional)
+
+- [ ] Data Agent created (if using)
+- [ ] Data Agent bound to appropriate data source (Lakehouse, Warehouse, KQL Database, or Semantic Model)
+- [ ] Data Agent greeting and instructions configured
+- [ ] Data Agent access permissions set
+- [ ] Natural language query returns correct data (test 3-5 representative questions)
+- [ ] Agent handles out-of-scope questions gracefully
+- [ ] Ontology created (if using) with business terms mapped to data fields

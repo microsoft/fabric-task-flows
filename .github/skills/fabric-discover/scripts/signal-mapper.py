@@ -280,7 +280,7 @@ CATEGORIES: tuple[SignalCategory, ...] = (
         ),
         velocity="Varies",
         use_case="Application backend",
-        task_flow_candidates=("app-backend",),
+        task_flow_candidates=("app-backend", "conversational-analytics"),
     ),
     SignalCategory(
         id=10,
@@ -289,10 +289,13 @@ CATEGORIES: tuple[SignalCategory, ...] = (
             "document data", "NoSQL", "JSON", "semi-structured",
             "Cosmos DB", "schema-less", "vector search", "embeddings",
             "RAG", "knowledge base", "chatbot data",
+            "data agent", "natural language queries",
+            "ask questions about data", "self-service queries",
+            "conversational AI", "NL query",
         ),
         velocity="Varies",
         use_case="NoSQL / AI-ready apps",
-        task_flow_candidates=("app-backend", "translytical"),
+        task_flow_candidates=("app-backend", "translytical", "conversational-analytics"),
     ),
     SignalCategory(
         id=11,

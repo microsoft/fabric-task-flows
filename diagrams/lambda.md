@@ -125,6 +125,10 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 │   7a  │ Activator        │ [LC]     │ Eventstream/Reports    │ Alerts             │
 │   7b  │ Experiment       │ [CF]     │ Lakehouse, Environment │ ML Model           │
 │   7c  │ ML Model         │ [CF]     │ Experiment             │ Predictions        │
+├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
+│   7d  │ Data Agent       │ [LC]     │ Warehouse, Lakehouse,  │ (optional)         │
+│       │                  │          │ OR Semantic Model      │                    │
+│   7e  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
 └───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 

@@ -121,6 +121,10 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   🔐 = Security control
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   6a  │ Report           │ [LC]     │ Semantic Model         │ Dashboard          │
 │   6b  │ Dashboard        │ [LC]     │ Report(s)              │ (optional)         │
+├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
+│   6c  │ Data Agent       │ [LC]     │ Warehouse (anonymized) │ (optional)         │
+│       │                  │          │ OR Semantic Model      │ ⚠️ Inherits RLS/OLS │
+│   6d  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
 └───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 

@@ -77,6 +77,10 @@ Legend: [LC] = Low-Code/UI   [CF] = Code-First   ✏️ = Writeback enabled
 │   3   │ Report           │ [LC]     │ Semantic Model         │ User interactions  │
 ├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
 │   4   │ User Data Funcs  │ [CF]     │ SQL Database           │ Writeback actions  │
+├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
+│   5a  │ Data Agent       │ [LC]     │ SQL Database OR        │ (optional)         │
+│       │                  │          │ Semantic Model         │                    │
+│   5b  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
 └───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 

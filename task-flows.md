@@ -8,15 +8,15 @@ Microsoft Fabric task flows - pre-defined architectures for common data scenario
 
 | Task Flow | Best For | Primary Storage | Key Ingestion | Items |
 |-----------|----------|-----------------|---------------|-------|
-| `basic-data-analytics` | Simple batch analytics | Warehouse | Copy Job, Dataflow Gen2 | ~6 |
-| `medallion` | Layered batch (Bronze/Silver/Gold) | Lakehouse | Pipeline + Notebook | ~10 |
-| `lambda` | Batch + real-time combined | Lakehouse + Eventhouse + Warehouse | Eventstream + Pipeline | ~12 |
-| `event-analytics` | Real-time streaming focus | Eventhouse | Eventstream | ~8 |
-| `event-medallion` | Streaming with medallion layers | Eventhouse + Lakehouse | Eventstream | ~10 |
-| `sensitive-data-insights` | Security-focused analytics | Lakehouse | Pipeline + Notebook | ~9 |
-| `basic-machine-learning-models` | ML training workflows | Lakehouse | Pipeline + Notebook | ~8 |
-| `data-analytics-sql-endpoint` | SQL analytics on Lakehouse | Lakehouse (SQL endpoint) | Copy Job, Pipeline | ~6 |
-| `translytical` | Operational with writeback | SQL Database | User Data Functions | ~4 |
+| `basic-data-analytics` | Simple batch analytics | Warehouse | Copy Job, Dataflow Gen2 | ~11 |
+| `medallion` | Layered batch (Bronze/Silver/Gold) | Lakehouse | Pipeline + Notebook | ~15 |
+| `lambda` | Batch + real-time combined | Lakehouse + Eventhouse + Warehouse | Eventstream + Pipeline | ~17 |
+| `event-analytics` | Real-time streaming focus | Eventhouse | Eventstream | ~15 |
+| `event-medallion` | Streaming with medallion layers | Eventhouse + Lakehouse | Eventstream | ~11 |
+| `sensitive-data-insights` | Security-focused analytics | Lakehouse | Pipeline + Notebook | ~13 |
+| `basic-machine-learning-models` | ML training workflows | Lakehouse | Pipeline + Notebook | ~9 |
+| `data-analytics-sql-endpoint` | SQL analytics on Lakehouse | Lakehouse (SQL endpoint) | Copy Job, Pipeline | ~12 |
+| `translytical` | Operational with writeback | SQL Database | User Data Functions | ~6 |
 | `app-backend` | Application APIs + serverless logic | SQL Database / Cosmos DB | GraphQL, UDFs | ~8 |
 | `conversational-analytics` | AI self-service via Data Agents | Lakehouse or Warehouse | (overlay — uses existing ingestion) | ~5 |
 | `semantic-governance` | Enterprise vocabulary & knowledge graph | Lakehouse | (overlay — uses existing ingestion) | ~7 |
@@ -40,7 +40,7 @@ get data ──→ store data ──→ visualize ──→ track data
 
 **Workloads:** Data Factory, Data Warehouse, Real-Time Intelligence, Power BI
 
-**Items:** Activator, Copy job, Dashboard, Dataflow Gen2, Paginated Report, Pipeline, Report, Scorecard, Semantic model, Warehouse
+**Items:** Activator, Copy job, Dashboard, Data agent (optional), Dataflow Gen2, Ontology (optional), Paginated Report, Pipeline, Report, Scorecard, Semantic model, Warehouse
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -70,7 +70,7 @@ store data ──┤
 
 **Workloads:** Data Engineering, Data Science, Power BI
 
-**Items:** Environment, Experiment, Lakehouse, ML model, Notebook, Report
+**Items:** Data agent (optional), Environment, Experiment, Lakehouse, ML model, Notebook, Ontology (optional), Report
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -96,7 +96,7 @@ store data ──→ prepare data ──→ store data ──→ visualize
 
 **Workloads:** Data Engineering, Data Science, Data Warehouse, Power BI
 
-**Items:** Dashboard, Lakehouse, Notebook, Paginated Report, Report, Scorecard, Semantic model, Spark Job Definition, SQL analytics endpoint
+**Items:** Dashboard, Data agent (optional), Lakehouse, Notebook, Ontology (optional), Paginated Report, Report, Scorecard, Semantic model, Spark Job Definition, SQL analytics endpoint
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -125,7 +125,7 @@ get data ─────────────────┘                 
 
 **Workloads:** Data Engineering, Data Factory, Data Science, Real-Time Intelligence, Power BI
 
-**Items:** Activator, Copy job, Dashboard, Dataflow Gen2, Environment, Eventhouse, Eventstream, Experiment, KQL Queryset, ML model, Notebook, Pipeline, Real-Time Dashboard, Report, Spark Job Definition
+**Items:** Activator, Copy job, Dashboard, Data agent (optional), Dataflow Gen2, Environment, Eventhouse, Eventstream, Experiment, KQL Queryset, ML model, Notebook, Ontology (optional), Pipeline, Real-Time Dashboard, Report, Spark Job Definition
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -154,7 +154,7 @@ get data ──┘                                                              
 
 **Workloads:** Data Factory, Real-Time Intelligence, Power BI
 
-**Items:** Activator, Copy job, Eventhouse, Eventstream, KQL Queryset, Pipeline, Real-Time Dashboard, Report
+**Items:** Activator, Copy job, Data agent (optional), Eventhouse, Eventstream, KQL Queryset, Ontology (optional), Pipeline, Real-Time Dashboard, Report
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -218,7 +218,7 @@ get data ──→ store data ──→ prepare data ──→ store data ──
 
 **Workloads:** Data Engineering, Data Factory, Data Science, Data Warehouse, Real-Time Intelligence, Power BI
 
-**Items:** Activator, Copy job, Dashboard, Dataflow Gen2, Environment, Eventhouse, Eventstream, Experiment, KQL Queryset, Lakehouse, ML model, Notebook, Pipeline, Real-Time Dashboard, Report, Spark Job Definition, Warehouse
+**Items:** Activator, Copy job, Dashboard, Data agent (optional), Dataflow Gen2, Environment, Eventhouse, Eventstream, Experiment, KQL Queryset, Lakehouse, ML model, Notebook, Ontology (optional), Pipeline, Real-Time Dashboard, Report, Spark Job Definition, Warehouse
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -247,7 +247,7 @@ get data ──┘                                                              
 
 **Workloads:** Data Engineering, Data Factory, Data Science, Data Warehouse, Real-Time Intelligence, Power BI
 
-**Items:** Copy job, Dashboard, Dataflow Gen2, Environment, Eventstream, Experiment, Lakehouse, ML model, Notebook, Pipeline, Report, Spark Job Definition, Warehouse
+**Items:** Copy job, Dashboard, Data agent (optional), Dataflow Gen2, Environment, Eventstream, Experiment, Lakehouse, ML model, Notebook, Ontology (optional), Pipeline, Report, Spark Job Definition, Warehouse
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -280,7 +280,7 @@ get data ──→ store data ──┤
 
 **Workloads:** Data Engineering, Data Factory, Data Science, Data Warehouse, Power BI
 
-**Items:** Copy job, Dashboard, Dataflow Gen2, Environment, Experiment, Lakehouse, ML model, Notebook, Pipeline, Report, Spark Job Definition, Warehouse
+**Items:** Copy job, Dashboard, Data agent (optional), Dataflow Gen2, Environment, Experiment, Lakehouse, ML model, Notebook, Ontology (optional), Pipeline, Report, Spark Job Definition, Warehouse
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -306,7 +306,7 @@ store data ──→ visualize ──→ develop
 
 **Workloads:** Data Engineering, Data Factory, Databases, Power BI
 
-**Items:** Report, Semantic model, SQL database, User data functions
+**Items:** Report, Data agent (optional), Ontology (optional), Semantic model, SQL database, User data functions
 
 | Decision | Options | Guide |
 |----------|---------|-------|

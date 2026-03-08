@@ -14,6 +14,8 @@ from registry_loader import (
     build_task_type_map,
     build_portal_only_items,
     build_fab_type_map,
+    build_api_creatable_items,
+    build_api_name_remap,
 )
 
 VALID_TASK_TYPES = {
@@ -37,10 +39,20 @@ def test_registry_loads():
 def test_every_type_has_required_fields():
     registry = load_registry()
     required = {"fab_type", "display_name", "cli_supported", "mkdir_supported",
-                "phase", "phase_order", "task_type", "aliases"}
+                "phase", "phase_order", "task_type", "aliases", "rest_api"}
     for name, data in registry.items():
         missing = required - set(data.keys())
         assert not missing, f"{name} missing fields: {missing}"
+
+
+def test_rest_api_has_required_subfields():
+    registry = load_registry()
+    for name, data in registry.items():
+        ra = data.get("rest_api", {})
+        assert "creatable" in ra, f"{name} rest_api missing 'creatable'"
+        assert "definition" in ra, f"{name} rest_api missing 'definition'"
+        assert isinstance(ra["creatable"], bool), f"{name} rest_api.creatable must be bool"
+        assert isinstance(ra["definition"], bool), f"{name} rest_api.definition must be bool"
 
 
 def test_task_types_are_valid():
@@ -116,3 +128,32 @@ def test_fab_type_map_covers_canonical():
     fab_map = build_fab_type_map()
     for name in registry:
         assert name in fab_map, f"Canonical type {name} missing from fab_type_map"
+
+
+def test_api_creatable_items_returns_set():
+    creatable = build_api_creatable_items()
+    assert isinstance(creatable, set)
+    assert len(creatable) > 0
+    # Lakehouse and Warehouse should always be API-creatable
+    assert "Lakehouse" in creatable
+    assert "Warehouse" in creatable
+    # DataAgent is confirmed API-creatable
+    assert "DataAgent" in creatable
+
+
+def test_api_creatable_excludes_non_creatable():
+    registry = load_registry()
+    creatable = build_api_creatable_items()
+    for name, data in registry.items():
+        if not data.get("rest_api", {}).get("creatable", False):
+            assert data["fab_type"] not in creatable, \
+                f"{name} marked not creatable but appears in build_api_creatable_items()"
+
+
+def test_api_name_remap_returns_dict():
+    remap = build_api_name_remap()
+    assert isinstance(remap, dict)
+    # Known mismatches should be present
+    for fab_type, api_name in remap.items():
+        assert fab_type != api_name, \
+            f"Remap entry {fab_type} maps to itself — should only contain mismatches"

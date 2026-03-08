@@ -8,8 +8,8 @@ Post-deployment validation for Conversational Analytics task flow.
 |-----------|------------------------|
 | Storage (Lakehouse/Warehouse) | Verify data is populated from upstream task flow |
 | Semantic Model | Bind to storage; validate measures and relationships |
-| Data Agent | Create in Fabric workspace portal; bind to Semantic Model; configure access |
-| Ontology | (Optional) Define business terms in Fabric workspace portal |
+| Data Agent | Create and bind to Semantic Model; configure access |
+| Ontology | (Optional) Define business terms |
 
 ## Checklist
 
@@ -36,7 +36,7 @@ Post-deployment validation for Conversational Analytics task flow.
 
 ### Phase 4: Agent Deployment
 
-- [ ] Data Agent created in Fabric workspace portal
+- [ ] Data Agent created in workspace
 - [ ] Agent bound to Semantic Model
 - [ ] Agent greeting / instructions configured
 - [ ] Access permissions set (who can chat with the agent)

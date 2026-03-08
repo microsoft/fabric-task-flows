@@ -1,6 +1,6 @@
 {
   "$schema": "Fabric Task Flows Item Type Registry",
-  "$version": "2026-03-06",
+  "$version": "2026-03-08",
   "$cli_version": "0.1.10",
   "$description": "Single source of truth for all Fabric item type metadata. All scripts MUST import from this file — do NOT maintain separate item type dictionaries. See CONTRIBUTING.md.",
   "types": {
@@ -23,6 +23,10 @@
         ],
         "verified": true,
         "supports_item_reference": true
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "Warehouse": {
@@ -44,6 +48,10 @@
         ],
         "verified": true,
         "supports_item_reference": true
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": false
       }
     },
     "Eventhouse": {
@@ -69,6 +77,10 @@
         },
         "verified": true,
         "supports_item_reference": true
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "KQLDatabase": {
@@ -93,6 +105,10 @@
         "verified": false,
         "notes": "Nested in Eventhouse .children/",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "SQLDatabase": {
@@ -117,6 +133,10 @@
         "verified": false,
         "notes": "From sample: Hello db.SQLDatabase",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": false
       }
     },
     "SQLEndpoint": {
@@ -133,7 +153,11 @@
         "sql endpoint",
         "sql analytics endpoint"
       ],
-      "notes": "Auto-created with Lakehouse; read-only in CLI"
+      "notes": "Auto-created with Lakehouse; read-only in CLI",
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      }
     },
     "CosmosDB": {
       "fab_type": "CosmosDB",
@@ -148,7 +172,12 @@
         "cosmosdb",
         "cosmos db",
         "cosmos db database"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false,
+        "api_name": "CosmosDBDatabase"
+      }
     },
     "Datamart": {
       "fab_type": "Datamart",
@@ -162,7 +191,11 @@
       "aliases": [
         "datamart"
       ],
-      "notes": "Legacy item type; still valid in CLI"
+      "notes": "Legacy item type; still valid in CLI",
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      }
     },
     "MirroredWarehouse": {
       "fab_type": "MirroredWarehouse",
@@ -176,7 +209,11 @@
       "aliases": [
         "mirroredwarehouse",
         "mirrored warehouse"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      }
     },
     "MirroredDatabase": {
       "fab_type": "MirroredDatabase",
@@ -217,6 +254,10 @@
         "verified": false,
         "notes": "From sample: MirroredDatabase_1",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "MirroredDataverse": {
@@ -234,7 +275,11 @@
         "fabric link",
         "link to fabric"
       ],
-      "notes": "Configured from Power Platform admin center via Fabric Link; syncs Dataverse tables to Lakehouse as Delta"
+      "notes": "Configured from Power Platform admin center via Fabric Link; syncs Dataverse tables to Lakehouse as Delta",
+      "rest_api": {
+        "creatable": false,
+        "definition": false
+      }
     },
     "MountedDataFactory": {
       "fab_type": "MountedDataFactory",
@@ -260,6 +305,10 @@
         "verified": false,
         "notes": "Not in sample. API: create without def = NO",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "Environment": {
@@ -283,6 +332,10 @@
         ],
         "verified": true,
         "supports_item_reference": true
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "CopyJob": {
@@ -325,6 +378,10 @@
         "verified": false,
         "notes": "From sample: Hello Copy Job.CopyJob",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "DataPipeline": {
@@ -356,6 +413,10 @@
         },
         "verified": true,
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "Eventstream": {
@@ -390,6 +451,10 @@
         },
         "verified": true,
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "DataflowGen2": {
@@ -405,7 +470,12 @@
         "dataflowgen2",
         "dataflow gen2",
         "dataflow"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": true,
+        "api_name": "Dataflow"
+      }
     },
     "Mirroring": {
       "fab_type": "Mirroring",
@@ -421,7 +491,11 @@
         "mirrored azure cosmos db",
         "cosmos db (mirrored)",
         "cosmos db mirroring"
-      ]
+      ],
+      "rest_api": {
+        "creatable": false,
+        "definition": false
+      }
     },
     "Notebook": {
       "fab_type": "Notebook",
@@ -444,6 +518,10 @@
         ],
         "verified": true,
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "SparkJobDefinition": {
@@ -475,6 +553,10 @@
         },
         "verified": false,
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "KQLQueryset": {
@@ -507,6 +589,10 @@
         },
         "verified": true,
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "SemanticModel": {
@@ -531,6 +617,10 @@
         ],
         "verified": true,
         "supports_item_reference": true
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "Report": {
@@ -555,6 +645,10 @@
         ],
         "verified": true,
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "PaginatedReport": {
@@ -569,7 +663,11 @@
       "aliases": [
         "paginatedreport",
         "paginated report"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      }
     },
     "Dashboard": {
       "fab_type": "Dashboard",
@@ -582,7 +680,11 @@
       "task_type": "visualize",
       "aliases": [
         "dashboard"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      }
     },
     "KQLDashboard": {
       "fab_type": "KQLDashboard",
@@ -608,6 +710,10 @@
         "verified": true,
         "notes": "Content file causes parser error in fabric-cicd",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "RealTimeMap": {
@@ -622,7 +728,12 @@
       "aliases": [
         "realtimemap",
         "real-time map"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false,
+        "api_name": "Map"
+      }
     },
     "MetricsScorecard": {
       "fab_type": "MetricsScorecard",
@@ -637,7 +748,11 @@
         "metricsscorecard",
         "metrics scorecard",
         "scorecard"
-      ]
+      ],
+      "rest_api": {
+        "creatable": false,
+        "definition": false
+      }
     },
     "MLExperiment": {
       "fab_type": "MLExperiment",
@@ -661,6 +776,10 @@
         "verified": true,
         "notes": "Definition not supported by API",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": false
       }
     },
     "MLModel": {
@@ -682,6 +801,10 @@
         "verified": true,
         "notes": "Not supported by fabric-cicd",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": false
       }
     },
     "Reflex": {
@@ -709,6 +832,10 @@
         },
         "verified": true,
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "GraphQLApi": {
@@ -739,6 +866,10 @@
         "verified": false,
         "notes": "From sample: Sample.GraphQLApi",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "UserDataFunctions": {
@@ -766,6 +897,11 @@
         "verified": false,
         "notes": "From sample",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": false,
+        "api_name": "UserDataFunction"
       }
     },
     "VariableLibrary": {
@@ -790,6 +926,10 @@
         ],
         "verified": true,
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": true
       }
     },
     "Ontology": {
@@ -803,7 +943,11 @@
       "task_type": "govern data",
       "aliases": [
         "ontology"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      }
     },
     "DataAgent": {
       "fab_type": "DataAgent",
@@ -826,6 +970,10 @@
         "verified": false,
         "notes": "Not in sample",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": false
       }
     },
     "ApacheAirflowJob": {
@@ -871,6 +1019,11 @@
         "verified": false,
         "notes": "From sample",
         "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": false,
+        "api_name": "ApacheAirflowJob"
       }
     },
     "Exploration": {
@@ -885,7 +1038,11 @@
       "aliases": [
         "exploration"
       ],
-      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only"
+      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only",
+      "rest_api": {
+        "creatable": false,
+        "definition": false
+      }
     },
     "dbtJob": {
       "fab_type": "dbtJob",
@@ -900,7 +1057,11 @@
         "dbtjob",
         "dbt job",
         "dbt"
-      ]
+      ],
+      "rest_api": {
+        "creatable": false,
+        "definition": true
+      }
     },
     "PostgreSQLDatabase": {
       "fab_type": "PostgreSQLDatabase",
@@ -916,7 +1077,11 @@
         "postgresql database",
         "postgresql",
         "postgres"
-      ]
+      ],
+      "rest_api": {
+        "creatable": false,
+        "definition": false
+      }
     },
     "MirroredDatabricksCatalog": {
       "fab_type": "MirroredDatabricksCatalog",
@@ -932,7 +1097,12 @@
         "mirrored azure databricks catalog",
         "mirrored databricks catalog",
         "databricks mirroring"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": true,
+        "api_name": "MirroredAzureDatabricksCatalog"
+      }
     },
     "MirroredCatalog": {
       "fab_type": "MirroredCatalog",
@@ -946,7 +1116,11 @@
       "aliases": [
         "mirroredcatalog",
         "mirrored catalog"
-      ]
+      ],
+      "rest_api": {
+        "creatable": false,
+        "definition": false
+      }
     },
     "SnowflakeDatabase": {
       "fab_type": "SnowflakeDatabase",
@@ -962,7 +1136,11 @@
         "snowflake database",
         "snowflake mirroring"
       ],
-      "notes": "Snowflake mirrored into Fabric via Mirroring"
+      "notes": "Snowflake mirrored into Fabric via Mirroring",
+      "rest_api": {
+        "creatable": true,
+        "definition": true
+      }
     },
     "GraphModel": {
       "fab_type": "GraphModel",
@@ -977,7 +1155,11 @@
         "graphmodel",
         "graph model",
         "knowledge graph model"
-      ]
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": true
+      }
     },
     "GraphQueryset": {
       "fab_type": "GraphQueryset",
@@ -992,7 +1174,11 @@
         "graphqueryset",
         "graph queryset",
         "graph query"
-      ]
+      ],
+      "rest_api": {
+        "creatable": false,
+        "definition": false
+      }
     }
   },
   "cicd_type_remap": {

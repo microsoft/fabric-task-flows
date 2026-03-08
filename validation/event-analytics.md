@@ -56,3 +56,13 @@ Post-deployment validation for Event Analytics task flow.
 - [ ] Real-Time Dashboard rendering live data
 - [ ] Report created with correct data bindings
 - [ ] Dashboard combining views (if using)
+
+### AI & Governance (Optional)
+
+- [ ] Data Agent created (if using)
+- [ ] Data Agent bound to appropriate data source (Lakehouse, Warehouse, KQL Database, or Semantic Model)
+- [ ] Data Agent greeting and instructions configured
+- [ ] Data Agent access permissions set
+- [ ] Natural language query returns correct data (test 3-5 representative questions)
+- [ ] Agent handles out-of-scope questions gracefully
+- [ ] Ontology created (if using) with business terms mapped to data fields

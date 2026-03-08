@@ -59,7 +59,7 @@
 ### Task Flow Distribution Bias
 
 - **`basic-data-analytics` recommended 11x, `medallion` 8x** — these two dominate because they match the most generic keywords. More specific flows (`sensitive-data-insights` 1x, `data-analytics-sql-endpoint` 1x) are under-recommended.
-- **No `translytical`, `app-backend`, or `conversational-analytics` recommendations** from any of the 20 problem statements — those keyword categories may need expansion.
+- **No `translytical` or `app-backend` recommendations** from any of the 20 problem statements — those keyword categories may need expansion. (`conversational-analytics` gap fixed — added to signal mapper candidates for signals #9 and #10.)
 
 ### LLM Behavior Patterns
 

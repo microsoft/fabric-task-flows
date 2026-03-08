@@ -57,3 +57,13 @@ Post-deployment validation for Lambda task flow.
 
 - [ ] Activator configured for both layers
 - [ ] ML models registered and scoring
+
+### AI & Governance (Optional)
+
+- [ ] Data Agent created (if using)
+- [ ] Data Agent bound to appropriate data source (Lakehouse, Warehouse, KQL Database, or Semantic Model)
+- [ ] Data Agent greeting and instructions configured
+- [ ] Data Agent access permissions set
+- [ ] Natural language query returns correct data (test 3-5 representative questions)
+- [ ] Agent handles out-of-scope questions gracefully
+- [ ] Ontology created (if using) with business terms mapped to data fields
