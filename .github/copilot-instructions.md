@@ -89,7 +89,7 @@ Each guide uses **YAML frontmatter** with `id`, `title`, `description`, `trigger
 
 ### Deployment tooling
 
-The `fabric-cicd` library (`pip install fabric-cicd`) is the primary deployment tool. The `/fabric-deploy` skill's `deploy-script-gen.py` generates `fabric-cicd` workspace directories, config files, and deploy scripts. The Fabric CLI (`fab` via `pip install ms-fabric-cli`) is used for post-deployment validation — the `/fabric-test` skill uses `fab exists`, `fab ls`, and `fab get` to verify items were created correctly. See the deploy skill's `references/fabric-cli-commands.md` for the CLI reference and `references/prerequisites.md` for setup.
+The `fabric-cicd` library (`pip install fabric-cicd`) is the primary deployment tool. The `/fabric-deploy` skill's `deploy-script-gen.py` generates `fabric-cicd` workspace directories, config files, and deploy scripts. Post-deployment validation uses `validate-items.py` which calls the Fabric REST API directly via `azure-identity` — no `fab` CLI dependency required. Legacy `validate-items.ps1/.sh` scripts using `fab exists` are still available as alternatives. See the deploy skill's `references/prerequisites.md` for setup.
 
 ### Architecture vs. deployment details
 
@@ -107,7 +107,7 @@ At Phase 2b, the user can either approve the architecture or request revisions:
 ### Deployment practices
 
 - **Deployment:** `fabric-cicd` library (primary) — see fabric-deploy skill's `references/prerequisites.md`
-- **Validation:** `fab` CLI (`fab exists`) — see fabric-deploy skill's `references/fabric-cli-commands.md`
+- **Validation:** `validate-items.py` (REST API, no CLI dependency) or legacy `fab exists`
 - **CI/CD:** `fabric-cicd` library — see fabric-design skill's `references/cicd-practices.md`
 - **Parameterization:** Variable Library (preferred), parameter.yml, or env vars — see `decisions/parameterization-selection.md`
 - **Parallel deployment:** Waves from `diagrams/[task-flow].md` — see fabric-deploy skill's `references/parallel-deployment.md`

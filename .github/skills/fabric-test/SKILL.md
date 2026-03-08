@@ -66,6 +66,12 @@ Write to `projects/[name]/prd/test-plan.md` using schema `schemas/test-plan.md`.
 
 ### Step 2: Validate by Phase
 
+Run `validate-items.py` (REST API, no `fab` CLI dependency) or the legacy `validate-items.ps1`/`.sh` scripts:
+
+```bash
+python .github/skills/fabric-test/scripts/validate-items.py projects/[name]/prd/deployment-handoff.md
+```
+
 Execute checks in order: Foundation → Environment → Ingestion → Transformation → Visualization → ML
 
 ### Step 3: Categorize Failures

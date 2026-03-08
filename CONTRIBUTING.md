@@ -44,7 +44,8 @@ The `scripts/` directory contains pipeline utilities. Pre-compute scripts live i
 | `diagram-validator.py` | `fabric-design/scripts/` | Validates ASCII diagram structure (balanced boxes, edges) |
 | `test-plan-prefill.py` | `fabric-test/scripts/` | Prefills test plan from acceptance criteria |
 | `check-drift.py` | `fabric-test/scripts/` | Documentation drift detection (26 cross-reference checks) |
-| `validate-items.ps1/.sh` | `fabric-test/scripts/` | Runs `fab exists` per deployed item, outputs validation YAML |
+| `validate-items.py` | `fabric-test/scripts/` | REST API validation — verifies deployed items exist (no fab CLI needed) |
+| `validate-items.ps1/.sh` | `fabric-test/scripts/` | Legacy validation via `fab exists` (requires ms-fabric-cli) |
 | `registry_loader.py` | `_shared/` | Shared module — all scripts import item type metadata from here |
 
 > ⚠️ **Enforcement:** These scripts are NOT optional helpers — they are mandatory pre-compute steps. Every pipeline phase has a pre-compute script that MUST run before the LLM adds judgment.
