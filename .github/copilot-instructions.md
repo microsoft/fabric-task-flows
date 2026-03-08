@@ -89,7 +89,7 @@ Each guide uses **YAML frontmatter** with `id`, `title`, `description`, `trigger
 
 ### Deployment tooling
 
-The `fabric-cicd` library (`pip install fabric-cicd`) is the primary deployment tool. The `/fabric-deploy` skill's `deploy-script-gen.py` generates `fabric-cicd` workspace directories, config files, and deploy scripts. Post-deployment validation uses `validate-items.py` which calls the Fabric REST API directly via `azure-identity` — no `fab` CLI dependency required. Legacy `validate-items.ps1/.sh` scripts using `fab exists` are still available as alternatives. See the deploy skill's `references/prerequisites.md` for setup.
+The `fabric-cicd` library (`pip install fabric-cicd`) is the only deployment dependency. The `/fabric-deploy` skill's `deploy-script-gen.py` generates `fabric-cicd` workspace directories, config files, and deploy scripts. Post-deployment validation uses `validate-items.py` which calls the Fabric REST API directly using the same auth (`DefaultAzureCredential`) that `fabric-cicd` provides — no additional installs needed. Legacy `validate-items.ps1/.sh` scripts using `fab exists` are still available as alternatives. See the deploy skill's `references/prerequisites.md` for setup.
 
 ### Architecture vs. deployment details
 

@@ -6,16 +6,17 @@ Parses a deployment-handoff.md, verifies each deployed item exists via the
 Fabric REST API, and outputs a pre-filled validation-report.md YAML block
 to stdout.
 
-Uses Azure Identity (DefaultAzureCredential) for authentication — works with
-az login, managed identity, environment variables, etc.
+Authentication uses the same DefaultAzureCredential + requests pattern as the
+generated deploy scripts — these are transitive dependencies of fabric-cicd,
+not additional installs.
 
 Usage:
     python validate-items.py <deployment-handoff.md>
     python validate-items.py <deployment-handoff.md> --workspace my-ws-dev
     python validate-items.py <deployment-handoff.md> > validation-report.yaml
 
-Dependencies:
-    pip install azure-identity requests
+Dependencies (already installed via fabric-cicd):
+    azure-identity, requests
 """
 
 from __future__ import annotations

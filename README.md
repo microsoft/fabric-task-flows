@@ -108,10 +108,9 @@ Phase 2c — Deploy:          Phase 3 — Validate:    Phase 4 — Document:
 
 | Tool | Purpose | Install |
 |------|---------|---------|
-| **fabric-cicd** library | Item deployment (primary) | `pip install fabric-cicd` (v0.1.23+) |
-| **azure-identity** + **requests** | Post-deploy validation (REST API) | `pip install azure-identity requests` |
+| **fabric-cicd** library | Deployment + validation | `pip install fabric-cicd` (v0.1.23+) |
 
-The `/fabric-deploy` skill groups items into **dependency waves** from the "Depends On" column in deployment diagrams. Items within a wave deploy concurrently; waves execute sequentially. The `deploy-script-gen.py` pre-compute script generates `fabric-cicd` workspace directories and self-contained deploy scripts with idempotency, retry, and deployment summaries. Post-deployment validation uses `validate-items.py` to verify items via the Fabric REST API — no `fab` CLI dependency required.
+The `/fabric-deploy` skill groups items into **dependency waves** from the "Depends On" column in deployment diagrams. Items within a wave deploy concurrently; waves execute sequentially. The `deploy-script-gen.py` pre-compute script generates `fabric-cicd` workspace directories and self-contained deploy scripts with idempotency, retry, and deployment summaries. Post-deployment validation uses `validate-items.py` to verify items via the Fabric REST API — no additional dependencies beyond `fabric-cicd`.
 
 See the fabric-deploy skill's `references/` for CI/CD practices and parallel deployment guidance.
 
