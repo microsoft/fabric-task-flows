@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 Heal orchestrator — drives the self-healing loop by coordinating between
-the @fabric-healer agent (LLM) and deterministic scripts.
+the /fabric-heal skill (LLM) and deterministic scripts.
 
 Workflow per iteration:
-  1. Generate prompt for @fabric-healer Mode 1 → agent writes problem-statements.md
+  1. Generate prompt for /fabric-heal Mode 1 → agent writes problem-statements.md
   2. Benchmark signal-mapper against generated problems (deterministic)
   3. Find uncovered keywords (deterministic)
-  4. Generate prompt for @fabric-healer Mode 2 → agent patches signal-mapper.py
+  4. Generate prompt for /fabric-heal Mode 2 → agent patches signal-mapper.py
   5. Re-benchmark to measure improvement delta
   6. Log results
 
@@ -225,7 +225,7 @@ def find_uncovered_keywords(problems: list[dict]) -> list[str]:
 # ---------------------------------------------------------------------------
 
 def generate_prompt(iteration: int) -> str:
-    """Generate Mode 1 prompt for @fabric-healer to create problem statements."""
+    """Generate Mode 1 prompt for /fabric-heal to create problem statements."""
     cat_idx = iteration % len(CATEGORY_ROTATION)
     categories = CATEGORY_ROTATION[cat_idx]
 
@@ -234,7 +234,7 @@ def generate_prompt(iteration: int) -> str:
     kw_matches = re.findall(r'"([^"]{2,})"', sm_content)
     sample_keywords = sorted(set(kw_matches))[:50]
 
-    return f"""@fabric-healer Mode 1 — Generate Problem Statements
+    return f"""/fabric-heal Mode 1 — Generate Problem Statements
 
 ## Iteration {iteration + 1}
 
@@ -255,7 +255,7 @@ expose gaps. For example, if "IoT" is a keyword, use "telemetry sensors" or
 "connected devices" instead.
 
 ### Output
-Write directly to `_shared/problem-statements.md` using the exact format:
+Write directly to `.github/skills/fabric-heal/problem-statements.md` using the exact format:
 
 ```
 # Problem Statements for Stress Testing
@@ -275,8 +275,8 @@ Each problem must be numbered sequentially (1-25) and wrapped in double quotes.
 
 def generate_heal_prompt(iteration: int, metrics: dict,
                          uncovered: list[str]) -> str:
-    """Generate Mode 2 prompt for @fabric-healer to patch keywords."""
-    return f"""@fabric-healer Mode 2 — Analyze Gaps and Patch Keywords
+    """Generate Mode 2 prompt for /fabric-heal to patch keywords."""
+    return f"""/fabric-heal Mode 2 — Analyze Gaps and Patch Keywords
 
 ## Iteration {iteration + 1} Benchmark Results
 
@@ -408,8 +408,8 @@ def log_summary(results: list[dict], dry_run: bool) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Self-healing orchestrator — coordinates @fabric-healer "
-                    "agent with deterministic benchmarking scripts"
+        description="Self-healing orchestrator — coordinates /fabric-heal "
+                    "skill with deterministic benchmarking scripts"
     )
     parser.add_argument("--iterations", type=int, default=10,
                         help="Number of heal iterations (default: 10)")
@@ -432,7 +432,7 @@ def main():
     if args.no_agent:
         print(f"  Mode: Template fallback (no agent)")
     else:
-        print(f"  Mode: Agent-driven (@fabric-healer)")
+        print(f"  Mode: Agent-driven (/fabric-heal)")
     print(f"{'═' * 70}")
 
     stale_iterations = 0  # early-stop if no new gaps found
@@ -452,7 +452,7 @@ def main():
         else:
             prompt = generate_prompt(iteration)
             print(f"\n  ┌─────────────────────────────────────────────┐")
-            print(f"  │  AGENT PROMPT — @fabric-healer Mode 1       │")
+            print(f"  │  AGENT PROMPT — /fabric-heal Mode 1         │")
             print(f"  │  Paste the prompt below to the agent,       │")
             print(f"  │  then press Enter when done.                │")
             print(f"  └─────────────────────────────────────────────┘\n")
@@ -516,7 +516,7 @@ def main():
             else:
                 heal_prompt = generate_heal_prompt(iteration, metrics, uncovered)
                 print(f"\n  ┌─────────────────────────────────────────────┐")
-                print(f"  │  AGENT PROMPT — @fabric-healer Mode 2       │")
+                print(f"  │  AGENT PROMPT — /fabric-heal Mode 2         │")
                 print(f"  │  Paste the prompt below to the agent,       │")
                 print(f"  │  then press Enter when done.                │")
                 print(f"  └─────────────────────────────────────────────┘\n")

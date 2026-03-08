@@ -1,6 +1,8 @@
 # ADR Template
 
 > Architecture Decision Record (ADR) template for documenting design decisions.
+>
+> ⚠️ This template is duplicated in `fabric-document/references/adr-template.md` — keep both in sync.
 
 Use this template when the `fabric-documenter` agent generates decision records, or when manually documenting architecture choices.
 

@@ -1,0 +1,31 @@
+{
+    "tasks": [
+        {
+            "type": "get data",
+            "id": "aa09917e-1065-5eb0-9393-c7309c4d382c",
+            "name": "Ingest data"
+        },
+        {
+            "type": "store data",
+            "id": "8cae7bc7-ee80-5ea2-9ae4-e205ca62de29",
+            "name": "Store data"
+        },
+        {
+            "type": "visualize",
+            "id": "d260f6d5-4026-5b1f-96cc-89d5f72ef386",
+            "name": "Visualize & report"
+        }
+    ],
+    "edges": [
+        {
+            "source": "aa09917e-1065-5eb0-9393-c7309c4d382c",
+            "target": "8cae7bc7-ee80-5ea2-9ae4-e205ca62de29"
+        },
+        {
+            "source": "8cae7bc7-ee80-5ea2-9ae4-e205ca62de29",
+            "target": "d260f6d5-4026-5b1f-96cc-89d5f72ef386"
+        }
+    ],
+    "name": "General",
+    "description": "Task flow for General (general)"
+}

@@ -33,7 +33,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 # Portal-only items — loaded from _shared/item-type-registry.json
-# Do NOT maintain this dict manually. See _shared/agent-boundaries.md.
+# Do NOT maintain this dict manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
 from registry_loader import build_portal_only_items
 

@@ -74,7 +74,7 @@ projects/[workspace-name]/
 
 ## 2. ADR Files (`docs/decisions/NNN-*.md`)
 
-Use the template from `_shared/adr-template.md` for each decision:
+Use the template from `.github/skills/fabric-design/references/adr-template.md` for each decision:
 - 001-task-flow.md - Why this task flow pattern
 - 002-storage.md - Storage layer decision
 - 003-ingestion.md - Ingestion approach

@@ -8,7 +8,7 @@ description: >
   "what task flow fits my needs", "help me figure out our data architecture",
   or "analyze my problem statement". Do NOT use for architecture design
   decisions (use fabric-design), deployment (use fabric-deploy), or
-  validation (use fabric-validate).
+  validation (use fabric-test).
 pre-compute: [signal-mapper]
 # author: task-flows-team
 # version: 1.0.0

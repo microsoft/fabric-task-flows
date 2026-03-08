@@ -12,9 +12,9 @@ For LLM-dependent phases (architecture decisions, reviews), the script
 generates a batch prompt file that can be fed to an orchestrator.
 
 Usage:
-    python scripts/fleet-runner.py --problem-file _shared/problem-statements.md
-    python scripts/fleet-runner.py --problem-file _shared/problem-statements.md --dry-run
-    python scripts/fleet-runner.py --problem-file _shared/problem-statements.md --phases discovery
+    python scripts/fleet-runner.py --problem-file .github/skills/fabric-heal/problem-statements.md
+    python scripts/fleet-runner.py --problem-file .github/skills/fabric-heal/problem-statements.md --dry-run
+    python scripts/fleet-runner.py --problem-file .github/skills/fabric-heal/problem-statements.md --phases discovery
 """
 
 from __future__ import annotations
@@ -333,7 +333,7 @@ def main():
         description="Fleet runner — deploy multiple projects in parallel"
     )
     parser.add_argument("--problem-file",
-                        default=str(REPO_ROOT / "_shared" / "problem-statements.md"),
+                        default=str(REPO_ROOT / ".github" / "skills" / "fabric-heal" / "problem-statements.md"),
                         help="Path to problem-statements.md")
     parser.add_argument("--workers", type=int, default=4,
                         help="Parallel workers (default: 4)")

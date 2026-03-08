@@ -95,19 +95,19 @@ next_phase: design-review
 **Project:** {project}
 **Task flow:** TBD
 **Date:** {today()}
-**Status:** DRAFT — Awaiting design review by @fabric-engineer and @fabric-tester.
+**Status:** DRAFT — Awaiting design review by /fabric-deploy and /fabric-test.
 
 ---
 
 ### Problem Reference
 > See: prd/discovery-brief.md
-> Summary: <!-- @fabric-architect: ≤20 word summary -->
+> Summary: <!-- /fabric-design: ≤20 word summary -->
 
 ---
 
 ## Architecture Diagram
 
-<!-- @fabric-architect: Draw a project-specific ASCII data flow diagram.
+<!-- /fabric-design: Draw a project-specific ASCII data flow diagram.
      - Use box-drawing characters (┌─┐│└─┘, ──►, ──▶)
      - Data sources on the left, outputs on the right
      - Label every box with the ACTUAL project item name (e.g., "call-events-lakehouse", not just "Lakehouse")
@@ -143,7 +143,7 @@ Parameterization: Single environment → Environment Variables (or skip) | Multi
 
 ```yaml
 items:
-  # @fabric-architect: fill in items
+  # /fabric-design: fill in items
   # - id: 1
   #   name: ""
   #   type: ""
@@ -156,7 +156,7 @@ items:
 
 ```yaml
 waves:
-  # @fabric-architect: fill in waves
+  # /fabric-design: fill in waves
   # - id: 1
   #   items: []
   # - id: 2
@@ -168,7 +168,7 @@ waves:
 
 ```yaml
 acceptance_criteria:
-  # @fabric-architect: fill in ACs
+  # /fabric-design: fill in ACs
   # - id: AC-1
   #   type: structural
   #   criterion: ""
@@ -208,15 +208,15 @@ acceptance_criteria:
 
 | Reviewer | Feedback Summary | Incorporated? | What Changed |
 |----------|-----------------|---------------|--------------|
-| @fabric-engineer | <!-- pending --> | | |
-| @fabric-tester | <!-- pending --> | | |
+| /fabric-deploy | <!-- pending --> | | |
+| /fabric-test | <!-- pending --> | | |
 """
 
 
 def engineer_review(project: str) -> str:
     return f"""```yaml
-# Engineer Review — @fabric-engineer Mode 0
-# Schema: _shared/schemas/engineer-review.md
+# Engineer Review — /fabric-deploy Mode 0
+# Schema: .github/skills/fabric-design/schemas/engineer-review.md
 project: {project}
 task_flow: TBD
 review_date: {today()}
@@ -248,8 +248,8 @@ no_change: []
 
 def tester_review(project: str) -> str:
     return f"""```yaml
-# Tester Review — @fabric-tester Mode 0
-# Schema: _shared/schemas/tester-review.md
+# Tester Review — /fabric-test Mode 0
+# Schema: .github/skills/fabric-design/schemas/tester-review.md
 project: {project}
 task_flow: TBD
 review_date: {today()}
@@ -277,8 +277,8 @@ should_fix: []
 
 def test_plan(project: str) -> str:
     return f"""```yaml
-# Test Plan — @fabric-tester Mode 1
-# Schema: _shared/schemas/test-plan.md
+# Test Plan — /fabric-test Mode 1
+# Schema: .github/skills/fabric-test/schemas/test-plan.md
 project: {project}
 task_flow: TBD
 architecture_date: {today()}
@@ -302,8 +302,8 @@ blockers:
 
 def deployment_handoff(project: str) -> str:
     return f"""```yaml
-# Deployment Handoff — @fabric-engineer
-# Schema: _shared/schemas/deployment-handoff.md
+# Deployment Handoff — /fabric-deploy
+# Schema: .github/skills/fabric-deploy/schemas/deployment-handoff.md
 project: {project}
 task_flow: TBD
 validation_checklist: ""
@@ -341,8 +341,8 @@ cicd_notes: []
 
 def validation_report(project: str) -> str:
     return f"""```yaml
-# Validation Report — @fabric-tester Mode 2
-# Schema: _shared/schemas/validation-report.md
+# Validation Report — /fabric-test Mode 2
+# Schema: .github/skills/fabric-test/schemas/validation-report.md
 project: {project}
 task_flow: TBD
 date: ""
@@ -409,7 +409,7 @@ None.
 
 ## Wave Progress
 
-<!-- Updated by @fabric-engineer during deployment -->
+<!-- Updated by /fabric-deploy during deployment -->
 
 | Wave | Items | Status |
 |------|-------|--------|
@@ -417,7 +417,7 @@ None.
 
 ## Manual Steps
 
-<!-- Updated by @fabric-engineer during deployment -->
+<!-- Updated by /fabric-deploy during deployment -->
 
 | ID | Description | Status |
 |----|-------------|--------|
@@ -428,13 +428,13 @@ None.
 def docs_readme(project: str, display_name: str) -> str:
     return f"""# {display_name} — Architecture Documentation
 
-> Generated: <!-- @fabric-documenter: timestamp -->
-> Task flow: <!-- @fabric-documenter: task flow name -->
-> Status: <!-- @fabric-documenter: DEPLOYED | VALIDATED | PARTIAL -->
+> Generated: <!-- /fabric-document: timestamp -->
+> Task flow: <!-- /fabric-document: task flow name -->
+> Status: <!-- /fabric-document: DEPLOYED | VALIDATED | PARTIAL -->
 
 ## Overview
 
-<!-- @fabric-documenter: 2-3 sentence summary -->
+<!-- /fabric-document: 2-3 sentence summary -->
 
 ## Quick Links
 
@@ -459,11 +459,11 @@ def docs_readme(project: str, display_name: str) -> str:
 def docs_architecture(project: str) -> str:
     return f"""# Architecture
 
-<!-- @fabric-documenter: generate from Architecture Handoff -->
+<!-- /fabric-document: generate from Architecture Handoff -->
 
 ## System Diagram
 
-<!-- @fabric-documenter: mermaid diagram -->
+<!-- /fabric-document: mermaid diagram -->
 
 ## Items
 
@@ -473,7 +473,7 @@ def docs_architecture(project: str) -> str:
 
 ## Data Flow
 
-<!-- @fabric-documenter: describe data movement -->
+<!-- /fabric-document: describe data movement -->
 
 ## Deployment Strategy
 
@@ -486,16 +486,16 @@ def docs_architecture(project: str) -> str:
 
 ## Configuration Summary
 
-<!-- @fabric-documenter: pull Configuration Rationale from engineer handoff -->
+<!-- /fabric-document: pull Configuration Rationale from engineer handoff -->
 """
 
 
 def docs_deployment_log(project: str) -> str:
     return f"""# Deployment Log
 
-**Deployed:** <!-- @fabric-documenter: timestamp -->
-**Task flow:** <!-- @fabric-documenter: name -->
-**Validation Status:** <!-- @fabric-documenter: from validation report -->
+**Deployed:** <!-- /fabric-document: timestamp -->
+**Task flow:** <!-- /fabric-document: name -->
+**Validation Status:** <!-- /fabric-document: from validation report -->
 
 ## Items Deployed
 
@@ -505,19 +505,19 @@ def docs_deployment_log(project: str) -> str:
 
 ## Implementation Notes
 
-<!-- @fabric-documenter: pull from engineer handoff -->
+<!-- /fabric-document: pull from engineer handoff -->
 
 ## Configuration Rationale
 
-<!-- @fabric-documenter: pull from engineer handoff -->
+<!-- /fabric-document: pull from engineer handoff -->
 
 ## Manual Steps
 
 ### Completed
-<!-- @fabric-documenter: list from engineer -->
+<!-- /fabric-document: list from engineer -->
 
 ### Pending
-<!-- @fabric-documenter: list from engineer -->
+<!-- /fabric-document: list from engineer -->
 
 ## Issues & Resolutions
 
@@ -527,7 +527,7 @@ def docs_deployment_log(project: str) -> str:
 
 ## Lessons Learned
 
-<!-- @fabric-documenter: pull from validation report Future Considerations -->
+<!-- /fabric-document: pull from validation report Future Considerations -->
 """
 
 
@@ -538,16 +538,16 @@ def adr_template(number: str, title: str) -> str:
 
 Accepted
 
-**Date:** <!-- @fabric-documenter: date -->
+**Date:** <!-- /fabric-document: date -->
 **Deciders:** fabric-architect agent + user confirmation
 
 ## Context
 
-<!-- @fabric-documenter: problem, constraints, requirements -->
+<!-- /fabric-document: problem, constraints, requirements -->
 
 ## Decision
 
-<!-- @fabric-documenter: what was chosen -->
+<!-- /fabric-document: what was chosen -->
 
 ## Alternatives Considered
 
@@ -558,17 +558,17 @@ Accepted
 ## Consequences
 
 ### Benefits
-<!-- @fabric-documenter: what this enables -->
+<!-- /fabric-document: what this enables -->
 
 ### Costs
-<!-- @fabric-documenter: what this limits -->
+<!-- /fabric-document: what this limits -->
 
 ### Mitigations
-<!-- @fabric-documenter: how costs are addressed -->
+<!-- /fabric-document: how costs are addressed -->
 
 ## References
 
-- Decision guide: <!-- @fabric-documenter: link to decisions/*.md -->
+- Decision guide: <!-- /fabric-document: link to decisions/*.md -->
 """
 
 

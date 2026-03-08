@@ -19,6 +19,7 @@ Importable:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from dataclasses import dataclass, field
@@ -34,12 +35,14 @@ ASSETS_DIR = SKILL_DIR / "assets"
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Item type mappings — loaded from _shared/item-type-registry.json
-# Do NOT maintain these dicts manually. See _shared/agent-boundaries.md.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
+# Do NOT maintain these dicts manually. See CONTRIBUTING.md.
+_SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
+sys.path.insert(0, str(_SHARED_DIR))
 from registry_loader import build_fab_commands, build_display_names
 
 FAB_COMMANDS: dict[str, tuple[str, list[str]] | None] = build_fab_commands()
 DISPLAY_NAMES: dict[str, str] = build_display_names()
+REGISTRY: dict = json.loads((_SHARED_DIR / "item-type-registry.json").read_text(encoding="utf-8"))
 
 # Task-flow-specific prompts
 TASK_FLOW_PROMPTS: dict[str, list[tuple[str, str, str, str, bool]]] = {
@@ -97,6 +100,7 @@ class HandoffData:
     task_flow: str
     items: list[Item]
     waves: list[Wave]
+    summary: str = ""
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -364,6 +368,12 @@ def parse_handoff(path: str) -> HandoffData:
     content = Path(path).read_text(encoding="utf-8")
     task_flow = _extract_task_flow(content)
 
+    # Extract problem summary from handoff
+    summary = ""
+    m = re.search(r">\s*Summary:\s*(.+)", content)
+    if m:
+        summary = m.group(1).strip()
+
     yaml_blocks = _extract_yaml_blocks(content)
 
     items: list[Item] = []
@@ -381,7 +391,7 @@ def parse_handoff(path: str) -> HandoffData:
     if not waves:
         print(f"⚠ No waves found in {path}", file=sys.stderr)
 
-    return HandoffData(task_flow=task_flow, items=items, waves=waves)
+    return HandoffData(task_flow=task_flow, items=items, waves=waves, summary=summary)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -403,19 +413,32 @@ def _type_key(item_type: str) -> str:
 
 def _is_portal_only(item_type: str) -> bool:
     key = _type_key(item_type)
-    # Also check the original with spaces for types like "Real-Time Dashboard"
     return FAB_COMMANDS.get(key) is None and FAB_COMMANDS.get(item_type.lower()) is None
 
 
+def _cli_safe_name(name: str) -> str:
+    """Convert item name to CLI-safe format (underscores instead of hyphens).
+
+    Fabric CLI rejects hyphens in item names for multiple item types
+    (Lakehouse, Eventstream, MLExperiment, MLModel, and potentially others).
+    Rather than maintain an incomplete allowlist, we universally convert
+    hyphens to underscores for all item types.
+    """
+    return name.replace("-", "_")
+
+
 def _get_fab_command(item: Item) -> tuple[str, list[str]] | None:
-    """Return (path_template, extra_args) for an item, or None if portal-only."""
+    """Return (path_template, extra_args) for an item, or None if portal-only.
+    Items are created at workspace root — folders are for Portal organization."""
     key = _type_key(item.type)
     entry = FAB_COMMANDS.get(key)
     if entry is None:
         entry = FAB_COMMANDS.get(item.type.lower())
     if entry is not None:
         path_tpl, extra_args = entry
-        return (path_tpl.replace("{name}", item.name), extra_args)
+        safe_name = _cli_safe_name(item.name)
+        path = path_tpl.replace("{name}", safe_name)
+        return (path, extra_args)
     return None
 
 
@@ -462,6 +485,89 @@ _ENV_TYPES = {"environment"}
 _SEMANTIC_MODEL_TYPES = {"semanticmodel", "semantic model"}
 _NOTEBOOK_TYPES = {"notebook"}
 
+# Phase → folder name mapping (used for workspace folder organization)
+PHASE_FOLDER_NAMES: dict[str, str] = {
+    "Foundation": "Storage",
+    "Environment": "Configuration",
+    "Ingestion": "Ingestion",
+    "Transformation": "Processing",
+    "Visualization": "Analytics",
+    "ML": "Machine Learning",
+}
+
+
+def _get_item_phase(item_type: str) -> str:
+    """Get the deployment phase for an item type from the registry."""
+    key = _type_key(item_type)
+    for type_name, type_info in REGISTRY.get("types", {}).items():
+        reg_key = _type_key(type_name)
+        if reg_key == key:
+            return type_info.get("phase", "Other")
+        for alias in type_info.get("aliases", []):
+            if _type_key(alias) == key:
+                return type_info.get("phase", "Other")
+    return "Other"
+
+
+def _get_folder_for_item(item_type: str) -> str:
+    """Get the workspace folder name for an item type. Returns empty string for unknown types."""
+    phase = _get_item_phase(item_type)
+    if phase == "Other":
+        return ""
+    return PHASE_FOLDER_NAMES.get(phase, "")
+
+
+def _collect_folders(data: "HandoffData") -> list[str]:
+    """Collect unique folder names needed for all items in the handoff."""
+    folders: list[str] = []
+    seen: set[str] = set()
+    for item in data.items:
+        folder = _get_folder_for_item(item.type)
+        if folder and folder not in seen:
+            seen.add(folder)
+            folders.append(folder)
+    return folders
+
+
+def _gen_folder_creation_ps1(data: "HandoffData", ws_var: str) -> str:
+    """Generate PowerShell folder creation calls before wave deployment."""
+    folders = _collect_folders(data)
+    if not folders:
+        return ""
+    lines = [
+        "",
+        "  # ─────────────────────────────────────────────────────────────────",
+        "  # Workspace Folders",
+        "  # ─────────────────────────────────────────────────────────────────",
+        '  Write-Host ""',
+        '  Write-Host "  Workspace Folders"',
+    ]
+    for idx, folder in enumerate(folders):
+        connector = "└──" if idx == len(folders) - 1 else "├──"
+        lines.append(f'  New-FabFolder -WorkspacePath $wsPath -FolderName "{folder}" -TreeChar "{connector}"')
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _gen_folder_creation_bash(data: "HandoffData", ws_var: str) -> str:
+    """Generate bash folder creation calls before wave deployment."""
+    folders = _collect_folders(data)
+    if not folders:
+        return ""
+    lines = [
+        "",
+        "  # ─────────────────────────────────────────────────────────────────",
+        "  # Workspace Folders",
+        "  # ─────────────────────────────────────────────────────────────────",
+        '  echo ""',
+        '  echo "  Workspace Folders"',
+    ]
+    for idx, folder in enumerate(folders):
+        connector = "└──" if idx == len(folders) - 1 else "├──"
+        lines.append(f'  fab_create_folder "{ws_var}.Workspace" "{folder}" "{connector}"')
+    lines.append("")
+    return "\n".join(lines)
+
 
 def _build_item_lookup(data: HandoffData) -> dict[str, Item]:
     lookup: dict[str, Item] = {}
@@ -475,740 +581,461 @@ def _tree_connector(idx: int, total: int) -> str:
     return "└──" if idx == total - 1 else "├──"
 
 
-def _find_dependency_items(item: Item, all_items: list[Item], target_types: set[str]) -> list[Item]:
-    """Find items in depends_on list matching target types."""
-    items_by_id = {i.id: i for i in all_items}
-    matches = []
-    for dep_id in item.depends_on:
-        dep = items_by_id.get(dep_id)
-        if dep and _type_key(dep.type) in target_types:
-            matches.append(dep)
-    return matches
-
-
-def _gen_post_wave_ps1(wave_items: list[Item], all_items: list[Item], ws_var: str) -> list[str]:
-    """Generate post-wave PowerShell code for Environment wait, notebook binding, etc."""
-    lines: list[str] = []
-
-    # Environment publish wait
-    env_items = [i for i in wave_items if _type_key(i.type) in _ENV_TYPES]
-    for env in env_items:
-        lines.append("")
-        lines.append(f'  Write-Host "  ⏳ Waiting for Environment publish (may take 20+ min)..."')
-        lines.append(f'  $maxWait = 1800; $elapsed = 0')
-        lines.append(f'  do {{')
-        lines.append(f'    Start-Sleep -Seconds 30; $elapsed += 30')
-        lines.append(f'    $envStatus = (fab get "{ws_var}.Workspace/{env.name}.Environment" -q properties.publishStatus 2>&1)')
-        lines.append(f'    Write-Host "    ⏱  $([math]::Floor($elapsed/60))m elapsed — status: $envStatus"')
-        lines.append(f'  }} while ($envStatus -ne "Published" -and $elapsed -lt $maxWait)')
-        lines.append(f'  if ($envStatus -ne "Published") {{')
-        lines.append(f'    Write-Host "  ⚠️  Environment publish timed out — notebooks may fail until publish completes"')
-        lines.append(f'  }} else {{')
-        lines.append(f'    Write-Host "  ── ✅ Environment published"')
-        lines.append(f'  }}')
-
-    # Notebook binding (fab set for lakehouse + environment)
-    nb_items = [i for i in wave_items if _type_key(i.type) in _NOTEBOOK_TYPES]
-    for nb in nb_items:
-        lakehouses = _find_dependency_items(nb, all_items, {"lakehouse"})
-        envs = _find_dependency_items(nb, all_items, _ENV_TYPES)
-        if lakehouses or envs:
-            lines.append("")
-            lines.append(f'  # Bind {nb.name} to dependencies')
-        if lakehouses:
-            lh = lakehouses[0]
-            lines.append(f'  $lhId = (fab get "{ws_var}.Workspace/{lh.name}.Lakehouse" -q id 2>&1).Trim()')
-            lines.append(f'  fab set "{ws_var}.Workspace/{nb.name}.Notebook" -q lakehouse -i "$lhId" 2>&1 | Out-Null')
-            lines.append(f'  Write-Host "  ── ✅ {nb.name} bound to lakehouse {lh.name}"')
-        if envs:
-            env = envs[0]
-            lines.append(f'  $envId = (fab get "{ws_var}.Workspace/{env.name}.Environment" -q id 2>&1).Trim()')
-            lines.append(f'  fab set "{ws_var}.Workspace/{nb.name}.Notebook" -q environment -i "$envId" 2>&1 | Out-Null')
-            lines.append(f'  Write-Host "  ── ✅ {nb.name} bound to environment {env.name}"')
-
-    # Semantic Model ID capture (for later Report binding)
-    sm_items = [i for i in wave_items if _type_key(i.type) in _SEMANTIC_MODEL_TYPES]
-    for sm in sm_items:
-        lines.append("")
-        lines.append(f'  $SemanticModelId = (fab get "{ws_var}.Workspace/{sm.name}.SemanticModel" -q id 2>&1).Trim()')
-        lines.append(f'  Write-Host "  ── ℹ️  Captured SemanticModel ID: $SemanticModelId"')
-
-    # Eventhouse ID capture (for later KQLDatabase binding)
-    eh_items = [i for i in wave_items if _type_key(i.type) == "eventhouse"]
-    for eh in eh_items:
-        lines.append("")
-        lines.append(f'  $EventhouseId = (fab get "{ws_var}.Workspace/{eh.name}.Eventhouse" -q id 2>&1).Trim()')
-        lines.append(f'  Write-Host "  ── ℹ️  Captured Eventhouse ID: $EventhouseId"')
-
-    return lines
-
-
-def _gen_post_wave_bash(wave_items: list[Item], all_items: list[Item], ws_var: str) -> list[str]:
-    """Generate post-wave bash code for Environment wait, notebook binding, etc."""
-    lines: list[str] = []
-
-    # Environment publish wait
-    env_items = [i for i in wave_items if _type_key(i.type) in _ENV_TYPES]
-    for env in env_items:
-        lines.append("")
-        lines.append(f'  echo "  ⏳ Waiting for Environment publish (may take 20+ min)..."')
-        lines.append(f'  max_wait=1800; elapsed=0')
-        lines.append(f'  while [ $elapsed -lt $max_wait ]; do')
-        lines.append(f'    sleep 30; elapsed=$((elapsed + 30))')
-        lines.append(f'    env_status=$(fab get "{ws_var}.Workspace/{env.name}.Environment" -q properties.publishStatus 2>&1)')
-        lines.append(f'    echo "    ⏱  $((elapsed / 60))m elapsed — status: $env_status"')
-        lines.append(f'    [ "$env_status" = "Published" ] && break')
-        lines.append(f'  done')
-        lines.append(f'  if [ "$env_status" != "Published" ]; then')
-        lines.append(f'    echo "  ⚠️  Environment publish timed out — notebooks may fail until publish completes"')
-        lines.append(f'  else')
-        lines.append(f'    echo "  ── ✅ Environment published"')
-        lines.append(f'  fi')
-
-    # Notebook binding
-    nb_items = [i for i in wave_items if _type_key(i.type) in _NOTEBOOK_TYPES]
-    for nb in nb_items:
-        lakehouses = _find_dependency_items(nb, all_items, {"lakehouse"})
-        envs = _find_dependency_items(nb, all_items, _ENV_TYPES)
-        if lakehouses or envs:
-            lines.append("")
-            lines.append(f'  # Bind {nb.name} to dependencies')
-        if lakehouses:
-            lh = lakehouses[0]
-            lines.append(f'  lh_id=$(fab get "{ws_var}.Workspace/{lh.name}.Lakehouse" -q id 2>&1 | tr -d "[:space:]")')
-            lines.append(f'  fab set "{ws_var}.Workspace/{nb.name}.Notebook" -q lakehouse -i "$lh_id" 2>&1 | cat > /dev/null')
-            lines.append(f'  echo "  ── ✅ {nb.name} bound to lakehouse {lh.name}"')
-        if envs:
-            env = envs[0]
-            lines.append(f'  env_id=$(fab get "{ws_var}.Workspace/{env.name}.Environment" -q id 2>&1 | tr -d "[:space:]")')
-            lines.append(f'  fab set "{ws_var}.Workspace/{nb.name}.Notebook" -q environment -i "$env_id" 2>&1 | cat > /dev/null')
-            lines.append(f'  echo "  ── ✅ {nb.name} bound to environment {env.name}"')
-
-    # Semantic Model ID capture
-    sm_items = [i for i in wave_items if _type_key(i.type) in _SEMANTIC_MODEL_TYPES]
-    for sm in sm_items:
-        lines.append("")
-        lines.append(f'  SEMANTIC_MODEL_ID=$(fab get "{ws_var}.Workspace/{sm.name}.SemanticModel" -q id 2>&1 | tr -d "[:space:]")')
-        lines.append(f'  echo "  ── ℹ️  Captured SemanticModel ID: $SEMANTIC_MODEL_ID"')
-
-    # Eventhouse ID capture (for later KQLDatabase binding)
-    eh_items = [i for i in wave_items if _type_key(i.type) == "eventhouse"]
-    for eh in eh_items:
-        lines.append("")
-        lines.append(f'  EVENTHOUSE_ID=$(fab get "{ws_var}.Workspace/{eh.name}.Eventhouse" -q id 2>&1 | tr -d "[:space:]")')
-        lines.append(f'  echo "  ── ℹ️  Captured Eventhouse ID: $EVENTHOUSE_ID"')
-
-    return lines
-
-
-def _gen_wave_deployment_bash(data: HandoffData) -> str:
-    lines: list[str] = []
-    item_lookup = _build_item_lookup(data)
-    sm_captured = False  # Track if SemanticModel ID has been captured
-
-    for wave in data.waves:
-        wave_items = [item_lookup[str(iid)] for iid in wave.items if str(iid) in item_lookup]
-        if not wave_items:
-            continue
-
-        note = wave.note or f"Wave {wave.id}"
-        lines.append(f"  # ─────────────────────────────────────────────────────────────────")
-        lines.append(f"  # Wave {wave.id} — {note}")
-        lines.append(f"  # ─────────────────────────────────────────────────────────────────")
-        lines.append(f'  echo ""')
-        lines.append(f'  echo "  Wave {wave.id} — {note}"')
-
-        for idx, item in enumerate(wave_items):
-            connector = _tree_connector(idx, len(wave_items))
-            display_type = _get_display_type(item.type)
-            fab_result = _get_fab_command(item)
-
-            if fab_result is not None:
-                path_tpl, extra_args = fab_result
-                bash_path = path_tpl.replace("{ws}", "$FABRIC_WORKSPACE_NAME")
-                # Inject SemanticModel ID for Report items
-                if _type_key(item.type) == "report" and sm_captured:
-                    extra_args = list(extra_args) + ["-P", "semanticModelId=$SEMANTIC_MODEL_ID"]
-                # Inject Eventhouse ID for KQLDatabase items
-                if _type_key(item.type) == "kqldatabase":
-                    extra_args = list(extra_args) + ["-P", "eventhouseId=$EVENTHOUSE_ID"]
-                extra_str = " " + " ".join(f'"{a}"' for a in extra_args) if extra_args else ""
-                lines.append(
-                    f'  fab_mkdir "{bash_path}" "{display_type}: {item.name}" "{connector}"{extra_str}'
-                )
-            else:
-                lines.append(f'  echo "  {connector} ⏭️  [MANUAL] {display_type}: create via Fabric Portal"')
-
-        # Post-wave logic (environment wait, notebook binding, ID capture)
-        post_lines = _gen_post_wave_bash(wave_items, data.items, "$FABRIC_WORKSPACE_NAME")
-        if post_lines:
-            lines.extend(post_lines)
-        # Track if SemanticModel ID was captured in this wave
-        if any(_type_key(i.type) in _SEMANTIC_MODEL_TYPES for i in wave_items):
-            sm_captured = True
-
-        lines.append("")
-
-    return "\n".join(lines)
-
-
-def _gen_wave_deployment_ps1(data: HandoffData) -> str:
-    lines: list[str] = []
-    item_lookup = _build_item_lookup(data)
-    sm_captured = False  # Track if SemanticModel ID has been captured
-
-    for wave in data.waves:
-        wave_items = [item_lookup[str(iid)] for iid in wave.items if str(iid) in item_lookup]
-        if not wave_items:
-            continue
-
-        note = wave.note or f"Wave {wave.id}"
-        lines.append(f"  # ─────────────────────────────────────────────────────────────────")
-        lines.append(f"  # Wave {wave.id} — {note}")
-        lines.append(f"  # ─────────────────────────────────────────────────────────────────")
-        lines.append(f'  Write-Host ""')
-        lines.append(f'  Write-Host "  Wave {wave.id} — {note}"')
-
-        for idx, item in enumerate(wave_items):
-            connector = _tree_connector(idx, len(wave_items))
-            display_type = _get_display_type(item.type)
-            fab_result = _get_fab_command(item)
-
-            if fab_result is not None:
-                path_tpl, extra_args = fab_result
-                ps_path = path_tpl.replace("{ws}", "$WorkspaceName")
-                # Inject SemanticModel ID for Report items
-                if _type_key(item.type) == "report" and sm_captured:
-                    extra_args = list(extra_args) + ["-P", "semanticModelId=$SemanticModelId"]
-                # Inject Eventhouse ID for KQLDatabase items
-                if _type_key(item.type) == "kqldatabase":
-                    extra_args = list(extra_args) + ["-P", "eventhouseId=$EventhouseId"]
-                extra_str = ""
-                if extra_args:
-                    args_joined = ", ".join(f'"{a}"' for a in extra_args)
-                    extra_str = f" -ExtraArgs @({args_joined})"
-                lines.append(
-                    f'  Fab-Mkdir -Path "{ps_path}" -Label "{display_type}: {item.name}" -TreeChar "{connector}"{extra_str}'
-                )
-            else:
-                lines.append(f'  Write-Host "  {connector} ⏭️  [MANUAL] {display_type}: create via Fabric Portal"')
-
-        # Post-wave logic (environment wait, notebook binding, ID capture)
-        post_lines = _gen_post_wave_ps1(wave_items, data.items, "$WorkspaceName")
-        if post_lines:
-            lines.extend(post_lines)
-        # Track if SemanticModel ID was captured in this wave
-        if any(_type_key(i.type) in _SEMANTIC_MODEL_TYPES for i in wave_items):
-            sm_captured = True
-
-        lines.append("")
-
-    return "\n".join(lines)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Code generation: deployment plan preview
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _gen_plan_preview_bash(data: HandoffData) -> str:
-    lines: list[str] = []
-    item_lookup = _build_item_lookup(data)
-
-    for wave in data.waves:
-        wave_items = [item_lookup[str(iid)] for iid in wave.items if str(iid) in item_lookup]
-        if not wave_items:
-            continue
-
-        note = wave.note or f"Wave {wave.id}"
-        lines.append(f'  echo "  Wave {wave.id} — {note}"')
-
-        for idx, item in enumerate(wave_items):
-            connector = _tree_connector(idx, len(wave_items))
-            display_type = _get_display_type(item.type)
-            if _is_portal_only(item.type):
-                lines.append(f'  echo "  {connector} ☐ [MANUAL] {display_type}: {item.name}"')
-            else:
-                lines.append(f'  echo "  {connector} ☐ {display_type}: {item.name}"')
-
-        lines.append(f'  echo ""')
-
-    return "\n".join(lines)
-
-
-def _gen_plan_preview_ps1(data: HandoffData) -> str:
-    lines: list[str] = []
-    item_lookup = _build_item_lookup(data)
-
-    for wave in data.waves:
-        wave_items = [item_lookup[str(iid)] for iid in wave.items if str(iid) in item_lookup]
-        if not wave_items:
-            continue
-
-        note = wave.note or f"Wave {wave.id}"
-        lines.append(f'  Write-Host "  Wave {wave.id} — {note}"')
-
-        for idx, item in enumerate(wave_items):
-            connector = _tree_connector(idx, len(wave_items))
-            display_type = _get_display_type(item.type)
-            if _is_portal_only(item.type):
-                lines.append(f'  Write-Host "  {connector} ☐ [MANUAL] {display_type}: {item.name}"')
-            else:
-                lines.append(f'  Write-Host "  {connector} ☐ {display_type}: {item.name}"')
-
-        lines.append(f'  Write-Host ""')
-
-    return "\n".join(lines)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Code generation: task-flow-specific prompts
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _gen_tf_prompts_bash(task_flow: str) -> str:
-    prompts = TASK_FLOW_PROMPTS.get(task_flow, [])
-    if not prompts:
-        return ""
-
-    lines: list[str] = []
-    for env_var, prompt_text, default, desc, optional in prompts:
-        # Show description as a comment before the prompt
-        if desc:
-            lines.append(f'  # {desc}')
-        if default:
-            lines.append(f'  {env_var}=$(prompt_value "{env_var}" "{prompt_text}" "{default}")')
-        elif optional:
-            lines.append(f'  {env_var}=$(prompt_value "{env_var}" "{prompt_text}" "" "optional")')
-        else:
-            lines.append(f'  {env_var}=$(prompt_value "{env_var}" "{prompt_text}")')
-    return "\n".join(lines)
-
-
-def _gen_tf_prompts_ps1(task_flow: str) -> str:
-    prompts = TASK_FLOW_PROMPTS.get(task_flow, [])
-    if not prompts:
-        return ""
-
-    lines: list[str] = []
-    for env_var, prompt_text, default, desc, optional in prompts:
-        # Convert ENV_VAR to $PascalCase
-        ps_var = "".join(w.capitalize() for w in env_var.lower().split("_"))
-        # Show description as a comment before the prompt
-        if desc:
-            lines.append(f'  # {desc}')
-        if default:
-            lines.append(
-                f'  ${ps_var} = Prompt-Value -EnvVarName "{env_var}" '
-                f'-PromptText "{prompt_text}" -DefaultValue "{default}"'
-            )
-        elif optional:
-            lines.append(
-                f'  ${ps_var} = Prompt-Value -EnvVarName "{env_var}" '
-                f'-PromptText "{prompt_text}" -Optional'
-            )
-        else:
-            lines.append(
-                f'  ${ps_var} = Prompt-Value -EnvVarName "{env_var}" '
-                f'-PromptText "{prompt_text}"'
-            )
-    return "\n".join(lines)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Code generation: OR alternatives
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _gen_or_comment_bash(data: HandoffData) -> str:
-    """Generate commented-out alternative blocks for ──OR── items."""
-    or_pairs = _has_or_alternatives(data)
-    if not or_pairs:
-        return ""
-
-    lines: list[str] = [
-        "  # ─────────────────────────────────────────────────────────────────",
-        "  # ──OR── Alternatives: uncomment ONE option per group",
-        "  # ─────────────────────────────────────────────────────────────────",
-    ]
-    for primary, alt in or_pairs:
-        display_a = _get_display_type(primary.type)
-        display_b = _get_display_type(alt.type)
-        result_a = _get_fab_command(primary)
-        result_b = _get_fab_command(alt)
-        lines.append(f"  # Option A: {display_a} — {primary.name}")
-        if result_a:
-            path_a, args_a = result_a
-            bash_path_a = path_a.replace("{ws}", "$FABRIC_WORKSPACE_NAME")
-            extra_a = " " + " ".join(args_a) if args_a else ""
-            lines.append(f'  # fab mkdir "{bash_path_a}"{extra_a}')
-        lines.append(f"  # Option B: {display_b} — {alt.name}")
-        if result_b:
-            path_b, args_b = result_b
-            bash_path_b = path_b.replace("{ws}", "$FABRIC_WORKSPACE_NAME")
-            extra_b = " " + " ".join(args_b) if args_b else ""
-            lines.append(f'  # fab mkdir "{bash_path_b}"{extra_b}')
-        lines.append("")
-
-    return "\n".join(lines)
-
-
-def _gen_or_comment_ps1(data: HandoffData) -> str:
-    or_pairs = _has_or_alternatives(data)
-    if not or_pairs:
-        return ""
-
-    lines: list[str] = [
-        "  # ─────────────────────────────────────────────────────────────────",
-        "  # ──OR── Alternatives: uncomment ONE option per group",
-        "  # ─────────────────────────────────────────────────────────────────",
-    ]
-    for primary, alt in or_pairs:
-        display_a = _get_display_type(primary.type)
-        display_b = _get_display_type(alt.type)
-        result_a = _get_fab_command(primary)
-        result_b = _get_fab_command(alt)
-        lines.append(f"  # Option A: {display_a} — {primary.name}")
-        if result_a:
-            path_a, args_a = result_a
-            ps_path_a = path_a.replace("{ws}", "$WorkspaceName")
-            extra_a = " " + " ".join(args_a) if args_a else ""
-            lines.append(f'  # fab mkdir "{ps_path_a}"{extra_a}')
-        lines.append(f"  # Option B: {display_b} — {alt.name}")
-        if result_b:
-            path_b, args_b = result_b
-            ps_path_b = path_b.replace("{ws}", "$WorkspaceName")
-            extra_b = " " + " ".join(args_b) if args_b else ""
-            lines.append(f'  # fab mkdir "{ps_path_b}"{extra_b}')
-        lines.append("")
-
-    return "\n".join(lines)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Template filling
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _fill_template(
-    template: str,
-    project: str,
-    data: HandoffData,
-    wave_deployment: str,
-    plan_preview: str,
-    tf_prompts: str,
-    or_comments: str,
-) -> str:
-    slug = _slugify(project)
-    gen_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    result = template
-    result = result.replace("{{PROJECT_NAME}}", project)
-    result = result.replace("{{TASK_FLOW}}", data.task_flow)
-    result = result.replace("{{DATE}}", gen_date)
-    result = result.replace("{{PROJECT_SLUG}}", slug)
-    result = result.replace("{{ITEM_COUNT}}", str(len(data.items)))
-    result = result.replace("{{WAVE_COUNT}}", str(len(data.waves)))
-
-    # Replace WAVE_DEPLOYMENT placeholder block
-    wave_marker_patterns = [
-        (r"  # \{\{WAVE_DEPLOYMENT\}\}\n(?:  # Agent:.*\n)*(?:  #\n)*(?:  #   .*\n)*", wave_deployment + "\n"),
-    ]
-    for pat, repl in wave_marker_patterns:
-        result = re.sub(pat, repl, result)
-
-    # Replace DEPLOYMENT_PLAN_PREVIEW placeholder block
-    plan_marker_patterns = [
-        (r"  # \{\{DEPLOYMENT_PLAN_PREVIEW\}\}\n(?:  # Agent:.*\n)*(?:  #   .*\n)*(?:  #\n)*", plan_preview + "\n"),
-    ]
-    for pat, repl in plan_marker_patterns:
-        result = re.sub(pat, repl, result)
-
-    # Replace TASK_FLOW_SPECIFIC_PROMPTS placeholder block
-    if tf_prompts:
-        tf_marker_patterns = [
-            (r"  # \{\{TASK_FLOW_SPECIFIC_PROMPTS\}\}\n(?:  # Agent:.*\n)*", tf_prompts + "\n"),
-        ]
-    else:
-        tf_marker_patterns = [
-            (r"  # \{\{TASK_FLOW_SPECIFIC_PROMPTS\}\}\n(?:  # Agent:.*\n)*", ""),
-        ]
-    for pat, repl in tf_marker_patterns:
-        result = re.sub(pat, repl, result)
-
-    # Append OR comments before the DEPLOYMENT SUMMARY box if present
-    if or_comments:
-        result = result.replace(
-            '  echo ""\n  echo "┌──────────────────────────────────────────────────────────────────┐"\n  echo "│  DEPLOYMENT SUMMARY',
-            or_comments + '\n  echo ""\n  echo "┌──────────────────────────────────────────────────────────────────┐"\n  echo "│  DEPLOYMENT SUMMARY',
-        )
-        result = result.replace(
-            '  Write-Host ""\n  Write-Host "┌──────────────────────────────────────────────────────────────────┐"\n  Write-Host "│  DEPLOYMENT SUMMARY',
-            or_comments + '\n  Write-Host ""\n  Write-Host "┌──────────────────────────────────────────────────────────────────┐"\n  Write-Host "│  DEPLOYMENT SUMMARY',
-        )
-
-    return result
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Code generation: Python deploy script
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _gen_python_script(data: HandoffData, project: str) -> str:
-    """Generate a self-contained Python deploy script with embedded utility code."""
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────────────
+# fabric-cicd directory structure generation
+# ─────────────────────────────────────────────────────────────────────────────
+
+import uuid as _uuid
+
+# fabric-cicd supported item types and our type name mappings
+_FABRIC_CICD_TYPES = {
+    "ApacheAirflowJob", "CopyJob", "DataAgent", "DataPipeline", "Dataflow",
+    "Environment", "Eventhouse", "Eventstream", "GraphQLApi", "KQLDashboard",
+    "KQLDatabase", "KQLQueryset", "Lakehouse", "MLExperiment", "MirroredDatabase",
+    "MountedDataFactory", "Notebook", "Reflex", "Report", "SQLDatabase",
+    "SemanticModel", "SparkJobDefinition", "UserDataFunction", "VariableLibrary", "Warehouse",
+}
+_TYPE_REMAP = {
+    "Activator": "Reflex",
+    "Real-Time Dashboard": "KQLDashboard",
+    "KQL Dashboard": "KQLDashboard",
+    "ML Experiment": "MLExperiment",
+    "ML Model": "MLExperiment",  # MLModel not supported; shell only via MLExperiment
+}
+
+
+def _cicd_type(item_type: str) -> str:
+    """Resolve item type to fabric-cicd compatible name. Returns empty string if unsupported."""
+    fab_type = _resolve_fab_type(item_type)
+    fab_type = _TYPE_REMAP.get(fab_type, fab_type)
+    return fab_type if fab_type in _FABRIC_CICD_TYPES else ""
+
+
+def _gen_platform_file(item_type: str, display_name: str, description: str = "") -> str:
+    """Generate a .platform file matching fabric-cicd's expected format."""
+    cicd_type = _cicd_type(item_type) or _resolve_fab_type(item_type)
+    platform = {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+        "metadata": {
+            "type": cicd_type,
+            "displayName": display_name,
+        },
+        "config": {
+            "version": "2.0",
+            "logicalId": str(_uuid.uuid4()),
+        }
+    }
+    if description:
+        platform["metadata"]["description"] = description
+    return json.dumps(platform, indent=2, ensure_ascii=False)
+
+
+def _gen_config_yml(data: HandoffData, project: str, ws_desc: str) -> str:
+    """Generate a config.yml for fabric-cicd deploy_with_config."""
     slug = _slugify(project)
-    item_lookup = _build_item_lookup(data)
-    total_items = len(data.items)
-    total_waves = len(data.waves)
-    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    # Read the utility module and embed it inline
-    utility_path = ASSETS_DIR / "fabric_deploy.py"
-    utility_code = utility_path.read_text(encoding="utf-8")
-    # Strip the module docstring and imports that we'll add at the top
-    # Keep everything after the imports block
-    utility_lines = utility_code.split("\n")
-    # Find where the actual code starts (after imports and docstring)
-    code_start = 0
-    in_docstring = False
-    for i, line in enumerate(utility_lines):
-        if line.strip().startswith('"""') and not in_docstring:
-            in_docstring = True
-            if line.strip().endswith('"""') and len(line.strip()) > 3:
-                in_docstring = False
+    # Collect unique item types, filtering to fabric-cicd supported only
+    raw_types = set()
+    for item in data.items:
+        if not item.name:
             continue
-        if in_docstring:
-            if '"""' in line:
-                in_docstring = False
+        ct = _cicd_type(item.type)
+        if ct:
+            raw_types.add(ct)
+    item_types = sorted(raw_types)
+
+    # Collect unique folder names
+    folders = _collect_folders(data)
+
+    lines = [
+        f"# fabric-cicd configuration for {project}",
+        f"# Task flow: {data.task_flow}",
+        f"# Generated by deploy-script-gen.py",
+        "",
+        "core:",
+        f"  # Set workspace name or ID per environment",
+        f"  workspace: {slug}-dev",
+        f"  repository_directory: ./workspace",
+        f"  item_types_in_scope:",
+    ]
+    for t in item_types:
+        lines.append(f"    - {t}")
+
+    lines += [
+        "",
+        "publish:",
+        "  # Folder paths to include in deployment",
+    ]
+    if folders:
+        lines.append("  folder_path_to_include:")
+        for f in folders:
+            lines.append(f"    - /{f}")
+
+    lines += [
+        "",
+        "feature_flags:",
+        "  - enable_workspace_folder_publish",
+    ]
+
+    return "\n".join(lines) + "\n"
+
+
+def _gen_deploy_script(project: str, data: HandoffData) -> str:
+    """Generate a thin deploy.py that uses fabric-cicd."""
+    slug = _slugify(project)
+    ws_desc_line = f"{project} — {data.task_flow} architecture"
+    if data.summary:
+        ws_desc_line += f". {data.summary}"
+
+    return f"""#!/usr/bin/env python3
+\"""
+Fabric Task Flows - Deploy Script
+Project:   {project}
+Task Flow: {data.task_flow}
+
+Uses fabric-cicd (pip install fabric-cicd) for deployment.
+\"""
+
+import argparse
+import os
+import sys
+import yaml
+
+BASE_URL = "https://api.fabric.microsoft.com/v1"
+
+
+def get_auth_headers():
+    try:
+        from azure.identity import DefaultAzureCredential
+        import requests
+        token = DefaultAzureCredential().get_token("https://api.fabric.microsoft.com/.default").token
+        return {{"Authorization": f"Bearer {{token}}", "Content-Type": "application/json"}}
+    except ImportError:
+        print("  -- azure-identity not installed. Run: pip install azure-identity")
+        sys.exit(1)
+
+
+def ensure_workspace(name, headers, description=""):
+    import requests
+    resp = requests.get(f"{{BASE_URL}}/workspaces", headers=headers)
+    if resp.ok:
+        for ws in resp.json().get("value", []):
+            if ws.get("displayName") == name:
+                print(f"  -- Found workspace: {{name}} ({{ws['id'][:8]}}...)")
+                return ws["id"]
+    print(f"  -- Workspace '{{name}}' not found.")
+    response = input("  ? Create it now? [Y/n]: ").strip() or "Y"
+    if response.upper() != "Y":
+        sys.exit(1)
+    create_resp = requests.post(f"{{BASE_URL}}/workspaces", headers=headers,
+        json={{"displayName": name, "description": description}})
+    if create_resp.ok:
+        new_id = create_resp.json()["id"]
+        print(f"  -- Created workspace: {{name}} ({{new_id[:8]}}...)")
+        return new_id
+    else:
+        print(f"  -- Failed: {{create_resp.json().get('message', create_resp.text)}}")
+        sys.exit(1)
+
+
+def ensure_capacity(ws_id, headers):
+    import requests
+    ws_resp = requests.get(f"{{BASE_URL}}/workspaces/{{ws_id}}", headers=headers)
+    if ws_resp.ok:
+        ws_data = ws_resp.json()
+        if ws_data.get("capacityId") and ws_data["capacityId"] != "00000000-0000-0000-0000-000000000000":
+            print(f"  -- Capacity already assigned")
+            return
+    print("  -- No capacity assigned. Fetching available capacities...")
+    cap_resp = requests.get(f"{{BASE_URL}}/capacities", headers=headers)
+    capacities = cap_resp.json().get("value", []) if cap_resp.ok else []
+    if not capacities:
+        print("  -- No capacities available.")
+        sys.exit(1)
+    print()
+    for i, cap in enumerate(capacities):
+        print(f"  {{i+1:3}})  {{cap.get('displayName', 'Unknown')}} ({{cap.get('sku', '')}})")
+    print()
+    num = 0
+    while num < 1 or num > len(capacities):
+        try: num = int(input("  ? Select capacity: ").strip())
+        except ValueError: num = 0
+    cap_id = capacities[num - 1]["id"]
+    assign_resp = requests.post(f"{{BASE_URL}}/workspaces/{{ws_id}}/assignToCapacity",
+        headers=headers, json={{"capacityId": cap_id}})
+    if assign_resp.ok or assign_resp.status_code == 202:
+        print(f"  -- Capacity assigned: {{capacities[num-1].get('displayName', '')}}")
+    else:
+        print("  -- Failed to assign capacity")
+        sys.exit(1)
+
+
+def deploy_to_workspace(config_path, ws_id, environment=None):
+    from fabric_cicd import deploy_with_config
+    with open(config_path, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+    config["core"]["workspace_id"] = ws_id
+    config["core"].pop("workspace", None)
+    with open(config_path, "w", encoding="utf-8") as f:
+        yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+    kwargs = {{"config_file_path": config_path}}
+    if environment:
+        kwargs["environment"] = environment
+
+    # Retry deploy up to 3 times — fabric-cicd skips already-published items on re-run
+    import time
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        try:
+            deploy_with_config(**kwargs)
+            return
+        except Exception as e:
+            err_msg = str(e)
+            if "timed out" in err_msg.lower() or "timeout" in err_msg.lower() or "connection" in err_msg.lower():
+                if attempt < max_retries:
+                    wait = attempt * 30
+                    print(f"  -- Timeout on attempt {{attempt}}, retrying in {{wait}}s...")
+                    time.sleep(wait)
+                    continue
+            raise
+
+
+def populate_variable_library(ws_id, headers):
+    # Post-deploy: populate Variable Library with ItemReference variables for all deployed items.
+    # Uses ItemReference type (workspaceId + itemId in one variable) — no separate _WSID vars needed.
+    import requests, base64
+    import json as _json
+    from datetime import datetime
+    print()
+    print("  -- POPULATING VARIABLE LIBRARY --")
+
+    resp = requests.get(f"{{BASE_URL}}/workspaces/{{ws_id}}/items", headers=headers)
+    if not resp.ok:
+        print(f"  ── Could not list items: {{resp.text}}")
+        return
+
+    items = resp.json().get("value", [])
+
+    vl_item = None
+    for item in items:
+        if item.get("type") == "VariableLibrary":
+            vl_item = item
+            break
+
+    if not vl_item:
+        print("  ── No Variable Library found — skipping")
+        return
+
+    vl_id = vl_item["id"]
+    print(f"  ── Found Variable Library: {{vl_item.get('displayName', '')}} ({{vl_id[:8]}}...)")
+
+    # Map item types to role-based names
+    ROLE_MAP = {{
+        "Lakehouse": "Raw_Lakehouse",
+        "Warehouse": "Curated_Warehouse",
+        "Eventhouse": "Streaming_Eventhouse",
+        "Environment": "Spark_Environment",
+        "DataPipeline": "Batch_Pipeline",
+        "Eventstream": "Feed_Eventstream",
+        "Notebook": "NLP_Notebook",
+        "KQLQueryset": "KQL_Queryset",
+        "SemanticModel": "Semantic_Model",
+        "Report": "Leadership_Report",
+        "Reflex": "Alerts_Activator",
+        "KQLDashboard": "RT_Dashboard",
+        "MLExperiment": "ML_Experiment",
+    }}
+
+    variables = []
+    role_counter = {{}}
+    # Only these types support ItemReference consumers (Notebooks, Shortcuts, UDFs)
+    ITEM_REF_TYPES = {{"Lakehouse", "Warehouse", "Eventhouse", "Environment", "SemanticModel"}}
+
+    for item in items:
+        item_type = item.get("type", "")
+        if item_type == "VariableLibrary":
             continue
-        if line.startswith("import ") or line.startswith("from "):
-            continue
-        if line.strip() == "":
-            continue
-        code_start = i
-        break
 
-    embedded_utility = "\n".join(utility_lines[code_start:])
+        role_name = ROLE_MAP.get(item_type, item["displayName"].replace("-", "_").replace(" ", "_"))
 
-    lines: list[str] = []
-    lines.append('#!/usr/bin/env python3')
-    lines.append(f'"""')
-    lines.append(f'Fabric Task Flows — Deploy Script (Python)')
-    lines.append(f'Generated by @fabric-engineer')
-    lines.append(f'')
-    lines.append(f'Project:   {project}')
-    lines.append(f'Task Flow: {data.task_flow}')
-    lines.append(f'Generated: {date_str}')
-    lines.append(f'')
-    lines.append(f'Self-contained — no external dependencies beyond Python 3.10+ and ms-fabric-cli.')
-    lines.append(f'Can be zipped and distributed independently.')
-    lines.append(f'')
-    lines.append(f'Usage:')
-    lines.append(f'    python deploy-{slug}.py')
-    lines.append(f'    python deploy-{slug}.py --spn-auth')
-    lines.append(f'    python deploy-{slug}.py --workspace my-ws --capacity my-cap')
-    lines.append(f'"""')
-    lines.append('')
-    lines.append('import argparse')
-    lines.append('import os')
-    lines.append('import subprocess')
-    lines.append('import sys')
-    lines.append('import time')
-    lines.append('from dataclasses import dataclass, field')
-    lines.append('')
-    lines.append('')
-    lines.append('# ' + '=' * 77)
-    lines.append('# Fabric Deploy Utility (embedded — no external imports needed)')
-    lines.append('# ' + '=' * 77)
-    lines.append('')
-    lines.append(embedded_utility)
-    lines.append('')
-    lines.append('')
-    lines.append('# ' + '=' * 77)
-    lines.append(f'# Deploy: {project}')
-    lines.append('# ' + '=' * 77)
-    lines.append('')
-    lines.append('def main():')
-    lines.append('    parser = argparse.ArgumentParser(')
-    lines.append(f'        description="Deploy {project} ({data.task_flow} architecture) to Microsoft Fabric"')
-    lines.append('    )')
-    lines.append(f'    parser.add_argument("--workspace", default=os.getenv("FABRIC_WORKSPACE_NAME", "{slug}-dev"))')
-    lines.append(f'    parser.add_argument("--capacity", default=os.getenv("FABRIC_CAPACITY", ""))')
-    lines.append('    parser.add_argument("--spn-auth", action="store_true", default=False)')
-    lines.append('    parser.add_argument("--yes", "-y", action="store_true", help="Skip confirmation prompt")')
-    lines.append('    args = parser.parse_args()')
-    lines.append('')
-    lines.append(f'    print_banner("{project}", "{data.task_flow}")')
-    lines.append('')
+        role_counter[role_name] = role_counter.get(role_name, 0) + 1
+        if role_counter[role_name] > 1:
+            role_name = f"{{role_name}}_{{role_counter[role_name]}}"
 
-    # Configuration prompts
-    lines.append('    # ── Configuration ──────────────────────────────────────────────')
-    lines.append('    if not args.workspace:')
-    lines.append(f'        args.workspace = prompt_value("FABRIC_WORKSPACE_NAME", "Workspace name", "{slug}-dev")')
-    lines.append('    if not args.capacity:')
-    lines.append('        args.capacity = prompt_value("FABRIC_CAPACITY", "Fabric capacity name")')
-    lines.append('')
-
-    # Task-flow-specific prompts
-    prompts = TASK_FLOW_PROMPTS.get(data.task_flow, [])
-    for env_var, prompt_text, default, desc, optional in prompts:
-        var_name = env_var.lower()
-        if optional:
-            lines.append(f'    {var_name} = prompt_value("{env_var}", "{prompt_text}", optional=True)')
-            lines.append(f'    if not {var_name}:')
-            lines.append(f'        print("  ⚠️  No {desc} — related items will be created but not configured")')
+        if item_type in ITEM_REF_TYPES:
+            # ItemReference — contains workspaceId + itemId (no separate String needed)
+            variables.append({{
+                "name": role_name,
+                "type": "ItemReference",
+                "value": {{"workspaceId": ws_id, "itemId": item["id"]}},
+                "note": f"{{item_type}} — {{item.get('displayName', '')}}"
+            }})
         else:
-            lines.append(f'    {var_name} = prompt_value("{env_var}", "{prompt_text}")')
-    if prompts:
-        lines.append('')
+            # String — for types that don't support ItemReference
+            variables.append({{
+                "name": role_name,
+                "type": "String",
+                "value": item["id"],
+                "note": f"{{item_type}} — {{item.get('displayName', '')}}"
+            }})
 
-    # Deployment plan preview
-    lines.append('    # ── Deployment Plan ─────────────────────────────────────────────')
-    lines.append('    print("┌──────────────────────────────────────────────────────────────────┐")')
-    lines.append(f'    print("│  DEPLOYMENT PLAN                                                 │")')
-    plan_text = f"  Task flow: {data.task_flow}  |  Items: {total_items}  |  Waves: {total_waves}"
-    lines.append(f'    print("│  {{:<66}}│".format("{plan_text}"))')
-    lines.append('    print("└──────────────────────────────────────────────────────────────────┘")')
-    lines.append('    print()')
-    for wave in data.waves:
-        wave_items = [item_lookup[str(iid)] for iid in wave.items if str(iid) in item_lookup]
-        if not wave_items:
-            continue
-        note = wave.note or f"Wave {wave.id}"
-        lines.append(f'    print("  Wave {wave.id} — {note}")')
-        for idx, item in enumerate(wave_items):
-            connector = _tree_connector(idx, len(wave_items))
-            display_type = _get_display_type(item.type)
-            if _is_portal_only(item.type):
-                lines.append(f'    print("  {connector} ☐ [MANUAL] {display_type}: {item.name}")')
-            else:
-                lines.append(f'    print("  {connector} ☐ {display_type}: {item.name}")')
-        lines.append(f'    print()')
-    lines.append('')
+    # Operational metadata (String type — not item references)
+    variables.append({{"name": "Workspace_ID", "type": "String", "value": ws_id, "note": "Current workspace GUID"}})
+    variables.append({{"name": "Workspace_URL", "type": "String", "value": f"https://app.fabric.microsoft.com/groups/{{ws_id}}", "note": "Fabric Portal URL"}})
+    variables.append({{"name": "Project_Name", "type": "String", "value": "{project}", "note": "Project name"}})
+    variables.append({{"name": "Environment_Name", "type": "String", "value": "dev", "note": "Current deployment stage"}})
+    variables.append({{"name": "Deploy_Timestamp", "type": "String", "value": datetime.utcnow().isoformat() + "Z", "note": "Deployment timestamp"}})
 
-    # Confirmation
-    lines.append('    if not args.yes:')
-    lines.append('        confirm = input("  ? Proceed with deployment? [Y/n]: ").strip() or "Y"')
-    lines.append('        if confirm.upper() != "Y":')
-    lines.append('            print("  Deployment cancelled.")')
-    lines.append('            return')
-    lines.append('')
+    # Build and push definition
+    var_json = _json.dumps({{
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
+        "variables": variables
+    }})
+    settings_json = _json.dumps({{
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
+        "valueSetsOrder": []
+    }})
 
-    # Authentication
-    lines.append('    # ── Authenticate ────────────────────────────────────────────────')
-    lines.append('    deployer = FabricDeployer(workspace=args.workspace, capacity=args.capacity)')
-    lines.append('    deployer.authenticate(spn=args.spn_auth)')
-    lines.append('')
+    body = {{
+        "definition": {{
+            "format": "VariableLibraryV1",
+            "parts": [
+                {{"path": "variables.json", "payload": base64.b64encode(var_json.encode()).decode(), "payloadType": "InlineBase64"}},
+                {{"path": "settings.json", "payload": base64.b64encode(settings_json.encode()).decode(), "payloadType": "InlineBase64"}}
+            ]
+        }}
+    }}
 
-    # Workspace creation
-    lines.append('    # ── Workspace ────────────────────────────────────────────────────')
-    lines.append('    workspace_id = deployer.create_workspace()')
-    lines.append('')
+    update_resp = requests.post(
+        f"{{BASE_URL}}/workspaces/{{ws_id}}/VariableLibraries/{{vl_id}}/updateDefinition",
+        headers=headers, json=body
+    )
 
-    # Wave deployment
-    sm_captured = False
-    for wave in data.waves:
-        wave_items = [item_lookup[str(iid)] for iid in wave.items if str(iid) in item_lookup]
-        if not wave_items:
-            continue
-        note = wave.note or f"Wave {wave.id}"
-        lines.append(f'    # ── Wave {wave.id} — {note} ──────────────────────────────────────')
-        lines.append(f'    print("\\n  Wave {wave.id} — {note}")')
+    ref_count = sum(1 for v in variables if v["type"] == "ItemReference")
+    str_count = sum(1 for v in variables if v["type"] == "String")
 
-        for idx, item in enumerate(wave_items):
-            connector = _tree_connector(idx, len(wave_items))
-            display_type = _get_display_type(item.type)
-            fab_result = _get_fab_command(item)
-            type_key = _type_key(item.type)
+    if update_resp.ok or update_resp.status_code == 202:
+        print(f"  ── Populated {{len(variables)}} variables ({{ref_count}} ItemReferences + {{str_count}} metadata)")
+    else:
+        print(f"  ── Could not update Variable Library: {{update_resp.text[:200]}}")
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        fallback = os.path.join(script_dir, "variable-library-definition.json")
+        with open(fallback, "w", encoding="utf-8") as f:
+            _json.dump(body, f, indent=2)
+        print(f"  ── Definition saved to: {{fallback}}")
 
-            if fab_result is not None:
-                _path_tpl, extra_args = fab_result
-                # Build params dict
-                params = {}
-                for i in range(0, len(extra_args), 2):
-                    if i + 1 < len(extra_args) and extra_args[i] == "-P":
-                        kv = extra_args[i + 1]
-                        if "=" in kv:
-                            k, v = kv.split("=", 1)
-                            params[k] = v
 
-                # Handle special bindings
-                if type_key == "report" and sm_captured:
-                    params["semanticModelId"] = "{sm_id}"
-                if type_key == "kqldatabase":
-                    params["eventhouseId"] = "{eh_id}"
+def main():
+    parser = argparse.ArgumentParser(description="Deploy {project}")
+    parser.add_argument("--workspace-id", default=os.getenv("FABRIC_WORKSPACE_ID", ""))
+    parser.add_argument("--workspace", default=os.getenv("FABRIC_WORKSPACE_NAME", ""))
+    parser.add_argument("--mode", choices=["single", "multi"], default=os.getenv("FABRIC_DEPLOY_MODE", ""))
+    parser.add_argument("--config", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.yml"))
+    args = parser.parse_args()
 
-                param_str = ", ".join(f'{k}="{v}"' for k, v in params.items()) if params else ""
-                if param_str:
-                    # Handle variable references
-                    param_str = param_str.replace('"{sm_id}"', 'sm_id').replace('"{eh_id}"', 'eh_id')
+    try:
+        import fabric_cicd
+    except ImportError:
+        print("  fabric-cicd is not installed.")
+        response = input("  ? Install it now? [Y/n]: ").strip() or "Y"
+        if response.upper() == "Y":
+            import subprocess
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "fabric-cicd"])
+        else:
+            sys.exit(1)
 
-                var_name = item.name.replace("-", "_").replace(" ", "_")
-                # Resolve fab_type from the item type
-                item_fab_type = _resolve_fab_type(item.type)
-                if param_str:
-                    lines.append(f'    {var_name}_id = deployer.create_item("{item.name}", "{item_fab_type}", "{connector}", {param_str})')
-                else:
-                    lines.append(f'    {var_name}_id = deployer.create_item("{item.name}", "{item_fab_type}", "{connector}")')
-            else:
-                lines.append(f'    deployer.manual_step("{display_type}: {item.name}", "{connector}")')
+    print()
+    print("  Project:   {project}")
+    print("  Task Flow: {data.task_flow}")
+    print()
 
-            # Capture IDs for downstream binding
-            if type_key == "eventhouse":
-                lines.append(f'    eh_id = {item.name.replace("-", "_")}_id or ""')
-            if type_key in _SEMANTIC_MODEL_TYPES:
-                lines.append(f'    sm_id = {item.name.replace("-", "_")}_id or ""')
-                sm_captured = True
+    if not args.mode:
+        print("    1)  Single workspace (demo / simple deploy)")
+        print("    2)  Multi-environment (dev / ppe / prod)")
+        print()
+        choice = ""
+        while choice not in ("1", "2"):
+            choice = input("  ? Select mode (1 or 2): ").strip()
+        args.mode = "single" if choice == "1" else "multi"
 
-        lines.append('')
+    headers = get_auth_headers()
 
-    # Summary
-    lines.append('    # ── Summary ──────────────────────────────────────────────────────')
-    lines.append('    deployer.print_summary()')
-    lines.append('    deployer.print_metadata()')
-    lines.append('')
-    lines.append('')
-    lines.append('if __name__ == "__main__":')
-    lines.append('    main()')
-    lines.append('')
+    if args.mode == "single":
+        print()
+        print("  -- WORKSPACE --")
+        if args.workspace_id:
+            ws_id = args.workspace_id
+        else:
+            ws_name = args.workspace or input("  ? Workspace name (Enter = {slug}): ").strip() or "{slug}"
+            ws_id = ensure_workspace(ws_name, headers, "{ws_desc_line}")
+        print()
+        print("  -- CAPACITY --")
+        ensure_capacity(ws_id, headers)
+        print()
+        print("  -- DEPLOYING --")
+        try:
+            deploy_to_workspace(args.config, ws_id)
+            populate_variable_library(ws_id, headers)
+            print()
+            print("  Deployment complete!")
+        except Exception as e:
+            print(f"  Deployment failed: {{e}}")
+            sys.exit(1)
+    else:
+        base_name = args.workspace or input("  ? Base workspace name (Enter = {slug}): ").strip() or "{slug}"
+        envs = ["dev", "ppe", "prod"]
+        print()
+        print("  -- WORKSPACES (3 environments) --")
+        ws_ids = {{}}
+        for env in envs:
+            ws_name = f"{{base_name}}-{{env}}"
+            print(f"  {{env.upper()}}:")
+            ws_ids[env] = ensure_workspace(ws_name, headers, "{ws_desc_line}")
+        print()
+        print("  -- CAPACITY --")
+        for env in envs:
+            print(f"  {{env.upper()}}:")
+            ensure_capacity(ws_ids[env], headers)
+        print()
+        print("  -- DEPLOYING (dev -> ppe -> prod) --")
+        for env in envs:
+            print(f"  Deploying to {{env.upper()}}...")
+            try:
+                deploy_to_workspace(args.config, ws_ids[env], environment=env)
+                populate_variable_library(ws_ids[env], headers)
+                print(f"  {{env.upper()}} complete!")
+            except Exception as e:
+                print(f"  {{env.upper()}} failed: {{e}}")
+                sys.exit(1)
+        print()
+        print("  All environments deployed!")
 
-    return "\n".join(lines)
+
+if __name__ == "__main__":
+    main()
+"""
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Public API
 # ─────────────────────────────────────────────────────────────────────────────
 
-def generate(handoff_path: str, project: str) -> tuple[str, str, str]:
-    """Generate bash, PowerShell, and Python deploy scripts from a handoff file.
+def generate(handoff_path: str, project: str) -> None:
+    """Generate fabric-cicd deployment artifacts from a handoff file.
 
-    Returns:
-        Tuple of (bash_script, powershell_script, python_script).
+    Creates:
+        - workspace/ directory with item subdirectories and .platform files
+        - config.yml for fabric-cicd
+        - deploy-{slug}.py thin deploy script
+        - descriptions-{slug}.json (central definitions)
+        - taskflow-{slug}.json (importable task flow)
     """
-    data = parse_handoff(handoff_path)
-
-    bash_template = (ASSETS_DIR / "script-template.sh").read_text(encoding="utf-8")
-    ps1_template = (ASSETS_DIR / "script-template.ps1").read_text(encoding="utf-8")
-
-    bash_script = _fill_template(
-        template=bash_template,
-        project=project,
-        data=data,
-        wave_deployment=_gen_wave_deployment_bash(data),
-        plan_preview=_gen_plan_preview_bash(data),
-        tf_prompts=_gen_tf_prompts_bash(data.task_flow),
-        or_comments=_gen_or_comment_bash(data),
-    )
-
-    ps1_script = _fill_template(
-        template=ps1_template,
-        project=project,
-        data=data,
-        wave_deployment=_gen_wave_deployment_ps1(data),
-        plan_preview=_gen_plan_preview_ps1(data),
-        tf_prompts=_gen_tf_prompts_ps1(data.task_flow),
-        or_comments=_gen_or_comment_ps1(data),
-    )
-
-    python_script = _gen_python_script(data, project)
-
-    return bash_script, ps1_script, python_script
+    pass  # Called from main() which handles output
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1217,59 +1044,367 @@ def generate(handoff_path: str, project: str) -> tuple[str, str, str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Generate deployment scripts from architecture handoffs"
+        description="Generate fabric-cicd deployment artifacts from architecture handoffs"
     )
-    parser.add_argument(
-        "--handoff", required=True,
-        help="Path to architecture-handoff.md",
-    )
-    parser.add_argument(
-        "--project", required=True,
-        help="Project name",
-    )
-    parser.add_argument(
-        "--output-dir", default=None,
-        help="Directory for output scripts (default: stdout for .sh only)",
-    )
-    parser.add_argument(
-        "--shell", choices=["bash", "powershell", "both"], default="both",
-        help="Script type to generate (default: both)",
-    )
+    parser.add_argument("--handoff", required=True, help="Path to architecture-handoff.md")
+    parser.add_argument("--project", required=True, help="Project name")
+    parser.add_argument("--output-dir", default=None, help="Directory for output artifacts")
     args = parser.parse_args()
 
-    bash_script, ps1_script, python_script = generate(args.handoff, args.project)
+    data = parse_handoff(args.handoff)
+    slug = _slugify(args.project)
 
-    if args.output_dir:
-        out = Path(args.output_dir)
-        out.mkdir(parents=True, exist_ok=True)
-        slug = _slugify(args.project)
+    if not args.output_dir:
+        print("Error: --output-dir is required", file=sys.stderr)
+        sys.exit(1)
 
-        if args.shell in ("bash", "both"):
-            sh_path = out / f"deploy-{slug}.sh"
-            sh_path.write_text(bash_script, encoding="utf-8")
-            print(f"✅ {sh_path}")
+    out = Path(args.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
 
-        if args.shell in ("powershell", "both"):
-            ps_path = out / f"deploy-{slug}.ps1"
-            ps_path.write_text(ps1_script, encoding="utf-8")
-            print(f"✅ {ps_path}")
+    # 1. Generate workspace directory with item folders and .platform files
+    ws_dir = out / "workspace"
+    ws_dir.mkdir(exist_ok=True)
 
-        # Always generate Python script
-        py_path = out / f"deploy-{slug}.py"
-        py_path.write_text(python_script, encoding="utf-8")
-        print(f"✅ {py_path}")
-    else:
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-        if args.shell == "powershell":
-            sys.stdout.write(ps1_script)
-        elif args.shell == "both":
-            sys.stdout.write(bash_script)
-            sys.stdout.write("\n\n# " + "=" * 77 + "\n")
-            sys.stdout.write("# PowerShell version follows\n")
-            sys.stdout.write("# " + "=" * 77 + "\n\n")
-            sys.stdout.write(ps1_script)
+    for item in data.items:
+        if not item.name:
+            continue
+        safe_name = _cli_safe_name(item.name)
+        cicd_type = _cicd_type(item.type)
+        if not cicd_type:
+            continue  # Skip unsupported types (Dashboard, MLModel)
+        folder = _get_folder_for_item(item.type) or ""
+        description = item.purpose or f"{item.type} for {args.project}"
+
+        # Create folder structure: workspace/FolderName/item_name.ItemType/.platform
+        if folder:
+            item_dir = ws_dir / folder / f"{safe_name}.{cicd_type}"
         else:
-            sys.stdout.write(bash_script)
+            item_dir = ws_dir / f"{safe_name}.{cicd_type}"
+        item_dir.mkdir(parents=True, exist_ok=True)
+
+        platform_content = _gen_platform_file(item.type, safe_name, description)
+        (item_dir / ".platform").write_text(platform_content, encoding="utf-8")
+
+        # Generate required definition files per item type
+        if cicd_type == "Environment":
+            setting_dir = item_dir / "Setting"
+            setting_dir.mkdir(exist_ok=True)
+            sparkcompute = {
+                "instancePool": "",
+                "targetPlatform": "spark",
+                "runtimeVersion": "1.3",
+                "automaticLog": {"enabled": True},
+            }
+            (setting_dir / "Sparkcompute.yml").write_text(
+                "instancePool: \"\"\ntargetPlatform: spark\nruntimeVersion: \"1.3\"\nautomaticLog:\n  enabled: true\n",
+                encoding="utf-8"
+            )
+
+        elif cicd_type == "VariableLibrary":
+            variables = {
+                "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
+                "variables": [
+                    {"name": "workspace_id", "type": "String", "value": "", "note": "Workspace ID — set at deploy time"},
+                ]
+            }
+            (item_dir / "variables.json").write_text(json.dumps(variables, indent=2), encoding="utf-8")
+            settings = {
+                "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
+                "valueSetsOrder": []
+            }
+            (item_dir / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
+
+        elif cicd_type == "Notebook":
+            nb_content = (
+                "# Fabric notebook source\n\n"
+                "# METADATA ********************\n\n"
+                "# META {\n"
+                '# META   "kernel_info": {\n'
+                '# META     "name": "synapse_pyspark"\n'
+                "# META   }\n"
+                "# META }\n\n"
+                "# CELL ********************\n\n"
+                f"# {safe_name} — {description}\n"
+                f'print("{safe_name} initialized")\n\n'
+                "# METADATA ********************\n\n"
+                "# META {\n"
+                '# META   "language": "python",\n'
+                '# META   "language_group": "synapse_pyspark"\n'
+                "# META }\n"
+            )
+            (item_dir / "notebook-content.py").write_text(nb_content, encoding="utf-8")
+
+        elif cicd_type == "SemanticModel":
+            # definition.pbism + definition/model.tmdl required
+            (item_dir / "definition.pbism").write_text(
+                json.dumps({"version": "4.0", "settings": {}}, indent=2),
+                encoding="utf-8"
+            )
+            def_dir = item_dir / "definition"
+            def_dir.mkdir(exist_ok=True)
+            (def_dir / "model.tmdl").write_text(
+                "model Model\n"
+                "\tculture: en-US\n"
+                "\tdefaultPowerBIDataSourceVersion: powerBI_V3\n"
+                "\tsourceQueryCulture: en-US\n",
+                encoding="utf-8"
+            )
+
+        elif cicd_type == "Report":
+            # definition.pbir + report.json required
+            # Find the SemanticModel dependency for byPath reference
+            items_by_id = {i.id: i for i in data.items}
+            sm_path = None
+            for dep_id in (item.depends_on or []):
+                dep = items_by_id.get(dep_id)
+                if dep and _cicd_type(dep.type) == "SemanticModel":
+                    dep_safe = _cli_safe_name(dep.name)
+                    dep_folder = _get_folder_for_item(dep.type) or ""
+                    # Build relative path from Report dir to SemanticModel dir
+                    if folder and dep_folder:
+                        sm_path = f"../../{dep_folder}/{dep_safe}.SemanticModel"
+                    elif dep_folder:
+                        sm_path = f"../{dep_folder}/{dep_safe}.SemanticModel"
+                    else:
+                        sm_path = f"../{dep_safe}.SemanticModel"
+                    break
+
+            pbir = {"version": "4.0", "datasetReference": {}}
+            if sm_path:
+                pbir["datasetReference"]["byPath"] = {"path": sm_path}
+            else:
+                pbir["datasetReference"]["byPath"] = {"path": ""}
+            (item_dir / "definition.pbir").write_text(json.dumps(pbir, indent=2), encoding="utf-8")
+            report_json = {
+                "config": json.dumps({
+                    "version": "5.59",
+                    "themeCollection": {"baseTheme": {"name": "CY24SU10", "version": "5.61", "type": 2}},
+                    "activeSectionIndex": 0,
+                    "settings": {"useNewFilterPaneExperience": True, "allowChangeFilterTypes": True}
+                }),
+                "layoutOptimization": 0,
+                "sections": [{
+                    "config": "{}",
+                    "displayName": "Page 1",
+                    "displayOption": 1,
+                    "filters": "[]",
+                    "height": 720.0,
+                    "name": "ReportSection",
+                    "visualContainers": [],
+                    "width": 1280.0
+                }]
+            }
+            (item_dir / "report.json").write_text(json.dumps(report_json, indent=2), encoding="utf-8")
+
+        elif cicd_type == "DataPipeline":
+            pipeline_content = {"properties": {"activities": []}}
+            (item_dir / "pipeline-content.json").write_text(json.dumps(pipeline_content, indent=2), encoding="utf-8")
+
+        elif cicd_type == "CopyJob":
+            # From sample: Hello Copy Job.CopyJob
+            copyjob = {"properties": {"jobMode": "Batch", "source": {"type": "LakehouseTable"}, "destination": {"type": "LakehouseTable"}, "policy": {"timeout": "0.12:00:00"}}, "activities": []}
+            (item_dir / "copyjob-content.json").write_text(json.dumps(copyjob, indent=2), encoding="utf-8")
+
+        elif cicd_type == "Eventstream":
+            # VERIFIED from sample: SampleEventstream.Eventstream
+            (item_dir / "eventstream.json").write_text(json.dumps({"compatibilityLevel": "1.0", "sources": [], "destinations": []}, indent=2), encoding="utf-8")
+            (item_dir / "eventstreamProperties.json").write_text(json.dumps({"retentionTimeInDays": 1, "eventThroughputLevel": "Low"}, indent=2), encoding="utf-8")
+
+        elif cicd_type == "KQLQueryset":
+            # VERIFIED from sample: SampleKQLQueryset.KQLQueryset
+            queryset = {"queryset": {"version": "1.0.0", "dataSources": [], "tabs": []}}
+            (item_dir / "RealTimeQueryset.json").write_text(json.dumps(queryset, indent=2), encoding="utf-8")
+
+        elif cicd_type == "Eventhouse":
+            # VERIFIED from sample: SampleEventhouse.Eventhouse — just empty object
+            (item_dir / "EventhouseProperties.json").write_text("{}", encoding="utf-8")
+
+        elif cicd_type == "KQLDashboard":
+            # KQLDashboard: create without definition supported — no content file needed
+            # Content file causes 'NoneType' errors; shell creation is sufficient
+            pass
+
+        elif cicd_type == "Reflex":
+            # VERIFIED from sample: SampleDataActivator.Reflex — empty array
+            (item_dir / "ReflexEntities.json").write_text("[]", encoding="utf-8")
+
+        elif cicd_type == "Dataflow":
+            (item_dir / "mashup.pq").write_text('section Section1;\n\nshared Table = let\n    Source = ""\nin\n    Source;\n', encoding="utf-8")
+
+        elif cicd_type == "GraphQLApi":
+            # From sample: Sample.GraphQLApi
+            (item_dir / "graphql-definition.json").write_text(json.dumps({"datasources": []}, indent=2), encoding="utf-8")
+
+        elif cicd_type == "SparkJobDefinition":
+            (item_dir / "SparkJobDefinitionV1.json").write_text(json.dumps({
+                "executableFile": None, "defaultLakehouseArtifactId": "", "mainClass": ""
+            }, indent=2), encoding="utf-8")
+
+        elif cicd_type == "SQLDatabase":
+            # From sample: Hello db.SQLDatabase
+            sqlproj = (
+                '<?xml version="1.0" encoding="utf-8"?>\n'
+                '<Project DefaultTargets="Build">\n'
+                '  <Sdk Name="Microsoft.Build.Sql" Version="1.0.0-rc1" />\n'
+                '  <PropertyGroup>\n'
+                f'    <Name>{safe_name}</Name>\n'
+                '    <ProjectGuid>{00000000-0000-0000-0000-000000000000}</ProjectGuid>\n'
+                '    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlDbFabricDatabaseSchemaProvider</DSP>\n'
+                '    <ModelCollation>1033, CI</ModelCollation>\n'
+                '  </PropertyGroup>\n'
+                '  <Target Name="BeforeBuild">\n'
+                '    <Delete Files="$(BaseIntermediateOutputPath)\\project.assets.json" />\n'
+                '  </Target>\n'
+                '</Project>\n'
+            )
+            (item_dir / f"{safe_name}.sqlproj").write_text(sqlproj, encoding="utf-8")
+
+        elif cicd_type == "UserDataFunction":
+            (item_dir / "function_app.py").write_text(
+                'from fabric_user_data_functions import udf\n\n@udf.function()\ndef hello():\n    return "Hello"\n',
+                encoding="utf-8"
+            )
+            (item_dir / "definition.json").write_text(json.dumps({"connections": [], "libraries": []}, indent=2), encoding="utf-8")
+            res_dir = item_dir / ".resources"
+            res_dir.mkdir(exist_ok=True)
+            (res_dir / "functions.json").write_text(json.dumps({"functions": []}, indent=2), encoding="utf-8")
+
+        elif cicd_type == "MirroredDatabase":
+            # From sample: MirroredDatabase_1.MirroredDatabase
+            mirroring = {"properties": {"source": {"type": "GenericMirror", "typeProperties": None}, "target": {"type": "MountedRelationalDatabase", "typeProperties": {"format": "Delta", "defaultSchema": "dbo"}}}}
+            (item_dir / "mirroring.json").write_text(json.dumps(mirroring, indent=2), encoding="utf-8")
+
+        elif cicd_type == "ApacheAirflowJob":
+            # From sample: sample apache airflow job.ApacheAirflowJob
+            airflow = {"properties": {"type": "Airflow", "typeProperties": {"airflowProperties": {"airflowVersion": "2.10.5", "pythonVersion": "3.12", "airflowEnvironment": "FabricAirflowJob-1.0.0", "airflowRequirements": [], "enableAADIntegration": True, "enableTriggerers": False, "airflowConfigurationOverrides": {}, "environmentVariables": {}, "packageProviderPath": "plugins"}, "computeProperties": {"computePool": "StarterPool", "computeSize": "Small", "enableAutoscale": False, "enableAvailabilityZones": False, "extraNodes": 0}}}}
+            (item_dir / "apacheairflowjob-content.json").write_text(json.dumps(airflow, indent=2), encoding="utf-8")
+            dags_dir = item_dir / "dags"
+            dags_dir.mkdir(exist_ok=True)
+            dag_content = 'from datetime import datetime\nfrom airflow import DAG\nfrom airflow.operators.bash import BashOperator\n\ndefault_args = {"owner": "airflow", "depends_on_past": False, "start_date": datetime(2023, 5, 1)}\n\nwith DAG("dag1", default_args=default_args, schedule_interval=None, catchup=False) as dag:\n    hello = BashOperator(task_id="hello", bash_command=\'echo "Hello"\')\n    hello\n'
+            (dags_dir / "dag1.py").write_text(dag_content, encoding="utf-8")
+
+    print(f"✅ {ws_dir}/ ({len([i for i in data.items if i.name])} items)")
+
+    # Generate parameter.yml inside workspace directory with actual item references
+    param_lines = [
+        f"# Parameter file for {args.project}",
+        f"# Task flow: {data.task_flow}",
+        f"# Ref: https://microsoft.github.io/fabric-cicd/latest/how_to/parameterization/",
+        "",
+        "find_replace:",
+    ]
+
+    # Generate find_replace entries for cross-item references
+    # Uses $items.Type.Name.id for dynamic resolution per environment
+    for item in data.items:
+        if not item.name:
+            continue
+        safe_name = _cli_safe_name(item.name)
+        cicd_type = _cicd_type(item.type)
+        if not cicd_type:
+            continue
+
+        # Workspace ID replacement — Notebooks reference lakehouse/environment workspace IDs
+        if cicd_type in ("Notebook",):
+            param_lines += [
+                f"  # {safe_name} — default lakehouse workspace ID",
+                f'  - find_value: "00000000-0000-0000-0000-000000000000"',
+                f"    replace_value:",
+                f'      dev: "$workspace.id"',
+                f'      ppe: "$workspace.id"',
+                f'      prod: "$workspace.id"',
+                f'    item_name: "{safe_name}"',
+                "",
+            ]
+
+    # Generateitem-specific replacements for items that reference other items
+    for item in data.items:
+        if not item.name or not item.depends_on:
+            continue
+        safe_name = _cli_safe_name(item.name)
+        cicd_type = _cicd_type(item.type)
+        if not cicd_type:
+            continue
+
+        # Find dependencies and create replacement rules
+        items_by_id = {i.id: i for i in data.items}
+        for dep_id in item.depends_on:
+            dep = items_by_id.get(dep_id)
+            if not dep or not dep.name:
+                continue
+            dep_safe = _cli_safe_name(dep.name)
+            dep_cicd = _cicd_type(dep.type)
+            if not dep_cicd:
+                continue
+
+            param_lines += [
+                f"  # {safe_name} → {dep_safe} reference",
+                f'  - find_value: "placeholder-{dep_safe}-id"',
+                f"    replace_value:",
+                f'      dev: "$items.{dep_cicd}.{dep_safe}.id"',
+                f'      ppe: "$items.{dep_cicd}.{dep_safe}.id"',
+                f'      prod: "$items.{dep_cicd}.{dep_safe}.id"',
+                f'    item_name: "{safe_name}"',
+                "",
+            ]
+
+    param_content = "\n".join(param_lines) + "\n"
+    param_path = ws_dir / "parameter.yml"
+    param_path.write_text(param_content, encoding="utf-8")
+
+    # 2. Generate config.yml
+    ws_desc = f"{args.project} — {data.task_flow} architecture"
+    if data.summary:
+        ws_desc += f". {data.summary}"
+
+    config_content = _gen_config_yml(data, args.project, ws_desc)
+    config_path = out / "config.yml"
+    config_path.write_text(config_content, encoding="utf-8")
+    print(f"✅ {config_path}")
+
+    # 3. Generate thin deploy script
+    deploy_content = _gen_deploy_script(args.project, data)
+    deploy_path = out / f"deploy-{slug}.py"
+    deploy_path.write_text(deploy_content, encoding="utf-8")
+    print(f"✅ {deploy_path}")
+
+    # 4. Generate descriptions JSON
+    desc_data = {
+        "project": args.project,
+        "task_flow": data.task_flow,
+        "workspace_description": ws_desc,
+        "items": {}
+    }
+    for item in data.items:
+        if not item.name:
+            continue
+        safe_name = _cli_safe_name(item.name)
+        desc_data["items"][safe_name] = {
+            "type": item.type,
+            "description": item.purpose or f"{item.type} for {args.project}",
+            "folder": _get_folder_for_item(item.type) or "root",
+        }
+    desc_path = out / f"descriptions-{slug}.json"
+    desc_path.write_text(json.dumps(desc_data, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"✅ {desc_path}")
+
+    # 5. Generate task flow JSON template
+    try:
+        tf_gen_path = Path(__file__).resolve().parent / "taskflow-template-gen.py"
+        if tf_gen_path.exists():
+            import subprocess as _sp
+            tf_path = out / f"taskflow-{slug}.json"
+            _sp.run(
+                [sys.executable, str(tf_gen_path),
+                 "--handoff", args.handoff,
+                 "--project", args.project,
+                 "--output", str(tf_path)],
+                capture_output=True, text=True, timeout=30, encoding="utf-8",
+            )
+            if tf_path.exists():
+                print(f"✅ {tf_path}")
+    except Exception as e:
+        print(f"⚠️  Task flow template generation skipped: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":

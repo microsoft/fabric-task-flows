@@ -16,7 +16,7 @@
 
 ## Pipeline Runner (Required)
 
-> ⚠️ **All pipeline orchestration MUST go through `run-pipeline.py`.** Do not call `new-project.py` directly, manually chain agents via `AUTO-CHAIN`, or edit `pipeline-state.json` by hand. Bypassing the runner leaves pipeline state stale, skips pre-compute scripts, and breaks phase verification. See `_shared/agent-boundaries.md` rule #1.
+> ⚠️ **All pipeline orchestration MUST go through `run-pipeline.py`.** Do not call `new-project.py` directly, manually chain agents via `AUTO-CHAIN`, or edit `pipeline-state.json` by hand. Bypassing the runner leaves pipeline state stale, skips pre-compute scripts, and breaks phase verification.
 
 Use the pipeline runner script to manage the full lifecycle. It scaffolds the project, tracks phase state, runs pre-compute scripts, and generates agent prompts — stopping only at Phase 2b for your approval.
 
@@ -239,7 +239,7 @@ This is your chance to catch misunderstandings, adjust scope, or ask questions �
 
 Walk through these before giving the go-ahead:
 
-- **Review the auto-generated architecture diagram** — The pipeline runner automatically generates a validated ASCII diagram from the handoff's items/waves YAML via `scripts/diagram-gen.py`. This diagram is included in the sign-off prompt. It uses proper box-drawing characters with validated borders (no broken boxes). The diagram groups items by deployment wave so you can see what gets created in what order.
+- **Review the auto-generated architecture diagram** — The pipeline runner automatically generates a validated ASCII diagram from the handoff's items/waves YAML via `.github/skills/fabric-design/scripts/diagram-gen.py`. This diagram is included in the sign-off prompt. It uses proper box-drawing characters with validated borders (no broken boxes). The diagram groups items by deployment wave so you can see what gets created in what order.
 - **Does the architecture diagram clearly show how data flows from your sources to your outputs?** — The diagram should use your actual item names and make the end-to-end pipeline easy to follow
 - **Does the task flow match your problem?** — Re-read the problem statement and make sure the selected pattern still feels right
 - **Are the items what you expected?** — Check the deployment list for anything surprising or missing
@@ -302,7 +302,7 @@ When the user selects **design-only** during architecture (instead of providing 
 1. **Architect** sets `deployment-mode: design-only` in the Architecture Handoff
 2. **Tester** produces the Test Plan as normal (validation criteria don't change)
 3. **User** signs off on the architecture and test plan
-4. **Engineer** generates `deploy-{project}.sh`, `deploy-{project}.ps1`, and `deploy-{project}.py` scripts in `projects/[name]/deployments/` — the Python script uses `_shared/fabric_deploy.py` (a shared `FabricDeployer` utility with idempotent item creation, retry with backoff, and branded output)
+4. **Engineer** generates `deploy-{project}.sh`, `deploy-{project}.ps1`, and `deploy-{project}.py` scripts in `projects/[name]/deployments/` — the Python script embeds the `FabricDeployer` utility inline (idempotent item creation, retry with backoff, and branded output)
 5. **User** runs the script of their choice at their convenience — all scripts prompt for workspace name at runtime (authentication, capacity, and tenant are handled by the `fab` CLI)
 
 > **When to use design-only mode:** Teams that want architecture decisions documented and reviewed before provisioning any Fabric resources, or when deploying to a workspace managed by a separate infrastructure team.
@@ -440,7 +440,7 @@ Agents produce handoffs in two formats:
 
 ### Schema Files
 
-All YAML schemas live in `_shared/schemas/`:
+All YAML schemas live in each skill's `schemas/` subdirectory:
 
 | Schema | Agent | Mode | Output File |
 |--------|-------|------|-------------|

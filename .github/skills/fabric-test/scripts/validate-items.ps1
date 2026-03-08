@@ -92,7 +92,7 @@ EXIT CODES:
 # Fab type mapping
 # --- AUTO-GENERATED from _shared/item-type-registry.json ---
 # Regenerate: python scripts/generate-ps1-types.py
-# Do NOT edit manually. See _shared/agent-boundaries.md.
+# Do NOT edit manually. See CONTRIBUTING.md.
 # ---------------------------------------------------------------------------
 $FabTypes = @{
   "Dashboard"              = "Dashboard"
@@ -155,7 +155,7 @@ $FabTypes = @{
 $PortalOnly = @(
   "CopyJob", "CosmosDB", "Dashboard", "DataAgent", "DataflowGen2", "GraphQLApi",
   "KQLDashboard", "MetricsScorecard", "Mirroring", "Ontology", "PaginatedReport",
-  "RealTimeMap", "Reflex", "SQLEndpoint", "UserDataFunctions", "VariableLibrary"
+  "RealTimeMap", "Reflex", "SQLEndpoint", "UserDataFunctions"
 )
 
 function Get-Phase {

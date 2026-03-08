@@ -8,7 +8,7 @@ Usage:
     python scripts/self-heal.py                          # Full heal cycle
     python scripts/self-heal.py --dry-run                # Preview changes only
     python scripts/self-heal.py --measure-only           # Just run before/after comparison
-    python scripts/self-heal.py --problem-file _shared/problem-statements.md
+    python scripts/self-heal.py --problem-file .github/skills/fabric-heal/problem-statements.md
 
 The heal cycle:
   1. Snapshot current signal mapper performance (baseline)

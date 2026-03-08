@@ -2,23 +2,22 @@
 
 ## Project Overview
 
-This is a **documentation-only** knowledge base — there is no source code, build system, or tests. All content is Markdown. The repo provides pre-defined Microsoft Fabric architectures via one orchestrator agent (`@fabric-advisor`) that delegates to 10 composable skills:
+This is a **documentation-driven** knowledge base with supporting Python scripts and tests. The repo provides pre-defined Microsoft Fabric architectures via one orchestrator agent (`@fabric-advisor`) that delegates to 6 composable skills:
 
 ```
 Phase 0 — Discover:   @fabric-advisor + /fabric-discover skill
                         │ automatic
-Phase 1 — Design:     /fabric-design skill (DRAFT) ──► /fabric-review skill
-                      /fabric-finalize skill (incorporates feedback → FINAL)
+Phase 1 — Design:     /fabric-design skill (DRAFT → Review → FINAL)
                         │ automatic
 Phase 2 — Plan+Approve+Deploy:
-                      /fabric-test-plan skill
+                      /fabric-test skill (Test Plan)
                         │
                       ★ User Sign-Off (ONLY human gate)
                         │
                       /fabric-deploy skill
                         │ automatic
-Phase 3 — Validate:    /fabric-validate skill
-                        (if issues → /fabric-remediate skill)
+Phase 3 — Validate:    /fabric-test skill (Validate)
+                        (if issues → /fabric-deploy skill remediates)
                         │ automatic
 Phase 4 — Document:    /fabric-document skill
 ```

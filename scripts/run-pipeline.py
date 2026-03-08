@@ -38,6 +38,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / ".github" / "skills"
+VERSION = "1.0.0"
 
 # Phase ordering (linear)
 PHASE_ORDER = [
@@ -64,9 +65,6 @@ PHASE_SKILLS = {
     "3-validate":    "fabric-test",        # QA validates after deployment
     "4-document":    "fabric-document",
 }
-
-# Legacy alias for backward compatibility
-PHASE_AGENTS = PHASE_SKILLS
 
 # Pre-compute scripts to run before each agent phase
 PHASE_PRECOMPUTE: dict[str, list[list[str]]] = {
@@ -373,7 +371,7 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
     else:
         phase = current
 
-    agent = PHASE_AGENTS.get(phase)
+    agent = PHASE_SKILLS.get(phase)
     prompt = _prompt_for_phase(phase, project, state)
     is_gate = not _is_auto(state, phase)
 
@@ -657,7 +655,7 @@ def _print_status(state: dict) -> None:
     for phase_id in PHASE_ORDER:
         phase = state["phases"][phase_id]
         status = phase["status"]
-        agent = PHASE_AGENTS.get(phase_id, "—")
+        agent = PHASE_SKILLS.get(phase_id, "—")
         is_current = "→" if phase_id == state["current_phase"] else " "
         gate = " 🛑" if phase.get("gate") == "human" else ""
 
@@ -667,10 +665,50 @@ def _print_status(state: dict) -> None:
     print()
 
 
+def _print_signoff_diagram(project: str) -> None:
+    """Extract and display the architecture diagram from the handoff at sign-off."""
+    handoff_path = REPO_ROOT / "projects" / project / "prd" / "architecture-handoff.md"
+    if not handoff_path.exists():
+        return
+
+    content = handoff_path.read_text(encoding="utf-8")
+
+    # Extract the ## Architecture Diagram section from the handoff markdown
+    diagram_text = None
+    in_diagram_section = False
+    in_code_block = False
+    code_lines: list[str] = []
+
+    for line in content.split("\n"):
+        if line.strip().startswith("## Architecture Diagram"):
+            in_diagram_section = True
+            continue
+        if in_diagram_section and line.strip().startswith("## ") and not line.strip().startswith("## Architecture Diagram"):
+            break
+        if in_diagram_section:
+            if line.strip().startswith("```") and not in_code_block:
+                in_code_block = True
+                continue
+            elif line.strip().startswith("```") and in_code_block:
+                in_code_block = False
+                diagram_text = "\n".join(code_lines)
+                break
+            elif in_code_block:
+                code_lines.append(line)
+
+    if diagram_text and diagram_text.strip():
+        print(f"\n{'─' * 68}")
+        print(f"  ARCHITECTURE DIAGRAM")
+        print(f"{'─' * 68}\n")
+        print(diagram_text)
+        print()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Pipeline runner — orchestrate Fabric agent phases"
     )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     # start
@@ -749,6 +787,11 @@ def main() -> None:
         state = advance(args.project, approved=args.approve,
                         revise=args.revise, feedback=args.feedback)
         _print_status(state)
+
+        # Show architecture diagram when entering sign-off phase
+        if state["current_phase"] == "2b-sign-off":
+            _print_signoff_diagram(args.project)
+
         prompt, agent, phase, is_gate = get_next_prompt(args.project)
         if agent:
             chain_label = "🛑 HUMAN GATE — use --approve" if is_gate else "🟢 AUTO-CHAIN"

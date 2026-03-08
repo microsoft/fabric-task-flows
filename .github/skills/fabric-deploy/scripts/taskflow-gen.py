@@ -44,7 +44,7 @@ VALID_TASK_TYPES = {
 # ── Item type → Fabric task type mapping ──────────────────────────────────
 
 # Task type mapping — loaded from _shared/item-type-registry.json
-# Do NOT maintain this dict manually. See _shared/agent-boundaries.md.
+# Do NOT maintain this dict manually. See CONTRIBUTING.md.
 from registry_loader import build_task_type_map
 
 ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()

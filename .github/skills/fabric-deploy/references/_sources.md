@@ -7,9 +7,8 @@ These references are bundled directly in this skill:
 - `references/rollback-protocol.md` — failure recovery procedures
 - `references/fabric-cli-commands.md` — fab CLI command reference
 - `references/prerequisites.md` — pre-deployment setup guide
-- `assets/script-template.sh` — bash deploy script template
-- `assets/script-template.ps1` — PowerShell deploy script template
-- `assets/fabric_deploy.py` — Python FabricDeployer utility class
+- `references/verified-item-definitions.md` — authoritative item type capabilities and deploy status
+- `scripts/deploy-script-gen.py` — Generates fabric-cicd workspace directory, config.yml, and deploy script from architecture handoff
 
 External shared references (load from `_shared/`):
 

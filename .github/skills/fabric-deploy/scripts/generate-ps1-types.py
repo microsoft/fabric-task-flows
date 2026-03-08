@@ -21,7 +21,7 @@ def generate(registry: dict) -> str:
     lines = []
     lines.append("# --- AUTO-GENERATED from _shared/item-type-registry.json ---")
     lines.append("# Regenerate: python scripts/generate-ps1-types.py")
-    lines.append("# Do NOT edit manually. See _shared/agent-boundaries.md.")
+    lines.append("# Do NOT edit manually. See CONTRIBUTING.md.")
     lines.append("")
 
     # $FabTypes — CLI-supported types (used for fab exists/get/ls)

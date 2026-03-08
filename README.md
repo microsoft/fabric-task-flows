@@ -156,9 +156,8 @@ task-flows/
 │       │   └── schemas/               # test-plan, validation-report, remediation-log
 │       ├── fabric-deploy/             # Phase 2c — wave-based deployment
 │       │   ├── SKILL.md
-│       │   ├── scripts/               # deploy-script-gen, taskflow-gen, generate-ps1-types
-│       │   ├── assets/                # fabric_deploy.py, script-template (.ps1/.sh)
-│       │   ├── references/            # prerequisites, fabric-cli-commands, deployment-patterns, parallel-deployment, rollback-protocol
+│       │   ├── scripts/               # deploy-script-gen, taskflow-gen, taskflow-template-gen, generate-ps1-types
+│       │   ├── references/            # prerequisites, fabric-cli-commands, deployment-patterns, parallel-deployment, rollback-protocol, verified-item-definitions
 │       │   └── schemas/               # deployment-handoff, phase-progress
 │       ├── fabric-document/           # Phase 4 — wiki + ADR synthesis
 │       │   ├── SKILL.md

@@ -31,7 +31,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 # ---------------------------------------------------------------------------
 
 # Phase mapping — loaded from _shared/item-type-registry.json
-# Do NOT maintain this dict manually. See _shared/agent-boundaries.md.
+# Do NOT maintain this dict manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(REPO_ROOT / "_shared"))
 from registry_loader import build_phase_map
 

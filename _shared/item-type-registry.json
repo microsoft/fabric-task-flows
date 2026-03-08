@@ -2,7 +2,7 @@
   "$schema": "Fabric Task Flows Item Type Registry",
   "$version": "2026-03-06",
   "$cli_version": "0.1.10",
-  "$description": "Single source of truth for all Fabric item type metadata. All scripts MUST import from this file — do NOT maintain separate item type dictionaries. See _shared/agent-boundaries.md.",
+  "$description": "Single source of truth for all Fabric item type metadata. All scripts MUST import from this file — do NOT maintain separate item type dictionaries. See CONTRIBUTING.md.",
   "types": {
     "Lakehouse": {
       "fab_type": "Lakehouse",
@@ -13,8 +13,21 @@
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "mkdir_args": ["-P", "enableSchemas=true"],
-      "aliases": ["lakehouse"]
+      "mkdir_args": [
+        "-P",
+        "enableSchemas=true"
+      ],
+      "aliases": [
+        "lakehouse"
+      ],
+      "cicd": {
+        "strategy": "platform_only",
+        "files": [
+          ".platform"
+        ],
+        "verified": true,
+        "supports_item_reference": true
+      }
     },
     "Warehouse": {
       "fab_type": "Warehouse",
@@ -26,7 +39,17 @@
       "phase_order": 1,
       "task_type": "store data",
       "mkdir_args": [],
-      "aliases": ["warehouse"]
+      "aliases": [
+        "warehouse"
+      ],
+      "cicd": {
+        "strategy": "platform_only",
+        "files": [
+          ".platform"
+        ],
+        "verified": true,
+        "supports_item_reference": true
+      }
     },
     "Eventhouse": {
       "fab_type": "Eventhouse",
@@ -38,7 +61,21 @@
       "phase_order": 1,
       "task_type": "store data",
       "mkdir_args": [],
-      "aliases": ["eventhouse"]
+      "aliases": [
+        "eventhouse"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "EventhouseProperties.json"
+        ],
+        "content": {
+          "EventhouseProperties.json": {}
+        },
+        "verified": true,
+        "supports_item_reference": true
+      }
     },
     "KQLDatabase": {
       "fab_type": "KQLDatabase",
@@ -50,8 +87,20 @@
       "phase_order": 1,
       "task_type": "store data",
       "mkdir_args": [],
-      "aliases": ["kqldatabase", "kql database"],
-      "notes": "Requires eventhouseId parameter"
+      "aliases": [
+        "kqldatabase",
+        "kql database"
+      ],
+      "notes": "Requires eventhouseId parameter",
+      "cicd": {
+        "strategy": "platform_only",
+        "files": [
+          ".platform"
+        ],
+        "verified": false,
+        "notes": "Nested in Eventhouse .children/",
+        "supports_item_reference": false
+      }
     },
     "SQLDatabase": {
       "fab_type": "SQLDatabase",
@@ -63,7 +112,20 @@
       "phase_order": 1,
       "task_type": "store data",
       "mkdir_args": [],
-      "aliases": ["sqldatabase", "sql database"]
+      "aliases": [
+        "sqldatabase",
+        "sql database"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "{name}.sqlproj"
+        ],
+        "verified": false,
+        "notes": "From sample: Hello db.SQLDatabase",
+        "supports_item_reference": false
+      }
     },
     "SQLEndpoint": {
       "fab_type": "SQLEndpoint",
@@ -75,7 +137,11 @@
       "phase_order": 1,
       "task_type": "store data",
       "mkdir_args": [],
-      "aliases": ["sqlendpoint", "sql endpoint", "sql analytics endpoint"],
+      "aliases": [
+        "sqlendpoint",
+        "sql endpoint",
+        "sql analytics endpoint"
+      ],
       "notes": "Auto-created with Lakehouse; read-only in CLI"
     },
     "CosmosDB": {
@@ -88,7 +154,11 @@
       "phase_order": 1,
       "task_type": "store data",
       "mkdir_args": [],
-      "aliases": ["cosmosdb", "cosmos db", "cosmos db database"]
+      "aliases": [
+        "cosmosdb",
+        "cosmos db",
+        "cosmos db database"
+      ]
     },
     "Datamart": {
       "fab_type": "Datamart",
@@ -100,7 +170,9 @@
       "phase_order": 1,
       "task_type": "store data",
       "mkdir_args": [],
-      "aliases": ["datamart"],
+      "aliases": [
+        "datamart"
+      ],
       "notes": "Legacy item type; still valid in CLI"
     },
     "MirroredWarehouse": {
@@ -113,7 +185,10 @@
       "phase_order": 1,
       "task_type": "mirror data",
       "mkdir_args": [],
-      "aliases": ["mirroredwarehouse", "mirrored warehouse"]
+      "aliases": [
+        "mirroredwarehouse",
+        "mirrored warehouse"
+      ]
     },
     "MirroredDatabase": {
       "fab_type": "MirroredDatabase",
@@ -125,7 +200,37 @@
       "phase_order": 1,
       "task_type": "mirror data",
       "mkdir_args": [],
-      "aliases": ["mirroreddatabase", "mirrored database"]
+      "aliases": [
+        "mirroreddatabase",
+        "mirrored database"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "mirroring.json"
+        ],
+        "content": {
+          "mirroring.json": {
+            "properties": {
+              "source": {
+                "type": "GenericMirror",
+                "typeProperties": null
+              },
+              "target": {
+                "type": "MountedRelationalDatabase",
+                "typeProperties": {
+                  "format": "Delta",
+                  "defaultSchema": "dbo"
+                }
+              }
+            }
+          }
+        },
+        "verified": false,
+        "notes": "From sample: MirroredDatabase_1",
+        "supports_item_reference": false
+      }
     },
     "MirroredDataverse": {
       "fab_type": "MirroredDataverse",
@@ -137,7 +242,12 @@
       "phase_order": 3,
       "task_type": "mirror data",
       "mkdir_args": [],
-      "aliases": ["mirroreddataverse", "mirrored dataverse", "fabric link", "link to fabric"],
+      "aliases": [
+        "mirroreddataverse",
+        "mirrored dataverse",
+        "fabric link",
+        "link to fabric"
+      ],
       "notes": "Configured from Power Platform admin center via Fabric Link; syncs Dataverse tables to Lakehouse as Delta"
     },
     "MountedDataFactory": {
@@ -150,8 +260,22 @@
       "phase_order": 3,
       "task_type": "get data",
       "mkdir_args": [],
-      "aliases": ["mounteddatafactory", "mounted data factory", "azure data factory", "adf"],
-      "notes": "Azure Data Factory pipeline mounted into Fabric"
+      "aliases": [
+        "mounteddatafactory",
+        "mounted data factory",
+        "azure data factory",
+        "adf"
+      ],
+      "notes": "Azure Data Factory pipeline mounted into Fabric",
+      "cicd": {
+        "strategy": "platform_only",
+        "files": [
+          ".platform"
+        ],
+        "verified": false,
+        "notes": "Not in sample. API: create without def = NO",
+        "supports_item_reference": false
+      }
     },
     "Environment": {
       "fab_type": "Environment",
@@ -163,8 +287,19 @@
       "phase_order": 2,
       "task_type": "develop",
       "mkdir_args": [],
-      "aliases": ["environment"],
-      "notes": "Has publish step — may take 20+ minutes after creation"
+      "aliases": [
+        "environment"
+      ],
+      "notes": "Has publish step — may take 20+ minutes after creation",
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "Setting/Sparkcompute.yml"
+        ],
+        "verified": true,
+        "supports_item_reference": true
+      }
     },
     "CopyJob": {
       "fab_type": "CopyJob",
@@ -176,8 +311,38 @@
       "phase_order": 3,
       "task_type": "get data",
       "mkdir_args": [],
-      "aliases": ["copyjob", "copy job"],
-      "notes": "Commented out in CLI ItemType enum (v0.1.10); works via generic items API but not officially supported"
+      "aliases": [
+        "copyjob",
+        "copy job"
+      ],
+      "notes": "Commented out in CLI ItemType enum (v0.1.10); works via generic items API but not officially supported",
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "copyjob-content.json"
+        ],
+        "content": {
+          "copyjob-content.json": {
+            "properties": {
+              "jobMode": "Batch",
+              "source": {
+                "type": "LakehouseTable"
+              },
+              "destination": {
+                "type": "LakehouseTable"
+              },
+              "policy": {
+                "timeout": "0.12:00:00"
+              }
+            },
+            "activities": []
+          }
+        },
+        "verified": false,
+        "notes": "From sample: Hello Copy Job.CopyJob",
+        "supports_item_reference": false
+      }
     },
     "DataPipeline": {
       "fab_type": "DataPipeline",
@@ -189,7 +354,27 @@
       "phase_order": 3,
       "task_type": "get data",
       "mkdir_args": [],
-      "aliases": ["datapipeline", "pipeline", "data pipeline"]
+      "aliases": [
+        "datapipeline",
+        "pipeline",
+        "data pipeline"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "pipeline-content.json"
+        ],
+        "content": {
+          "pipeline-content.json": {
+            "properties": {
+              "activities": []
+            }
+          }
+        },
+        "verified": true,
+        "supports_item_reference": false
+      }
     },
     "Eventstream": {
       "fab_type": "Eventstream",
@@ -201,7 +386,30 @@
       "phase_order": 3,
       "task_type": "get data",
       "mkdir_args": [],
-      "aliases": ["eventstream"]
+      "aliases": [
+        "eventstream"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "eventstream.json",
+          "eventstreamProperties.json"
+        ],
+        "content": {
+          "eventstream.json": {
+            "compatibilityLevel": "1.0",
+            "sources": [],
+            "destinations": []
+          },
+          "eventstreamProperties.json": {
+            "retentionTimeInDays": 1,
+            "eventThroughputLevel": "Low"
+          }
+        },
+        "verified": true,
+        "supports_item_reference": false
+      }
     },
     "DataflowGen2": {
       "fab_type": "DataflowGen2",
@@ -213,7 +421,11 @@
       "phase_order": 3,
       "task_type": "get data",
       "mkdir_args": [],
-      "aliases": ["dataflowgen2", "dataflow gen2", "dataflow"]
+      "aliases": [
+        "dataflowgen2",
+        "dataflow gen2",
+        "dataflow"
+      ]
     },
     "Mirroring": {
       "fab_type": "Mirroring",
@@ -225,7 +437,12 @@
       "phase_order": 3,
       "task_type": "mirror data",
       "mkdir_args": [],
-      "aliases": ["mirroring", "mirrored azure cosmos db", "cosmos db (mirrored)", "cosmos db mirroring"]
+      "aliases": [
+        "mirroring",
+        "mirrored azure cosmos db",
+        "cosmos db (mirrored)",
+        "cosmos db mirroring"
+      ]
     },
     "Notebook": {
       "fab_type": "Notebook",
@@ -237,8 +454,19 @@
       "phase_order": 4,
       "task_type": "prepare data",
       "mkdir_args": [],
-      "aliases": ["notebook"],
-      "notes": "Supports lakehouse binding and environment binding via fab set"
+      "aliases": [
+        "notebook"
+      ],
+      "notes": "Supports lakehouse binding and environment binding via fab set",
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "notebook-content.py"
+        ],
+        "verified": true,
+        "supports_item_reference": false
+      }
     },
     "SparkJobDefinition": {
       "fab_type": "SparkJobDefinition",
@@ -250,7 +478,27 @@
       "phase_order": 4,
       "task_type": "prepare data",
       "mkdir_args": [],
-      "aliases": ["sparkjobdefinition", "spark job def", "spark job definition"]
+      "aliases": [
+        "sparkjobdefinition",
+        "spark job def",
+        "spark job definition"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "SparkJobDefinitionV1.json"
+        ],
+        "content": {
+          "SparkJobDefinitionV1.json": {
+            "executableFile": null,
+            "defaultLakehouseArtifactId": "",
+            "mainClass": ""
+          }
+        },
+        "verified": false,
+        "supports_item_reference": false
+      }
     },
     "KQLQueryset": {
       "fab_type": "KQLQueryset",
@@ -262,7 +510,28 @@
       "phase_order": 4,
       "task_type": "prepare data",
       "mkdir_args": [],
-      "aliases": ["kqlqueryset", "kql queryset"]
+      "aliases": [
+        "kqlqueryset",
+        "kql queryset"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "RealTimeQueryset.json"
+        ],
+        "content": {
+          "RealTimeQueryset.json": {
+            "queryset": {
+              "version": "1.0.0",
+              "dataSources": [],
+              "tabs": []
+            }
+          }
+        },
+        "verified": true,
+        "supports_item_reference": false
+      }
     },
     "SemanticModel": {
       "fab_type": "SemanticModel",
@@ -274,7 +543,20 @@
       "phase_order": 5,
       "task_type": "visualize",
       "mkdir_args": [],
-      "aliases": ["semanticmodel", "semantic model"]
+      "aliases": [
+        "semanticmodel",
+        "semantic model"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "definition.pbism",
+          "definition/model.tmdl"
+        ],
+        "verified": true,
+        "supports_item_reference": true
+      }
     },
     "Report": {
       "fab_type": "Report",
@@ -286,8 +568,20 @@
       "phase_order": 5,
       "task_type": "visualize",
       "mkdir_args": [],
-      "aliases": ["report"],
-      "notes": "Accepts -P semanticModelId=<id> to bind to a semantic model"
+      "aliases": [
+        "report"
+      ],
+      "notes": "Accepts -P semanticModelId=<id> to bind to a semantic model",
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "definition.pbir",
+          "report.json"
+        ],
+        "verified": true,
+        "supports_item_reference": false
+      }
     },
     "PaginatedReport": {
       "fab_type": "PaginatedReport",
@@ -299,7 +593,10 @@
       "phase_order": 5,
       "task_type": "visualize",
       "mkdir_args": [],
-      "aliases": ["paginatedreport", "paginated report"]
+      "aliases": [
+        "paginatedreport",
+        "paginated report"
+      ]
     },
     "Dashboard": {
       "fab_type": "Dashboard",
@@ -311,7 +608,9 @@
       "phase_order": 5,
       "task_type": "visualize",
       "mkdir_args": [],
-      "aliases": ["dashboard"]
+      "aliases": [
+        "dashboard"
+      ]
     },
     "KQLDashboard": {
       "fab_type": "KQLDashboard",
@@ -323,8 +622,22 @@
       "phase_order": 5,
       "task_type": "track data",
       "mkdir_args": [],
-      "aliases": ["kqldashboard", "real-time dashboard", "realtimedashboard", "real-time dash"],
-      "notes": "CLI type is KQLDashboard; display name is Real-Time Dashboard"
+      "aliases": [
+        "kqldashboard",
+        "real-time dashboard",
+        "realtimedashboard",
+        "real-time dash"
+      ],
+      "notes": "CLI type is KQLDashboard; display name is Real-Time Dashboard",
+      "cicd": {
+        "strategy": "platform_only",
+        "files": [
+          ".platform"
+        ],
+        "verified": true,
+        "notes": "Content file causes parser error in fabric-cicd",
+        "supports_item_reference": false
+      }
     },
     "RealTimeMap": {
       "fab_type": "RealTimeMap",
@@ -336,7 +649,10 @@
       "phase_order": 5,
       "task_type": "track data",
       "mkdir_args": [],
-      "aliases": ["realtimemap", "real-time map"]
+      "aliases": [
+        "realtimemap",
+        "real-time map"
+      ]
     },
     "MetricsScorecard": {
       "fab_type": "MetricsScorecard",
@@ -348,7 +664,11 @@
       "phase_order": 5,
       "task_type": "visualize",
       "mkdir_args": [],
-      "aliases": ["metricsscorecard", "metrics scorecard", "scorecard"]
+      "aliases": [
+        "metricsscorecard",
+        "metrics scorecard",
+        "scorecard"
+      ]
     },
     "MLExperiment": {
       "fab_type": "MLExperiment",
@@ -360,7 +680,20 @@
       "phase_order": 6,
       "task_type": "analyze and train data",
       "mkdir_args": [],
-      "aliases": ["mlexperiment", "ml experiment", "experiment"]
+      "aliases": [
+        "mlexperiment",
+        "ml experiment",
+        "experiment"
+      ],
+      "cicd": {
+        "strategy": "platform_only",
+        "files": [
+          ".platform"
+        ],
+        "verified": true,
+        "notes": "Definition not supported by API",
+        "supports_item_reference": false
+      }
     },
     "MLModel": {
       "fab_type": "MLModel",
@@ -372,7 +705,17 @@
       "phase_order": 6,
       "task_type": "analyze and train data",
       "mkdir_args": [],
-      "aliases": ["mlmodel", "ml model"]
+      "aliases": [
+        "mlmodel",
+        "ml model"
+      ],
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": true,
+        "notes": "Not supported by fabric-cicd",
+        "supports_item_reference": false
+      }
     },
     "Reflex": {
       "fab_type": "Reflex",
@@ -384,8 +727,23 @@
       "phase_order": 5,
       "task_type": "track data",
       "mkdir_args": [],
-      "aliases": ["reflex", "activator"],
-      "notes": "CLI type is Reflex; commonly known as Activator. Portal-only creation."
+      "aliases": [
+        "reflex",
+        "activator"
+      ],
+      "notes": "CLI type is Reflex; commonly known as Activator. Portal-only creation.",
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "ReflexEntities.json"
+        ],
+        "content": {
+          "ReflexEntities.json": "[]"
+        },
+        "verified": true,
+        "supports_item_reference": false
+      }
     },
     "GraphQLApi": {
       "fab_type": "GraphQLApi",
@@ -397,7 +755,26 @@
       "phase_order": 5,
       "task_type": "distribute data",
       "mkdir_args": [],
-      "aliases": ["graphqlapi", "graphql api", "api for graphql"]
+      "aliases": [
+        "graphqlapi",
+        "graphql api",
+        "api for graphql"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "graphql-definition.json"
+        ],
+        "content": {
+          "graphql-definition.json": {
+            "datasources": []
+          }
+        },
+        "verified": false,
+        "notes": "From sample: Sample.GraphQLApi",
+        "supports_item_reference": false
+      }
     },
     "UserDataFunctions": {
       "fab_type": "UserDataFunctions",
@@ -409,19 +786,48 @@
       "phase_order": 4,
       "task_type": "distribute data",
       "mkdir_args": [],
-      "aliases": ["userdatafunctions", "user data functions", "user data funcs"]
+      "aliases": [
+        "userdatafunctions",
+        "user data functions",
+        "user data funcs"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "function_app.py",
+          "definitions.json",
+          ".resources/functions.json"
+        ],
+        "verified": false,
+        "notes": "From sample",
+        "supports_item_reference": false
+      }
     },
     "VariableLibrary": {
       "fab_type": "VariableLibrary",
-      "api_path": "items",
+      "api_path": "variableLibraries",
       "display_name": "Variable Library",
-      "cli_supported": false,
-      "mkdir_supported": false,
+      "cli_supported": true,
+      "mkdir_supported": true,
       "phase": "Environment",
-      "phase_order": 2,
+      "phase_order": 1,
       "task_type": "govern data",
       "mkdir_args": [],
-      "aliases": ["variablelibrary", "variable library"]
+      "aliases": [
+        "variablelibrary",
+        "variable library"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "variables.json",
+          "settings.json"
+        ],
+        "verified": true,
+        "supports_item_reference": false
+      }
     },
     "Ontology": {
       "fab_type": "Ontology",
@@ -433,7 +839,9 @@
       "phase_order": 5,
       "task_type": "govern data",
       "mkdir_args": [],
-      "aliases": ["ontology"]
+      "aliases": [
+        "ontology"
+      ]
     },
     "DataAgent": {
       "fab_type": "DataAgent",
@@ -445,7 +853,19 @@
       "phase_order": 5,
       "task_type": "govern data",
       "mkdir_args": [],
-      "aliases": ["dataagent", "data agent"]
+      "aliases": [
+        "dataagent",
+        "data agent"
+      ],
+      "cicd": {
+        "strategy": "platform_only",
+        "files": [
+          ".platform"
+        ],
+        "verified": false,
+        "notes": "Not in sample",
+        "supports_item_reference": false
+      }
     },
     "ApacheAirflowJob": {
       "fab_type": "ApacheAirflowProject",
@@ -457,8 +877,41 @@
       "phase_order": 3,
       "task_type": "get data",
       "mkdir_args": [],
-      "aliases": ["apacheairflowproject", "apache airflow job", "airflow job", "airflow"],
-      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only"
+      "aliases": [
+        "apacheairflowproject",
+        "apache airflow job",
+        "airflow job",
+        "airflow"
+      ],
+      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only",
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "apacheairflowjob-content.json",
+          "dags/dag1.py"
+        ],
+        "content": {
+          "apacheairflowjob-content.json": {
+            "properties": {
+              "type": "Airflow",
+              "typeProperties": {
+                "airflowProperties": {
+                  "airflowVersion": "2.10.5",
+                  "pythonVersion": "3.12"
+                },
+                "computeProperties": {
+                  "computePool": "StarterPool",
+                  "computeSize": "Small"
+                }
+              }
+            }
+          }
+        },
+        "verified": false,
+        "notes": "From sample",
+        "supports_item_reference": false
+      }
     },
     "Exploration": {
       "fab_type": "Exploration",
@@ -470,7 +923,9 @@
       "phase_order": 5,
       "task_type": "visualize",
       "mkdir_args": [],
-      "aliases": ["exploration"],
+      "aliases": [
+        "exploration"
+      ],
       "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only"
     },
     "dbtJob": {
@@ -483,7 +938,11 @@
       "phase_order": 4,
       "task_type": "prepare data",
       "mkdir_args": [],
-      "aliases": ["dbtjob", "dbt job", "dbt"]
+      "aliases": [
+        "dbtjob",
+        "dbt job",
+        "dbt"
+      ]
     },
     "PostgreSQLDatabase": {
       "fab_type": "PostgreSQLDatabase",
@@ -495,7 +954,12 @@
       "phase_order": 1,
       "task_type": "store data",
       "mkdir_args": [],
-      "aliases": ["postgresqldatabase", "postgresql database", "postgresql", "postgres"]
+      "aliases": [
+        "postgresqldatabase",
+        "postgresql database",
+        "postgresql",
+        "postgres"
+      ]
     },
     "MirroredDatabricksCatalog": {
       "fab_type": "MirroredDatabricksCatalog",
@@ -507,7 +971,12 @@
       "phase_order": 3,
       "task_type": "mirror data",
       "mkdir_args": [],
-      "aliases": ["mirroreddatabrickscatalog", "mirrored azure databricks catalog", "mirrored databricks catalog", "databricks mirroring"]
+      "aliases": [
+        "mirroreddatabrickscatalog",
+        "mirrored azure databricks catalog",
+        "mirrored databricks catalog",
+        "databricks mirroring"
+      ]
     },
     "MirroredCatalog": {
       "fab_type": "MirroredCatalog",
@@ -519,7 +988,10 @@
       "phase_order": 3,
       "task_type": "mirror data",
       "mkdir_args": [],
-      "aliases": ["mirroredcatalog", "mirrored catalog"]
+      "aliases": [
+        "mirroredcatalog",
+        "mirrored catalog"
+      ]
     },
     "SnowflakeDatabase": {
       "fab_type": "SnowflakeDatabase",
@@ -531,7 +1003,11 @@
       "phase_order": 3,
       "task_type": "mirror data",
       "mkdir_args": [],
-      "aliases": ["snowflakedatabase", "snowflake database", "snowflake mirroring"],
+      "aliases": [
+        "snowflakedatabase",
+        "snowflake database",
+        "snowflake mirroring"
+      ],
       "notes": "Snowflake mirrored into Fabric via Mirroring"
     },
     "GraphModel": {
@@ -544,7 +1020,11 @@
       "phase_order": 5,
       "task_type": "govern data",
       "mkdir_args": [],
-      "aliases": ["graphmodel", "graph model", "knowledge graph model"]
+      "aliases": [
+        "graphmodel",
+        "graph model",
+        "knowledge graph model"
+      ]
     },
     "GraphQueryset": {
       "fab_type": "GraphQueryset",
@@ -556,7 +1036,47 @@
       "phase_order": 5,
       "task_type": "govern data",
       "mkdir_args": [],
-      "aliases": ["graphqueryset", "graph queryset", "graph query"]
+      "aliases": [
+        "graphqueryset",
+        "graph queryset",
+        "graph query"
+      ]
     }
-  }
+  },
+  "cicd_type_remap": {
+    "Activator": "Reflex",
+    "Real-Time Dashboard": "KQLDashboard",
+    "KQL Dashboard": "KQLDashboard",
+    "ML Experiment": "MLExperiment",
+    "ML Model": "MLExperiment",
+    "Dashboard": null,
+    "Variable Library": "VariableLibrary"
+  },
+  "cicd_supported_types": [
+    "ApacheAirflowJob",
+    "CopyJob",
+    "DataAgent",
+    "DataPipeline",
+    "Dataflow",
+    "Environment",
+    "Eventhouse",
+    "Eventstream",
+    "GraphQLApi",
+    "KQLDashboard",
+    "KQLDatabase",
+    "KQLQueryset",
+    "Lakehouse",
+    "MLExperiment",
+    "MirroredDatabase",
+    "MountedDataFactory",
+    "Notebook",
+    "Reflex",
+    "Report",
+    "SQLDatabase",
+    "SemanticModel",
+    "SparkJobDefinition",
+    "UserDataFunction",
+    "VariableLibrary",
+    "Warehouse"
+  ]
 }
