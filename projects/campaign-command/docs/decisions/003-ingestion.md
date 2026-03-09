@@ -4,34 +4,41 @@
 
 Accepted
 
-**Date:** <!-- /fabric-document: date -->
+**Date:** 2026-03-09
 **Deciders:** fabric-architect agent + user confirmation
 
 ## Context
 
-<!-- /fabric-document: problem, constraints, requirements -->
+Two ingestion paths: batch from Google Analytics/AdWords APIs (large volume, orchestration needed) and real-time from social media sentiment feeds (continuous streaming). Team is code-first.
 
 ## Decision
 
-<!-- /fabric-document: what was chosen -->
+Use **Data Pipeline** for batch ingestion and **Eventstream** for real-time social media streaming.
 
 ## Alternatives Considered
 
 | Option | Pros | Cons | Why Rejected |
 |--------|------|------|--------------|
-| | | | |
+| Dataflow Gen2 (batch) | Visual transforms | Power Query, not code-first | Team prefers code; complex API auth better in Pipeline |
+| Copy Job (batch) | Simple, no-code | No orchestration, no API connectors | Needs multi-step orchestration |
+| Notebook (standalone) | Full code control | No built-in scheduling/retry | Pipeline provides orchestration layer |
 
 ## Consequences
 
 ### Benefits
-<!-- /fabric-document: what this enables -->
+- Pipeline orchestrates multi-source batch ingestion with retry logic
+- Eventstream handles continuous social feeds with backpressure
+- Both paths independently schedulable and monitorable
 
 ### Costs
-<!-- /fabric-document: what this limits -->
+- Pipeline requires API connector configuration
+- Eventstream requires social media API integration setup
 
 ### Mitigations
-<!-- /fabric-document: how costs are addressed -->
+- Pipeline can invoke Notebooks for custom API logic
+- Eventstream supports custom endpoints for any streaming source
 
 ## References
 
-- Decision guide: <!-- /fabric-document: link to decisions/*.md -->
+- Decision guide: [decisions/ingestion-selection.md](../../../decisions/ingestion-selection.md)
+- Related: [ADR-001](./001-task-flow.md), [ADR-002](./002-storage.md)

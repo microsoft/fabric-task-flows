@@ -4,34 +4,41 @@
 
 Accepted
 
-**Date:** <!-- /fabric-document: date -->
+**Date:** 2026-03-09
 **Deciders:** fabric-architect agent + user confirmation
 
 ## Context
 
-<!-- /fabric-document: problem, constraints, requirements -->
+Batch path needs Python/Spark transforms: sentiment scoring, regional ROI aggregation, data quality before loading to Warehouse. Speed path needs real-time aggregations on social streams in Eventhouse. Team is code-first.
 
 ## Decision
 
-<!-- /fabric-document: what was chosen -->
+Use **Notebook** for batch transforms (Python/Spark, Lakehouse → Warehouse) and **KQL Queryset** for real-time stream aggregations.
 
 ## Alternatives Considered
 
 | Option | Pros | Cons | Why Rejected |
 |--------|------|------|--------------|
-| | | | |
+| Spark Job Definition | Production CI/CD ready | Less interactive for dev | Notebook via Pipeline sufficient initially |
+| Dataflow Gen2 | Visual, low-code | Not code-first; limited NLP | Team prefers Python; sentiment needs libraries |
+| Stored Procedures | T-SQL native | Only Warehouse; can't process raw LH | Raw processing needs Spark first |
 
 ## Consequences
 
 ### Benefits
-<!-- /fabric-document: what this enables -->
+- Notebook gives full Python ecosystem for sentiment NLP
+- KQL Queryset provides optimized time-series aggregations
+- Both are code-first, matching team preference
 
 ### Costs
-<!-- /fabric-document: what this limits -->
+- Notebook requires Environment with dependencies
+- KQL learning curve for team
 
 ### Mitigations
-<!-- /fabric-document: how costs are addressed -->
+- Environment pre-configured with sentiment analysis libraries
+- KQL patterns documented; Eventhouse has built-in editor
 
 ## References
 
-- Decision guide: <!-- /fabric-document: link to decisions/*.md -->
+- Decision guide: [decisions/processing-selection.md](../../../decisions/processing-selection.md)
+- Related: [ADR-001](./001-task-flow.md), [ADR-002](./002-storage.md), [ADR-003](./003-ingestion.md)
