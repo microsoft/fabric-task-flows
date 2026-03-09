@@ -477,6 +477,8 @@ PHASE_FOLDER_NAMES: dict[str, str] = {
     "Transformation": "Processing",
     "Visualization": "Analytics",
     "ML": "Machine Learning",
+    "IQ": "Intelligence",
+    "Monitoring": "Monitoring",
 }
 
 
