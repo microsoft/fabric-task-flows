@@ -4,6 +4,8 @@ Shared banner and terminal output styling for Fabric Task Flows.
 All scripts that print banners MUST import from here instead of
 maintaining their own. Single source of truth for branding.
 
+Zero external dependencies — uses a static ASCII art block.
+
 Usage:
     from banner import print_banner
     print_banner(project="My Project", task_flow="lambda", mode="Deploy")
@@ -13,26 +15,18 @@ from __future__ import annotations
 
 import sys
 
-import pyfiglet
-
-try:
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-    from rich import box
-
-    HAS_RICH = True
-except ImportError:
-    HAS_RICH = False
-
 VERSION = "1.0.0"
 
-# Microsoft Fabric brand teal
-FABRIC_TEAL = "#008272"
-
-# Pre-render FIGlet art once at import time
-_FABRIC_ART = pyfiglet.figlet_format("FABRIC", font="slant").rstrip()
-_SUBTITLE = "         T A S K   F L O W S"
+# Static ASCII art — no pyfiglet dependency.
+# To update: change the lines below and run tests.
+BANNER_ART = r"""
+    _______ ___    ____  ____  __________
+   / ____/ /   |  / __ )/ __ \/  _/ ____/
+  / /_  / /| | / __  / /_/ // // /
+ / __/ / ___ |/ /_/ / _, _// // /___
+/_/   /_/  |_/_____/_/ |_/___/\____/
+        T A S K   F L O W S
+""".strip("\n")
 
 
 def print_banner(
@@ -40,63 +34,65 @@ def print_banner(
     task_flow: str = "",
     mode: str = "",
     *,
-    file=sys.stderr,
+    file=sys.stdout,
 ) -> None:
-    """Print the Fabric Task Flows banner with optional project context."""
-    if HAS_RICH:
-        _print_rich_banner(project, task_flow, mode, file)
-    else:
-        _print_plain_banner(project, task_flow, mode, file)
+    """Print the Fabric Task Flows banner with optional project context.
 
-
-def _print_rich_banner(
-    project: str, task_flow: str, mode: str, file
-) -> None:
-    console = Console(file=file, width=72)
-
-    content = f"[bold {FABRIC_TEAL}]{_FABRIC_ART}[/]\n"
-    content += f"[bold {FABRIC_TEAL}]{_SUBTITLE}[/]"
-
-    if project or task_flow or mode:
-        content += "\n"
-    if project:
-        content += f"\n[bold white]Project:[/]   [dim]{project}[/]"
-    if task_flow:
-        content += f"\n[bold white]Task Flow:[/] [dim]{task_flow}[/]"
-    if mode:
-        content += f"\n[bold white]Mode:[/]      [dim]{mode}[/]"
-
-    console.print(Panel(
-        content,
-        box=box.HEAVY,
-        border_style=FABRIC_TEAL,
-        padding=(1, 3),
-        subtitle=f"[dim]v{VERSION}[/]",
-    ))
-
-
-def _print_plain_banner(
-    project: str, task_flow: str, mode: str, file
-) -> None:
-    """Fallback for terminals without rich."""
+    Outputs to stdout by default for visibility. Pass file=sys.stderr
+    to suppress in piped contexts.
+    """
     w = 62
     lines = [
         "",
-        "┏" + "━" * w + "┓",
-        "┃" + " " * w + "┃",
+        "+" + "-" * w + "+",
+        "|" + " " * w + "|",
     ]
-    for art_line in _FABRIC_ART.split("\n"):
-        lines.append(f"┃   {art_line.ljust(w - 3)}┃")
-    lines.append(f"┃   {_SUBTITLE.ljust(w - 3)}┃")
-    lines.append("┃" + " " * w + "┃")
+    for art_line in BANNER_ART.split("\n"):
+        lines.append(f"|   {art_line.ljust(w - 3)}|")
+    lines.append("|" + " " * w + "|")
     if project:
-        lines.append(f"┃   Project:   {project.ljust(w - 16)}┃")
+        lines.append(f"|   Project:   {project.ljust(w - 16)}|")
     if task_flow:
-        lines.append(f"┃   Task Flow: {task_flow.ljust(w - 16)}┃")
+        lines.append(f"|   Task Flow: {task_flow.ljust(w - 16)}|")
     if mode:
-        lines.append(f"┃   Mode:      {mode.ljust(w - 16)}┃")
+        lines.append(f"|   Mode:      {mode.ljust(w - 16)}|")
     if project or task_flow or mode:
-        lines.append("┃" + " " * w + "┃")
-    lines.append("┗" + "━" * w + "┛")
+        lines.append("|" + " " * w + "|")
+    lines.append("+" + f" v{VERSION} ".center(w, "-") + "+")
     lines.append("")
     print("\n".join(lines), file=file)
+
+
+def banner_lines(
+    project: str = "",
+    task_flow: str = "",
+) -> str:
+    """Return the banner as a raw string for embedding in generated scripts.
+
+    Uses simple print() calls so the generated script has zero dependencies.
+    """
+    w = 62
+    parts = [
+        '    print()',
+        f'    print("+" + "-" * {w} + "+")',
+        f'    print("|" + " " * {w} + "|")',
+    ]
+    for art_line in BANNER_ART.split("\n"):
+        escaped = art_line.replace("\\", "\\\\").replace('"', '\\"')
+        padded = escaped.ljust(w - 3)
+        parts.append(f'    print("|   {padded}|")')
+    parts.append(f'    print("|" + " " * {w} + "|")')
+    if project:
+        label = f"Project:   {project}"
+        padded_label = label.ljust(w - 6)
+        parts.append(f'    print("|   {padded_label}|")')
+    if task_flow:
+        label = f"Task Flow: {task_flow}"
+        padded_label = label.ljust(w - 6)
+        parts.append(f'    print("|   {padded_label}|")')
+    if project or task_flow:
+        parts.append(f'    print("|" + " " * {w} + "|")')
+    version_bar = f" v{VERSION} ".center(w, "-")
+    parts.append(f'    print("+" + "{version_bar}" + "+")')
+    parts.append('    print()')
+    return "\n".join(parts)

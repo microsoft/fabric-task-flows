@@ -39,6 +39,7 @@ ASSETS_DIR = SKILL_DIR / "assets"
 _SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
 sys.path.insert(0, str(_SHARED_DIR))
 from registry_loader import build_fab_commands, build_display_names
+from banner import BANNER_ART, VERSION as BANNER_VERSION
 
 # REST API creation support map: lowercase alias → True/False
 FAB_COMMANDS: dict[str, bool] = build_fab_commands()
@@ -669,12 +670,48 @@ def _gen_config_yml(data: HandoffData, project: str, ws_desc: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _build_deploy_banner_func(project: str, task_flow: str) -> str:
+    """Generate a self-contained print_banner() function for deploy scripts.
+
+    Embeds the BANNER_ART directly so generated scripts have zero
+    dependency on banner.py at runtime.
+    """
+    w = 62
+    art_lines = BANNER_ART.split("\n")
+
+    parts = ['def print_banner():']
+    parts.append(f'    w = {w}')
+    parts.append(f'    print()')
+    parts.append(f'    print("+" + "-" * w + "+")')
+    parts.append(f'    print("|" + " " * w + "|")')
+    for art_line in art_lines:
+        escaped = art_line.replace("\\", "\\\\").replace('"', '\\"')
+        padded = escaped.ljust(w - 3)
+        parts.append(f'    print("|   {padded}|")')
+    parts.append(f'    print("|" + " " * w + "|")')
+
+    proj_label = f"Project:   {project}".ljust(w - 6)
+    parts.append(f'    print("|   {proj_label}|")')
+    tf_label = f"Task Flow: {task_flow}".ljust(w - 6)
+    parts.append(f'    print("|   {tf_label}|")')
+
+    parts.append(f'    print("|" + " " * w + "|")')
+    version_bar = f" v{BANNER_VERSION} ".center(w, "-")
+    parts.append(f'    print("+" + "{version_bar}" + "+")')
+    parts.append(f'    print()')
+
+    return "\n".join(parts)
+
+
 def _gen_deploy_script(project: str, data: HandoffData) -> str:
     """Generate a thin deploy.py that uses fabric-cicd."""
     slug = _slugify(project)
     ws_desc_line = f"{project} — {data.task_flow} architecture"
     if data.summary:
         ws_desc_line += f". {data.summary}"
+
+    # Build a self-contained banner function for the deploy script
+    banner_func = _build_deploy_banner_func(project, data.task_flow)
 
     return f"""#!/usr/bin/env python3
 \"""
@@ -691,6 +728,8 @@ import sys
 import yaml
 
 BASE_URL = "https://api.fabric.microsoft.com/v1"
+
+{banner_func}
 
 
 def get_auth_headers():
@@ -933,10 +972,7 @@ def main():
         else:
             sys.exit(1)
 
-    print()
-    print("  Project:   {project}")
-    print("  Task Flow: {data.task_flow}")
-    print()
+    print_banner()
 
     if not args.mode:
         print("    1)  Single workspace (demo / simple deploy)")

@@ -751,7 +751,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "start":
-        print_banner(file=sys.stdout)
+        print_banner()
         state = start_pipeline(args.name, args.problem)
         _print_status(state)
         prompt, agent, phase, is_gate = get_next_prompt(state["project"])
@@ -782,7 +782,6 @@ def main() -> None:
         print_banner(
             project=state.get("display_name", args.project),
             task_flow=state.get("task_flow") or "TBD",
-            file=sys.stdout,
         )
         _print_status(state)
 
