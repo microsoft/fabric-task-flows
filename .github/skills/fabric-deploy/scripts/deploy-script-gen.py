@@ -685,9 +685,11 @@ def _build_deploy_banner_func(project: str, task_flow: str) -> str:
     parts.append(f'    print("+" + "-" * w + "+")')
     parts.append(f'    print("|" + " " * w + "|")')
     for art_line in art_lines:
-        escaped = art_line.replace("\\", "\\\\").replace('"', '\\"')
-        padded = escaped.ljust(w - 3)
-        parts.append(f'    print("|   {padded}|")')
+        # Pad based on RENDERED length, then escape for Python source
+        target = w - 3  # space inside "|   ....|"
+        padded = art_line.ljust(target)
+        escaped = padded.replace("\\", "\\\\").replace('"', '\\"')
+        parts.append(f'    print("|   {escaped}|")')
     parts.append(f'    print("|" + " " * w + "|")')
 
     proj_label = f"Project:   {project}".ljust(w - 6)
