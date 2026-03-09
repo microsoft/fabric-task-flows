@@ -18,10 +18,11 @@ import sys
 VERSION = "1.0.0"
 
 # Static ASCII art — no pyfiglet dependency.
+# Source: pyfiglet.figlet_format("FABRIC", font="slant")
 # To update: change the lines below and run tests.
 BANNER_ART = r"""
-    _______ ___    ____  ____  __________
-   / ____/ /   |  / __ )/ __ \/  _/ ____/
+    _________    ____  ____  __________
+   / ____/   |  / __ )/ __ \/  _/ ____/
   / /_  / /| | / __  / /_/ // // /
  / __/ / ___ |/ /_/ / _, _// // /___
 /_/   /_/  |_/_____/_/ |_/___/\____/
