@@ -758,8 +758,8 @@
       "fab_type": "Ontology",
       "api_path": "ontologies",
       "display_name": "Ontology",
-      "phase": "Governance",
-      "phase_order": 5,
+      "phase": "IQ",
+      "phase_order": 7,
       "task_type": "govern data",
       "aliases": [
         "ontology"
@@ -774,8 +774,8 @@
       "fab_type": "DataAgent",
       "api_path": "dataAgents",
       "display_name": "Data Agent",
-      "phase": "Governance",
-      "phase_order": 5,
+      "phase": "IQ",
+      "phase_order": 7,
       "task_type": "govern data",
       "aliases": [
         "dataagent",
@@ -1077,7 +1077,7 @@
       "fab_type": "OperationsAgent",
       "api_path": "operationsAgents",
       "display_name": "Operations Agent",
-      "phase": "Governance",
+      "phase": "IQ",
       "phase_order": 7,
       "task_type": "govern data",
       "aliases": [

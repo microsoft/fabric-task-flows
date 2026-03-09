@@ -27,7 +27,7 @@ VALID_TASK_TYPES = {
 
 VALID_PHASES = {
     "Foundation", "Ingestion", "Transformation", "Visualization",
-    "Monitoring", "Governance", "ML", "Environment", "TBD",
+    "Monitoring", "Governance", "ML", "Environment", "IQ", "TBD",
 }
 
 
