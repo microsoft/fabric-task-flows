@@ -39,7 +39,7 @@ ASSETS_DIR = SKILL_DIR / "assets"
 _SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
 sys.path.insert(0, str(_SHARED_DIR))
 from registry_loader import build_fab_commands, build_display_names
-from banner import BANNER_ART, VERSION as BANNER_VERSION
+from banner import BANNER_ART
 
 # REST API creation support map: lowercase alias → True/False
 FAB_COMMANDS: dict[str, bool] = build_fab_commands()
@@ -676,31 +676,14 @@ def _build_deploy_banner_func(project: str, task_flow: str) -> str:
     Embeds the BANNER_ART directly so generated scripts have zero
     dependency on banner.py at runtime.
     """
-    w = 62
-    art_lines = BANNER_ART.split("\n")
-
     parts = ['def print_banner():']
-    parts.append(f'    w = {w}')
-    parts.append(f'    print()')
-    parts.append(f'    print("+" + "-" * w + "+")')
-    parts.append(f'    print("|" + " " * w + "|")')
-    for art_line in art_lines:
-        # Build full inner content (3-space indent + art), pad to w, then escape
-        content = f"   {art_line}"
-        padded = content.ljust(w)
-        escaped = padded.replace("\\", "\\\\").replace('"', '\\"')
-        parts.append(f'    print("|{escaped}|")')
-    parts.append(f'    print("|" + " " * w + "|")')
-
-    proj_content = f"   Project:   {project}".ljust(w)
-    parts.append(f'    print("|{proj_content}|")')
-    tf_content = f"   Task Flow: {task_flow}".ljust(w)
-    parts.append(f'    print("|{tf_content}|")')
-
-    parts.append(f'    print("|" + " " * w + "|")')
-    version_bar = f" v{BANNER_VERSION} ".center(w, "-")
-    parts.append(f'    print("+" + "{version_bar}" + "+")')
-    parts.append(f'    print()')
+    parts.append('    print()')
+    for art_line in BANNER_ART.split("\n"):
+        escaped = art_line.replace("\\", "\\\\").replace('"', '\\"')
+        parts.append(f'    print("{escaped}")')
+    label = f"{project} | {task_flow}"
+    parts.append(f'    print("  {label}")')
+    parts.append('    print()')
 
     return "\n".join(parts)
 
