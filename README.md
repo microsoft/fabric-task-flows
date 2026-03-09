@@ -156,7 +156,7 @@ task-flows/
 │       ├── fabric-deploy/             # Phase 2c — wave-based deployment
 │       │   ├── SKILL.md
 │       │   ├── scripts/               # deploy-script-gen, taskflow-gen, taskflow-template-gen
-│       │   ├── references/            # prerequisites, fabric-cli-commands, deployment-patterns, parallel-deployment, rollback-protocol, verified-item-definitions
+│       │   ├── references/            # prerequisites, parallel-deployment, rollback-protocol, verified-item-definitions
 │       │   └── schemas/               # deployment-handoff, phase-progress
 │       ├── fabric-document/           # Phase 4 — wiki + ADR synthesis
 │       │   ├── SKILL.md

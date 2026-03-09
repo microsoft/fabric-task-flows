@@ -192,7 +192,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Task flow: {task_flow}\n\n"
             f"1. Read the DRAFT Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
             f"2. Read the matching diagram from diagrams/{task_flow}.md\n"
-            f"3. Read _shared/fabric-cli-commands.md for CLI verification\n"
+            f"3. Read _shared/item-type-registry.json for REST API creation support\n"
             f"4. Read the validation checklist from validation/{task_flow}.md\n"
             f"5. Produce BOTH reviews:\n"
             f"   - Engineer review → edit {pp}/prd/engineer-review.md\n"

@@ -28,8 +28,8 @@ from typing import Any
 
 
 # ---------------------------------------------------------------------------
-# Portal-only items — cannot be created via fab CLI
-# Source: _shared/fabric-cli-commands.md § "Portal-Only Items"
+# Portal-only items — cannot be created via REST API
+# Source: _shared/item-type-registry.json (rest_api.creatable field)
 # ---------------------------------------------------------------------------
 
 # Portal-only items — loaded from _shared/item-type-registry.json

@@ -38,12 +38,15 @@ from registry_loader import build_phase_map
 PHASE_MAP: dict[str, tuple[str, int]] = build_phase_map()
 
 # ---------------------------------------------------------------------------
-# Item type → fab CLI type for verification commands
+# Item type → Fabric type for REST API verification
 # ---------------------------------------------------------------------------
 
-# Item type → fab CLI type — loaded from registry
-from registry_loader import build_fab_type_map as _build_fab_types
+from registry_loader import build_fab_type_map as _build_fab_types, load_registry as _load_reg
 FAB_TYPES: dict[str, str] = _build_fab_types()
+_REG = _load_reg()
+API_PATHS: dict[str, str] = {
+    name: data.get("api_path", "items") for name, data in _REG.items()
+}
 
 
 # ---------------------------------------------------------------------------
@@ -67,7 +70,7 @@ def _parse_yaml_list(block: str, key: str) -> list[dict[str, str]]:
           - id: AC-1
             type: structural
             criterion: "Bronze Lakehouse exists"
-            verify: "fab exists ws/bronze.Lakehouse"
+            verify: "REST API GET /workspaces/{id}/lakehouses | verify bronze"
             target: "bronze-lakehouse"
     """
     items: list[dict[str, str]] = []
@@ -281,7 +284,9 @@ def _build_test_method(
     if not fab_type:
         return ac_type, ac.get("verify", "manual verification required")
 
-    # Structural ACs → fab exists; config ACs → fab get
+    api_path = API_PATHS.get(fab_type, API_PATHS.get(item_type, "items"))
+
+    # Structural ACs → REST API item exists; config ACs → REST API get definition
     criterion_lower = ac.get("criterion", "").lower()
     verify_lower = ac.get("verify", "").lower()
     combined = criterion_lower + " " + verify_lower
@@ -292,9 +297,9 @@ def _build_test_method(
     )
 
     if is_config:
-        return ac_type, f"fab get <ws>/{item_name}.{fab_type} | check config"
+        return ac_type, f"GET /workspaces/{{id}}/{api_path}/{item_name} | check definition"
 
-    return ac_type, f"fab exists <ws>/{item_name}.{fab_type}"
+    return ac_type, f"GET /workspaces/{{id}}/{api_path} | verify {item_name} exists"
 
 
 # ---------------------------------------------------------------------------

@@ -379,7 +379,7 @@ def _emit_ac_yaml(deploy_items: list[DeployItem], task_flow: str) -> str:
         portal_suffix = " (portal-only — verify manually)" if di.portal_only else ""
         lines.append(f"  - ac_id: {ac_id}")
         lines.append(f"    criterion: \"{di.item_name} exists and is accessible{portal_suffix}\"")
-        lines.append(f"    verification_method: \"fab exists <ws>/{di.item_name}.{di.fab_type}\"")
+        lines.append(f"    verification_method: \"REST API GET /workspaces/{{id}}/items?type={di.fab_type} | verify {di.item_name}\"")
     return "\n".join(lines)
 
 

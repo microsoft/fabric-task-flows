@@ -35,8 +35,8 @@ def build_fab_commands() -> dict[str, bool]:
     Returns a dict mapping lowercase alias → True (REST API creatable) or False
     (portal-only, no programmatic creation).
 
-    .. deprecated:: Use rest_api.creatable directly. This function name is kept
-       for backward compatibility but no longer returns fab mkdir path templates.
+    .. deprecated:: The name ``build_fab_commands`` is kept for backward
+       compatibility. This now returns REST API creatability flags.
     """
     registry = load_registry()
     result: dict[str, bool] = {}

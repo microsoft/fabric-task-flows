@@ -72,10 +72,10 @@ def _build_api_path_map(registry: dict) -> dict[str, str]:
 
 
 def _build_portal_only(registry: dict) -> set[str]:
-    """Set of type names that cannot be verified via API (portal-only creation)."""
+    """Set of type names that cannot be created via REST API."""
     result: set[str] = set()
     for canonical, data in registry.items():
-        if not data.get("cli_supported", False):
+        if not data.get("rest_api", {}).get("creatable", False):
             result.add(canonical)
             result.add(data["fab_type"])
             result.add(data["display_name"])

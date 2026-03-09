@@ -38,7 +38,7 @@ Choose from 11 task flows + general:
 
 | ID | Best For |
 |----|----------|
-| basic-data-analytics | Simple batch dashboards |
+| basic-data-analytics | Simple batch analytics + reports |
 | medallion | Data quality with bronze/silver/gold layers |
 | lambda | Batch + real-time combined |
 | event-analytics | Real-time streaming focus |
@@ -47,7 +47,7 @@ Choose from 11 task flows + general:
 | basic-machine-learning-models | ML training, feature engineering |
 | data-analytics-sql-endpoint | SQL analytics on unstructured data |
 | translytical | Operational writeback, CRUD |
-| app-backend | APIs, chatbots, embedded analytics |
+| app-backend | APIs, Data Agents, embedded analytics |
 | conversational-analytics | Natural language queries via Data Agents |
 
 ### Step 3: Walk Through Decision Guides
@@ -58,6 +58,8 @@ Read `decisions/_index.md` first. For each decision:
 3. Present decision with rationale
 
 Decisions: Storage → Ingestion → Processing → Visualization → Skillset
+
+> **⚠️ Visualization terminology:** When users say "dashboard", map to **Report** (batch) or **Real-Time Dashboard** (streaming with Eventhouse). In Fabric, "Dashboard" only means Real-Time Dashboard — an RTI item for sub-second streaming. Power BI Reports serve the "dashboard" use case for batch data.
 
 ### Step 3b: Parameterization Decision (Multi-Environment Only)
 
@@ -102,7 +104,7 @@ Perform BOTH deployment feasibility AND testability review in a single pass.
 
 1. `projects/[name]/prd/architecture-handoff.md` — the DRAFT
 2. `diagrams/[task-flow].md` — skip to `## Deployment Order`
-3. `references/fabric-cli-commands.md` — CLI verification reference (bundled in fabric-deploy)
+3. `_shared/item-type-registry.json` — REST API creation support per item type
 4. `validation/[task-flow].md` — task-flow-specific validation checklist
 
 ### Step 2: Engineer Review (Deployment Feasibility)
