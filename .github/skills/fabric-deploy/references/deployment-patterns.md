@@ -57,7 +57,7 @@ Reference for legacy `fab mkdir` commands and item-specific configuration.
 
 Items below require portal or REST API creation — `fab mkdir` is not supported. The engineer should document these as manual deployment steps in the deployment handoff.
 
-### GraphQL API (GA)
+### GraphQL API
 
 - **Create:** Fabric Portal → workspace → + New Item → API for GraphQL
 - **Configure:** Select data sources (Warehouse, SQL Database, Lakehouse SQL endpoint, Mirrored Database), choose tables/views to expose, define relationships
@@ -65,7 +65,7 @@ Items below require portal or REST API creation — `fab mkdir` is not supported
 - **Verify:** Access the GraphQL endpoint URL from the item page; test queries in the built-in editor
 - **Supports:** Warehouse, SQL Database, Lakehouse (via SQL endpoint), Mirrored Databases (Azure SQL, Cosmos DB, Snowflake, Databricks)
 
-### User Data Functions (Preview)
+### User Data Functions
 
 - **Create:** Fabric Portal → workspace → + New Item → User Data Functions
 - **Configure:** Write Python functions with `@udf.function()` decorator, add libraries via Library Management (PyPI)
@@ -74,7 +74,7 @@ Items below require portal or REST API creation — `fab mkdir` is not supported
 - **Verify:** Use Run Only mode in portal to test each function with sample inputs
 - **Note:** Parameter names must use camelCase. The `fabric-user-data-functions` package is required.
 
-### Variable Library (GA)
+### Variable Library
 
 - **Create:** Fabric Portal → workspace → + New Item → Variable Library (Data Factory section)
 - **Configure:** Add variables (Boolean, Integer, Number, String, DateTime, Guid, Item Reference), set default values, create value sets per stage
@@ -85,7 +85,7 @@ Items below require portal or REST API creation — `fab mkdir` is not supported
 - **Verify:** Check variable values in the portal; verify consuming items reference the correct library
 - **Limits:** Max 1,000 variables, 1,000 value sets, total cells < 10,000, item size < 1 MB
 
-### Ontology (Preview)
+### Ontology
 
 - **Create:** Fabric Portal → workspace → + New Item → Ontology (IQ workload)
 - **Configure:** Define entity types, properties, relationships. Bind to data sources (Lakehouse tables, Eventhouse streams, Semantic Models)
@@ -94,15 +94,14 @@ Items below require portal or REST API creation — `fab mkdir` is not supported
 - **Prerequisite:** Ontology tenant settings must be enabled by tenant admin
 - **Note:** Preview feature — schema and capabilities may change
 
-### Data Agent (Preview)
+### Data Agent
 
 - **Create:** Fabric Portal → workspace → + New Item → Fabric Data Agent
 - **Configure:** Add up to 5 data sources (Lakehouse, Warehouse, Semantic Model, KQL Database, Ontology). Select tables to expose. Add instructions (up to 15,000 chars) and example queries for few-shot learning.
 - **Verify:** Ask test questions in the built-in chat; review generated SQL/DAX/KQL for accuracy
-- **Prerequisite:** Fabric data agent tenant settings + cross-geo AI processing must be enabled
-- **Note:** Read-only queries only — no data modification. Preview feature.
+- **Note:** Read-only queries only — no data modification.
 
-### Cosmos DB Mirroring (GA)
+### Cosmos DB Mirroring
 
 - **Create:** Fabric Portal → workspace → + New Item → Mirrored Azure Cosmos DB
 - **Configure:** Connect to Azure Cosmos DB account (requires continuous backup enabled, NoSQL API only). Select databases and containers to mirror.

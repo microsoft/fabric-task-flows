@@ -172,6 +172,29 @@ def build_api_name_remap() -> dict[str, str]:
     }
 
 
+def build_availability_map() -> dict[str, str]:
+    """Build a mapping of type name variants → availability status ('ga' or 'preview').
+
+    Returns a dict mapping canonical name, fab_type, display name, and aliases
+    to the availability string for that item type.
+    """
+    registry = load_registry()
+    result: dict[str, str] = {}
+
+    for canonical, data in registry.items():
+        status = data.get("availability", "ga")
+        result[canonical] = status
+        result[data["fab_type"]] = status
+        result[data["display_name"]] = status
+        for alias in data.get("aliases", []):
+            result[alias] = status
+            parts = alias.split()
+            if len(parts) > 1:
+                result[" ".join(w.capitalize() for w in parts)] = status
+
+    return result
+
+
 def build_fab_type_map() -> dict[str, str]:
     """Build the FAB_TYPE_MAP dict for handoff-scaffolder.py.
 

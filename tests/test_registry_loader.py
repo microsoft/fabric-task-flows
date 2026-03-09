@@ -16,6 +16,7 @@ from registry_loader import (
     build_fab_type_map,
     build_api_creatable_items,
     build_api_name_remap,
+    build_availability_map,
 )
 
 VALID_TASK_TYPES = {
@@ -39,7 +40,8 @@ def test_registry_loads():
 def test_every_type_has_required_fields():
     registry = load_registry()
     required = {"fab_type", "display_name", "cli_supported", "mkdir_supported",
-                "phase", "phase_order", "task_type", "aliases", "rest_api"}
+                "phase", "phase_order", "task_type", "aliases", "rest_api",
+                "availability"}
     for name, data in registry.items():
         missing = required - set(data.keys())
         assert not missing, f"{name} missing fields: {missing}"
@@ -157,3 +159,29 @@ def test_api_name_remap_returns_dict():
     for fab_type, api_name in remap.items():
         assert fab_type != api_name, \
             f"Remap entry {fab_type} maps to itself — should only contain mismatches"
+
+
+VALID_AVAILABILITY = {"ga", "preview"}
+
+
+def test_availability_values_are_valid():
+    registry = load_registry()
+    for name, data in registry.items():
+        avail = data["availability"]
+        assert avail in VALID_AVAILABILITY, f"{name} has invalid availability: {avail}"
+
+
+def test_build_availability_map_returns_dict():
+    avail_map = build_availability_map()
+    assert isinstance(avail_map, dict)
+    assert len(avail_map) > 0
+    # All values should be valid availability strings
+    for key, val in avail_map.items():
+        assert val in VALID_AVAILABILITY, f"Invalid availability for {key}: {val}"
+
+
+def test_build_availability_map_covers_canonical():
+    registry = load_registry()
+    avail_map = build_availability_map()
+    for name in registry:
+        assert name in avail_map, f"Canonical type {name} missing from availability_map"
