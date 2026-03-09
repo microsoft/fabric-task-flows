@@ -1,7 +1,7 @@
 {
   "project": "campaign-command",
   "task_flow": "lambda",
-  "current_phase": "2c-deploy",
+  "current_phase": "3-validate",
   "sign_off_revisions": 0,
   "phases": {
     "0a-discovery": {
@@ -38,12 +38,12 @@
       "gate": "human"
     },
     "2c-deploy": {
-      "status": "in_progress",
+      "status": "complete",
       "agent": "fabric-deploy",
       "output": "prd/deployment-handoff.md"
     },
     "3-validate": {
-      "status": "pending",
+      "status": "in_progress",
       "agent": "fabric-test",
       "output": "prd/validation-report.md"
     },
