@@ -28,6 +28,9 @@
 | energy-saver-pro | lambda | Test Plan ✅ | FINAL handoff + test plan (15 items, 6 waves, 21 ACs) | B-1 SCADA, B-2 DB engine, B-3 capacity, B-4 thresholds | User Sign-Off (Phase 2b) |
 | social-pulse | lambda | Documented ✅ | Pipeline complete — 15 items, 5 ADRs, partial validation (3 portal-only pending) | D-1 Event Hub, D-2 API credentials | Resolve external prerequisites → portal items |
 
+| football-intelligence | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| football-intelligence-v2 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| campaign-command | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
 > Project rows are generated locally by agents. See `projects/` folder (gitignored) for per-project artifacts.
 
 ---

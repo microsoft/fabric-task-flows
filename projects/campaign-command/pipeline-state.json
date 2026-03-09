@@ -1,0 +1,108 @@
+{
+  "project": "campaign-command",
+  "task_flow": null,
+  "current_phase": "1a-design",
+  "sign_off_revisions": 0,
+  "phases": {
+    "0a-discovery": {
+      "status": "complete",
+      "agent": "fabric-advisor",
+      "output": "prd/discovery-brief.md"
+    },
+    "1a-design": {
+      "status": "in_progress",
+      "agent": "fabric-design",
+      "output": "prd/architecture-handoff.md"
+    },
+    "1b-review": {
+      "status": "pending",
+      "agent": "fabric-design",
+      "output": [
+        "prd/engineer-review.md",
+        "prd/tester-review.md"
+      ]
+    },
+    "1c-finalize": {
+      "status": "pending",
+      "agent": "fabric-design",
+      "output": "prd/architecture-handoff.md"
+    },
+    "2a-test-plan": {
+      "status": "pending",
+      "agent": "fabric-test",
+      "output": "prd/test-plan.md"
+    },
+    "2b-sign-off": {
+      "status": "pending",
+      "agent": null,
+      "gate": "human"
+    },
+    "2c-deploy": {
+      "status": "pending",
+      "agent": "fabric-deploy",
+      "output": "prd/deployment-handoff.md"
+    },
+    "3-validate": {
+      "status": "pending",
+      "agent": "fabric-test",
+      "output": "prd/validation-report.md"
+    },
+    "4-document": {
+      "status": "pending",
+      "agent": "fabric-document",
+      "output": "docs/"
+    }
+  },
+  "transitions": [
+    {
+      "from": "0a-discovery",
+      "to": "1a-design",
+      "auto": true
+    },
+    {
+      "from": "1a-design",
+      "to": "1b-review",
+      "auto": true
+    },
+    {
+      "from": "1b-review",
+      "to": "1c-finalize",
+      "auto": true
+    },
+    {
+      "from": "1c-finalize",
+      "to": "2a-test-plan",
+      "auto": true
+    },
+    {
+      "from": "2a-test-plan",
+      "to": "2b-sign-off",
+      "auto": false,
+      "gate": "human"
+    },
+    {
+      "from": "2b-sign-off",
+      "to": "2c-deploy",
+      "auto": true
+    },
+    {
+      "from": "2b-sign-off",
+      "to": "1c-finalize",
+      "auto": false,
+      "gate": "revision",
+      "max_cycles": 3
+    },
+    {
+      "from": "2c-deploy",
+      "to": "3-validate",
+      "auto": true
+    },
+    {
+      "from": "3-validate",
+      "to": "4-document",
+      "auto": true
+    }
+  ],
+  "display_name": "Campaign Command",
+  "problem_statement": "Marketing company needs to ingest Google Analytics, AdWords, and social media data. Real-time social sentiment monitoring and influencer content amplification (speed critical). Batch ROI reporting for regional ad buy optimization across the US. Internal exec chatbot for self-service campaign performance questions. Code-first shop, medium-high volume ( ad spend), minimal complexity preferred."
+}
