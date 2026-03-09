@@ -153,25 +153,6 @@
       },
       "availability": "ga"
     },
-    "CosmosDB": {
-      "fab_type": "CosmosDB",
-      "api_path": "items",
-      "display_name": "Cosmos DB",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "store data",
-      "aliases": [
-        "cosmosdb",
-        "cosmos db",
-        "cosmos db database"
-      ],
-      "rest_api": {
-        "creatable": true,
-        "definition": false,
-        "api_name": "CosmosDBDatabase"
-      },
-      "availability": "ga"
-    },
     "Datamart": {
       "fab_type": "Datamart",
       "api_path": "datamarts",
@@ -250,26 +231,6 @@
       },
       "availability": "ga"
     },
-    "MirroredDataverse": {
-      "fab_type": "MirroredDataverse",
-      "api_path": "items",
-      "display_name": "Mirrored Dataverse",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "mirror data",
-      "aliases": [
-        "mirroreddataverse",
-        "mirrored dataverse",
-        "fabric link",
-        "link to fabric"
-      ],
-      "notes": "Configured from Power Platform admin center via Fabric Link; syncs Dataverse tables to Lakehouse as Delta",
-      "rest_api": {
-        "creatable": false,
-        "definition": false
-      },
-      "availability": "ga"
-    },
     "MountedDataFactory": {
       "fab_type": "MountedDataFactory",
       "api_path": "mounteddatafactories",
@@ -327,7 +288,7 @@
     },
     "CopyJob": {
       "fab_type": "CopyJob",
-      "api_path": "items",
+      "api_path": "copyJobs",
       "display_name": "Copy Job",
       "phase": "Ingestion",
       "phase_order": 3,
@@ -438,44 +399,6 @@
       "rest_api": {
         "creatable": true,
         "definition": true
-      },
-      "availability": "ga"
-    },
-    "DataflowGen2": {
-      "fab_type": "DataflowGen2",
-      "api_path": "items",
-      "display_name": "Dataflow Gen2",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "get data",
-      "aliases": [
-        "dataflowgen2",
-        "dataflow gen2",
-        "dataflow"
-      ],
-      "rest_api": {
-        "creatable": true,
-        "definition": true,
-        "api_name": "Dataflow"
-      },
-      "availability": "ga"
-    },
-    "Mirroring": {
-      "fab_type": "Mirroring",
-      "api_path": "items",
-      "display_name": "Mirroring",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "mirror data",
-      "aliases": [
-        "mirroring",
-        "mirrored azure cosmos db",
-        "cosmos db (mirrored)",
-        "cosmos db mirroring"
-      ],
-      "rest_api": {
-        "creatable": false,
-        "definition": false
       },
       "availability": "ga"
     },
@@ -690,42 +613,6 @@
       },
       "availability": "ga"
     },
-    "RealTimeMap": {
-      "fab_type": "RealTimeMap",
-      "api_path": "items",
-      "display_name": "Real-Time Map",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "track data",
-      "aliases": [
-        "realtimemap",
-        "real-time map"
-      ],
-      "rest_api": {
-        "creatable": true,
-        "definition": false,
-        "api_name": "Map"
-      },
-      "availability": "ga"
-    },
-    "MetricsScorecard": {
-      "fab_type": "MetricsScorecard",
-      "api_path": "items",
-      "display_name": "Metrics Scorecard",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "visualize",
-      "aliases": [
-        "metricsscorecard",
-        "metrics scorecard",
-        "scorecard"
-      ],
-      "rest_api": {
-        "creatable": false,
-        "definition": false
-      },
-      "availability": "ga"
-    },
     "MLExperiment": {
       "fab_type": "MLExperiment",
       "api_path": "mlExperiments",
@@ -840,37 +727,6 @@
       },
       "availability": "ga"
     },
-    "UserDataFunctions": {
-      "fab_type": "UserDataFunctions",
-      "api_path": "items",
-      "display_name": "User Data Functions",
-      "phase": "Transformation",
-      "phase_order": 4,
-      "task_type": "distribute data",
-      "aliases": [
-        "userdatafunctions",
-        "user data functions",
-        "user data funcs"
-      ],
-      "cicd": {
-        "strategy": "content",
-        "files": [
-          ".platform",
-          "function_app.py",
-          "definitions.json",
-          ".resources/functions.json"
-        ],
-        "verified": false,
-        "notes": "From sample",
-        "supports_item_reference": false
-      },
-      "rest_api": {
-        "creatable": true,
-        "definition": false,
-        "api_name": "UserDataFunction"
-      },
-      "availability": "ga"
-    },
     "VariableLibrary": {
       "fab_type": "VariableLibrary",
       "api_path": "variableLibraries",
@@ -900,9 +756,9 @@
     },
     "Ontology": {
       "fab_type": "Ontology",
-      "api_path": "items",
+      "api_path": "ontologies",
       "display_name": "Ontology",
-      "phase": "Visualization",
+      "phase": "Governance",
       "phase_order": 5,
       "task_type": "govern data",
       "aliases": [
@@ -916,9 +772,9 @@
     },
     "DataAgent": {
       "fab_type": "DataAgent",
-      "api_path": "items",
+      "api_path": "dataAgents",
       "display_name": "Data Agent",
-      "phase": "Visualization",
+      "phase": "Governance",
       "phase_order": 5,
       "task_type": "govern data",
       "aliases": [
@@ -942,7 +798,7 @@
     },
     "ApacheAirflowJob": {
       "fab_type": "ApacheAirflowProject",
-      "api_path": "items",
+      "api_path": "apacheAirflowJobs",
       "display_name": "Apache Airflow Job",
       "phase": "Ingestion",
       "phase_order": 3,
@@ -989,100 +845,9 @@
       },
       "availability": "ga"
     },
-    "Exploration": {
-      "fab_type": "Exploration",
-      "api_path": "items",
-      "display_name": "Exploration",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "visualize",
-      "aliases": [
-        "exploration"
-      ],
-      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only",
-      "rest_api": {
-        "creatable": false,
-        "definition": false
-      },
-      "availability": "ga"
-    },
-    "dbtJob": {
-      "fab_type": "dbtJob",
-      "api_path": "items",
-      "display_name": "dbt Job",
-      "phase": "Transformation",
-      "phase_order": 4,
-      "task_type": "prepare data",
-      "aliases": [
-        "dbtjob",
-        "dbt job",
-        "dbt"
-      ],
-      "rest_api": {
-        "creatable": false,
-        "definition": true
-      },
-      "availability": "ga"
-    },
-    "PostgreSQLDatabase": {
-      "fab_type": "PostgreSQLDatabase",
-      "api_path": "items",
-      "display_name": "PostgreSQL Database",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "store data",
-      "aliases": [
-        "postgresqldatabase",
-        "postgresql database",
-        "postgresql",
-        "postgres"
-      ],
-      "rest_api": {
-        "creatable": false,
-        "definition": false
-      },
-      "availability": "ga"
-    },
-    "MirroredDatabricksCatalog": {
-      "fab_type": "MirroredDatabricksCatalog",
-      "api_path": "items",
-      "display_name": "Mirrored Azure Databricks Catalog",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "mirror data",
-      "aliases": [
-        "mirroreddatabrickscatalog",
-        "mirrored azure databricks catalog",
-        "mirrored databricks catalog",
-        "databricks mirroring"
-      ],
-      "rest_api": {
-        "creatable": true,
-        "definition": true,
-        "api_name": "MirroredAzureDatabricksCatalog"
-      },
-      "availability": "ga"
-    },
-    "MirroredCatalog": {
-      "fab_type": "MirroredCatalog",
-      "api_path": "items",
-      "display_name": "Mirrored Catalog",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "mirror data",
-      "aliases": [
-        "mirroredcatalog",
-        "mirrored catalog"
-      ],
-      "rest_api": {
-        "creatable": false,
-        "definition": false
-      },
-      "availability": "ga"
-    },
     "SnowflakeDatabase": {
       "fab_type": "SnowflakeDatabase",
-      "api_path": "items",
+      "api_path": "snowflakeDatabases",
       "display_name": "Snowflake Database",
       "phase": "Ingestion",
       "phase_order": 3,
@@ -1101,7 +866,7 @@
     },
     "GraphModel": {
       "fab_type": "GraphModel",
-      "api_path": "items",
+      "api_path": "graphModels",
       "display_name": "Graph Model",
       "phase": "Visualization",
       "phase_order": 5,
@@ -1117,23 +882,248 @@
       },
       "availability": "ga"
     },
-    "GraphQueryset": {
-      "fab_type": "GraphQueryset",
-      "api_path": "items",
+    "MirroredAzureDatabricksCatalog": {
+      "fab_type": "MirroredAzureDatabricksCatalog",
+      "api_path": "mirroredAzureDatabricksCatalogs",
+      "display_name": "Mirrored Azure Databricks Catalog",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "mirror data",
+      "aliases": [
+        "mirroredazuredatabrickscatalog",
+        "mirrored azure databricks catalog",
+        "mirrored databricks catalog"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": true
+      },
+      "availability": "ga"
+    },
+    "CosmosDBDatabase": {
+      "fab_type": "CosmosDBDatabase",
+      "api_path": "cosmosDbDatabases",
+      "display_name": "Cosmos DB Database",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
+      "aliases": [
+        "cosmosdbdatabase",
+        "cosmos db database",
+        "cosmos db",
+        "cosmosdb"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "ga"
+    },
+    "Dataflow": {
+      "fab_type": "Dataflow",
+      "api_path": "dataflows",
+      "display_name": "Dataflow Gen2",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
+      "aliases": [
+        "dataflow",
+        "dataflow gen2",
+        "dataflowgen2"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": true
+      },
+      "availability": "ga"
+    },
+    "UserDataFunction": {
+      "fab_type": "UserDataFunction",
+      "api_path": "userDataFunctions",
+      "display_name": "User Data Functions",
+      "phase": "Transformation",
+      "phase_order": 4,
+      "task_type": "distribute data",
+      "aliases": [
+        "userdatafunction",
+        "user data function",
+        "user data functions",
+        "userdatafunctions"
+      ],
+      "cicd": {
+        "strategy": "content",
+        "files": [
+          ".platform",
+          "function_app.py",
+          "definitions.json",
+          ".resources/functions.json"
+        ],
+        "verified": false,
+        "notes": "From sample",
+        "supports_item_reference": false
+      },
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "ga"
+    },
+    "Map": {
+      "fab_type": "Map",
+      "api_path": "maps",
+      "display_name": "Map",
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "track data",
+      "aliases": [
+        "map",
+        "real-time map",
+        "realtimemap",
+        "real time map"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "ga"
+    },
+    "GraphQuerySet": {
+      "fab_type": "GraphQuerySet",
+      "api_path": "graphQuerySets",
       "display_name": "Graph Queryset",
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "govern data",
       "aliases": [
         "graphqueryset",
-        "graph queryset",
-        "graph query"
+        "graph query set",
+        "graph queryset"
       ],
       "rest_api": {
         "creatable": false,
         "definition": false
       },
       "availability": "ga"
+    },
+    "AnomalyDetector": {
+      "fab_type": "AnomalyDetector",
+      "api_path": "anomalyDetectors",
+      "display_name": "Anomaly Detector",
+      "phase": "ML",
+      "phase_order": 6,
+      "task_type": "analyze and train data",
+      "aliases": [
+        "anomalydetector",
+        "anomaly detector"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "preview"
+    },
+    "DigitalTwinBuilder": {
+      "fab_type": "DigitalTwinBuilder",
+      "api_path": "digitalTwinBuilders",
+      "display_name": "Digital Twin Builder",
+      "phase": "Transformation",
+      "phase_order": 4,
+      "task_type": "prepare data",
+      "aliases": [
+        "digitaltwinbuilder",
+        "digital twin builder"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "preview"
+    },
+    "DigitalTwinBuilderFlow": {
+      "fab_type": "DigitalTwinBuilderFlow",
+      "api_path": "digitalTwinBuilderFlows",
+      "display_name": "Digital Twin Builder Flow",
+      "phase": "Transformation",
+      "phase_order": 4,
+      "task_type": "prepare data",
+      "aliases": [
+        "digitaltwinbuilderflow",
+        "digital twin builder flow"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "preview"
+    },
+    "EventSchemaSet": {
+      "fab_type": "EventSchemaSet",
+      "api_path": "eventSchemasets",
+      "display_name": "Event Schema Set",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
+      "aliases": [
+        "eventschemaset",
+        "event schema set"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "preview"
+    },
+    "OperationsAgent": {
+      "fab_type": "OperationsAgent",
+      "api_path": "operationsAgents",
+      "display_name": "Operations Agent",
+      "phase": "Governance",
+      "phase_order": 7,
+      "task_type": "govern data",
+      "aliases": [
+        "operationsagent",
+        "operations agent"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "preview"
+    },
+    "RealTimeIntelligence": {
+      "fab_type": "RealTimeIntelligence",
+      "api_path": "realTimeIntelligence",
+      "display_name": "Real-Time Intelligence",
+      "phase": "Monitoring",
+      "phase_order": 5,
+      "task_type": "visualize",
+      "aliases": [
+        "realtimeintelligence",
+        "real-time intelligence",
+        "rti"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "preview"
+    },
+    "WarehouseSnapshot": {
+      "fab_type": "WarehouseSnapshot",
+      "api_path": "warehouseSnapshots",
+      "display_name": "Warehouse Snapshot",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
+      "aliases": [
+        "warehousesnapshot",
+        "warehouse snapshot"
+      ],
+      "rest_api": {
+        "creatable": true,
+        "definition": false
+      },
+      "availability": "preview"
     }
   },
   "cicd_type_remap": {
