@@ -1,29 +1,29 @@
 ---
 project: campaign-command
 task_flow: lambda
-phase: draft
-status: draft
+phase: final
+status: final
 created: 2026-03-09
 last_updated: 2026-03-09
 design_review:
-  engineer: pending
-  tester: pending
-items: 13
-acceptance_criteria: 10
-manual_steps: 1
-deployment_waves: 7
+  engineer: approved
+  tester: approved
+items: 14
+acceptance_criteria: 13
+manual_steps: 2
+deployment_waves: 6
 blockers:
   critical: []
   medium: []
-next_phase: design-review
+next_phase: test-plan
 ---
 
-# Architecture Handoff — DRAFT
+# Architecture Handoff — FINAL
 
 **Project:** Campaign Command
 **Task flow:** lambda + conversational-analytics (overlay)
 **Date:** 2026-03-09
-**Status:** DRAFT — Awaiting design review by /fabric-deploy and /fabric-test.
+**Status:** FINAL — Review complete. Ready for test plan and sign-off.
 
 ---
 
@@ -106,6 +106,12 @@ items:
     skillset: LC
     depends_on: []
     purpose: Real-time social sentiment and influencer content
+  - id: 3b
+    name: cc-stream-kqldb
+    type: KQLDatabase
+    skillset: LC
+    depends_on: [3]
+    purpose: KQL Database within Eventhouse for stream queries
   - id: 4
     name: cc-spark-environment
     type: Environment
@@ -122,7 +128,7 @@ items:
     name: cc-social-eventstream
     type: Eventstream
     skillset: LC
-    depends_on: [3]
+    depends_on: [3b]
     purpose: Ingest real-time social media sentiment feeds
   - id: 7
     name: cc-transform-nb
@@ -134,7 +140,7 @@ items:
     name: cc-stream-kql
     type: KQLQueryset
     skillset: CF
-    depends_on: [3]
+    depends_on: [3b]
     purpose: Real-time stream aggregations on social data
   - id: 9
     name: cc-campaign-sem
@@ -146,7 +152,7 @@ items:
     name: cc-rt-dashboard
     type: Dashboard
     skillset: LC
-    depends_on: [3]
+    depends_on: [3b]
     purpose: Live social sentiment monitoring (sub-second)
   - id: 11
     name: cc-roi-report
@@ -164,7 +170,7 @@ items:
     name: cc-alerts-activator
     type: Reflex
     skillset: LC
-    depends_on: [3, 6]
+    depends_on: [3b, 6]
     purpose: ROI threshold alerts for regional ad buy decisions
 ```
 
@@ -174,36 +180,32 @@ items:
 waves:
   - id: 1
     name: Foundation
-    items: [cc-raw-lakehouse, cc-gold-warehouse, cc-stream-eventhouse]
+    items: [cc-raw-lakehouse, cc-gold-warehouse, cc-stream-eventhouse, cc-stream-kqldb]
     parallel: true
   - id: 2
-    name: Compute
-    items: [cc-spark-environment]
-    blocked_by: [1]
-  - id: 3
-    name: Ingestion
-    items: [cc-batch-pipeline, cc-social-eventstream]
+    name: Compute + Ingestion
+    items: [cc-spark-environment, cc-batch-pipeline, cc-social-eventstream]
     blocked_by: [1]
     parallel: true
-  - id: 4
+  - id: 3
     name: Transformation
     items: [cc-transform-nb, cc-stream-kql]
-    blocked_by: [2, 3]
+    blocked_by: [2]
     parallel: true
-  - id: 5
+  - id: 4
     name: Serving
     items: [cc-campaign-sem, cc-rt-dashboard]
-    blocked_by: [1, 4]
+    blocked_by: [1, 3]
     parallel: true
-  - id: 6
+  - id: 5
     name: Consumption
     items: [cc-roi-report, cc-campaign-agent]
-    blocked_by: [5]
+    blocked_by: [4]
     parallel: true
-  - id: 7
+  - id: 6
     name: Monitoring
     items: [cc-alerts-activator]
-    blocked_by: [3]
+    blocked_by: [2]
 ```
 
 ### Acceptance Criteria
@@ -217,49 +219,64 @@ acceptance_criteria:
     target: cc-raw-lakehouse, cc-gold-warehouse, cc-stream-eventhouse
   - id: AC-2
     type: structural
-    criterion: Eventstream is created and bound to Eventhouse
+    criterion: KQL Database exists within Eventhouse
+    verify: REST API list KQL Databases filtered by Eventhouse
+    target: cc-stream-kqldb
+  - id: AC-3
+    type: structural
+    criterion: Environment exists and is published
+    verify: REST API get Environment item, check publish status
+    target: cc-spark-environment
+  - id: AC-4
+    type: structural
+    criterion: Eventstream is created and bound to KQL Database
     verify: REST API get Eventstream definition
     target: cc-social-eventstream
-  - id: AC-3
+  - id: AC-5
     type: structural
     criterion: Pipeline is created with Copy activities for batch sources
     verify: REST API get Pipeline definition
     target: cc-batch-pipeline
-  - id: AC-4
+  - id: AC-6
     type: structural
     criterion: Notebook exists with Environment attached
     verify: REST API get Notebook definition
     target: cc-transform-nb
-  - id: AC-5
+  - id: AC-7
     type: structural
-    criterion: KQL Queryset exists and references Eventhouse
+    criterion: KQL Queryset exists and references KQL Database
     verify: REST API get KQL Queryset definition
     target: cc-stream-kql
-  - id: AC-6
+  - id: AC-8
     type: structural
-    criterion: Semantic Model exists with Direct Lake on Warehouse
-    verify: REST API get Semantic Model definition
+    criterion: Semantic Model exists with Direct Lake mode via TMDL expression
+    verify: REST API get Semantic Model definition, check expression property
     target: cc-campaign-sem
-  - id: AC-7
+  - id: AC-9
     type: structural
     criterion: Report exists and is bound to Semantic Model
     verify: REST API get Report definition
     target: cc-roi-report
-  - id: AC-8
+  - id: AC-10
     type: structural
-    criterion: Real-Time Dashboard exists and queries Eventhouse
+    criterion: Real-Time Dashboard exists and queries KQL Database
     verify: REST API get Dashboard definition
     target: cc-rt-dashboard
-  - id: AC-9
+  - id: AC-11
     type: structural
     criterion: Data Agent exists and is bound to Semantic Model
     verify: REST API get Data Agent item
     target: cc-campaign-agent
-  - id: AC-10
+  - id: AC-12
     type: data_flow
     criterion: Activator exists with threshold rules configured
     verify: REST API get Activator definition
     target: cc-alerts-activator
+  - id: AC-13
+    type: manual
+    criterion: Semantic Model Direct Lake connection manually configured
+    verify: Verify first refresh succeeds after manual connection setup
+    target: cc-campaign-sem
 ```
 
 ## Alternatives Considered
@@ -300,7 +317,16 @@ acceptance_criteria:
 
 ## Design Review
 
+| Finding | Severity | Action Taken |
+|---------|----------|--------------|
+| F-1: Merge Environment into ingestion wave | Yellow | Merged Waves 2+3 → "Compute + Ingestion" (6 waves total) |
+| F-2: Semantic Model needs manual Direct Lake config | Yellow | Added AC-13 as manual verification step |
+| F-5: Missing KQL Database item | Yellow | Added cc-stream-kqldb (item 3b) in Wave 1 |
+| T-1: No AC for Environment | Yellow | Added AC-3 for Environment existence/published |
+| T-2: AC-6 Direct Lake not specific enough | Yellow | Updated AC-8 to verify via TMDL expression property |
+| T-5: No AC for KQL Database | Yellow | Added AC-2 for KQL Database within Eventhouse |
+
 | Reviewer | Feedback Summary | Incorporated? | What Changed |
 |----------|-----------------|---------------|--------------|
-| /fabric-deploy | <!-- pending --> | | |
-| /fabric-test | <!-- pending --> | | |
+| /fabric-deploy | 3 yellows: wave merge, manual step, missing KQL DB | Yes | Waves 7→6, added KQL DB, added manual AC |
+| /fabric-test | 3 yellows: missing Environment AC, AC specificity, KQL DB AC | Yes | Added 3 ACs, refined verification methods |
