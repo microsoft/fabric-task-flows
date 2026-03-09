@@ -676,13 +676,23 @@ def _build_deploy_banner_func(project: str, task_flow: str) -> str:
     Embeds the BANNER_ART directly so generated scripts have zero
     dependency on banner.py at runtime.
     """
+    art_lines = BANNER_ART.split("\n")
+    divider_len = max(len(line) for line in art_lines)
+
     parts = ['def print_banner():']
+    parts.append(f'    divider = "-" * {divider_len}')
     parts.append('    print()')
-    for art_line in BANNER_ART.split("\n"):
+    for art_line in art_lines:
         escaped = art_line.replace("\\", "\\\\").replace('"', '\\"')
         parts.append(f'    print("{escaped}")')
-    label = f"{project} | {task_flow}"
-    parts.append(f'    print("  {label}")')
+    parts.append('    print()')
+    parts.append('    print(divider)')
+    parts.append('    print("  T A S K   F L O W S")')
+    if project:
+        parts.append(f'    print("  Project:   {project}")')
+    if task_flow:
+        parts.append(f'    print("  Task Flow: {task_flow}")')
+    parts.append('    print(divider)')
     parts.append('    print()')
 
     return "\n".join(parts)
