@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "cc_transform_nb",
+    "description": "Batch transforms, sentiment scoring, regional aggregation"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "fb4b567f-ae65-45f9-8d05-ebbca752b983"
+  }
+}

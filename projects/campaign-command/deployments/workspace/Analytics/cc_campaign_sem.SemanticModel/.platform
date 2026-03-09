@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "cc_campaign_sem",
+    "description": "Unified campaign model for ROI reporting + Data Agent"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "3ff159a7-05ac-4b48-8752-5b4631c7f02a"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Environment",
+    "displayName": "cc_spark_environment",
+    "description": "Spark/Python runtime for batch transform notebooks"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a3343855-616a-4f2e-9b65-98a48e5d3a58"
+  }
+}

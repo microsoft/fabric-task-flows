@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Lakehouse",
+    "displayName": "cc_raw_lakehouse",
+    "description": "Raw batch data from Analytics and AdWords APIs"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c5ab73e6-ef9a-413a-9880-0c4f2fbfd03a"
+  }
+}

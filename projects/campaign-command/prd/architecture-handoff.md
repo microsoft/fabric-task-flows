@@ -106,71 +106,71 @@ items:
     skillset: LC
     depends_on: []
     purpose: Real-time social sentiment and influencer content
-  - id: 3b
+  - id: 4
     name: cc-stream-kqldb
     type: KQLDatabase
     skillset: LC
     depends_on: [3]
     purpose: KQL Database within Eventhouse for stream queries
-  - id: 4
+  - id: 5
     name: cc-spark-environment
     type: Environment
     skillset: CF
     depends_on: [1]
     purpose: Spark/Python runtime for batch transform notebooks
-  - id: 5
+  - id: 6
     name: cc-batch-pipeline
     type: DataPipeline
     skillset: CF
     depends_on: [1]
     purpose: Orchestrate batch ingestion from Analytics + AdWords APIs
-  - id: 6
+  - id: 7
     name: cc-social-eventstream
     type: Eventstream
     skillset: LC
-    depends_on: [3b]
+    depends_on: [4]
     purpose: Ingest real-time social media sentiment feeds
-  - id: 7
+  - id: 8
     name: cc-transform-nb
     type: Notebook
     skillset: CF
-    depends_on: [1, 4]
+    depends_on: [1, 5]
     purpose: Batch transforms, sentiment scoring, regional aggregation
-  - id: 8
+  - id: 9
     name: cc-stream-kql
     type: KQLQueryset
     skillset: CF
-    depends_on: [3b]
+    depends_on: [4]
     purpose: Real-time stream aggregations on social data
-  - id: 9
+  - id: 10
     name: cc-campaign-sem
     type: SemanticModel
     skillset: CF
     depends_on: [2]
     purpose: Unified campaign model for ROI reporting + Data Agent
-  - id: 10
+  - id: 11
     name: cc-rt-dashboard
     type: Dashboard
     skillset: LC
-    depends_on: [3b]
+    depends_on: [4]
     purpose: Live social sentiment monitoring (sub-second)
-  - id: 11
+  - id: 12
     name: cc-roi-report
     type: Report
     skillset: LC
-    depends_on: [9]
+    depends_on: [10]
     purpose: Interactive ROI and regional ad performance reports
-  - id: 12
+  - id: 13
     name: cc-campaign-agent
     type: DataAgent
     skillset: LC
-    depends_on: [9]
+    depends_on: [10]
     purpose: Internal exec chatbot for self-service campaign Q&A
-  - id: 13
+  - id: 14
     name: cc-alerts-activator
     type: Reflex
     skillset: LC
-    depends_on: [3b, 6]
+    depends_on: [4, 7]
     purpose: ROI threshold alerts for regional ad buy decisions
 ```
 

@@ -1,0 +1,109 @@
+# Parameter file for campaign-command
+# Task flow: lambda
+# Ref: https://microsoft.github.io/fabric-cicd/latest/how_to/parameterization/
+
+find_replace:
+  # cc_transform_nb — default lakehouse workspace ID
+  - find_value: "00000000-0000-0000-0000-000000000000"
+    replace_value:
+      dev: "$workspace.id"
+      ppe: "$workspace.id"
+      prod: "$workspace.id"
+    item_name: "cc_transform_nb"
+
+  # cc_stream_kqldb → cc_stream_eventhouse reference
+  - find_value: "placeholder-cc_stream_eventhouse-id"
+    replace_value:
+      dev: "$items.Eventhouse.cc_stream_eventhouse.id"
+      ppe: "$items.Eventhouse.cc_stream_eventhouse.id"
+      prod: "$items.Eventhouse.cc_stream_eventhouse.id"
+    item_name: "cc_stream_kqldb"
+
+  # cc_spark_environment → cc_raw_lakehouse reference
+  - find_value: "placeholder-cc_raw_lakehouse-id"
+    replace_value:
+      dev: "$items.Lakehouse.cc_raw_lakehouse.id"
+      ppe: "$items.Lakehouse.cc_raw_lakehouse.id"
+      prod: "$items.Lakehouse.cc_raw_lakehouse.id"
+    item_name: "cc_spark_environment"
+
+  # cc_batch_pipeline → cc_raw_lakehouse reference
+  - find_value: "placeholder-cc_raw_lakehouse-id"
+    replace_value:
+      dev: "$items.Lakehouse.cc_raw_lakehouse.id"
+      ppe: "$items.Lakehouse.cc_raw_lakehouse.id"
+      prod: "$items.Lakehouse.cc_raw_lakehouse.id"
+    item_name: "cc_batch_pipeline"
+
+  # cc_social_eventstream → cc_stream_kqldb reference
+  - find_value: "placeholder-cc_stream_kqldb-id"
+    replace_value:
+      dev: "$items.KQLDatabase.cc_stream_kqldb.id"
+      ppe: "$items.KQLDatabase.cc_stream_kqldb.id"
+      prod: "$items.KQLDatabase.cc_stream_kqldb.id"
+    item_name: "cc_social_eventstream"
+
+  # cc_transform_nb → cc_raw_lakehouse reference
+  - find_value: "placeholder-cc_raw_lakehouse-id"
+    replace_value:
+      dev: "$items.Lakehouse.cc_raw_lakehouse.id"
+      ppe: "$items.Lakehouse.cc_raw_lakehouse.id"
+      prod: "$items.Lakehouse.cc_raw_lakehouse.id"
+    item_name: "cc_transform_nb"
+
+  # cc_transform_nb → cc_spark_environment reference
+  - find_value: "placeholder-cc_spark_environment-id"
+    replace_value:
+      dev: "$items.Environment.cc_spark_environment.id"
+      ppe: "$items.Environment.cc_spark_environment.id"
+      prod: "$items.Environment.cc_spark_environment.id"
+    item_name: "cc_transform_nb"
+
+  # cc_stream_kql → cc_stream_kqldb reference
+  - find_value: "placeholder-cc_stream_kqldb-id"
+    replace_value:
+      dev: "$items.KQLDatabase.cc_stream_kqldb.id"
+      ppe: "$items.KQLDatabase.cc_stream_kqldb.id"
+      prod: "$items.KQLDatabase.cc_stream_kqldb.id"
+    item_name: "cc_stream_kql"
+
+  # cc_campaign_sem → cc_gold_warehouse reference
+  - find_value: "placeholder-cc_gold_warehouse-id"
+    replace_value:
+      dev: "$items.Warehouse.cc_gold_warehouse.id"
+      ppe: "$items.Warehouse.cc_gold_warehouse.id"
+      prod: "$items.Warehouse.cc_gold_warehouse.id"
+    item_name: "cc_campaign_sem"
+
+  # cc_roi_report → cc_campaign_sem reference
+  - find_value: "placeholder-cc_campaign_sem-id"
+    replace_value:
+      dev: "$items.SemanticModel.cc_campaign_sem.id"
+      ppe: "$items.SemanticModel.cc_campaign_sem.id"
+      prod: "$items.SemanticModel.cc_campaign_sem.id"
+    item_name: "cc_roi_report"
+
+  # cc_campaign_agent → cc_campaign_sem reference
+  - find_value: "placeholder-cc_campaign_sem-id"
+    replace_value:
+      dev: "$items.SemanticModel.cc_campaign_sem.id"
+      ppe: "$items.SemanticModel.cc_campaign_sem.id"
+      prod: "$items.SemanticModel.cc_campaign_sem.id"
+    item_name: "cc_campaign_agent"
+
+  # cc_alerts_activator → cc_stream_kqldb reference
+  - find_value: "placeholder-cc_stream_kqldb-id"
+    replace_value:
+      dev: "$items.KQLDatabase.cc_stream_kqldb.id"
+      ppe: "$items.KQLDatabase.cc_stream_kqldb.id"
+      prod: "$items.KQLDatabase.cc_stream_kqldb.id"
+    item_name: "cc_alerts_activator"
+
+  # cc_alerts_activator → cc_social_eventstream reference
+  - find_value: "placeholder-cc_social_eventstream-id"
+    replace_value:
+      dev: "$items.Eventstream.cc_social_eventstream.id"
+      ppe: "$items.Eventstream.cc_social_eventstream.id"
+      prod: "$items.Eventstream.cc_social_eventstream.id"
+    item_name: "cc_alerts_activator"
+

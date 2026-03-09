@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "cc_batch_pipeline",
+    "description": "Orchestrate batch ingestion from Analytics + AdWords APIs"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "f0027be0-a81e-44b4-8872-5e6a88946983"
+  }
+}

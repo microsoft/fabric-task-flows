@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Eventstream",
+    "displayName": "cc_social_eventstream",
+    "description": "Ingest real-time social media sentiment feeds"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "879d075e-1945-4a91-b3bd-9e822a52a3ee"
+  }
+}

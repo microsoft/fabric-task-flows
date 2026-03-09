@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Reflex",
+    "displayName": "cc_alerts_activator",
+    "description": "ROI threshold alerts for regional ad buy decisions"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "e3d3624b-4523-4cd4-9941-2db1790e3c74"
+  }
+}

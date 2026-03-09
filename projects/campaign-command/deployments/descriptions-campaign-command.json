@@ -1,0 +1,77 @@
+{
+  "project": "campaign-command",
+  "task_flow": "lambda",
+  "workspace_description": "campaign-command — lambda architecture. Batch ad analytics + real-time social sentiment + exec chatbot for campaign ROI optimization.",
+  "items": {
+    "cc_raw_lakehouse": {
+      "type": "Lakehouse",
+      "description": "Raw batch data from Analytics and AdWords APIs",
+      "folder": "Storage"
+    },
+    "cc_gold_warehouse": {
+      "type": "Warehouse",
+      "description": "Curated gold layer for ROI reporting and regional metrics",
+      "folder": "Storage"
+    },
+    "cc_stream_eventhouse": {
+      "type": "Eventhouse",
+      "description": "Real-time social sentiment and influencer content",
+      "folder": "Storage"
+    },
+    "cc_stream_kqldb": {
+      "type": "KQLDatabase",
+      "description": "KQL Database within Eventhouse for stream queries",
+      "folder": "Storage"
+    },
+    "cc_spark_environment": {
+      "type": "Environment",
+      "description": "Spark/Python runtime for batch transform notebooks",
+      "folder": "Configuration"
+    },
+    "cc_batch_pipeline": {
+      "type": "DataPipeline",
+      "description": "Orchestrate batch ingestion from Analytics + AdWords APIs",
+      "folder": "Ingestion"
+    },
+    "cc_social_eventstream": {
+      "type": "Eventstream",
+      "description": "Ingest real-time social media sentiment feeds",
+      "folder": "Ingestion"
+    },
+    "cc_transform_nb": {
+      "type": "Notebook",
+      "description": "Batch transforms, sentiment scoring, regional aggregation",
+      "folder": "Processing"
+    },
+    "cc_stream_kql": {
+      "type": "KQLQueryset",
+      "description": "Real-time stream aggregations on social data",
+      "folder": "Processing"
+    },
+    "cc_campaign_sem": {
+      "type": "SemanticModel",
+      "description": "Unified campaign model for ROI reporting + Data Agent",
+      "folder": "Analytics"
+    },
+    "cc_rt_dashboard": {
+      "type": "Dashboard",
+      "description": "Live social sentiment monitoring (sub-second)",
+      "folder": "Analytics"
+    },
+    "cc_roi_report": {
+      "type": "Report",
+      "description": "Interactive ROI and regional ad performance reports",
+      "folder": "Analytics"
+    },
+    "cc_campaign_agent": {
+      "type": "DataAgent",
+      "description": "Internal exec chatbot for self-service campaign Q&A",
+      "folder": "Analytics"
+    },
+    "cc_alerts_activator": {
+      "type": "Reflex",
+      "description": "ROI threshold alerts for regional ad buy decisions",
+      "folder": "Analytics"
+    }
+  }
+}

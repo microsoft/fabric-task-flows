@@ -1,0 +1,144 @@
+{
+  "tasks": [
+    {
+      "type": "store data",
+      "id": "task-b53f5574-40fe-4f0a-9142-7e406be5efe0",
+      "name": "cc-raw-lakehouse",
+      "description": "Raw batch data from Analytics and AdWords APIs"
+    },
+    {
+      "type": "store data",
+      "id": "task-61834cd5-eaeb-4bfa-b5f8-9a4a071d13bc",
+      "name": "cc-gold-warehouse",
+      "description": "Curated gold layer for ROI reporting and regional metrics"
+    },
+    {
+      "type": "store data",
+      "id": "task-7bf861c5-c608-43a5-aaac-86ce19ba9735",
+      "name": "cc-stream-eventhouse",
+      "description": "Real-time social sentiment and influencer content"
+    },
+    {
+      "type": "store data",
+      "id": "task-cc25de85-4d17-496e-be33-346d6f034f2d",
+      "name": "cc-stream-kqldb",
+      "description": "KQL Database within Eventhouse for stream queries"
+    },
+    {
+      "type": "develop",
+      "id": "task-314b7c7d-bf25-4150-96ff-2b2c595ec138",
+      "name": "cc-spark-environment",
+      "description": "Spark/Python runtime for batch transform notebooks"
+    },
+    {
+      "type": "get data",
+      "id": "task-40521e66-0a55-4344-ab40-975e40193ea5",
+      "name": "cc-batch-pipeline",
+      "description": "Orchestrate batch ingestion from Analytics + AdWords APIs"
+    },
+    {
+      "type": "get data",
+      "id": "task-223e2da4-c885-4525-a592-212947f31290",
+      "name": "cc-social-eventstream",
+      "description": "Ingest real-time social media sentiment feeds"
+    },
+    {
+      "type": "prepare data",
+      "id": "task-fffde235-13ee-45b3-b2fe-548a8eb0f27a",
+      "name": "cc-transform-nb",
+      "description": "Batch transforms, sentiment scoring, regional aggregation"
+    },
+    {
+      "type": "prepare data",
+      "id": "task-745101d6-7f27-4727-87cc-a3844f992e4c",
+      "name": "cc-stream-kql",
+      "description": "Real-time stream aggregations on social data"
+    },
+    {
+      "type": "visualize",
+      "id": "task-59d2b1b8-82d8-4142-a254-9353a295395e",
+      "name": "cc-campaign-sem",
+      "description": "Unified campaign model for ROI reporting + Data Agent"
+    },
+    {
+      "type": "visualize",
+      "id": "task-1aa766a0-a455-4abc-9801-e9d780f8e5ca",
+      "name": "cc-rt-dashboard",
+      "description": "Live social sentiment monitoring (sub-second)"
+    },
+    {
+      "type": "visualize",
+      "id": "task-ad833a7a-09fb-49dd-93df-aeba713a7aa9",
+      "name": "cc-roi-report",
+      "description": "Interactive ROI and regional ad performance reports"
+    },
+    {
+      "type": "govern data",
+      "id": "task-f83f6053-6603-496c-8b4a-f964a5eed5d2",
+      "name": "cc-campaign-agent",
+      "description": "Internal exec chatbot for self-service campaign Q&A"
+    },
+    {
+      "type": "track data",
+      "id": "task-953a81b2-995b-4496-bebb-0c60fbffbb1c",
+      "name": "cc-alerts-activator",
+      "description": "ROI threshold alerts for regional ad buy decisions"
+    }
+  ],
+  "edges": [
+    {
+      "source": "task-7bf861c5-c608-43a5-aaac-86ce19ba9735",
+      "target": "task-cc25de85-4d17-496e-be33-346d6f034f2d"
+    },
+    {
+      "source": "task-b53f5574-40fe-4f0a-9142-7e406be5efe0",
+      "target": "task-314b7c7d-bf25-4150-96ff-2b2c595ec138"
+    },
+    {
+      "source": "task-b53f5574-40fe-4f0a-9142-7e406be5efe0",
+      "target": "task-40521e66-0a55-4344-ab40-975e40193ea5"
+    },
+    {
+      "source": "task-cc25de85-4d17-496e-be33-346d6f034f2d",
+      "target": "task-223e2da4-c885-4525-a592-212947f31290"
+    },
+    {
+      "source": "task-b53f5574-40fe-4f0a-9142-7e406be5efe0",
+      "target": "task-fffde235-13ee-45b3-b2fe-548a8eb0f27a"
+    },
+    {
+      "source": "task-314b7c7d-bf25-4150-96ff-2b2c595ec138",
+      "target": "task-fffde235-13ee-45b3-b2fe-548a8eb0f27a"
+    },
+    {
+      "source": "task-cc25de85-4d17-496e-be33-346d6f034f2d",
+      "target": "task-745101d6-7f27-4727-87cc-a3844f992e4c"
+    },
+    {
+      "source": "task-61834cd5-eaeb-4bfa-b5f8-9a4a071d13bc",
+      "target": "task-59d2b1b8-82d8-4142-a254-9353a295395e"
+    },
+    {
+      "source": "task-cc25de85-4d17-496e-be33-346d6f034f2d",
+      "target": "task-1aa766a0-a455-4abc-9801-e9d780f8e5ca"
+    },
+    {
+      "source": "task-59d2b1b8-82d8-4142-a254-9353a295395e",
+      "target": "task-ad833a7a-09fb-49dd-93df-aeba713a7aa9"
+    },
+    {
+      "source": "task-59d2b1b8-82d8-4142-a254-9353a295395e",
+      "target": "task-f83f6053-6603-496c-8b4a-f964a5eed5d2"
+    },
+    {
+      "source": "task-cc25de85-4d17-496e-be33-346d6f034f2d",
+      "target": "task-953a81b2-995b-4496-bebb-0c60fbffbb1c"
+    },
+    {
+      "source": "task-223e2da4-c885-4525-a592-212947f31290",
+      "target": "task-953a81b2-995b-4496-bebb-0c60fbffbb1c"
+    }
+  ],
+  "name": "campaign-command",
+  "description": "Task flow for campaign-command — lambda architecture pattern. 14 items with dependency-ordered connections."
+}

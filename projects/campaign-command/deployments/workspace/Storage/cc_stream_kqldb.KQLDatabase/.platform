@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "KQLDatabase",
+    "displayName": "cc_stream_kqldb",
+    "description": "KQL Database within Eventhouse for stream queries"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "67e9b53f-214b-4044-a491-06a432baec01"
+  }
+}

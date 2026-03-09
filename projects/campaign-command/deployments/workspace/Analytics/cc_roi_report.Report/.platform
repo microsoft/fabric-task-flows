@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "cc_roi_report",
+    "description": "Interactive ROI and regional ad performance reports"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "332c5757-f20a-4ba9-9106-6a3a57cbcf9e"
+  }
+}
