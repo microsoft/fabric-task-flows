@@ -72,7 +72,8 @@ def _extract_yaml_blocks(content: str) -> list[dict[str, Any]]:
 
 
 def _find_block(blocks: list[dict[str, Any]], key: str) -> Any:
-    return find_block(blocks, key)
+    block = find_block(blocks, key)
+    return block[key] if block is not None else None
 
 
 # ---------------------------------------------------------------------------
@@ -722,17 +723,38 @@ def prescan(handoff_path: str) -> dict:
              or _find_block(yaml_blocks, "deployment_waves") or [])
     acs = _find_block(yaml_blocks, "acceptance_criteria") or []
 
+    # Normalize: filter to dicts only (strings are not usable as ACs)
+    if acs and not isinstance(acs[0], dict):
+        acs = [a for a in acs if isinstance(a, dict)]
+
     # Normalize key variants (scaffolder uses item_name/item_type/wave_number)
+    # Items may be dicts or strings — only normalize dicts
+    normalized_items: list[dict] = []
     for idx, item in enumerate(items):
+        if isinstance(item, str):
+            normalized_items.append({"name": item, "id": idx + 1})
+            continue
+        if not isinstance(item, dict):
+            continue
         if "item_name" in item and "name" not in item:
             item["name"] = item["item_name"]
         if "item_type" in item and "type" not in item:
             item["type"] = item["item_type"]
         if "id" not in item:
             item["id"] = idx + 1
+        normalized_items.append(item)
+    items = normalized_items
+
+    normalized_waves: list[dict] = []
     for wave in waves:
+        if isinstance(wave, str):
+            continue
+        if not isinstance(wave, dict):
+            continue
         if "wave_number" in wave and "id" not in wave:
             wave["id"] = wave["wave_number"]
+        normalized_waves.append(wave)
+    waves = normalized_waves
 
     warnings: list[str] = []
     if not items:
