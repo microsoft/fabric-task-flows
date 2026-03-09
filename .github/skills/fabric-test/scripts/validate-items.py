@@ -45,11 +45,18 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
-REGISTRY_PATH = REPO_ROOT / "_shared" / "item-type-registry.json"
+sys.path.insert(0, str(REPO_ROOT / "_shared"))
+from registry_loader import (
+    load_registry as _load_reg,
+    build_fab_type_map,
+    build_portal_only_items,
+    build_phase_map as _build_phase_map_tuples,
+)
+from yaml_utils import extract_yaml_blocks
+
 
 def _load_registry() -> dict:
-    with open(REGISTRY_PATH, encoding="utf-8") as f:
-        return json.load(f)["types"]
+    return _load_reg()
 
 
 def _build_api_path_map(registry: dict) -> dict[str, str]:
@@ -64,7 +71,6 @@ def _build_api_path_map(registry: dict) -> dict[str, str]:
         result[data["display_name"]] = api_path
         for alias in data.get("aliases", []):
             result[alias] = api_path
-            # Title-case variant
             parts = alias.split()
             if len(parts) > 1:
                 result[" ".join(w.capitalize() for w in parts)] = api_path

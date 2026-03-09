@@ -25,8 +25,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 
-# Load task_type mappings from item registry
+# Load shared utilities
 sys.path.insert(0, str(REPO_ROOT / "_shared"))
+from yaml_utils import extract_yaml_blocks, parse_yaml_value
 REGISTRY = json.loads((REPO_ROOT / "_shared" / "item-type-registry.json").read_text(encoding="utf-8"))
 
 TASK_TYPE_MAP: dict[str, str] = {}
@@ -59,11 +60,11 @@ class HandoffData:
 
 
 # ---------------------------------------------------------------------------
-# YAML extraction (regex-based, same as deploy-script-gen.py)
+# YAML extraction — delegated to _shared/yaml_utils.py
 # ---------------------------------------------------------------------------
 
-def _extract_yaml_blocks(markdown: str) -> list[str]:
-    return re.findall(r"```yaml\s*\n(.*?)```", markdown, re.DOTALL)
+_extract_yaml_blocks = extract_yaml_blocks
+_parse_yaml_value = parse_yaml_value
 
 
 def _extract_task_flow(markdown: str) -> str:
@@ -76,28 +77,6 @@ def _extract_task_flow(markdown: str) -> str:
     if m:
         return re.split(r"\s*[\(\[]", m.group(1).strip())[0].strip()
     return "unknown"
-
-
-def _parse_yaml_value(raw: str):
-    raw = raw.strip()
-    if raw in ("", "~", "null"):
-        return None
-    if raw.startswith("[") and raw.endswith("]"):
-        inner = raw[1:-1].strip()
-        if not inner:
-            return []
-        return [_parse_yaml_value(v.strip()) for v in inner.split(",")]
-    if raw.lower() in ("true", "yes"):
-        return True
-    if raw.lower() in ("false", "no"):
-        return False
-    try:
-        return int(raw)
-    except ValueError:
-        pass
-    if (raw.startswith('"') and raw.endswith('"')) or (raw.startswith("'") and raw.endswith("'")):
-        return raw[1:-1]
-    return raw
 
 
 def _parse_items_block(yaml_text: str) -> list[Item]:

@@ -40,6 +40,8 @@ _SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_sh
 sys.path.insert(0, str(_SHARED_DIR))
 from registry_loader import build_fab_commands, build_display_names
 from banner import BANNER_ART
+from yaml_utils import extract_yaml_blocks, parse_yaml_value, split_list, parse_inline_mapping
+from text_utils import slugify
 
 # REST API creation support map: lowercase alias → True/False
 FAB_COMMANDS: dict[str, bool] = build_fab_commands()
@@ -106,12 +108,11 @@ class HandoffData:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# YAML extraction (regex-based, same approach as other scripts)
+# YAML extraction — delegated to _shared/yaml_utils.py
+# Aliases kept for internal call-site compatibility.
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _extract_yaml_blocks(markdown: str) -> list[str]:
-    """Extract all ```yaml ... ``` fenced code blocks."""
-    return re.findall(r"```yaml\s*\n(.*?)```", markdown, re.DOTALL)
+_extract_yaml_blocks = extract_yaml_blocks
 
 
 def _extract_task_flow(markdown: str) -> str:
@@ -131,104 +132,9 @@ def _extract_task_flow(markdown: str) -> str:
     return "unknown"
 
 
-def _parse_yaml_value(raw: str) -> str | int | float | bool | list | None:
-    """Minimal YAML scalar/inline-list parser."""
-    raw = raw.strip()
-    if raw in ("", "~", "null"):
-        return None
-    if raw.startswith("[") and raw.endswith("]"):
-        inner = raw[1:-1].strip()
-        if not inner:
-            return []
-        return [_parse_yaml_value(v) for v in _split_list(inner)]
-    if raw.lower() in ("true", "yes"):
-        return True
-    if raw.lower() in ("false", "no"):
-        return False
-    try:
-        return int(raw)
-    except ValueError:
-        pass
-    try:
-        return float(raw)
-    except ValueError:
-        pass
-    # Strip quotes
-    if (raw.startswith('"') and raw.endswith('"')) or (raw.startswith("'") and raw.endswith("'")):
-        return raw[1:-1]
-    return raw
-
-
-def _split_list(s: str) -> list[str]:
-    """Split comma-separated values, respecting quotes."""
-    parts: list[str] = []
-    current: list[str] = []
-    in_quotes = False
-    quote_char = ""
-    for ch in s:
-        if ch in ('"', "'") and not in_quotes:
-            in_quotes = True
-            quote_char = ch
-            current.append(ch)
-        elif ch == quote_char and in_quotes:
-            in_quotes = False
-            current.append(ch)
-        elif ch == "," and not in_quotes:
-            parts.append("".join(current).strip())
-            current = []
-        else:
-            current.append(ch)
-    if current:
-        parts.append("".join(current).strip())
-    return parts
-
-
-def _parse_inline_mapping(line: str) -> dict[str, str | int | float | bool | list | None]:
-    """Parse a YAML inline mapping like {id: 1, name: foo, depends_on: [1,2]}."""
-    line = line.strip()
-    if line.startswith("{") and line.endswith("}"):
-        line = line[1:-1]
-
-    result: dict[str, str | int | float | bool | list | None] = {}
-    # Split on comma but respect brackets and quotes
-    depth = 0
-    in_quotes = False
-    quote_char = ""
-    parts: list[str] = []
-    current: list[str] = []
-
-    for ch in line:
-        if ch in ('"', "'") and not in_quotes:
-            in_quotes = True
-            quote_char = ch
-            current.append(ch)
-        elif ch == quote_char and in_quotes:
-            in_quotes = False
-            current.append(ch)
-        elif ch == "[":
-            depth += 1
-            current.append(ch)
-        elif ch == "]":
-            depth -= 1
-            current.append(ch)
-        elif ch == "," and depth == 0 and not in_quotes:
-            parts.append("".join(current))
-            current = []
-        else:
-            current.append(ch)
-    if current:
-        parts.append("".join(current))
-
-    for part in parts:
-        part = part.strip()
-        colon_idx = part.find(":")
-        if colon_idx == -1:
-            continue
-        key = part[:colon_idx].strip()
-        val = part[colon_idx + 1:].strip()
-        result[key] = _parse_yaml_value(val)
-
-    return result
+_parse_yaml_value = parse_yaml_value
+_split_list = split_list
+_parse_inline_mapping = parse_inline_mapping
 
 
 def _parse_items_block(yaml_text: str) -> list[Item]:
@@ -402,10 +308,7 @@ def parse_handoff(path: str) -> HandoffData:
 
 def _slugify(name: str) -> str:
     """Convert project name to kebab-case."""
-    s = name.lower().strip()
-    s = re.sub(r"[^a-z0-9\s-]", "", s)
-    s = re.sub(r"[\s]+", "-", s)
-    return s.strip("-")
+    return slugify(name)
 
 
 def _type_key(item_type: str) -> str:

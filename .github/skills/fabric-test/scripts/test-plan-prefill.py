@@ -34,6 +34,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(REPO_ROOT / "_shared"))
 from registry_loader import build_phase_map
+from yaml_utils import extract_yaml_blocks, parse_yaml_list, parse_yaml_scalar
+from text_utils import slugify_phase
 
 PHASE_MAP: dict[str, tuple[str, int]] = build_phase_map()
 
@@ -50,70 +52,12 @@ API_PATHS: dict[str, str] = {
 
 
 # ---------------------------------------------------------------------------
-# YAML extraction from markdown code fences
+# YAML extraction — delegated to _shared/yaml_utils.py
 # ---------------------------------------------------------------------------
 
-_YAML_FENCE_RE = re.compile(
-    r"```ya?ml\s*\n(.*?)```", re.DOTALL
-)
-
-
-def _extract_yaml_blocks(text: str) -> list[str]:
-    return [m.group(1) for m in _YAML_FENCE_RE.finditer(text)]
-
-
-def _parse_yaml_list(block: str, key: str) -> list[dict[str, str]]:
-    """Parse a simple YAML list under *key* without a YAML library.
-
-    Handles blocks like:
-        acceptance_criteria:
-          - id: AC-1
-            type: structural
-            criterion: "Bronze Lakehouse exists"
-            verify: "REST API GET /workspaces/{id}/lakehouses | verify bronze"
-            target: "bronze-lakehouse"
-    """
-    items: list[dict[str, str]] = []
-    pattern = re.compile(rf"^{key}:\s*$", re.MULTILINE)
-    match = pattern.search(block)
-    if not match:
-        return items
-
-    remainder = block[match.end():]
-    current: dict[str, str] | None = None
-
-    for line in remainder.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        # Stop when we hit a new top-level key
-        if re.match(r"^[a-zA-Z_]", line) and not line.startswith(" "):
-            break
-        item_start = re.match(r"^\s+-\s+(.*)", line)
-        if item_start:
-            if current is not None:
-                items.append(current)
-            current = {}
-            kv = item_start.group(1)
-            kv_match = re.match(r'(\w+):\s*(.*)', kv)
-            if kv_match:
-                current[kv_match.group(1)] = kv_match.group(2).strip().strip('"').strip("'")
-        elif current is not None:
-            kv_match = re.match(r'\s+(\w+):\s*(.*)', line)
-            if kv_match:
-                current[kv_match.group(1)] = kv_match.group(2).strip().strip('"').strip("'")
-
-    if current is not None:
-        items.append(current)
-
-    return items
-
-
-def _parse_yaml_scalar(block: str, key: str) -> str | None:
-    match = re.search(rf"^{key}:\s*(.+)$", block, re.MULTILINE)
-    if match:
-        return match.group(1).strip().strip('"').strip("'")
-    return None
+_extract_yaml_blocks = extract_yaml_blocks
+_parse_yaml_list = parse_yaml_list
+_parse_yaml_scalar = parse_yaml_scalar
 
 
 # ---------------------------------------------------------------------------
@@ -247,8 +191,7 @@ def _detect_item_type(ac: dict[str, str], items: list[dict[str, str]]) -> str | 
     return None
 
 
-def _slugify_phase(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+_slugify_phase = slugify_phase
 
 
 def _build_checklist_ref(task_flow: str, phase_num: int, phase_name: str) -> str:

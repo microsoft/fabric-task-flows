@@ -192,6 +192,9 @@ task-flows/
 ├── _shared/                           # Shared reference content
 │   ├── item-type-registry.json        # Single source of truth for Fabric item types
 │   ├── registry_loader.py             # Shared module — item type metadata loader
+│   ├── yaml_utils.py                  # Shared module — YAML extraction and parsing
+│   ├── text_utils.py                  # Shared module — slugify and text utilities
+│   ├── diagram_parser.py              # Shared module — deployment diagram table parser
 │   ├── workflow-guide.md              # Pipeline orchestration guide
 │   └── learnings.md                   # Accumulated operational learnings
 ├── projects/                          # Per-project documentation (local only — gitignored)

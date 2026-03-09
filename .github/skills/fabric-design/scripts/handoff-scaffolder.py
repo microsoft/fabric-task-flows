@@ -33,6 +33,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(REPO_ROOT / "_shared"))
 from registry_loader import build_fab_type_map, load_registry
+from diagram_parser import is_border_row, extract_deployment_table
 
 FAB_TYPE_MAP: dict[str, str] = build_fab_type_map()
 PORTAL_ONLY_TYPES: set[str] = {
@@ -107,35 +108,10 @@ def _purpose_from(item_type: str, required_for: str) -> str:
     return f"{item_type} deployment"
 
 
-# ── Diagram parser ────────────────────────────────────────────────────────
+# ── Diagram parser — delegates to _shared/diagram_parser.py ───────────────
 
-_BORDER_CHARS = set("┌├└─┼┬┴┐┤┘┐│")
-
-
-def _is_border_row(line: str) -> bool:
-    """True when the row is purely box-drawing border characters."""
-    return all(ch in _BORDER_CHARS or ch.isspace() for ch in line)
-
-
-def _extract_deployment_table(diagram_path: Path) -> list[str]:
-    """Return the raw lines of the deployment-order code block."""
-    text = diagram_path.read_text(encoding="utf-8")
-    # Find "## Deployment Order" as an actual heading (start of line)
-    match = re.search(r"^## Deployment Order\s*$", text, re.MULTILINE)
-    if not match:
-        return []
-    rest = text[match.end():]
-    # Find the first ``` fence
-    fence_start = rest.find("```")
-    if fence_start == -1:
-        return []
-    after_fence = rest[fence_start + 3:]
-    fence_end = after_fence.find("```")
-    if fence_end == -1:
-        block = after_fence
-    else:
-        block = after_fence[:fence_end]
-    return block.splitlines()
+_is_border_row = is_border_row
+_extract_deployment_table = extract_deployment_table
 
 
 def parse_diagram(task_flow: str) -> list[DiagramItem]:

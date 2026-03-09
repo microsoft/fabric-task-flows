@@ -17,14 +17,13 @@ import re
 import sys
 from datetime import datetime, timezone
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "_shared"))
+from text_utils import slugify
+
 
 def sanitize_name(name: str) -> str:
     """Convert project name to kebab-case folder name."""
-    name = name.lower().strip()
-    name = re.sub(r"[^a-z0-9\s-]", "", name)
-    name = re.sub(r"[\s]+", "-", name)
-    name = name.strip("-")
-    return name
+    return slugify(name)
 
 
 def today() -> str:

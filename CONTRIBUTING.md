@@ -45,6 +45,9 @@ The `scripts/` directory contains pipeline utilities. Pre-compute scripts live i
 | `check-drift.py` | `fabric-test/scripts/` | Documentation drift detection (26 cross-reference checks) |
 | `validate-items.py` | `fabric-test/scripts/` | Validates deployed items via Fabric REST API |
 | `registry_loader.py` | `_shared/` | Shared module — all scripts import item type metadata from here |
+| `yaml_utils.py` | `_shared/` | Shared module — YAML extraction and parsing (consolidated from 6 scripts) |
+| `text_utils.py` | `_shared/` | Shared module — slugify and text utilities |
+| `diagram_parser.py` | `_shared/` | Shared module — deployment diagram table parser |
 
 > ⚠️ **Enforcement:** These scripts are NOT optional helpers — they are mandatory pre-compute steps. Every pipeline phase has a pre-compute script that MUST run before the LLM adds judgment.
 

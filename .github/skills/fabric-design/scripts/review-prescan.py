@@ -36,6 +36,12 @@ from typing import Any
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
 from registry_loader import build_portal_only_items
+from yaml_utils import (
+    parse_yaml as _parse_yaml,
+    extract_and_parse_yaml_blocks,
+    extract_frontmatter,
+    find_block,
+)
 
 PORTAL_ONLY_ITEMS: dict[str, str] = build_portal_only_items()
 
@@ -43,258 +49,20 @@ KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 # ---------------------------------------------------------------------------
-# Lightweight YAML parser (no PyYAML dependency)
-# ---------------------------------------------------------------------------
-
-def _parse_yaml(text: str) -> Any:
-    """Parse a subset of YAML sufficient for architecture handoff blocks."""
-    lines = text.split("\n")
-    root: dict[str, Any] = {}
-    _parse_mapping(lines, 0, 0, root)
-    return root
-
-
-def _parse_mapping(lines: list[str], start: int, base_indent: int,
-                   target: dict[str, Any]) -> int:
-    i = start
-    while i < len(lines):
-        line = lines[i]
-        stripped = line.strip()
-
-        if not stripped or stripped.startswith("#"):
-            i += 1
-            continue
-
-        indent = len(line) - len(line.lstrip())
-        if indent < base_indent:
-            return i
-
-        key_match = re.match(r"^(\s*)([\w\-]+)\s*:\s*(.*)", line)
-        if not key_match:
-            i += 1
-            continue
-
-        indent = len(key_match.group(1))
-        if indent != base_indent:
-            if indent < base_indent:
-                return i
-            i += 1
-            continue
-
-        key = key_match.group(2)
-        value_str = key_match.group(3).strip()
-
-        if value_str.startswith("#"):
-            value_str = ""
-
-        if value_str:
-            target[key] = _parse_scalar_or_inline(value_str)
-            i += 1
-        else:
-            next_i = _next_content_line(lines, i + 1)
-            if next_i >= len(lines):
-                target[key] = None
-                i = next_i
-                continue
-
-            next_line = lines[next_i]
-            next_indent = len(next_line) - len(next_line.lstrip())
-            next_stripped = next_line.strip()
-
-            if next_indent <= base_indent:
-                target[key] = None
-                i = next_i
-                continue
-
-            if next_stripped.startswith("- "):
-                lst: list[Any] = []
-                i = _parse_list(lines, next_i, next_indent, lst)
-                target[key] = lst
-            else:
-                child: dict[str, Any] = {}
-                i = _parse_mapping(lines, next_i, next_indent, child)
-                target[key] = child
-    return i
-
-
-def _parse_list(lines: list[str], start: int, base_indent: int,
-                target: list[Any]) -> int:
-    i = start
-    while i < len(lines):
-        line = lines[i]
-        stripped = line.strip()
-
-        if not stripped or stripped.startswith("#"):
-            i += 1
-            continue
-
-        indent = len(line) - len(line.lstrip())
-        if indent < base_indent:
-            return i
-
-        if not stripped.startswith("- "):
-            return i
-
-        item_value = stripped[2:].strip()
-        if item_value.startswith("#"):
-            item_value = ""
-
-        key_match = re.match(r"^([\w\-]+)\s*:\s*(.*)", item_value)
-        if key_match:
-            item_dict: dict[str, Any] = {}
-            k = key_match.group(1)
-            v = key_match.group(2).strip()
-            if v and not v.startswith("#"):
-                item_dict[k] = _parse_scalar_or_inline(v)
-            else:
-                item_dict[k] = None
-
-            inner_indent = indent + 2
-            i += 1
-            i = _parse_mapping(lines, i, inner_indent, item_dict)
-            target.append(item_dict)
-        elif item_value:
-            target.append(_parse_scalar_or_inline(item_value))
-            i += 1
-        else:
-            i += 1
-    return i
-
-
-def _next_content_line(lines: list[str], start: int) -> int:
-    i = start
-    while i < len(lines):
-        stripped = lines[i].strip()
-        if stripped and not stripped.startswith("#"):
-            return i
-        i += 1
-    return i
-
-
-def _parse_scalar_or_inline(value: str) -> Any:
-    if value.startswith("#"):
-        return None
-
-    # Strip inline comments (not inside quotes)
-    comment_stripped = _strip_inline_comment(value)
-
-    # Inline list: [1, 2, 3] or []
-    if comment_stripped.startswith("[") and comment_stripped.endswith("]"):
-        inner = comment_stripped[1:-1].strip()
-        if not inner:
-            return []
-        parts = _split_inline_list(inner)
-        return [_parse_scalar(p.strip()) for p in parts]
-
-    return _parse_scalar(comment_stripped)
-
-
-def _strip_inline_comment(value: str) -> str:
-    in_single = False
-    in_double = False
-    for i, ch in enumerate(value):
-        if ch == "'" and not in_double:
-            in_single = not in_single
-        elif ch == '"' and not in_single:
-            in_double = not in_double
-        elif ch == "#" and not in_single and not in_double:
-            return value[:i].rstrip()
-    return value
-
-
-def _split_inline_list(inner: str) -> list[str]:
-    parts: list[str] = []
-    current: list[str] = []
-    depth = 0
-    in_quote = False
-    quote_char = ""
-    for ch in inner:
-        if ch in ('"', "'") and not in_quote:
-            in_quote = True
-            quote_char = ch
-            current.append(ch)
-        elif ch == quote_char and in_quote:
-            in_quote = False
-            current.append(ch)
-        elif ch == "[":
-            depth += 1
-            current.append(ch)
-        elif ch == "]":
-            depth -= 1
-            current.append(ch)
-        elif ch == "," and depth == 0 and not in_quote:
-            parts.append("".join(current))
-            current = []
-        else:
-            current.append(ch)
-    if current:
-        parts.append("".join(current))
-    return parts
-
-
-def _parse_scalar(value: str) -> Any:
-    if not value:
-        return None
-
-    # Quoted string
-    if (value.startswith('"') and value.endswith('"')) or \
-       (value.startswith("'") and value.endswith("'")):
-        return value[1:-1]
-
-    lower = value.lower()
-    if lower == "true":
-        return True
-    if lower == "false":
-        return False
-    if lower == "null" or lower == "~":
-        return None
-
-    # Integer
-    try:
-        return int(value)
-    except ValueError:
-        pass
-
-    # Float
-    try:
-        return float(value)
-    except ValueError:
-        pass
-
-    return value
-
-
-# ---------------------------------------------------------------------------
-# Markdown extraction
+# YAML parser — delegated to _shared/yaml_utils.py
+# Backwards-compatible aliases for diagram-gen.py cross-import.
 # ---------------------------------------------------------------------------
 
 def _extract_frontmatter(content: str) -> dict[str, Any]:
-    match = re.match(r"^---\s*\n(.*?)\n---", content, re.DOTALL)
-    if not match:
-        return {}
-    return _parse_yaml(match.group(1))
+    return extract_frontmatter(content)
 
 
 def _extract_yaml_blocks(content: str) -> list[dict[str, Any]]:
-    blocks: list[dict[str, Any]] = []
-    for match in re.finditer(r"```ya?ml\s*\n(.*?)```", content, re.DOTALL):
-        raw = match.group(1)
-        # Skip comment-only / template-only blocks
-        lines = [l for l in raw.split("\n")
-                 if l.strip() and not l.strip().startswith("#")]
-        if not lines:
-            continue
-        parsed = _parse_yaml(raw)
-        if parsed:
-            blocks.append(parsed)
-    return blocks
+    return extract_and_parse_yaml_blocks(content)
 
 
 def _find_block(blocks: list[dict[str, Any]], key: str) -> Any:
-    for block in blocks:
-        if key in block:
-            return block[key]
-    return None
+    return find_block(blocks, key)
 
 
 # ---------------------------------------------------------------------------

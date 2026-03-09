@@ -33,6 +33,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+_SHARED_DIR = REPO_ROOT.parent.parent.parent / "_shared"
+if str(_SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(_SHARED_DIR))
+
 # ── Valid Fabric task types ───────────────────────────────────────────────
 
 VALID_TASK_TYPES = {
@@ -46,6 +50,8 @@ VALID_TASK_TYPES = {
 # Task type mapping — loaded from _shared/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
 from registry_loader import build_task_type_map
+from yaml_utils import extract_yaml_blocks
+from diagram_parser import is_border_row, extract_deployment_table
 
 ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()
 
@@ -106,28 +112,10 @@ class TaskInfo:
     source_items: list[str] = field(default_factory=list)
 
 
-# ── Diagram parser (reuses handoff-scaffolder.py logic) ───────────────────
+# ── Diagram parser — delegates to _shared/diagram_parser.py ───────────────
 
-_BORDER_CHARS = set("┌├└─┼┬┴┐┤┘│")
-
-
-def _is_border_row(line: str) -> bool:
-    return all(ch in _BORDER_CHARS or ch.isspace() for ch in line)
-
-
-def _extract_deployment_table(diagram_path: Path) -> list[str]:
-    text = diagram_path.read_text(encoding="utf-8")
-    match = re.search(r"^## Deployment Order\s*$", text, re.MULTILINE)
-    if not match:
-        return []
-    rest = text[match.end():]
-    fence_start = rest.find("```")
-    if fence_start == -1:
-        return []
-    after_fence = rest[fence_start + 3:]
-    fence_end = after_fence.find("```")
-    block = after_fence[:fence_end] if fence_end != -1 else after_fence
-    return block.splitlines()
+_is_border_row = is_border_row
+_extract_deployment_table = extract_deployment_table
 
 
 def _parse_diagram(task_flow: str) -> list[DiagramItem]:
@@ -196,7 +184,7 @@ def _parse_diagram(task_flow: str) -> list[DiagramItem]:
 # ── Handoff parser ────────────────────────────────────────────────────────
 
 def _extract_yaml_blocks(markdown: str) -> list[str]:
-    return re.findall(r"```yaml\s*\n(.*?)```", markdown, re.DOTALL)
+    return extract_yaml_blocks(markdown)
 
 
 def _parse_handoff_items(handoff_path: str) -> list[HandoffItem]:

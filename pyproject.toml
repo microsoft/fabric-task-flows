@@ -1,0 +1,9 @@
+[project]
+name = "task-flows"
+version = "1.0.0"
+description = "Microsoft Fabric architecture task flows and deployment automation"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["_shared", "scripts"]
