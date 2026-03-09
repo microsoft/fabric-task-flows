@@ -40,6 +40,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / ".github" / "skills"
 VERSION = "1.0.0"
 
+sys.path.insert(0, str(REPO_ROOT / "_shared"))
+from banner import print_banner
+
 # Phase ordering (linear)
 PHASE_ORDER = [
     "0a-discovery",
@@ -748,6 +751,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "start":
+        print_banner(file=sys.stdout)
         state = start_pipeline(args.name, args.problem)
         _print_status(state)
         prompt, agent, phase, is_gate = get_next_prompt(state["project"])
@@ -775,6 +779,11 @@ def main() -> None:
 
     elif args.command == "status":
         state = _load_state(args.project)
+        print_banner(
+            project=state.get("display_name", args.project),
+            task_flow=state.get("task_flow") or "TBD",
+            file=sys.stdout,
+        )
         _print_status(state)
 
     elif args.command == "advance":

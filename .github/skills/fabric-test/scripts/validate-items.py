@@ -273,29 +273,13 @@ def _parse_handoff(path: str) -> tuple[str, str, str, list[dict]]:
 # Banner
 # ---------------------------------------------------------------------------
 
+# Use the shared banner module
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
+from banner import print_banner
+
+
 def _print_banner(project: str, task_flow: str, mode: str = "Validation"):
-    lines = [
-        "",
-        "╔══════════════════════════════════════════════════════════════════╗",
-        "║                                                                  ║",
-        "║        /@@@@@@@@@@@@/                                            ║",
-        "║       /@@@@@@@@@@@@/   ┌──────────────────────────────────────┐  ║",
-        "║      /@@@@/            │                                      │  ║",
-        "║     /@@@@@@@@@@@@/     │ F A B R I C   T A S K   F L O W S    │  ║",
-        "║    /@@@@/              │ ──────────────────────────────────── │  ║",
-        "║   /@@@@/               │ Deploy Microsoft Fabric              │  ║",
-        "║  /@@@@/                │ architectures to production          │  ║",
-        "║                        └──────────────────────────────────────┘  ║",
-        "║                                                                  ║",
-        f"║  Project:   {project:<53} ║",
-        f"║  Task Flow: {task_flow:<53} ║",
-        f"║  Mode:      {mode:<53} ║",
-        "║                                                                  ║",
-        "╚══════════════════════════════════════════════════════════════════╝",
-        "",
-    ]
-    for line in lines:
-        print(line, file=sys.stderr)
+    print_banner(project=project, task_flow=task_flow, mode=mode)
 
 
 # ---------------------------------------------------------------------------
