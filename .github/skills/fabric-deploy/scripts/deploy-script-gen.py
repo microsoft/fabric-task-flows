@@ -632,10 +632,15 @@ def _gen_config_yml(data: HandoffData, project: str, ws_desc: str) -> str:
         ct = _cicd_type(item.type)
         if ct:
             raw_types.add(ct)
+    # Hard rule: always include VariableLibrary for CI/CD stage flexibility
+    raw_types.add("VariableLibrary")
     item_types = sorted(raw_types)
 
     # Collect unique folder names
     folders = _collect_folders(data)
+    # Hard rule: always include Configuration folder for Variable Library
+    if "Configuration" not in folders:
+        folders.insert(0, "Configuration")
 
     lines = [
         f"# fabric-cicd configuration for {project}",
@@ -1080,6 +1085,14 @@ def main() -> None:
     ws_dir = out / "workspace"
     ws_dir.mkdir(exist_ok=True)
 
+    # Hard rule: every project MUST have a Variable Library for CI/CD stage flexibility.
+    # Auto-inject if the architect didn't include one in the handoff.
+    has_vl = any(
+        _cicd_type(item.type) == "VariableLibrary"
+        for item in data.items if item.name
+    )
+    vl_name = _cli_safe_name(f"{slug}_variable_library")
+
     for item in data.items:
         if not item.name:
             continue
@@ -1298,7 +1311,30 @@ def main() -> None:
             dag_content = 'from datetime import datetime\nfrom airflow import DAG\nfrom airflow.operators.bash import BashOperator\n\ndefault_args = {"owner": "airflow", "depends_on_past": False, "start_date": datetime(2023, 5, 1)}\n\nwith DAG("dag1", default_args=default_args, schedule_interval=None, catchup=False) as dag:\n    hello = BashOperator(task_id="hello", bash_command=\'echo "Hello"\')\n    hello\n'
             (dags_dir / "dag1.py").write_text(dag_content, encoding="utf-8")
 
-    print(f"✅ {ws_dir}/ ({len([i for i in data.items if i.name])} items)")
+    # Auto-inject Variable Library if not already present
+    if not has_vl:
+        vl_dir = ws_dir / "Configuration" / f"{vl_name}.VariableLibrary"
+        vl_dir.mkdir(parents=True, exist_ok=True)
+        vl_platform = _gen_platform_file(
+            "VariableLibrary", vl_name,
+            f"Variable Library for {args.project} — CI/CD stage configuration"
+        )
+        (vl_dir / ".platform").write_text(vl_platform, encoding="utf-8")
+        variables = {
+            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
+            "variables": [
+                {"name": "workspace_id", "type": "String", "value": "", "note": "Workspace ID — populated at deploy time"},
+            ]
+        }
+        (vl_dir / "variables.json").write_text(json.dumps(variables, indent=2), encoding="utf-8")
+        settings = {
+            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
+            "valueSetsOrder": []
+        }
+        (vl_dir / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
+
+    item_count = len([i for i in data.items if i.name]) + (0 if has_vl else 1)
+    print(f"✅ {ws_dir}/ ({item_count} items)")
 
     # Generate parameter.yml inside workspace directory with actual item references
     param_lines = [
