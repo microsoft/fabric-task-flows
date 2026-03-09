@@ -192,9 +192,12 @@ def build_availability_map() -> dict[str, str]:
 
 
 def build_fab_type_map() -> dict[str, str]:
-    """Build the FAB_TYPE_MAP dict for handoff-scaffolder.py.
+    """Build the FAB_TYPE_MAP dict for handoff-scaffolder.py and deploy-script-gen.py.
 
     Returns a dict mapping display name variants → fab_type.
+    Maps canonical key, display_name, fab_type, and ALL aliases (including
+    single-word and case variants) so that any string an LLM might put in an
+    architecture handoff resolves to the correct fab_type.
     """
     registry = load_registry()
     result: dict[str, str] = {}
@@ -202,10 +205,54 @@ def build_fab_type_map() -> dict[str, str]:
     for canonical, data in registry.items():
         fab_type = data["fab_type"]
         result[canonical] = fab_type
+        result[fab_type] = fab_type  # identity mapping for fab_type itself
         result[data["display_name"]] = fab_type
         for alias in data.get("aliases", []):
+            result[alias] = fab_type
+            # Also add title-cased and capitalized forms
+            result[alias.title()] = fab_type
             parts = alias.split()
             if len(parts) > 1:
                 result[" ".join(w.capitalize() for w in parts)] = fab_type
+
+    return result
+
+
+def build_cicd_type_set() -> set[str]:
+    """Return the set of fab_type values deployable via fabric-cicd.
+
+    Derived from the ``cicd.strategy`` field in the registry. Types with
+    strategy ``platform_only`` or ``content`` are supported by fabric-cicd.
+    This replaces the hardcoded ``_FABRIC_CICD_TYPES`` set in deploy-script-gen.py.
+    """
+    registry = load_registry()
+    return {
+        data["fab_type"]
+        for data in registry.values()
+        if data.get("cicd", {}).get("strategy") in ("platform_only", "content")
+    }
+
+
+def build_type_remap() -> dict[str, str]:
+    """Return a mapping of display_name → fab_type where they differ.
+
+    This replaces the hardcoded ``_TYPE_REMAP`` dict in deploy-script-gen.py.
+    Includes all aliases and display names that don't match fab_type, so
+    any LLM-generated item type string resolves correctly.
+    """
+    registry = load_registry()
+    result: dict[str, str] = {}
+
+    for _canonical, data in registry.items():
+        fab_type = data["fab_type"]
+        display = data["display_name"]
+        if display != fab_type:
+            result[display] = fab_type
+        for alias in data.get("aliases", []):
+            titled = alias.title()
+            if titled != fab_type:
+                result[titled] = fab_type
+            if alias != fab_type.lower():
+                result[alias] = fab_type
 
     return result

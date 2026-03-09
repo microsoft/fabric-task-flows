@@ -577,24 +577,25 @@ def _tree_connector(idx: int, total: int) -> str:
 import uuid as _uuid
 
 # fabric-cicd supported item types and our type name mappings
-_FABRIC_CICD_TYPES = {
-    "ApacheAirflowJob", "CopyJob", "DataAgent", "DataPipeline", "Dataflow",
-    "Environment", "Eventhouse", "Eventstream", "GraphQLApi", "KQLDashboard",
-    "KQLDatabase", "KQLQueryset", "Lakehouse", "MLExperiment", "MirroredDatabase",
-    "MountedDataFactory", "Notebook", "Reflex", "Report", "SQLDatabase",
-    "SemanticModel", "SparkJobDefinition", "UserDataFunction", "VariableLibrary", "Warehouse",
-}
-_TYPE_REMAP = {
-    "Activator": "Reflex",
-    "Real-Time Dashboard": "KQLDashboard",
-    "KQL Dashboard": "KQLDashboard",
-    "ML Experiment": "MLExperiment",
-    "ML Model": "MLExperiment",  # MLModel not supported; shell only via MLExperiment
-}
+_FABRIC_CICD_TYPES: set[str] = set()  # populated lazily from registry
+_TYPE_REMAP: dict[str, str] = {}     # populated lazily from registry
+_SETS_LOADED = False
+
+
+def _ensure_registry_sets() -> None:
+    """Load _FABRIC_CICD_TYPES and _TYPE_REMAP from the registry on first use."""
+    global _FABRIC_CICD_TYPES, _TYPE_REMAP, _SETS_LOADED
+    if _SETS_LOADED:
+        return
+    from registry_loader import build_cicd_type_set, build_type_remap
+    _FABRIC_CICD_TYPES = build_cicd_type_set()
+    _TYPE_REMAP = build_type_remap()
+    _SETS_LOADED = True
 
 
 def _cicd_type(item_type: str) -> str:
     """Resolve item type to fabric-cicd compatible name. Returns empty string if unsupported."""
+    _ensure_registry_sets()
     fab_type = _resolve_fab_type(item_type)
     fab_type = _TYPE_REMAP.get(fab_type, fab_type)
     return fab_type if fab_type in _FABRIC_CICD_TYPES else ""
