@@ -39,7 +39,7 @@ def test_registry_loads():
 
 def test_every_type_has_required_fields():
     registry = load_registry()
-    required = {"fab_type", "display_name", "cli_supported", "mkdir_supported",
+    required = {"fab_type", "display_name",
                 "phase", "phase_order", "task_type", "aliases", "rest_api",
                 "availability"}
     for name, data in registry.items():
@@ -82,12 +82,12 @@ def test_build_fab_commands_returns_dict():
     cmds = build_fab_commands()
     assert isinstance(cmds, dict)
     assert len(cmds) > 0
-    # Lakehouse should be present and have a path template
+    # Lakehouse should be REST API creatable
     assert "lakehouse" in cmds
-    assert cmds["lakehouse"] is not None
-    path_template, args = cmds["lakehouse"]
-    assert "{ws}" in path_template
-    assert "{name}" in path_template
+    assert cmds["lakehouse"] is True
+    # Non-creatable items should be False
+    for key, val in cmds.items():
+        assert isinstance(val, bool), f"{key} should be bool, got {type(val)}"
 
 
 def test_build_display_names_returns_dict():
@@ -116,13 +116,13 @@ def test_build_phase_map_returns_tuples():
         assert isinstance(phase_order, int)
 
 
-def test_portal_only_excludes_mkdir_supported():
+def test_portal_only_excludes_api_creatable():
     registry = load_registry()
     portal_only = build_portal_only_items()
     for name, data in registry.items():
-        if data["mkdir_supported"]:
+        if data.get("rest_api", {}).get("creatable", False):
             assert name.lower() not in portal_only, \
-                f"{name} is mkdir_supported but appears in portal_only"
+                f"{name} is REST API creatable but appears in portal_only"
 
 
 def test_fab_type_map_covers_canonical():

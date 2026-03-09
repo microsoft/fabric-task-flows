@@ -40,7 +40,8 @@ _SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_sh
 sys.path.insert(0, str(_SHARED_DIR))
 from registry_loader import build_fab_commands, build_display_names
 
-FAB_COMMANDS: dict[str, tuple[str, list[str]] | None] = build_fab_commands()
+# REST API creation support map: lowercase alias → True/False
+FAB_COMMANDS: dict[str, bool] = build_fab_commands()
 DISPLAY_NAMES: dict[str, str] = build_display_names()
 REGISTRY: dict = json.loads((_SHARED_DIR / "item-type-registry.json").read_text(encoding="utf-8"))
 
@@ -412,8 +413,9 @@ def _type_key(item_type: str) -> str:
 
 
 def _is_portal_only(item_type: str) -> bool:
+    """True if the item cannot be created via the Fabric REST API."""
     key = _type_key(item_type)
-    return FAB_COMMANDS.get(key) is None and FAB_COMMANDS.get(item_type.lower()) is None
+    return not FAB_COMMANDS.get(key, FAB_COMMANDS.get(item_type.lower(), False))
 
 
 def _cli_safe_name(name: str) -> str:
@@ -433,14 +435,10 @@ def _get_display_type(item_type: str) -> str:
 
 
 def _resolve_fab_type(item_type: str) -> str:
-    """Resolve item type to its Fabric CLI type name (e.g., 'Pipeline' → 'DataPipeline')."""
-    key = _type_key(item_type)
-    entry = FAB_COMMANDS.get(key) or FAB_COMMANDS.get(item_type.lower())
-    if entry is not None:
-        path_tpl = entry[0]
-        # Extract type from path template: "{ws}.Workspace/{name}.TypeName" → "TypeName"
-        return path_tpl.split(".")[-1]
-    return item_type
+    """Resolve item type to its Fabric type name (e.g., 'Pipeline' → 'DataPipeline')."""
+    from registry_loader import build_fab_type_map
+    fab_map = build_fab_type_map()
+    return fab_map.get(item_type, fab_map.get(item_type.title(), item_type))
 
 
 def _has_or_alternatives(data: HandoffData) -> list[tuple[Item, Item]]:

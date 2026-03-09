@@ -37,7 +37,7 @@ from registry_loader import build_fab_type_map, load_registry
 FAB_TYPE_MAP: dict[str, str] = build_fab_type_map()
 PORTAL_ONLY_TYPES: set[str] = {
     data["display_name"] for data in load_registry().values()
-    if not data.get("mkdir_supported", False)
+    if not data.get("rest_api", {}).get("creatable", False)
 }
 
 # ── Data classes ──────────────────────────────────────────────────────────

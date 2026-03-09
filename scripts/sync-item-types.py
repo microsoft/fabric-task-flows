@@ -78,22 +78,11 @@ def diff(registry: dict, cli_types: dict[str, str], format_map: dict[str, str]) 
     in_registry_not_cli = reg_fab_types - cli_values
 
     # Check for types where we say cli_supported=true but CLI doesn't have them
-    false_cli_supported = []
-    for name, data in reg_types.items():
-        if data.get("cli_supported") and data["fab_type"] not in cli_values:
-            false_cli_supported.append(name)
-
-    # Check for types where we say cli_supported=false but CLI does have them
-    missing_cli_supported = []
-    for name, data in reg_types.items():
-        if not data.get("cli_supported") and data["fab_type"] in cli_values:
-            missing_cli_supported.append(name)
+    # (Removed — cli_supported field deprecated)
 
     return {
         "in_cli_not_registry": sorted(in_cli_not_registry),
         "in_registry_not_cli": sorted(in_registry_not_cli),
-        "false_cli_supported": sorted(false_cli_supported),
-        "missing_cli_supported": sorted(missing_cli_supported),
         "cli_version": registry.get("$cli_version", "unknown"),
         "registry_type_count": len(reg_types),
         "cli_type_count": len(cli_types),
@@ -119,23 +108,7 @@ def print_diff(report: dict) -> None:
             print(f"  - {t}")
         print()
 
-    if report["false_cli_supported"]:
-        print("❌ Registry says cli_supported=true, but type NOT in CLI enum:")
-        for t in report["false_cli_supported"]:
-            print(f"  ! {t}")
-        print()
-
-    if report["missing_cli_supported"]:
-        print("⚠️  Registry says cli_supported=false, but type IS in CLI enum:")
-        for t in report["missing_cli_supported"]:
-            print(f"  ! {t}")
-        print()
-
-    if not any([
-        report["in_cli_not_registry"],
-        report["false_cli_supported"],
-        report["missing_cli_supported"],
-    ]):
+    if not report["in_cli_not_registry"]:
         print("✅ Registry is in sync with CLI")
 
 
@@ -155,13 +128,15 @@ def update_registry(registry: dict, cli_types: dict[str, str],
             "fab_type": fab_type,
             "api_path": api_path,
             "display_name": fab_type,
-            "cli_supported": True,
-            "mkdir_supported": False,
             "phase": "TBD",
             "phase_order": 0,
             "task_type": "TBD",
-            "mkdir_args": [],
             "aliases": [fab_type.lower()],
+            "rest_api": {
+                "creatable": False,
+                "definition": False
+            },
+            "availability": "preview",
             "notes": f"Auto-added by sync-item-types.py — needs manual metadata review"
         }
         reg_types[fab_type] = stub
@@ -189,11 +164,7 @@ def main():
 
     elif args.check:
         print_diff(report)
-        has_drift = bool(
-            report["in_cli_not_registry"]
-            or report["false_cli_supported"]
-            or report["missing_cli_supported"]
-        )
+        has_drift = bool(report["in_cli_not_registry"])
         sys.exit(1 if has_drift else 0)
 
     elif args.update:

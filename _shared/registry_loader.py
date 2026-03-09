@@ -29,29 +29,24 @@ def load_registry() -> dict[str, dict]:
     return _cache
 
 
-def build_fab_commands() -> dict[str, tuple[str, list[str]] | None]:
-    """Build a creation-support map for deploy-script-gen.py.
+def build_fab_commands() -> dict[str, bool]:
+    """Build a REST API creation-support map for deploy-script-gen.py.
 
-    Returns a dict mapping lowercase alias → (path_template, []) or None
-    if the item can only be created via Fabric Portal.
-    Used to identify portal-only items during deployment.
+    Returns a dict mapping lowercase alias → True (REST API creatable) or False
+    (portal-only, no programmatic creation).
+
+    .. deprecated:: Use rest_api.creatable directly. This function name is kept
+       for backward compatibility but no longer returns fab mkdir path templates.
     """
     registry = load_registry()
-    result: dict[str, tuple[str, list[str]] | None] = {}
+    result: dict[str, bool] = {}
 
     for canonical, data in registry.items():
-        fab_type = data["fab_type"]
-        mkdir_supported = data.get("mkdir_supported", False)
+        creatable = data.get("rest_api", {}).get("creatable", False)
 
-        if mkdir_supported:
-            path_template = "{ws}.Workspace/{name}." + fab_type
-            value = (path_template, [])
-        else:
-            value = None
-
-        result[canonical.lower()] = value
+        result[canonical.lower()] = creatable
         for alias in data.get("aliases", []):
-            result[alias.lower()] = value
+            result[alias.lower()] = creatable
 
     return result
 
@@ -128,13 +123,14 @@ def build_task_type_map() -> dict[str, str]:
 def build_portal_only_items() -> dict[str, str]:
     """Build the PORTAL_ONLY_ITEMS dict for review-prescan.py.
 
-    Returns a dict mapping lowercase name → fab_type for items that can't use fab mkdir.
+    Returns a dict mapping lowercase name → fab_type for items that cannot
+    be created via the Fabric REST API.
     """
     registry = load_registry()
     result: dict[str, str] = {}
 
     for canonical, data in registry.items():
-        if not data.get("mkdir_supported", False):
+        if not data.get("rest_api", {}).get("creatable", False):
             result[canonical.lower()] = data["fab_type"]
             result[data["display_name"].lower()] = data["fab_type"]
             for alias in data.get("aliases", []):
