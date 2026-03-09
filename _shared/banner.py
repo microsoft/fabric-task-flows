@@ -48,14 +48,18 @@ def print_banner(
         "|" + " " * w + "|",
     ]
     for art_line in BANNER_ART.split("\n"):
-        lines.append(f"|   {art_line.ljust(w - 3)}|")
+        content = f"   {art_line}"
+        lines.append(f"|{content.ljust(w)}|")
     lines.append("|" + " " * w + "|")
     if project:
-        lines.append(f"|   Project:   {project.ljust(w - 16)}|")
+        content = f"   Project:   {project}"
+        lines.append(f"|{content.ljust(w)}|")
     if task_flow:
-        lines.append(f"|   Task Flow: {task_flow.ljust(w - 16)}|")
+        content = f"   Task Flow: {task_flow}"
+        lines.append(f"|{content.ljust(w)}|")
     if mode:
-        lines.append(f"|   Mode:      {mode.ljust(w - 16)}|")
+        content = f"   Mode:      {mode}"
+        lines.append(f"|{content.ljust(w)}|")
     if project or task_flow or mode:
         lines.append("|" + " " * w + "|")
     lines.append("+" + f" v{VERSION} ".center(w, "-") + "+")
