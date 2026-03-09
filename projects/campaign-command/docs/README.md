@@ -1,12 +1,12 @@
 # Campaign Command — Architecture Documentation
 
-> Generated: <!-- /fabric-document: timestamp -->
-> Task flow: <!-- /fabric-document: task flow name -->
-> Status: <!-- /fabric-document: DEPLOYED | VALIDATED | PARTIAL -->
+> Generated: 2026-03-09
+> Task flow: lambda + conversational-analytics (overlay)
+> Status: VALIDATED
 
 ## Overview
 
-<!-- /fabric-document: 2-3 sentence summary -->
+Campaign Command is a Lambda architecture for a marketing company, combining batch analytics (Google Analytics, AdWords) with real-time social media sentiment monitoring. It includes an exec-facing Data Agent chatbot for self-service campaign performance Q&A.
 
 ## Quick Links
 
@@ -20,8 +20,8 @@
 
 | ADR | Decision | Outcome |
 |-----|----------|---------|
-| [001-task-flow](decisions/001-task-flow.md) | Which task flow pattern? | |
-| [002-storage](decisions/002-storage.md) | Storage layer | |
-| [003-ingestion](decisions/003-ingestion.md) | Ingestion approach | |
-| [004-processing](decisions/004-processing.md) | Processing/transformation | |
-| [005-visualization](decisions/005-visualization.md) | Visualization | |
+| [001-task-flow](decisions/001-task-flow.md) | Which task flow pattern? | Lambda + conversational-analytics overlay |
+| [002-storage](decisions/002-storage.md) | Storage layer | Lakehouse + Warehouse + Eventhouse |
+| [003-ingestion](decisions/003-ingestion.md) | Ingestion approach | Pipeline (batch) + Eventstream (real-time) |
+| [004-processing](decisions/004-processing.md) | Processing/transformation | Notebook (Spark) + KQL Queryset |
+| [005-visualization](decisions/005-visualization.md) | Visualization | Report + RT Dashboard + Data Agent |
