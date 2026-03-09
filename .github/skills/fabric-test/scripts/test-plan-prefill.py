@@ -33,7 +33,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 # Phase mapping — loaded from _shared/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(REPO_ROOT / "_shared"))
-from registry_loader import build_phase_map
+from registry_loader import (
+    build_phase_map,
+    build_fab_type_map as _build_fab_types,
+    load_registry as _load_reg,
+    build_deploy_method_map,
+    build_test_method_map,
+)
 from yaml_utils import extract_yaml_blocks, parse_yaml_list, parse_yaml_scalar
 from text_utils import slugify_phase
 
@@ -43,12 +49,13 @@ PHASE_MAP: dict[str, tuple[str, int]] = build_phase_map()
 # Item type → Fabric type for REST API verification
 # ---------------------------------------------------------------------------
 
-from registry_loader import build_fab_type_map as _build_fab_types, load_registry as _load_reg
 FAB_TYPES: dict[str, str] = _build_fab_types()
 _REG = _load_reg()
 API_PATHS: dict[str, str] = {
     name: data.get("api_path", "items") for name, data in _REG.items()
 }
+DEPLOY_METHODS: dict[str, dict] = build_deploy_method_map()
+TEST_METHOD_MAP: dict[str, dict] = build_test_method_map()
 
 
 # ---------------------------------------------------------------------------
@@ -203,15 +210,22 @@ def _build_test_method(
     ac: dict[str, str],
     item_type: str | None,
     items: list[dict[str, str]],
-) -> tuple[str, str]:
-    """Return (ac_type, test_method) for an AC."""
+) -> tuple[str, str, str]:
+    """Return (ac_type, test_method, deploy_note) for an AC.
+
+    Uses registry data to generate correct test methods:
+    - Portal-only items → manual portal verification
+    - Items with definition support → definition check
+    - Items without definition → existence check only
+    - Preview items → noted in deploy_note
+    """
     ac_type = ac.get("type", "structural")
 
     if ac_type == "data-flow":
-        return "data-flow", "verify after connections configured"
+        return "data-flow", "verify after connections configured", ""
 
     if item_type is None:
-        return ac_type, ac.get("verify", "manual verification required")
+        return ac_type, ac.get("verify", "manual verification required"), ""
 
     fab_type = FAB_TYPES.get(item_type)
     target = ac.get("target", "")
@@ -225,11 +239,28 @@ def _build_test_method(
                 break
 
     if not fab_type:
-        return ac_type, ac.get("verify", "manual verification required")
+        return ac_type, ac.get("verify", "manual verification required"), ""
+
+    # Registry-driven test method generation
+    dm = DEPLOY_METHODS.get(item_type) or DEPLOY_METHODS.get(fab_type) or {}
+    tm = TEST_METHOD_MAP.get(item_type) or TEST_METHOD_MAP.get(fab_type) or {}
+
+    deploy_note = ""
+    if dm.get("availability") == "preview":
+        deploy_note = "Preview feature — may have limited API support"
+    if dm.get("method") == "cicd" and dm.get("verified"):
+        cicd_note = f"fabric-cicd ({dm.get('strategy')}, verified)"
+        deploy_note = f"{deploy_note}; {cicd_note}" if deploy_note else cicd_note
+    elif dm.get("strategy") == "unsupported":
+        deploy_note = "No fabric-cicd support — REST API or portal only"
+
+    # Portal-only items → manual verification
+    if not dm.get("creatable", True):
+        return ac_type, f"Verify {item_name} exists in Fabric portal (portal-only)", deploy_note
 
     api_path = API_PATHS.get(fab_type, API_PATHS.get(item_type, "items"))
 
-    # Structural ACs → REST API item exists; config ACs → REST API get definition
+    # Determine if this is a config check vs existence check
     criterion_lower = ac.get("criterion", "").lower()
     verify_lower = ac.get("verify", "").lower()
     combined = criterion_lower + " " + verify_lower
@@ -239,10 +270,12 @@ def _build_test_method(
         for kw in ("config", "setting", "bound", "attached", "mode", "connection", "publish")
     )
 
-    if is_config:
-        return ac_type, f"GET /workspaces/{{id}}/{api_path}/{item_name} | check definition"
+    if is_config and dm.get("has_definition"):
+        return ac_type, f"GET /workspaces/{{id}}/{api_path}/{item_name} | check definition", deploy_note
+    elif is_config:
+        return ac_type, f"GET /workspaces/{{id}}/{api_path} | verify {item_name} exists (no definition API — check config in portal)", deploy_note
 
-    return ac_type, f"GET /workspaces/{{id}}/{api_path} | verify {item_name} exists"
+    return ac_type, f"GET /workspaces/{{id}}/{api_path} | verify {item_name} exists", deploy_note
 
 
 # ---------------------------------------------------------------------------
@@ -311,14 +344,54 @@ def prefill(handoff_path: str) -> dict:
         else:
             checklist_ref = ""
 
-        ac_type, test_method = _build_test_method(ac, item_type, items)
+        ac_type, test_method, deploy_note = _build_test_method(ac, item_type, items)
 
-        criteria_mapping.append({
+        entry = {
             "ac_id": ac_id,
             "type": ac_type,
             "checklist_ref": checklist_ref,
             "test_method": test_method,
-        })
+        }
+        if deploy_note:
+            entry["deploy_note"] = deploy_note
+        if phase_info:
+            entry["_phase_order"] = phase_info[1]
+        else:
+            entry["_phase_order"] = 99
+
+        criteria_mapping.append(entry)
+
+    # Sort by deployment phase order so test plan follows deployment sequence
+    criteria_mapping.sort(key=lambda e: e.get("_phase_order", 99))
+    # Remove internal sort key from output
+    for entry in criteria_mapping:
+        entry.pop("_phase_order", None)
+
+    # Pre-fill critical verification stubs per detected phase
+    detected_phases: list[str] = []
+    seen_phases: set[str] = set()
+    for item in items:
+        it = item.get("type", "")
+        pi = PHASE_MAP.get(it) or PHASE_MAP.get(it.title()) if it else None
+        if pi and pi[0] not in seen_phases:
+            seen_phases.add(pi[0])
+            detected_phases.append(pi[0])
+
+    phase_cvp_stubs = {
+        "Foundation": "All storage items exist and are accessible via REST API",
+        "Environment": "Spark environment published and ready for notebook binding",
+        "Ingestion": "Data pipeline/eventstream connected to sources and producing data",
+        "Transformation": "Notebooks/queries execute successfully against ingested data",
+        "Visualization": "Semantic Model bound to storage; Reports render with data",
+        "ML": "ML experiment registered and model endpoint responds",
+        "IQ": "Data Agent responds to natural language queries",
+        "Monitoring": "Alerts configured and triggering on test conditions",
+    }
+    critical_verification = [
+        phase_cvp_stubs[p] for p in detected_phases if p in phase_cvp_stubs
+    ]
+    if not critical_verification:
+        critical_verification = ["LLM: Add 3-5 critical verification points"]
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -329,7 +402,7 @@ def prefill(handoff_path: str) -> dict:
         "test_plan_date": today,
         "scan_type": "automated",
         "criteria_mapping": criteria_mapping,
-        "critical_verification": ["LLM: Add 3-5 critical verification points"],
+        "critical_verification": critical_verification,
         "edge_cases": ["LLM: Add failure scenarios"],
         "blockers": {
             "architecture": [],

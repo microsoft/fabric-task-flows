@@ -252,7 +252,138 @@ def build_type_remap() -> dict[str, str]:
             titled = alias.title()
             if titled != fab_type:
                 result[titled] = fab_type
-            if alias != fab_type.lower():
-                result[alias] = fab_type
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Review & test plan pre-computation builders
+# ─────────────────────────────────────────────────────────────────────────────
+
+def build_deploy_method_map() -> dict[str, dict]:
+    """Classify each item type's deployment method from combined registry fields.
+
+    Returns a dict mapping type name variants → deployment metadata::
+
+        {
+            "method": "cicd" | "rest_api" | "portal",
+            "strategy": "content" | "platform_only" | "unsupported" | None,
+            "verified": True | False,
+            "creatable": True | False,
+            "has_definition": True | False,
+            "availability": "ga" | "preview",
+        }
+    """
+    registry = load_registry()
+    result: dict[str, dict] = {}
+
+    for canonical, data in registry.items():
+        creatable = data.get("rest_api", {}).get("creatable", False)
+        has_def = data.get("rest_api", {}).get("definition", False)
+        cicd = data.get("cicd", {})
+        strategy = cicd.get("strategy")
+        verified = cicd.get("verified", False)
+        availability = data.get("availability", "ga")
+
+        if strategy in ("content", "platform_only"):
+            method = "cicd"
+        elif creatable:
+            method = "rest_api"
+        else:
+            method = "portal"
+
+        value = {
+            "method": method,
+            "strategy": strategy,
+            "verified": verified,
+            "creatable": creatable,
+            "has_definition": has_def,
+            "availability": availability,
+        }
+
+        result[canonical] = value
+        result[data["fab_type"]] = value
+        result[data["display_name"]] = value
+        for alias in data.get("aliases", []):
+            result[alias] = value
+
+    return result
+
+
+def build_test_method_map() -> dict[str, dict]:
+    """Pre-generate test method strings for each item type from registry data.
+
+    Returns a dict mapping type name variants → test metadata::
+
+        {
+            "verify_method": "REST API GET /lakehouses | verify {item} exists",
+            "definition_check": "REST API GET /lakehouses/{item} | check definition",
+            "manual_fallback": "Verify {item} exists in Fabric portal",
+            "api_path": "lakehouses",
+            "supports_definition": True,
+            "is_portal_only": False,
+            "phase": "Foundation",
+            "phase_order": 1,
+            "notes": "...",
+        }
+    """
+    registry = load_registry()
+    result: dict[str, dict] = {}
+
+    for canonical, data in registry.items():
+        creatable = data.get("rest_api", {}).get("creatable", False)
+        has_def = data.get("rest_api", {}).get("definition", False)
+        api_path = data.get("api_path", "items")
+        phase = data.get("phase", "Other")
+        phase_order = data.get("phase_order", 99)
+        notes = data.get("notes", "")
+
+        if creatable and has_def:
+            verify = f"REST API GET /{api_path} | verify {{item}} exists"
+            def_check = f"REST API GET /{api_path}/{{item}} | check definition"
+        elif creatable:
+            verify = f"REST API GET /{api_path} | verify {{item}} exists"
+            def_check = None
+        else:
+            verify = "Verify {item} exists in Fabric portal"
+            def_check = None
+
+        value = {
+            "verify_method": verify,
+            "definition_check": def_check,
+            "manual_fallback": "Verify {item} exists in Fabric portal",
+            "api_path": api_path,
+            "supports_definition": has_def,
+            "is_portal_only": not creatable,
+            "phase": phase,
+            "phase_order": phase_order,
+            "notes": notes,
+        }
+
+        result[canonical] = value
+        result[data["fab_type"]] = value
+        result[data["display_name"]] = value
+        for alias in data.get("aliases", []):
+            result[alias] = value
+
+    return result
+
+
+def build_item_notes_map() -> dict[str, str]:
+    """Return item type notes/gotchas from the registry.
+
+    Maps type name variants → notes string. Items without notes are omitted.
+    """
+    registry = load_registry()
+    result: dict[str, str] = {}
+
+    for canonical, data in registry.items():
+        notes = data.get("notes", "")
+        if not notes:
+            continue
+        result[canonical] = notes
+        result[data["fab_type"]] = notes
+        result[data["display_name"]] = notes
+        for alias in data.get("aliases", []):
+            result[alias] = notes
 
     return result

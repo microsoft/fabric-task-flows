@@ -17,6 +17,9 @@ from registry_loader import (
     build_api_creatable_items,
     build_api_name_remap,
     build_availability_map,
+    build_deploy_method_map,
+    build_test_method_map,
+    build_item_notes_map,
 )
 
 VALID_TASK_TYPES = {
@@ -185,3 +188,102 @@ def test_build_availability_map_covers_canonical():
     avail_map = build_availability_map()
     for name in registry:
         assert name in avail_map, f"Canonical type {name} missing from availability_map"
+
+
+# ── Deploy method map tests ───────────────────────────────────────────────
+
+VALID_DEPLOY_METHODS = {"cicd", "rest_api", "portal"}
+
+
+def test_build_deploy_method_map_returns_dict():
+    dm = build_deploy_method_map()
+    assert isinstance(dm, dict)
+    assert len(dm) > 0
+
+
+def test_deploy_method_map_has_valid_methods():
+    dm = build_deploy_method_map()
+    for key, val in dm.items():
+        assert val["method"] in VALID_DEPLOY_METHODS, \
+            f"{key} has invalid deploy method: {val['method']}"
+
+
+def test_deploy_method_map_lakehouse_is_cicd():
+    dm = build_deploy_method_map()
+    lh = dm.get("Lakehouse")
+    assert lh is not None
+    assert lh["method"] == "cicd"
+    assert lh["strategy"] == "platform_only"
+    assert lh["verified"] is True
+    assert lh["creatable"] is True
+
+
+def test_deploy_method_map_portal_only_items():
+    dm = build_deploy_method_map()
+    portal_items = {k: v for k, v in dm.items() if v["method"] == "portal"}
+    assert len(portal_items) > 0, "Should have at least one portal-only item"
+    for key, val in portal_items.items():
+        assert val["creatable"] is False
+
+
+def test_deploy_method_map_covers_canonical():
+    registry = load_registry()
+    dm = build_deploy_method_map()
+    for name in registry:
+        assert name in dm, f"Canonical type {name} missing from deploy_method_map"
+
+
+# ── Test method map tests ─────────────────────────────────────────────────
+
+def test_build_test_method_map_returns_dict():
+    tm = build_test_method_map()
+    assert isinstance(tm, dict)
+    assert len(tm) > 0
+
+
+def test_test_method_map_has_required_keys():
+    tm = build_test_method_map()
+    required = {"verify_method", "api_path", "supports_definition", "is_portal_only", "phase", "phase_order"}
+    for key, val in tm.items():
+        for req in required:
+            assert req in val, f"{key} missing required key: {req}"
+
+
+def test_test_method_map_portal_items_use_manual():
+    tm = build_test_method_map()
+    for key, val in tm.items():
+        if val["is_portal_only"]:
+            assert "portal" in val["verify_method"].lower(), \
+                f"Portal-only {key} should have portal in verify_method"
+
+
+def test_test_method_map_rest_items_use_api():
+    tm = build_test_method_map()
+    for key, val in tm.items():
+        if not val["is_portal_only"]:
+            assert "REST API GET" in val["verify_method"], \
+                f"REST-capable {key} should have REST API in verify_method"
+
+
+def test_test_method_map_definition_check_only_when_supported():
+    tm = build_test_method_map()
+    for key, val in tm.items():
+        if val["supports_definition"]:
+            assert val["definition_check"] is not None, \
+                f"{key} supports definition but has no definition_check"
+        else:
+            assert val["definition_check"] is None, \
+                f"{key} has definition_check but supports_definition is False"
+
+
+# ── Item notes map tests ──────────────────────────────────────────────────
+
+def test_build_item_notes_map_returns_dict():
+    nm = build_item_notes_map()
+    assert isinstance(nm, dict)
+
+
+def test_item_notes_map_excludes_empty():
+    nm = build_item_notes_map()
+    for key, val in nm.items():
+        assert val, f"{key} has empty notes but should be excluded"

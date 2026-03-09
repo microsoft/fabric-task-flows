@@ -35,7 +35,13 @@ from typing import Any
 # Portal-only items — loaded from _shared/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
-from registry_loader import build_portal_only_items
+from registry_loader import (
+    build_portal_only_items,
+    build_deploy_method_map,
+    build_test_method_map,
+    build_phase_map,
+    build_item_notes_map,
+)
 from yaml_utils import (
     parse_yaml as _parse_yaml,
     extract_and_parse_yaml_blocks,
@@ -44,6 +50,10 @@ from yaml_utils import (
 )
 
 PORTAL_ONLY_ITEMS: dict[str, str] = build_portal_only_items()
+DEPLOY_METHODS: dict[str, dict] = build_deploy_method_map()
+TEST_METHODS: dict[str, dict] = build_test_method_map()
+PHASE_MAP: dict[str, tuple[str, int]] = build_phase_map()
+ITEM_NOTES: dict[str, str] = build_item_notes_map()
 
 KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
@@ -434,9 +444,251 @@ def _check_diagram(content: str, items: list[dict]) -> list[dict]:
     return findings
 
 
-# ---------------------------------------------------------------------------
-# Core prescan function
-# ---------------------------------------------------------------------------
+def _check_phase_ordering(items: list[dict], waves: list[dict]) -> list[dict]:
+    """Validate that wave assignments respect registry phase ordering."""
+    findings: list[dict] = []
+
+    # Map item → wave
+    item_wave: dict[str, int] = {}
+    for wave in waves:
+        wave_id = int(wave.get("id", 0))
+        for witem in wave.get("items", []):
+            item_wave[str(witem)] = wave_id
+
+    violations: list[str] = []
+    for item in items:
+        name = item.get("name", "")
+        item_type = item.get("type", "")
+        if not name or not item_type:
+            continue
+
+        my_wave = item_wave.get(name)
+        if my_wave is None:
+            continue
+
+        phase_info = PHASE_MAP.get(item_type) or PHASE_MAP.get(item_type.title())
+        if not phase_info:
+            continue
+
+        phase_name, phase_order = phase_info
+        # Check if items with lower phase_order are in later waves
+        for other in items:
+            other_name = other.get("name", "")
+            other_type = other.get("type", "")
+            if other_name == name or not other_type:
+                continue
+            other_wave = item_wave.get(other_name)
+            if other_wave is None:
+                continue
+            other_phase = PHASE_MAP.get(other_type) or PHASE_MAP.get(other_type.title())
+            if not other_phase:
+                continue
+            # If other item has a later phase but an earlier wave
+            if other_phase[1] > phase_order and other_wave < my_wave:
+                violations.append(
+                    f"{other_name} ({other_phase[0]}) in wave {other_wave} "
+                    f"before {name} ({phase_name}) in wave {my_wave}"
+                )
+
+    if violations:
+        # Deduplicate
+        for v in list(dict.fromkeys(violations))[:3]:
+            findings.append({
+                "area": "Phase ordering",
+                "severity": "yellow",
+                "finding": _truncate(v),
+                "suggestion": "Align waves with registry deployment phases",
+            })
+    else:
+        findings.append({
+            "area": "Phase ordering",
+            "severity": "green",
+            "finding": "Wave assignments align with deployment phases",
+            "suggestion": "",
+        })
+
+    return findings
+
+
+def _check_deploy_feasibility(items: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Enhanced deployment feasibility using full registry metadata.
+
+    Checks REST API creatability, fabric-cicd strategy, availability status,
+    and definition support for each item.
+    """
+    findings: list[dict] = []
+    deploy_entries: list[dict] = []
+
+    for item in items:
+        item_type = item.get("type", "")
+        item_name = item.get("name", item_type)
+        if not item_type:
+            continue
+
+        dm = DEPLOY_METHODS.get(item_type) or DEPLOY_METHODS.get(item_type.title())
+        tm = TEST_METHODS.get(item_type) or TEST_METHODS.get(item_type.title())
+        notes = ITEM_NOTES.get(item_type) or ITEM_NOTES.get(item_type.title()) or ""
+
+        if not dm:
+            findings.append({
+                "area": "Deploy feasibility",
+                "severity": "yellow",
+                "finding": f"{item_type} not found in item registry",
+                "suggestion": "Verify item type name matches registry",
+            })
+            continue
+
+        entry = {
+            "item": item_name,
+            "type": item_type,
+            "deploy_method": dm["method"],
+            "strategy": dm.get("strategy"),
+            "verified": dm.get("verified", False),
+            "availability": dm.get("availability", "ga"),
+            "test_method": (tm or {}).get("verify_method", "").replace("{item}", item_name),
+            "has_definition": dm.get("has_definition", False),
+            "phase": (tm or {}).get("phase", "Other"),
+            "phase_order": (tm or {}).get("phase_order", 99),
+        }
+        if notes:
+            entry["notes"] = notes
+        deploy_entries.append(entry)
+
+        # Portal-only: cannot be created via REST API
+        if dm["method"] == "portal":
+            findings.append({
+                "area": "Deploy feasibility",
+                "severity": "yellow",
+                "finding": f"{item_type} is portal-only (no REST API)",
+                "suggestion": "Document as manual step in deployment",
+            })
+
+        # fabric-cicd unsupported
+        elif dm.get("strategy") == "unsupported":
+            findings.append({
+                "area": "Deploy feasibility",
+                "severity": "yellow",
+                "finding": f"{item_type} not supported by fabric-cicd",
+                "suggestion": "Use REST API or portal for this item",
+            })
+
+        # Preview feature
+        if dm.get("availability") == "preview":
+            findings.append({
+                "area": "Deploy feasibility",
+                "severity": "yellow",
+                "finding": f"{item_type} is a preview feature",
+                "suggestion": "Note preview limitations in deployment plan",
+            })
+
+        # Creatable but no definition support
+        if dm.get("creatable") and not dm.get("has_definition"):
+            findings.append({
+                "area": "Deploy feasibility",
+                "severity": "green",
+                "finding": f"{item_type} needs portal config post-creation",
+                "suggestion": "Plan manual configuration after REST API create",
+            })
+
+    if not findings:
+        findings.append({
+            "area": "Deploy feasibility",
+            "severity": "green",
+            "finding": "All items fully deployable via REST API or fabric-cicd",
+            "suggestion": "",
+        })
+
+    return findings, deploy_entries
+
+
+def _check_naming_safety(items: list[dict]) -> list[dict]:
+    """Check for Fabric naming restrictions (hyphens rejected by multiple types)."""
+    findings: list[dict] = []
+
+    for item in items:
+        name = item.get("name", "")
+        item_type = item.get("type", "")
+        if not name or "-" not in name:
+            continue
+
+        safe_name = name.replace("-", "_")
+        findings.append({
+            "area": "Naming safety",
+            "severity": "yellow",
+            "finding": f"{name} contains hyphens (Fabric may reject)",
+            "suggestion": f"Rename to {safe_name}",
+        })
+
+    if not findings:
+        findings.append({
+            "area": "Naming safety",
+            "severity": "green",
+            "finding": "All item names are Fabric-safe (no hyphens)",
+            "suggestion": "",
+        })
+
+    return findings
+
+
+def _check_ac_test_methods(items: list[dict], acs: list[dict]) -> list[dict]:
+    """Validate that AC verification methods match registry capabilities."""
+    findings: list[dict] = []
+
+    for ac in acs:
+        verify_text = str(ac.get("verify", "")).lower()
+        target = ac.get("target", "")
+        ac_id = ac.get("id", "?")
+
+        if not verify_text:
+            continue
+
+        # Detect which item this AC targets
+        detected_type = None
+        for item in items:
+            item_name = item.get("name", "")
+            if item_name and item_name.lower() in verify_text:
+                detected_type = item.get("type", "")
+                break
+            if target and target.lower() == item_name.lower():
+                detected_type = item.get("type", "")
+                break
+
+        if not detected_type:
+            continue
+
+        dm = DEPLOY_METHODS.get(detected_type) or DEPLOY_METHODS.get(detected_type.title())
+        if not dm:
+            continue
+
+        # AC says REST API but item is portal-only
+        uses_rest = "rest api" in verify_text or "get /" in verify_text
+        if uses_rest and not dm.get("creatable", False):
+            findings.append({
+                "area": "AC feasibility",
+                "severity": "red",
+                "finding": f"{ac_id} uses REST API but {detected_type} is portal-only",
+                "suggestion": "Change verify method to portal check",
+            })
+
+        # AC says "check definition" but item has no definition support
+        checks_def = "definition" in verify_text or "config" in verify_text
+        if checks_def and not dm.get("has_definition", False):
+            findings.append({
+                "area": "AC feasibility",
+                "severity": "yellow",
+                "finding": f"{ac_id} checks definition but {detected_type} has none",
+                "suggestion": "Use existence check instead of definition",
+            })
+
+    if not findings:
+        findings.append({
+            "area": "AC feasibility",
+            "severity": "green",
+            "finding": "All AC verify methods match registry capabilities",
+            "suggestion": "",
+        })
+
+    return findings
 
 def prescan(handoff_path: str) -> dict:
     """Run all deterministic checks on an architecture handoff.
@@ -503,11 +755,19 @@ def prescan(handoff_path: str) -> dict:
             "suggestion": "Ensure handoff has items and waves YAML blocks",
         })
 
-    # 2. CLI support cross-reference
-    cli_entries: list[dict] = []
+    # 2. Deployment feasibility (enhanced — replaces old CLI-only check)
+    deploy_entries: list[dict] = []
     if items:
-        cli_findings, cli_entries = _check_cli_support(items)
-        all_findings.extend(cli_findings)
+        deploy_findings, deploy_entries = _check_deploy_feasibility(items)
+        all_findings.extend(deploy_findings)
+
+    # Legacy cli_verification for backwards compatibility
+    cli_entries: list[dict] = [
+        {"item_type": e["type"], "fab_type": e["type"],
+         "supported": e["deploy_method"] != "portal",
+         "fallback": "portal" if e["deploy_method"] == "portal" else ""}
+        for e in deploy_entries if e["deploy_method"] == "portal"
+    ]
 
     # 3. AC coverage check
     if items and acs:
@@ -533,6 +793,18 @@ def prescan(handoff_path: str) -> dict:
     # 6. Architecture diagram validation
     diagram_findings = _check_diagram(content, items)
     all_findings.extend(diagram_findings)
+
+    # 7. Phase ordering validation (registry-driven)
+    if items and waves:
+        all_findings.extend(_check_phase_ordering(items, waves))
+
+    # 8. Naming safety (Fabric hyphen restrictions)
+    if items:
+        all_findings.extend(_check_naming_safety(items))
+
+    # 9. AC test method feasibility (registry-driven)
+    if items and acs:
+        all_findings.extend(_check_ac_test_methods(items, acs))
 
     # Number findings
     for idx, f in enumerate(all_findings, start=1):
@@ -566,6 +838,7 @@ def prescan(handoff_path: str) -> dict:
         "findings": all_findings,
         "wave_optimization": wave_opt,
         "cli_verification": cli_entries,
+        "item_deployment_matrix": sorted(deploy_entries, key=lambda e: e.get("phase_order", 99)),
         "prerequisites": [],
         "assessment": assessment,
         "must_fix": must_fix,
