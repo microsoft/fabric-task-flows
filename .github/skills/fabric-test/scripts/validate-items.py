@@ -85,25 +85,29 @@ def _build_portal_only(registry: dict) -> set[str]:
 
 
 # ---------------------------------------------------------------------------
-# Phase assignment (mirrors shell script logic)
+# Phase assignment — derived from registry
 # ---------------------------------------------------------------------------
 
-PHASE_MAP = {
-    "Lakehouse": "Foundation", "Warehouse": "Foundation", "Eventhouse": "Foundation",
-    "SQLDatabase": "Foundation", "KQLDatabase": "Foundation", "CosmosDB": "Foundation",
-    "Environment": "Environment",
-    "CopyJob": "Ingestion", "Eventstream": "Ingestion", "DataPipeline": "Ingestion",
-    "Pipeline": "Ingestion", "Dataflow": "Ingestion", "Mirroring": "Ingestion",
-    "Notebook": "Transformation", "SparkJobDefinition": "Transformation",
-    "KQLQueryset": "Transformation",
-    "SemanticModel": "Visualization", "Report": "Visualization",
-    "Dashboard": "Visualization", "RealTimeDashboard": "Visualization",
-    "KQLDashboard": "Visualization",
-    "MLExperiment": "ML", "MLModel": "ML",
-}
+def _build_phase_map(registry: dict) -> dict[str, str]:
+    """Map item type variants → phase name from the registry."""
+    result: dict[str, str] = {}
+    for canonical, data in registry.items():
+        phase = data.get("phase", "Other")
+        if phase == "TBD":
+            phase = "Other"
+        result[canonical] = phase
+        result[data["fab_type"]] = phase
+        result[data["display_name"]] = phase
+        for alias in data.get("aliases", []):
+            result[alias] = phase
+            parts = alias.split()
+            if len(parts) > 1:
+                result[" ".join(w.capitalize() for w in parts)] = phase
+    return result
 
-def _get_phase(item_type: str) -> str:
-    return PHASE_MAP.get(item_type, "Other")
+
+def _get_phase(item_type: str, phase_map: dict[str, str]) -> str:
+    return phase_map.get(item_type, "Other")
 
 
 # ---------------------------------------------------------------------------
@@ -302,6 +306,7 @@ def main():
     registry = _load_registry()
     api_paths = _build_api_path_map(registry)
     portal_only = _build_portal_only(registry)
+    phase_map = _build_phase_map(registry)
 
     # Parse handoff
     project, task_flow, workspace, items = _parse_handoff(args.handoff)
@@ -341,7 +346,7 @@ def main():
         name = item["name"]
         item_type = item["type"]
         status = item["status"]
-        phase = _get_phase(item_type)
+        phase = _get_phase(item_type, phase_map)
 
         if status != "deployed":
             print(f"  ⏭️  SKIP  {name} ({item_type}) — status: {status}", file=sys.stderr)
@@ -400,7 +405,7 @@ def main():
     known_phases = ["Foundation", "Environment", "Ingestion", "Transformation", "Visualization", "ML", "Other"]
     active_phases = []
     for it in items:
-        p = _get_phase(it["type"])
+        p = _get_phase(it["type"], phase_map)
         if p not in active_phases:
             active_phases.append(p)
 

@@ -21,12 +21,15 @@ import json
 import re
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TextIO
 
 
 # ---------------------------------------------------------------------------
-# Signal category definitions
+# Signal category definitions — loaded from _shared/signal-categories.json
 # ---------------------------------------------------------------------------
+
+SIGNAL_CATEGORIES_PATH = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "signal-categories.json"
 
 @dataclass(frozen=True)
 class SignalCategory:
@@ -38,288 +41,24 @@ class SignalCategory:
     task_flow_candidates: tuple[str, ...]
 
 
-CATEGORIES: tuple[SignalCategory, ...] = (
-    SignalCategory(
-        id=1,
-        name="Real-time / Streaming",
-        keywords=(
-            "real-time", "streaming", "IoT", "sensors", "alerts", "live",
-            "events", "telemetry", "event-driven", "kafka", "event hub",
-            "pub/sub", "push notifications", "webhooks", "continuous",
-            "GPS", "pings", "clickstream", "traffic", "fraud detection",
-            "200ms", "sub-second", "low latency", "live map",
-            "smart meters", "SCADA", "vibration", "position monitoring",
-            "trading floor", "real-time personalization", "stock updates",
-            "outage", "grid operations", "OPC-UA",
-            "bid requests", "surge pricing", "real-time ops",
-            "delivery events", "cell towers", "dropped call",
-            "network congestion", "live dashboard", "live P&L",
-            "crowd flow", "turnstile", "ride-sharing",
-            # Heal iteration 1 — industry-specific real-time signals
-            "fleet management", "dispatch", "excursion alerts",
-            "real-time scoring", "real-time fraud", "odds feeds",
-            "tracking data", "satellite telemetry", "SNMP",
-            "pressure monitoring", "flow monitoring", "leak detection",
-            "incident detection", "player tracking", "optical tracking",
-        ),
-        velocity="Real-time",
-        use_case="Event analytics",
-        task_flow_candidates=("event-analytics", "event-medallion"),
-    ),
-    SignalCategory(
-        id=2,
-        name="Batch / Scheduled",
-        keywords=(
-            "batch", "daily", "weekly", "nightly", "ETL", "historical",
-            "reports", "scheduled", "periodic", "cron", "overnight",
-            "data warehouse", "monthly", "quarterly", "dashboard",
-            "spreadsheets", "flat files", "CSV export", "ERP",
-            "self-service analytics", "data-driven", "insights",
-            "slow queries", "cloud migration", "modernize",
-            "Power BI", "DirectQuery", "Import mode", "Direct Lake",
-            "gateway", "refresh", "semantic model", "shared datasets",
-            "Redshift", "QuickSight", "dbt", "revenue",
-            "P&L", "KPI", "demand forecasting", "trend reports",
-            "Synapse", "Data Factory", "Spark notebooks",
-            "data strategy", "single source of truth",
-            "billing", "analytics platform", "operational dashboards",
-            "compliance reporting", "production reports", "analytics",
-            "USDA", "FAA", "FDA", "quarterly close",
-            "portfolio", "citizen services", "impact dashboard",
-            "on-time performance", "usage dashboards",
-            # Heal iteration 2 — industry-specific batch/reporting signals
-            "bordereaux", "loss reserving", "IBNR",
-            "settlement reports", "chargeback rates",
-            "diversion reports", "pavement condition",
-            "after-action reports", "NENA", "DOT",
-            "ENERGY STAR", "energy benchmarking",
-            "sell-through", "inventory allocation",
-            "crop progress", "basis prices",
-            "cohort analysis", "staffing optimization",
-        ),
-        velocity="Batch",
-        use_case="Analytics / Reporting",
-        task_flow_candidates=("basic-data-analytics", "medallion"),
-    ),
-    SignalCategory(
-        id=3,
-        name="Both / Mixed (Lambda)",
-        keywords=(
-            "both batch and real-time", "historical + live",
-            "stream and batch", "hybrid", "lambda",
-            "real-time and batch", "hot and cold",
-            "speed layer", "batch layer",
-            "plus daily", "while also feeding", "and also need",
-            "real-time view", "end-of-day", "reconciliation",
-            "live and historical", "operational and analytical",
-            # Heal iteration 10 — more hybrid pattern signals
-            "also need monthly", "plus quarterly",
-            "real-time alerts plus", "daily trend",
-            "real-time and historical",
-            "monitoring and reporting",
-            "live dashboards and batch",
-            "near-real-time and compliance",
-        ),
-        velocity="Both",
-        use_case="Mixed analytics",
-        task_flow_candidates=("lambda", "event-medallion"),
-    ),
-    SignalCategory(
-        id=4,
-        name="Machine Learning",
-        keywords=(
-            "ML", "predict", "train models", "forecast", "scoring",
-            "classification", "regression", "neural network",
-            "deep learning", "feature engineering", "model", "inference",
-            "AI", "machine learning", "churn", "propensity",
-            "data prep", "data preparation", "data scientists",
-            "anomaly detection", "recommendation", "sentiment",
-            "auto-categorize", "predictive", "predictive maintenance",
-            "readmission prediction", "demand forecasting",
-            "personalization", "ML pipelines", "ML engineers",
-            "AI strategy", "AI-powered", "OEE",
-            "actuarial", "simulations", "risk scores",
-            "at risk", "propensity-to-churn", "engagement",
-            "content recommendations", "cohort analysis",
-            "funnel analysis", "backtesting", "model drift",
-            "A/B test", "retrain", "NLP", "text analytics",
-            "extract sentiment", "auto-categorize",
-            "digital twin", "route optimization",
-            # Heal iteration 3 — industry-specific ML signals
-            "computer vision", "defect detection", "machine vision",
-            "automated valuation", "AVM", "pricing model",
-            "deterioration prediction", "yield optimization",
-            "adaptive learning", "behavioral baselines",
-            "PML calculations", "grade control",
-            "timber volume forecasting", "growth-and-yield",
-            "TAR", "technology assisted review",
-            "pharmacokinetic", "bioequivalence",
-        ),
-        velocity="Batch (typically)",
-        use_case="Machine learning",
-        task_flow_candidates=("basic-machine-learning-models",),
-    ),
-    SignalCategory(
-        id=5,
-        name="Sensitive Data",
-        keywords=(
-            "sensitive", "PII", "compliance", "HIPAA", "masking",
-            "encryption", "access control", "GDPR", "SOC2", "audit",
-            "privacy", "regulated", "classified", "restricted", "PHI",
-            "confidential", "clinical data", "patient", "EMR",
-            "Epic", "Cerner", "FHIR", "population health",
-            "regulatory reporting", "risk analytics", "trading",
-            "chain of custody", "e-discovery", "SOX", "PCI-DSS",
-            "de-identified", "audit trail", "breach notification",
-            "data sovereignty", "tenant isolation",
-            "explainable", "data provenance",
-            # Heal iteration 4 — industry-specific compliance signals
-            "FERPA", "FSMA", "Safe Drinking Water Act",
-            "Title 31", "CTR", "SOLAS", "IMO",
-            "gaming commission", "tamper-proof",
-            "insider threat", "air-gapped", "SCIF",
-            "CDISC", "SDTM", "FDA submission",
-            "market abuse", "insider trading",
-            "AML", "SAR filing", "KYC",
-            "IATF 16949", "Forest Stewardship Council",
-            "EPA notification", "EDRM",
-        ),
-        velocity="Varies",
-        use_case="Sensitive data",
-        task_flow_candidates=("sensitive-data-insights",),
-    ),
-    SignalCategory(
-        id=6,
-        name="Transactional",
-        keywords=(
-            "writeback", "transactional", "CRUD", "operational",
-            "update records", "insert", "delete", "point-of-sale",
-            "inventory", "order management", "OLTP",
-            # Heal iteration 5 — transactional/operational signals
-            "POS terminals", "slot machines", "vending machines",
-            "payout", "trigger claim", "booking",
-            "rate optimization", "container stacking",
-            "automatic trigger", "dispatch systems",
-            "carrier selection", "restocking",
-        ),
-        velocity="Real-time",
-        use_case="Transactional",
-        task_flow_candidates=("translytical",),
-    ),
-    SignalCategory(
-        id=7,
-        name="Unstructured / Semi-structured",
-        keywords=(
-            "unstructured", "semi-structured", "files", "JSON", "Parquet",
-            "SQL queries on files", "CSV", "logs", "XML", "nested",
-            "schema-on-read", "data lake",
-            "documents", "contracts", "text", "reviews",
-            "genomic", "sequencing", "content", "images", "videos",
-            "user-generated content", "support ticket text",
-            "precedents", "key terms", "extract",
-            # Heal iteration 6 — industry-specific unstructured data signals
-            "LiDAR", "satellite imagery", "multispectral",
-            "FASTQ", "variant-called", "inspection reports",
-            "case report forms", "photo", "photographs",
-            "load files", "CDR records",
-            "log events", "CCTV", "video feeds",
-            "communications", "emails", "chats",
-        ),
-        velocity="Batch",
-        use_case="SQL analytics",
-        task_flow_candidates=("data-analytics-sql-endpoint",),
-    ),
-    SignalCategory(
-        id=8,
-        name="Data Quality / Layered",
-        keywords=(
-            "data quality", "bronze/silver/gold", "layers", "curated",
-            "cleanse", "transform stages", "raw", "refined", "aggregated",
-            "medallion", "data governance", "lineage", "data silos",
-            "unified catalog", "data catalog", "single source of truth",
-            "consolidate", "combine", "centralize",
-            "federated", "data mesh", "data products", "global view",
-            "conglomerate", "business units", "cross-region",
-            "multi-cloud", "AWS", "Azure", "on-prem",
-            "different tech stacks", "maturity levels",
-            "trust", "different numbers", "who owns",
-            "pipelines", "automated", "monitoring",
-            "quality checks", "naming standards", "documentation",
-            "SSIS packages", "Informatica", "ETL jobs",
-            "data contracts", "versioning", "compatibility",
-            "standardize", "unified",
-            # Heal iteration 7 — cross-system consolidation signals
-            "reconcile", "reconciliation", "discrepancies",
-            "traceability", "provenance", "recall",
-            "siloed", "vendor platforms", "different ERP",
-            "integrate", "integration", "unify",
-            "processing pipeline", "automated pipeline",
-            "migration strategy", "decommissioning",
-        ),
-        velocity="Varies",
-        use_case="Layered analytics",
-        task_flow_candidates=("medallion",),
-    ),
-    SignalCategory(
-        id=9,
-        name="Application Backend",
-        keywords=(
-            "API", "app", "frontend", "mobile", "backend", "GraphQL",
-            "REST endpoint", "microservices", "CRUD", "web app",
-            "application", "SPA", "full-stack",
-            "SaaS", "multi-tenant", "customer-facing",
-            "embedded analytics", "self-serve", "drag-and-drop",
-            "chatbot", "natural language", "cite sources",
-            "knowledge base", "AI-powered search",
-            # Heal iteration 8 — application/API integration signals
-            "STAC-compliant API", "API access",
-            "open data feeds", "GTFS", "GBFS",
-            "customer portal", "web interface",
-            "mobile app", "consumer-facing",
-            "marketplace", "self-service dashboards",
-        ),
-        velocity="Varies",
-        use_case="Application backend",
-        task_flow_candidates=("app-backend", "conversational-analytics"),
-    ),
-    SignalCategory(
-        id=10,
-        name="Document / NoSQL / AI-ready",
-        keywords=(
-            "document data", "NoSQL", "JSON", "semi-structured",
-            "Cosmos DB", "schema-less", "vector search", "embeddings",
-            "RAG", "knowledge base", "chatbot data",
-            "data agent", "natural language queries",
-            "ask questions about data", "self-service queries",
-            "conversational AI", "NL query",
-        ),
-        velocity="Varies",
-        use_case="NoSQL / AI-ready apps",
-        task_flow_candidates=("app-backend", "translytical", "conversational-analytics"),
-    ),
-    SignalCategory(
-        id=11,
-        name="Semantic Governance",
-        keywords=(
-            "cross-domain", "unified vocabulary", "knowledge graph",
-            "enterprise semantics", "ontology", "business terms",
-            "data catalog", "glossary", "metadata management",
-            "naming standards", "column names", "documentation",
-            "searchable catalog", "who owns", "data stewardship",
-            "ESG reporting", "sustainability", "carbon emissions",
-            "Scope 1", "Scope 2", "Scope 3",
-            # Heal iteration 9 — governance & cataloging signals
-            "ClinVar", "gnomAD", "MITRE ATT&CK",
-            "Carbon Intensity Indicator",
-            "open data", "data product", "data publishing",
-            "taxonomy", "classification schema",
-            "retention", "retention policy",
-        ),
-        velocity="Varies",
-        use_case="Semantic governance",
-        task_flow_candidates=(),
-    ),
-)
+def _load_categories() -> tuple[SignalCategory, ...]:
+    """Load signal categories from the shared JSON data file."""
+    with open(SIGNAL_CATEGORIES_PATH, encoding="utf-8") as f:
+        data = json.load(f)
+    return tuple(
+        SignalCategory(
+            id=cat["id"],
+            name=cat["name"],
+            keywords=tuple(cat["keywords"]),
+            velocity=cat["velocity"],
+            use_case=cat["use_case"],
+            task_flow_candidates=tuple(cat["task_flow_candidates"]),
+        )
+        for cat in data["categories"]
+    )
+
+
+CATEGORIES: tuple[SignalCategory, ...] = _load_categories()
 
 
 # ---------------------------------------------------------------------------
