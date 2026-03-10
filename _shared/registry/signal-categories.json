@@ -42,7 +42,10 @@
         "replication",
         "event",
         "sensor",
-        "temperature"
+        "temperature",
+        "outage",
+        "edge computing",
+        "edge ML"
       ],
       "velocity": "Real-time",
       "use_case": "Event analytics",
@@ -170,6 +173,11 @@
           "pattern": "(architecture|system|platform|infrastructure).{0,20}(doesn.?t|does not|can.?t|cannot|won.?t) scale",
           "label": "Scalability problem",
           "weight": 2
+        },
+        {
+          "pattern": "(volume|traffic|load|data).{0,15}(growing|doubling|tripling|increasing|explod).{0,15}(\\d+%|exponential|year|month|rapid)",
+          "label": "Rapid data growth",
+          "weight": 2
         }
       ]
     },
@@ -229,7 +237,13 @@
         "canary deployment",
         "pipeline",
         "database",
-        "query"
+        "query",
+        "transformation",
+        "incremental processing",
+        "backup",
+        "disaster recovery",
+        "backfill",
+        "reprocessing"
       ],
       "velocity": "Batch",
       "use_case": "Analytics / Reporting",
@@ -797,6 +811,46 @@
           "pattern": "(rolling|sliding|tumbling|hopping).{0,10}(window|average|sum|aggregat|median|computation)",
           "label": "Windowed computation pattern",
           "weight": 2
+        },
+        {
+          "pattern": "(circuit breaker|dead.?letter|retry|backoff|graceful.{0,5}degradation|fault.{0,5}toleran)",
+          "label": "Pipeline resilience pattern",
+          "weight": 2
+        },
+        {
+          "pattern": "(shadow IT|rogue|unauthorized|unsanctioned).{0,15}(pipeline|spreadsheet|database|tool|system|report)",
+          "label": "Shadow IT / ungoverned data",
+          "weight": 2
+        },
+        {
+          "pattern": "(low.latency|sub.second|sub.millisecond|millisecond|microsecond).{0,15}(query|queries|response|lookup|serving|retrieval)",
+          "label": "Low-latency query requirement",
+          "weight": 2
+        },
+        {
+          "pattern": "(exactly.once|at.least.once|at.most.once|idempoten).{0,10}(semantic|processing|guarantee|delivery)",
+          "label": "Processing semantics guarantee",
+          "weight": 2
+        },
+        {
+          "pattern": "(cold.start|new (user|item|product).{0,10}(no|zero|lack|without).{0,10}(history|data|interaction))",
+          "label": "Cold-start problem",
+          "weight": 1
+        },
+        {
+          "pattern": "(takes|taking|runs|running|grown to).{0,15}(\\d+).{0,5}(second|minute|hour|day).*?(load|query|process|ETL|batch|report|dashboard)",
+          "label": "Slow query/ETL performance",
+          "weight": 2
+        },
+        {
+          "pattern": "(resume|restart|checkpoint|pick up where|recover from failure|mid.?batch).{0,15}(without|from|after|where)",
+          "label": "Checkpoint/resume capability",
+          "weight": 2
+        },
+        {
+          "pattern": "(managed service|open.source|vendor|self.hosted|SaaS|PaaS|IaaS).{0,15}(vs|versus|or|compared|instead|choose|decision|debate)",
+          "label": "Build-vs-buy architecture decision",
+          "weight": 1
         }
       ]
     },
@@ -845,6 +899,16 @@
           "pattern": "(monitor|track|watch).{0,30}(and|plus).{0,30}(report|analyze|review)",
           "label": "Monitoring plus reporting",
           "weight": 1
+        },
+        {
+          "pattern": "(both|support).{0,10}(operational|transactional|OLTP).{0,20}(and|plus).{0,20}(analytical|OLAP|reporting|analytics)",
+          "label": "OLTP+OLAP dual workload",
+          "weight": 2
+        },
+        {
+          "pattern": "(operational|transactional).{0,15}(queries|workload).{0,20}(analytical|complex|aggregat)",
+          "label": "Mixed operational/analytical",
+          "weight": 2
         }
       ]
     },
@@ -912,7 +976,9 @@
         "LLM",
         "synthetic data",
         "prediction",
-        "pattern recognition"
+        "pattern recognition",
+        "correlation",
+        "correlate"
       ],
       "velocity": "Batch (typically)",
       "use_case": "Machine learning",
@@ -1172,7 +1238,10 @@
         "air-gapped",
         "data residency",
         "regulatory",
-        "risk"
+        "risk",
+        "RPO",
+        "RTO",
+        "cryptographic erasure"
       ],
       "velocity": "Varies",
       "use_case": "Sensitive data",
@@ -1286,7 +1355,9 @@
         "point-of-sale",
         "inventory",
         "order management",
-        "OLTP"
+        "OLTP",
+        "sync",
+        "bidirectional"
       ],
       "velocity": "Real-time",
       "use_case": "Transactional",
@@ -1458,7 +1529,16 @@
         "provisioning",
         "data swamp",
         "catalog",
-        "data contract"
+        "data contract",
+        "schema enforcement",
+        "schema drift",
+        "data correctness",
+        "schema evolution",
+        "deduplication",
+        "golden record",
+        "freshness",
+        "completeness",
+        "consistency"
       ],
       "velocity": "Varies",
       "use_case": "Layered analytics",
@@ -1773,7 +1853,13 @@
         "data product",
         "data publishing",
         "data mesh",
-        "metrics"
+        "metrics",
+        "data marketplace",
+        "data contract",
+        "managed service",
+        "open source",
+        "SLA",
+        "versioning"
       ],
       "velocity": "Varies",
       "use_case": "Semantic governance",

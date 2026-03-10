@@ -88,12 +88,30 @@ STOP_WORDS: frozenset[str] = frozenset(
     # Adjective/adverb filler
     "better worse best worst faster slower good bad great terrible modern "
     "cheaper expensive unsustainable complicated complex easy hard latest "
-    "full half complete incomplete "
+    "full half complete incomplete blind useless stuck "
     # Common structural filler
     "approach strategy initiative effort project program tool tools idea "
     "reason reasons option options decision decisions feature features "
     "challenge challenges problem problems issue issues question questions "
     "answer answers solution solutions downstream upstream "
+    # More verb/action filler
+    "buy buying bought sell selling sold hire hired hiring "
+    "rewrite ask asking asked keeps telling told says said "
+    "closes closed sit sits sitting flag flagged "
+    "choose chose chosen prefer preferred preferring "
+    # Industry/organizational filler (LLM handles this context)
+    "vehicle fleet industrial manufacturing finance financial "
+    "field line lines books period adjustment adjustments "
+    "vendor client partner partners stakeholder stakeholders "
+    "council committee board executive executives leadership ceo cfo cto cdo "
+    "staff engineer engineers scientist scientists analyst analysts architect "
+    # More structural/generic filler
+    "layer layers path write read separate single unified current "
+    "workload workloads cluster resources compute capacity volume volumes "
+    "concurrent concurrency simultaneous morning peak daily hourly "
+    "access frequency node nodes region regional department departments "
+    "entry entries description descriptions documentation documented undocumented "
+    "mechanism method methods technique techniques "
     # Numeric tokens (dates, quantities, IDs)
     "000 50 100 200 500 10 15 20 30 40 2 3 4 5 6 7 8 12 24 90 1 25 60 45 "
     "99 48 72 80 67 70".split()
