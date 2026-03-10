@@ -127,7 +127,7 @@ Max 3 remediation iterations.
 
 ## Pipeline Handoff
 
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance && next` for phase transitions.
+> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.
 
 Mode 1: After deployment → Phase 3 (Validate).
 Mode 2: After remediation → re-trigger validation.

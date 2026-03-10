@@ -103,6 +103,6 @@ Write to `_projects/[name]/prd/discovery-brief.md`:
 
 ## Pipeline Handoff
 
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance && next` for phase transitions.
+> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.
 
 After producing the Discovery Brief, advance the pipeline to Phase 1a (Design).

@@ -160,4 +160,4 @@ Max 3 review iterations. After 3 cycles, proceed to FINAL regardless.
 
 ## Pipeline Handoff
 
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance && next` for phase transitions.
+> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.

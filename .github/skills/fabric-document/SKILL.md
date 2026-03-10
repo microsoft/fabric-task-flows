@@ -73,6 +73,6 @@ Use template from `references/adr-template.md`.
 
 ## Pipeline Handoff
 
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance && next` for phase transitions.
+> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.
 
 After documentation is complete, the pipeline is finished. Update PROJECTS.md status to "Documented ✅".

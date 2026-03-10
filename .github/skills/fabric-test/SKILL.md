@@ -110,7 +110,7 @@ Append operational learnings to `_shared/learnings.md`.
 
 ## Pipeline Handoff
 
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance && next` for phase transitions.
+> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.
 
 Mode 1: After test plan → Phase 2b (User Sign-Off).
 Mode 2: If PASSED → Phase 4 (Document). If PARTIAL/FAILED → remediation loop (max 3).

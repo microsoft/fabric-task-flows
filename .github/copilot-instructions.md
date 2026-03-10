@@ -57,6 +57,10 @@ Each content directory has an `_index.md` routing table that agents should read 
 
 New projects are scaffolded via `python _shared/scripts/run-pipeline.py start "Project Name" --problem "description"`, which calls `new-project.py` internally to create all directories and template files, then initializes `pipeline-state.json` for phase tracking. Agents edit pre-existing files — they do not create directories or boilerplate. See `_shared/workflow-guide.md` for details.
 
+### Agent context efficiency
+
+> **⚠️ Always use `-q` with `advance`.** The pipeline runner echoes full PRD document contents after each phase transition. Agents already have this context (they just wrote the documents), so the echo wastes tokens. Use `python _shared/scripts/run-pipeline.py advance --project <name> -q` to suppress document echo and signoff diagram — only the phase status summary is printed.
+
 ### Orchestrator agent (`.github/agents/`)
 
 | Agent | Role | Tools | Constraint |

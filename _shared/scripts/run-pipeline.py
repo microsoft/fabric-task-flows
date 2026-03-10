@@ -8,16 +8,19 @@ the agent without asking the user for confirmation.
 
 Usage:
     # Start a new pipeline (scaffolds project, runs signal mapping)
-    python scripts/run-pipeline.py start "Project Name" --problem "description"
+    python _shared/scripts/run-pipeline.py start "Project Name" --problem "description"
 
     # Advance to the next phase (reads pipeline-state.json)
-    python scripts/run-pipeline.py next --project my-project
+    python _shared/scripts/run-pipeline.py next --project my-project
 
     # Check current pipeline status
-    python scripts/run-pipeline.py status --project my-project
+    python _shared/scripts/run-pipeline.py status --project my-project
 
     # Reset a phase (for re-runs)
-    python scripts/run-pipeline.py reset --project my-project --phase 1b-review
+    python _shared/scripts/run-pipeline.py reset --project my-project --phase 1b-review
+
+    # Advance in agent mode (suppress document echo — saves context)
+    python _shared/scripts/run-pipeline.py advance --project my-project -q
 
 Importable:
     from run_pipeline import advance, get_status, get_next_prompt
@@ -250,7 +253,8 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Use the /fabric-deploy skill. Read the skill at .github/skills/fabric-deploy/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
-            f"1. Read the FINAL Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
+            f"1. Read {pp}/prd/architecture-summary.json for compact items/waves/ACs (faster than full handoff)\n"
+            f"   - If not present, fall back to {pp}/prd/architecture-handoff.md\n"
             f"2. Read the Test Plan from {pp}/prd/test-plan.md\n"
             f"3. Read _shared/learnings.md for known Fabric CLI gotchas\n"
             f"4. Check {pp}/prd/phase-progress.md — if resume_from is set, continue from there\n"
@@ -266,16 +270,17 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the Deployment Handoff from {pp}/prd/deployment-handoff.md\n"
-            f"2. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
-            f"3. Read _shared/learnings.md for known validation gotchas\n"
-            f"4. Check {pp}/prd/remediation-log.md — if it exists and has resolved items, only re-validate those\n"
-            f"5. Validate deployment against the checklist and test plan\n"
-            f"6. Write the Validation Report to {pp}/prd/validation-report.md\n"
-            f"7. If issues found: categorize and write to {pp}/prd/remediation-log.md\n"
+            f"2. Read {pp}/prd/architecture-summary.json for item/AC reference (faster than full handoff)\n"
+            f"3. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
+            f"4. Read _shared/learnings.md for known validation gotchas\n"
+            f"5. Check {pp}/prd/remediation-log.md — if it exists and has resolved items, only re-validate those\n"
+            f"6. Validate deployment against the checklist and test plan\n"
+            f"7. Write the Validation Report to {pp}/prd/validation-report.md\n"
+            f"8. If issues found: categorize and write to {pp}/prd/remediation-log.md\n"
             f"   - deployment/configuration/transient issues → route to engineer (use /fabric-deploy skill Mode 2: Remediate)\n"
             f"   - design issues → escalate (pipeline pauses)\n"
             f"   - Max 3 remediation iterations before escalating to user\n"
-            f"8. Append any new operational learnings to _shared/learnings.md\n\n"
+            f"9. Append any new operational learnings to _shared/learnings.md\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
@@ -283,10 +288,12 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Use the /fabric-document skill. Read the skill at .github/skills/fabric-document/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
-            f"1. Read all handoffs from {pp}/prd/ (discovery-brief, architecture-handoff, test-plan, deployment-handoff, validation-report)\n"
-            f"2. Generate wiki documentation in {pp}/docs/\n"
-            f"3. Write ADRs for each major decision\n"
-            f"4. Update PROJECTS.md — Phase = 'Complete'\n\n"
+            f"1. Read {pp}/prd/architecture-summary.json for compact item/wave/AC data\n"
+            f"2. Read remaining handoffs: discovery-brief, deployment-handoff, validation-report\n"
+            f"   - Only read the full architecture-handoff.md if the summary lacks needed detail (decisions, diagram)\n"
+            f"3. Generate wiki documentation in {pp}/docs/\n"
+            f"4. Write ADRs for each major decision\n"
+            f"5. Update PROJECTS.md — Phase = 'Complete'\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
     }
@@ -427,6 +434,91 @@ def _extract_task_flow(project: str) -> str | None:
     return None
 
 
+def _generate_architecture_summary(project: str) -> None:
+    """Extract a compact architecture-summary.json from the FINAL handoff.
+
+    Downstream phases (deploy, test, validate, document) can load this ~30-line
+    JSON instead of parsing the 300+ line markdown handoff. Saves significant
+    agent context when the handoff is read multiple times across phases.
+
+    Output: _projects/{project}/prd/architecture-summary.json
+    """
+    handoff_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md"
+    if not handoff_path.exists():
+        return
+
+    content = handoff_path.read_text(encoding="utf-8")
+
+    # Extract frontmatter fields
+    task_flow = None
+    phase = None
+    fm_match = re.search(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
+    if fm_match:
+        fm = fm_match.group(1)
+        tf_m = re.search(r'task_flow:\s*(\S+)', fm)
+        if tf_m:
+            task_flow = tf_m.group(1).strip()
+        ph_m = re.search(r'phase:\s*(\S+)', fm)
+        if ph_m:
+            phase = ph_m.group(1).strip()
+
+    # Extract YAML blocks using shared lib if available
+    items = []
+    waves = []
+    acs = []
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
+        from yaml_utils import extract_and_parse_yaml_blocks
+        blocks = extract_and_parse_yaml_blocks(content)
+        for block in blocks:
+            if not isinstance(block, dict):
+                continue
+            if "items" in block and isinstance(block["items"], list):
+                for item in block["items"]:
+                    if isinstance(item, dict):
+                        items.append({
+                            "id": item.get("id"),
+                            "name": item.get("name"),
+                            "type": item.get("type"),
+                            "depends_on": item.get("depends_on", []),
+                        })
+            if "waves" in block and isinstance(block["waves"], list):
+                for wave in block["waves"]:
+                    if isinstance(wave, dict):
+                        waves.append({
+                            "id": wave.get("id"),
+                            "name": wave.get("name"),
+                            "items": wave.get("items", []),
+                            "parallel": wave.get("parallel", False),
+                        })
+            if "acceptance_criteria" in block and isinstance(block["acceptance_criteria"], list):
+                for ac in block["acceptance_criteria"]:
+                    if isinstance(ac, dict):
+                        acs.append({
+                            "id": ac.get("id"),
+                            "type": ac.get("type"),
+                            "target": ac.get("target"),
+                        })
+    except Exception:
+        pass  # Fall back to empty — summary is a convenience, not a blocker
+
+    summary = {
+        "project": project,
+        "task_flow": task_flow,
+        "phase": phase,
+        "items": items,
+        "waves": waves,
+        "acceptance_criteria": acs,
+        "item_count": len(items),
+        "wave_count": len(waves),
+        "ac_count": len(acs),
+    }
+
+    out_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-summary.json"
+    out_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"  📋 Generated architecture-summary.json ({len(items)} items, {len(waves)} waves, {len(acs)} ACs)")
+
+
 def _verify_output(phase: str, project: str) -> tuple[bool, str]:
     """Verify that a phase produced its expected output files with content.
     Returns (ok, message).
@@ -524,7 +616,7 @@ def advance(project: str, approved: bool = False, revise: bool = False,
     if not _is_auto(state, current) and not approved:
         print(f"🛑  Cannot advance — Phase '{current}' is a human gate.")
         print(f"   Review the deliverables, then run:")
-        print(f"   python scripts/run-pipeline.py advance --project {project} --approve")
+        print(f"   python _shared/scripts/run-pipeline.py advance --project {project} --approve")
         return state
 
     state["phases"][current]["status"] = "complete"
@@ -535,6 +627,10 @@ def advance(project: str, approved: bool = False, revise: bool = False,
         if tf:
             state["task_flow"] = tf
             print(f"  📋 Extracted task_flow: {tf}")
+
+    # Generate compact architecture summary after finalize
+    if current == "1c-finalize":
+        _generate_architecture_summary(project)
 
     next_phase = _next_phase(current)
     if next_phase:
@@ -763,7 +859,7 @@ def main() -> None:
     adv_p.add_argument("--reconcile", action="store_true",
                        help="Run reconcile before advancing to heal any state drift")
     adv_p.add_argument("-q", "--quiet", action="store_true",
-                       help="Suppress printing completed phase output files")
+                       help="Suppress printing completed phase output files and diagrams (use for agent/CI mode)")
 
     # reset
     reset_p = sub.add_parser("reset", help="Reset a phase")
@@ -828,7 +924,7 @@ def main() -> None:
             _print_phase_output(args.project, prev_phase)
 
         # Show architecture diagram when entering sign-off phase
-        if state["current_phase"] == "2b-sign-off":
+        if not args.quiet and state["current_phase"] == "2b-sign-off":
             _print_signoff_diagram(args.project)
 
         prompt, agent, phase, is_gate = get_next_prompt(args.project)
