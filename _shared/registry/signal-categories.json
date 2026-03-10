@@ -33,7 +33,13 @@
         "observability",
         "scalability",
         "doesn't scale",
-        "unplanned downtime"
+        "unplanned downtime",
+        "message broker",
+        "event backbone",
+        "late-arriving",
+        "CDC",
+        "change data capture",
+        "replication"
       ],
       "velocity": "Real-time",
       "use_case": "Event analytics",
@@ -199,7 +205,25 @@
         "orchestration",
         "DAG",
         "Airflow",
-        "cost optimization"
+        "cost optimization",
+        "legacy",
+        "mainframe",
+        "decompose",
+        "Spark",
+        "SCD",
+        "dimension table",
+        "slowly changing",
+        "pipeline spaghetti",
+        "ingestion",
+        "query performance",
+        "star schema",
+        "fact table",
+        "materialized view",
+        "pre-computation",
+        "ad-hoc",
+        "time-series",
+        "VWAP",
+        "canary deployment"
       ],
       "velocity": "Batch",
       "use_case": "Analytics / Reporting",
@@ -677,6 +701,96 @@
           "pattern": "(DAG|pipeline|job|workflow|process).{0,15}(fail|break|error|crash).{0,20}(cascade|chain|domino|\\d+ other)",
           "label": "Orchestration cascade failure",
           "weight": 2
+        },
+        {
+          "pattern": "(firefight|fight fires|putting out fires|constant.{0,10}(fix|repair|patch)|always.{0,10}(fix|repair|break))",
+          "label": "Pipeline firefighting burden",
+          "weight": 2
+        },
+        {
+          "pattern": "(broken|failing|flaky|unreliable).{0,10}(pipeline|job|process|ETL|workflow)",
+          "label": "Pipeline reliability problem",
+          "weight": 2
+        },
+        {
+          "pattern": "(spend|waste|devote|dedicate|lose).{0,15}(\\d+%|time|hours|days|weeks).{0,20}(fix|maintain|support|troubleshoot|firefight|manual)",
+          "label": "Operational time sink",
+          "weight": 2
+        },
+        {
+          "pattern": "(total cost|cost of).{0,10}(data|ownership|platform|infrastructure)",
+          "label": "Data cost governance",
+          "weight": 2
+        },
+        {
+          "pattern": "(timing out|timed? out|time.?out|doesn.?t finish|never completes|takes too long|keeps? failing)",
+          "label": "Job timeout/completion failure",
+          "weight": 1
+        },
+        {
+          "pattern": "(overwhelm|overload|buckle|can.?t handle|can.?t cope).{0,15}(traffic|load|volume|spike|peak|demand)",
+          "label": "Capacity overload pattern",
+          "weight": 1
+        },
+        {
+          "pattern": "(lose|losing|lost|drop|missing).{0,10}(data|event|record|message)",
+          "label": "Data loss pattern",
+          "weight": 2
+        },
+        {
+          "pattern": "(right.?size|underutiliz|over.?provis|idle|wast).{0,30}(cluster|compute|resource|capacity|infrastructure|platform|environment)",
+          "label": "Compute right-sizing need",
+          "weight": 1
+        },
+        {
+          "pattern": "(elastic|auto.?scal|scale.{0,5}(up|down|out|in)|burst|on.demand).{0,30}(compute|capacity|resource|cluster|processing|infrastructure)",
+          "label": "Elastic compute need",
+          "weight": 1
+        },
+        {
+          "pattern": "(schema|contract|interface).{0,10}(change|break|evolv|drift|mismatch|incompatib)",
+          "label": "Schema evolution problem",
+          "weight": 2
+        },
+        {
+          "pattern": "(data (contract|agreement|SLA|interface)|(contract|agreement|SLA).{0,10}(data|schema|quality|freshness))",
+          "label": "Data contract pattern",
+          "weight": 2
+        },
+        {
+          "pattern": "(reverse ETL|push.{0,10}(back|into|to).{0,10}(operational|CRM|production|application|system)|activate.{0,10}(data|insight|segment|model))",
+          "label": "Reverse ETL / data activation",
+          "weight": 2
+        },
+        {
+          "pattern": "(join|query).{0,15}(performance|optimiz|slow|degrad).{0,15}(exponential|linear|as.{0,10}(grow|scale|add))",
+          "label": "Query performance degradation",
+          "weight": 1
+        },
+        {
+          "pattern": "(same|identical|duplicate).{0,10}(aggregat|calculat|computation|query|logic).{0,15}(computed|run|executed|built|repeated).{0,15}(\\d+|multiple|many|different|across)",
+          "label": "Redundant computation pattern",
+          "weight": 2
+        },
+        {
+          "pattern": "(fire hose|flood|deluge|tsunami|avalanche|tidal wave|explosion).{0,10}(of)?.{0,10}(data|information|event|message|record)",
+          "label": "Data volume overwhelm (metaphor)",
+          "weight": 1
+        },
+        {
+          "pattern": "(Rube Goldberg|house of cards|duct tape|band.?aid|bubble gum|held together with|might collapse|afraid to touch|nobody wants to touch)",
+          "label": "Fragile architecture metaphor",
+          "weight": 2
+        },
+        {
+          "pattern": "(request|ticket|ask|demand).{0,10}(per|each|every).{0,10}(week|day|month|sprint).{0,15}(only|can.?t|unable|capacity|deliver|handle)",
+          "label": "Analytics request bottleneck",
+          "weight": 2
+        },
+        {
+          "pattern": "(rolling|sliding|tumbling|hopping).{0,10}(window|average|sum|aggregat|median|computation)",
+          "label": "Windowed computation pattern",
+          "weight": 2
         }
       ]
     },
@@ -779,7 +893,18 @@
         "detection",
         "automate",
         "automation",
-        "feature store"
+        "feature store",
+        "feature drift",
+        "data drift",
+        "concept drift",
+        "training-serving skew",
+        "A/B test",
+        "model serving",
+        "vector database",
+        "RAG",
+        "retrieval-augmented generation",
+        "LLM",
+        "synthetic data"
       ],
       "velocity": "Batch (typically)",
       "use_case": "Machine learning",
@@ -966,6 +1091,36 @@
           "pattern": "(feature store|feature engineering|feature pipeline|model feature|ML feature)",
           "label": "ML feature management",
           "weight": 2
+        },
+        {
+          "pattern": "(model|prediction|score|inference).{0,15}(degrad|decay|drift|stale|rot|deteriorat)",
+          "label": "Model degradation/drift detection",
+          "weight": 2
+        },
+        {
+          "pattern": "(training|train).{0,10}(serving|inference|production).{0,10}(skew|mismatch|gap|difference|inconsisten)",
+          "label": "Training-serving skew",
+          "weight": 2
+        },
+        {
+          "pattern": "(graph|network).{0,10}(analys|analytic|mining|traversal|pattern|detect|algorithm)",
+          "label": "Graph analytics pattern",
+          "weight": 2
+        },
+        {
+          "pattern": "(influence|relationship|connection|link).{0,10}(network|graph|map|diagram|analys)",
+          "label": "Network/relationship mapping",
+          "weight": 2
+        },
+        {
+          "pattern": "(fraud ring|money laundering|transaction network|beneficial ownership|shell compan|layered.{0,5}entit)",
+          "label": "Financial graph analysis",
+          "weight": 2
+        },
+        {
+          "pattern": "(collaborative filter|recommendation.{0,10}(engine|system|algorithm)|content.?based filter)",
+          "label": "Recommendation system pattern",
+          "weight": 2
         }
       ]
     },
@@ -1006,7 +1161,8 @@
         "AML",
         "KYC",
         "insider threat",
-        "air-gapped"
+        "air-gapped",
+        "data residency"
       ],
       "velocity": "Varies",
       "use_case": "Sensitive data",
@@ -1072,6 +1228,36 @@
         {
           "pattern": "(can't|cannot|not allowed to|must not|prohibited from) .{0,30}(move|transfer|export|send|transmit|copy).{0,30}(data|information).{0,20}(out of|outside|from|across|to another)",
           "label": "Data residency/sovereignty constraint",
+          "weight": 2
+        },
+        {
+          "pattern": "(prove|demonstrate|show|trace|track).{0,15}(auditor|regulator|examiner|inspector).{0,20}(transformation|change|lineage|step|process)",
+          "label": "Audit traceability requirement",
+          "weight": 2
+        },
+        {
+          "pattern": "(data residency|data.{0,5}(stay|remain|not leave|not cross)|cross.?border|border.?crossing|data transfer).{0,20}(country|region|jurisdiction|territory|sovereign|EU|US|GDPR|contractual clause|regulation|requirement)",
+          "label": "Cross-border data residency",
+          "weight": 2
+        },
+        {
+          "pattern": "(shouldn.?t|should not|must not|not supposed to).{0,15}(access|see|view|query|read).{0,15}(sensitive|salary|PII|confidential|personal|private|protected)",
+          "label": "Unauthorized sensitive access",
+          "weight": 2
+        },
+        {
+          "pattern": "(access denied|permission denied|unauthoriz|forbidden|locked out|can.?t access)",
+          "label": "Access control failure",
+          "weight": 1
+        },
+        {
+          "pattern": "(clean room|data clean room|secure.{0,10}collaboration|joint analytic|privacy.?preserving.{0,10}(analytic|computation|processing))",
+          "label": "Privacy-preserving analytics",
+          "weight": 2
+        },
+        {
+          "pattern": "(differential privacy|k.?anonymit|anonymiz|de.?identif|pseudonymiz|data mask).{0,15}(technique|method|approach|implementation|pipeline|process)",
+          "label": "Privacy engineering technique",
           "weight": 2
         }
       ]
@@ -1183,6 +1369,31 @@
           "pattern": "\\d+\\s*(GB|MB)\\s*(per|each|a)\\s*(file|image|scan|page|record|sample|biopsy)",
           "label": "Large file processing",
           "weight": 1
+        },
+        {
+          "pattern": "(extract|pull|parse|mine|scrape).{0,15}(from|out of).{0,10}(PDF|document|contract|drawing|spec|report|form|invoice|receipt|email)",
+          "label": "Document extraction pipeline",
+          "weight": 2
+        },
+        {
+          "pattern": "(PDF|contract|drawing|spec|CAD|blueprint|schematic|scan|invoice).{0,20}(search|index|catalog|extract|classify|categorize|sort)",
+          "label": "Document search/classification",
+          "weight": 2
+        },
+        {
+          "pattern": "(free.?text|natural language|plain.?text|unstructured.?text).{0,15}(categoriz|classif|tag|label|route|sort|triage)",
+          "label": "Text classification pipeline",
+          "weight": 2
+        },
+        {
+          "pattern": "(sentiment|topic|tone|emotion|intent).{0,15}(analysis|detection|extraction|mining|tracking)",
+          "label": "NLP analysis pipeline",
+          "weight": 2
+        },
+        {
+          "pattern": "(transcript|recording|meeting|call|conversation).{0,15}(extract|action item|summariz|analyz|search|index)",
+          "label": "Conversation/transcript analysis",
+          "weight": 2
         }
       ]
     },
@@ -1232,7 +1443,12 @@
         "entity resolution",
         "master data",
         "semantic layer",
-        "data trust"
+        "data trust",
+        "OLAP",
+        "provisioning",
+        "data swamp",
+        "catalog",
+        "data contract"
       ],
       "velocity": "Varies",
       "use_case": "Layered analytics",
@@ -1368,6 +1584,26 @@
         {
           "pattern": "(semantic layer|metrics layer|metric store|universal metric|unified metric|business glossary)",
           "label": "Semantic/metrics layer need",
+          "weight": 2
+        },
+        {
+          "pattern": "(need|want|require).{0,10}(better|improved|cleaner|higher.quality|reliable|trustworthy|accurate).{0,10}(data|information|numbers|records|reporting)",
+          "label": "General data quality aspiration",
+          "weight": 1
+        },
+        {
+          "pattern": "(which.{0,10}(report|dashboard|metric)|nobody knows which|no one knows which).{0,15}(matter|important|used|active|relevant)",
+          "label": "Report/metric rationalization need",
+          "weight": 1
+        },
+        {
+          "pattern": "(conflicting|contradicting|inconsistent|different).{0,10}(numbers|figures|totals|results|answers).{0,15}(across|between|from|in)",
+          "label": "Cross-system data conflict",
+          "weight": 2
+        },
+        {
+          "pattern": "(manual|manually).{0,15}(download|export|extract|copy|paste|reconcil|consolidat|aggregat|collect|gather)",
+          "label": "Manual data wrangling",
           "weight": 2
         }
       ]
@@ -1525,7 +1761,8 @@
         "taxonomy",
         "classification schema",
         "data product",
-        "data publishing"
+        "data publishing",
+        "data mesh"
       ],
       "velocity": "Varies",
       "use_case": "Semantic governance",
@@ -1569,6 +1806,11 @@
         {
           "pattern": "(defin|mean|interpret|calculat|count).{0,10}(s |ed |es |ing ).{0,10}differently|different (definition|meaning|interpretation)",
           "label": "Semantic inconsistency (broad)",
+          "weight": 2
+        },
+        {
+          "pattern": "(metric|KPI|number|figure|measure).{0,10}(disagree|conflict|contradict|inconsisten|mismatch|don.?t match)",
+          "label": "Metric disagreement pattern",
           "weight": 2
         }
       ]
