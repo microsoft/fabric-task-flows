@@ -305,7 +305,7 @@ def deployment_handoff(project: str) -> str:
 project: {project}
 task_flow: TBD
 validation_checklist: ""
-deployment_tool: fab
+deployment_tool: fabric-cicd
 parameterization: none
 
 items: []

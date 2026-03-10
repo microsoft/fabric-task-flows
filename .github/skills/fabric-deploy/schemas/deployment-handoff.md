@@ -9,7 +9,7 @@ The `implementation_notes` and `configuration_rationale` sections allow brief pr
 ```yaml
 project: ""                    # from architecture handoff
 task_flow: ""                  # from architecture handoff (used to look up validation in _shared/registry/validation-checklists.json)
-deployment_tool: fab           # fab | fabric-cicd
+deployment_tool: fabric-cicd   # fabric-cicd
 parameterization: none         # none | parameter-yml | env-vars
 
 items:
