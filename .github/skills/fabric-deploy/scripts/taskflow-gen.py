@@ -33,11 +33,11 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-_SHARED_DIR = REPO_ROOT.parent.parent.parent / "_shared"
+_SHARED_DIR = REPO_ROOT.parent.parent.parent / "_shared" / "lib"
 if str(_SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(_SHARED_DIR))
 
-# ── Valid Fabric task types ───────────────────────────────────────────────
+# ── Valid Fabric task types ───────────────────────────────────────────────────
 
 VALID_TASK_TYPES = {
     "get data", "mirror data", "store data", "prepare data",
@@ -45,13 +45,13 @@ VALID_TASK_TYPES = {
     "distribute data", "develop", "govern data", "general",
 }
 
-# ── Item type → Fabric task type mapping ──────────────────────────────────
+# ── Item type → Fabric task type mapping ──────────────────────────────────────────
 
-# Task type mapping — loaded from _shared/item-type-registry.json
+# Task type mapping — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
 from registry_loader import build_task_type_map
 from yaml_utils import extract_yaml_blocks
-from diagram_parser import is_border_row, extract_deployment_table
+from diagram_parser import get_deployment_items
 
 ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()
 
@@ -112,69 +112,28 @@ class TaskInfo:
     source_items: list[str] = field(default_factory=list)
 
 
-# ── Diagram parser — delegates to _shared/diagram_parser.py ───────────────
-
-_is_border_row = is_border_row
-_extract_deployment_table = extract_deployment_table
+# ── Diagram parser — loads from JSON registry ─────────────────────────────
 
 
 def _parse_diagram(task_flow: str) -> list[DiagramItem]:
-    diagram_path = REPO_ROOT / "diagrams" / f"{task_flow}.md"
-    if not diagram_path.exists():
-        return []
-
-    lines = _extract_deployment_table(diagram_path)
-    if not lines:
+    """Parse deployment order from the JSON registry for a task flow.
+    
+    Primary source: _shared/registry/deployment-order.json
+    """
+    json_items = get_deployment_items(task_flow)
+    
+    if not json_items:
         return []
 
     items: list[DiagramItem] = []
-    prev_order = ""
-    saw_or_marker = False
-
-    for line in lines:
-        if _is_border_row(line):
-            continue
-        cells = line.split("\u2502")
-        cells = [c.strip() for c in cells]
-        if len(cells) < 6:
-            continue
-
-        order_cell = cells[1]
-        item_type_cell = cells[2]
-        depends_cell = cells[4]
-
-        if "Order" in order_cell and "Item" in item_type_cell:
-            continue
-
-        # ──OR── alternative marker rows
-        if not order_cell and "OR" in item_type_cell and "──" in item_type_cell:
-            saw_or_marker = True
-            continue
-
-        if not order_cell and not item_type_cell:
-            continue
-
-        is_alt = False
-        if not order_cell and item_type_cell:
-            clean = re.sub(r"^OR\s+", "", item_type_cell).strip()
-            if clean:
-                is_alt = True
-                item_type_cell = clean
-                order_cell = prev_order
-
-        if not order_cell:
-            continue
-
-        if saw_or_marker and order_cell == prev_order:
-            is_alt = True
-            saw_or_marker = False
-
-        prev_order = order_cell
-
+    
+    for ji in json_items:
+        is_alt = "alternativeGroup" in ji
+        
         items.append(DiagramItem(
-            order=order_cell,
-            item_type=item_type_cell,
-            depends_on=depends_cell,
+            order=ji["order"],
+            item_type=ji["itemType"],
+            depends_on=", ".join(ji.get("dependsOn", [])),
             is_alternative=is_alt,
         ))
 

@@ -29,11 +29,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 
 # ── Item-type → fab type mapping (for AC verification stubs) ──────────────
 
-# Item type mappings — loaded from _shared/item-type-registry.json
+# Item type mappings — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
-sys.path.insert(0, str(REPO_ROOT / "_shared"))
+sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
 from registry_loader import build_fab_type_map, load_registry
-from diagram_parser import is_border_row, extract_deployment_table
+from diagram_parser import get_deployment_items
 
 FAB_TYPE_MAP: dict[str, str] = build_fab_type_map()
 PORTAL_ONLY_TYPES: set[str] = {
@@ -108,88 +108,47 @@ def _purpose_from(item_type: str, required_for: str) -> str:
     return f"{item_type} deployment"
 
 
-# ── Diagram parser — delegates to _shared/diagram_parser.py ───────────────
-
-_is_border_row = is_border_row
-_extract_deployment_table = extract_deployment_table
+# ── Diagram parser — loads from JSON registry ─────────────────────────────
 
 
 def parse_diagram(task_flow: str) -> list[DiagramItem]:
-    """Parse the Deployment Order table for a task flow into DiagramItems."""
-    diagram_path = REPO_ROOT / "diagrams" / f"{task_flow}.md"
-    if not diagram_path.exists():
-        raise FileNotFoundError(f"Diagram not found: {diagram_path}")
-
-    lines = _extract_deployment_table(diagram_path)
-    if not lines:
+    """Parse deployment order from the JSON registry for a task flow.
+    
+    Primary source: _shared/registry/deployment-order.json
+    """
+    json_items = get_deployment_items(task_flow)
+    
+    if not json_items:
         raise ValueError(
-            f"No Deployment Order table found in {diagram_path}. "
+            f"No deployment order found for task flow '{task_flow}' in registry. "
             f"The 'general' task flow uses a visual-only diagram."
         )
 
     items: list[DiagramItem] = []
-    prev_order = ""
     prev_item_type = ""
-    saw_or_marker = False
-
-    for line in lines:
-        if _is_border_row(line):
-            continue
-        cells = line.split("\u2502")  # box-drawing pipe │
-        cells = [c.strip() for c in cells]
-        if len(cells) < 6:
-            continue
-        order_cell = cells[1]
-        item_type_cell = cells[2]
-        skillset_cell = cells[3]
-        depends_cell = cells[4]
-        required_cell = cells[5]
-
-        # Skip header row
-        if "Order" in order_cell and "Item" in item_type_cell:
-            continue
-
-        # Detect ──OR── alternative marker rows
-        if not order_cell and "OR" in item_type_cell and "──" in item_type_cell:
-            saw_or_marker = True
-            continue
-
-        # Continuation rows (empty Order and empty Item Type)
-        if not order_cell and not item_type_cell:
-            continue
-
-        # Handle alternative rows: empty Order but valid Item Type with "OR" prefix
-        is_alt = False
-        alt_group = None
-        if not order_cell and item_type_cell:
-            clean = re.sub(r"^OR\s+", "", item_type_cell).strip()
-            if clean:
-                is_alt = True
-                alt_group = prev_item_type
-                item_type_cell = clean
-                order_cell = prev_order
-
-        if not order_cell:
-            continue
-
-        # Detect same-order alternatives after an ──OR── marker
-        if saw_or_marker and order_cell == prev_order:
-            is_alt = True
-            alt_group = prev_item_type
-            saw_or_marker = False
-
-        prev_order = order_cell
-        prev_item_type = item_type_cell
-
+    
+    for ji in json_items:
+        is_alt = "alternativeGroup" in ji
+        alt_group = ji.get("alternativeGroup")
+        
+        # Resolve the alternative group reference to the first item in that group
+        if is_alt and alt_group:
+            # Find the first item with this alternative group
+            for prev in json_items:
+                if prev.get("alternativeGroup") == alt_group and prev["itemType"] != ji["itemType"]:
+                    alt_group = prev["itemType"]
+                    break
+        
         items.append(DiagramItem(
-            order=order_cell,
-            item_type=item_type_cell,
-            skillset=skillset_cell,
-            depends_on=depends_cell,
-            required_for=required_cell,
+            order=ji["order"],
+            item_type=ji["itemType"],
+            skillset=ji.get("skillset", "[LC]"),
+            depends_on=", ".join(ji.get("dependsOn", [])),
+            required_for=", ".join(ji.get("requiredFor", [])),
             is_alternative=is_alt,
             alternative_group=alt_group,
         ))
+        prev_item_type = ji["itemType"]
 
     return items
 

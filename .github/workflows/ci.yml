@@ -18,12 +18,15 @@ jobs:
           python-version: "3.11"
 
       - name: Install test dependencies
-        run: pip install pytest
+        run: pip install pytest pytest-cov
 
       - name: Run tests
         env:
           PYTHONPATH: _shared
-        run: python -m pytest tests/ -v
+        run: python -m pytest tests/ -v --cov=lib --cov-report=term-missing
+
+      - name: Lint with ruff
+        run: pip install ruff && ruff check _shared/
 
       - name: Run documentation drift check
         env:

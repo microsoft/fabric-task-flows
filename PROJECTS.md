@@ -28,9 +28,13 @@
 | energy-saver-pro | lambda | Test Plan ✅ | FINAL handoff + test plan (15 items, 6 waves, 21 ACs) | B-1 SCADA, B-2 DB engine, B-3 capacity, B-4 thresholds | User Sign-Off (Phase 2b) |
 | social-pulse | lambda | Documented ✅ | Pipeline complete — 15 items, 5 ADRs, partial validation (3 portal-only pending) | D-1 Event Hub, D-2 API credentials | Resolve external prerequisites → portal items |
 
-| football-intelligence | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
-| football-intelligence-v2 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
-| campaign-command | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| football-intelligence | medallion | Test Plan ✅ | FINAL handoff + test plan produced; 2 revision cycles used | None | User Sign-Off (Phase 2b) |
+| football-intelligence-v2 | medallion | Test Plan ✅ | FINAL handoff + test plan produced | None | User Sign-Off (Phase 2b) |
+| campaign-command | lambda | Documented ✅ | Pipeline complete — all phases finished | None | Complete |
+| retail-of-the-future | medallion | Deploying | Approved; deployment in progress | None | Validate (Phase 3) |
+| utility-meter-modernization | lambda | Documented ✅ | Pipeline complete — 14 items, 5 ADRs, partial validation (8 manual steps pending) | D-1 Event Hub, D-2 source DB creds | Resolve external prerequisites → complete manual steps |
+| modern-dw-stuff | medallion | Test Plan ✅ | FINAL handoff + test plan produced | None | User Sign-Off (Phase 2b) |
+| grid-intelligence | TBD | Design | Discovery Brief produced; DRAFT architecture in progress | None | Design Review (Phase 1b) |
 > Project rows are generated locally by agents. See `projects/` folder (gitignored) for per-project artifacts.
 
 ---

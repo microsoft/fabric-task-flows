@@ -151,7 +151,7 @@ task-flows/
 │       ├── fabric-test/               # Phases 2a, 3 — test plan + validation
 │       │   ├── SKILL.md
 │       │   ├── scripts/               # check-drift, test-plan-prefill, validate-items.py
-│       │   ├── references/            # validation-patterns, validation-report-template
+│       │   ├── references/            # validation-report-template
 │       │   └── schemas/               # test-plan, validation-report, remediation-log
 │       ├── fabric-deploy/             # Phase 2c — wave-based deployment
 │       │   ├── SKILL.md
@@ -177,24 +177,28 @@ task-flows/
 ├── diagrams/                          # Deployment diagrams per task flow
 │   ├── _index.md                      # Routing table with item/wave counts
 │   └── {task-flow}.md                 # 13 diagrams — phased deployment flow, dependency order
-├── validation/                        # Post-deployment checklists
-│   ├── _index.md                      # Routing table with phase names
-│   └── {task-flow}.md                 # 13 checklists — phase-by-phase validation
-├── scripts/                           # Pipeline utilities
-│   ├── run-pipeline.py                # Pipeline orchestrator
-│   ├── new-project.py                 # Project scaffolder
-│   ├── fleet-runner.py                # Batch project runner
-│   └── sync-item-types.py            # Registry alignment
 ├── tests/                             # Automated tests
 │   ├── test_registry_loader.py        # Item-type registry validation
 │   ├── test_deploy_script_gen.py      # Deploy script correctness
 │   └── test_taskflow_gen.py           # Task flow JSON schema compliance
-├── _shared/                           # Shared reference content
-│   ├── item-type-registry.json        # Single source of truth for Fabric item types
-│   ├── registry_loader.py             # Shared module — item type metadata loader
-│   ├── yaml_utils.py                  # Shared module — YAML extraction and parsing
-│   ├── text_utils.py                  # Shared module — slugify and text utilities
-│   ├── diagram_parser.py              # Shared module — deployment diagram table parser
+├── _shared/                           # Shared infrastructure
+│   ├── registry/                      # Canonical JSON data files
+│   │   ├── item-type-registry.json    # Single source of truth for Fabric item types
+│   │   ├── deployment-order.json      # Canonical deployment order for all task flows
+│   │   ├── validation-checklists.json # Post-deployment manual steps and phases
+│   │   ├── signal-categories.json     # Signal mapping categories
+│   │   └── general-task-flow-schema.json  # Task flow JSON schema
+│   ├── lib/                           # Shared Python modules
+│   │   ├── registry_loader.py         # Item type metadata loader
+│   │   ├── diagram_parser.py          # Deployment order registry loader
+│   │   ├── yaml_utils.py              # YAML extraction and parsing
+│   │   ├── text_utils.py              # Slugify and text utilities
+│   │   └── banner.py                  # CLI banner display
+│   ├── scripts/                       # Pipeline utilities
+│   │   ├── run-pipeline.py            # Pipeline orchestrator
+│   │   ├── new-project.py             # Project scaffolder
+│   │   ├── fleet-runner.py            # Batch project runner
+│   │   └── sync-item-types.py         # Registry alignment
 │   ├── workflow-guide.md              # Pipeline orchestration guide
 │   └── learnings.md                   # Accumulated operational learnings
 ├── projects/                          # Per-project documentation (local only — gitignored)
@@ -222,7 +226,7 @@ All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-an
 |--------------|-------------|
 | Task flow overview | `task-flows.md` → H2 anchor (`## Medallion`) |
 | Deployment diagram | `diagrams/{task-flow-id}.md` |
-| Validation checklist | `validation/{task-flow-id}.md` |
+| Validation checklist | `_shared/registry/validation-checklists.json` |
 | Decision guides | `decisions/{decision-id}.md` |
 | Project docs | `projects/{workspace}/docs/` |
 | Shared references | `_shared/{file}.md` |
@@ -233,8 +237,8 @@ All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-an
 
 1. Add H2 section to `task-flows.md` with standard structure
 2. Create `diagrams/{task-flow-id}.md` with phased deployment flow
-3. Create `validation/{task-flow-id}.md` with phase-by-phase checklist
-4. Update `diagrams/_index.md` and `validation/_index.md` with the new entry
+3. Add entry to `_shared/registry/validation-checklists.json` with manual_steps, phases, and checklist items
+4. Update `diagrams/_index.md` with the new entry
 5. Reference decision guides in the task-flows.md section
 6. Run `python .github/skills/fabric-test/scripts/check-drift.py --check` to verify consistency
 

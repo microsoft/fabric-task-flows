@@ -103,7 +103,7 @@ publish_all_items(workspace)
 
 Full documentation: https://microsoft.github.io/fabric-cicd/0.1.23/
 
-See `_shared/cicd-practices.md` for parameterization, per-item considerations, and release pipeline examples.
+See `fabric-design/references/cicd-practices.md` for parameterization, per-item considerations, and release pipeline examples.
 
 ## Design-Only Mode
 
