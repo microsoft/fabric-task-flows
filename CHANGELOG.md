@@ -14,17 +14,12 @@ All notable changes to this project are documented in this file.
 ### Added
 
 - `_shared/lib/__init__.py` for proper package recognition and CI coverage detection
-- **10 new test files** covering all 15 scripts (542 total tests, up from 139):
-  - `test_check_drift.py` — 36 tests for documentation drift detection
-  - `test_signal_mapper.py` — 45 tests for problem-to-task-flow mapping
-  - `test_decision_resolver.py` — 90 tests for decision guide resolution
-  - `test_review_prescan.py` — 41 tests for engineer/tester review pre-computation
-  - `test_handoff_scaffolder.py` — 51 tests for architecture handoff generation
-  - `test_test_plan_prefill.py` — 26 tests for test plan pre-filling
-  - `test_validate_items.py` — 20 tests for REST API validation
-  - `test_diagram_gen.py` — 24 tests for deployment diagram generation
-  - `test_diagram_validator.py` — 22 tests for diagram structural validation
-  - `test_taskflow_template_gen.py` — 28 tests for fabric-cicd workspace templates
+- **Semantic inference engine** — 96 regex-based inference rules that detect architectural intent from natural language structure (e.g., "every 30 seconds" → Real-time, "predict X from Y" → ML, "must comply with" → Sensitive Data)
+- **10 new test files** covering all 15 scripts (557 total tests, up from 139)
+
+### Changed
+
+- **Purged 292 industry-specific keywords** from signal-categories.json (511 → 219). The signal mapper now contains only universal technology/architecture terms. Industry domain inference is the LLM advisor's job, not the deterministic pre-compute's. Coverage maintained at 16.6% via inference rules.
 
 ## [1.0.0] — 2026-03-08
 
