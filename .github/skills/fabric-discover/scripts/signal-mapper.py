@@ -173,6 +173,10 @@ def map_signals(text: str) -> dict:
         >>> result["primary_velocity"]
         'real-time'
     """
+    # Normalize unicode characters for consistent regex matching
+    text = text.replace("\u2019", "'").replace("\u2018", "'")
+    text = text.replace("\u201c", '"').replace("\u201d", '"')
+    text = text.replace("\u2014", "--").replace("\u2013", "-")
     results: dict[int, CategoryResult] = {}
     for cat in CATEGORIES:
         results[cat.id] = CategoryResult(category=cat)

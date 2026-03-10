@@ -24,7 +24,12 @@
         "continuous",
         "sub-second",
         "low latency",
-        "live dashboard"
+        "live dashboard",
+        "monitoring",
+        "GPS",
+        "geofencing",
+        "tracking",
+        "real-time monitoring"
       ],
       "velocity": "Real-time",
       "use_case": "Event analytics",
@@ -129,6 +134,16 @@
           "weight": 1
         },
         {
+          "pattern": "keeps? (having|getting|experiencing|reporting) .{0,15}(problem|issue|error|failure|outage|downtime)",
+          "label": "Recurring operational problems",
+          "weight": 2
+        },
+        {
+          "pattern": "track .{0,15}(fleet|vehicle|truck|shipment|delivery|asset|location|position|driver)",
+          "label": "Asset/fleet tracking",
+          "weight": 2
+        },
+        {
           "pattern": "(monitor|watch|observe|track).{0,20}(temperature|pressure|flow|level|speed|rate|performance)",
           "label": "Process monitoring",
           "weight": 1
@@ -161,7 +176,12 @@
         "KPI",
         "trend reports",
         "data strategy",
-        "compliance reporting"
+        "compliance reporting",
+        "reporting",
+        "self-service dashboards",
+        "visibility",
+        "benchmark",
+        "benchmarking"
       ],
       "velocity": "Batch",
       "use_case": "Analytics / Reporting",
@@ -239,6 +259,181 @@
           "pattern": "currently.{0,30}(want|need|target|goal)",
           "label": "Currently/improvement",
           "weight": 1
+        },
+        {
+          "pattern": "use data (to|for) .{0,20}(better|improv|understand|decid|plan|manag|optimi)",
+          "label": "Data-driven decision intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(smarter|better|faster|more efficien).{0,10} (about|with|at|decisions|insight)",
+          "label": "Smart/better analytics intent",
+          "weight": 1
+        },
+        {
+          "pattern": "(better|improved|more) data (to|for)",
+          "label": "Data improvement for decisions",
+          "weight": 2
+        },
+        {
+          "pattern": "(with|using|through|leveraging|via) data",
+          "label": "Data-powered intent",
+          "weight": 1
+        },
+        {
+          "pattern": "need (better|improved|faster|automated) (report|reporting|insight|analytics|visibility)",
+          "label": "Reporting improvement need",
+          "weight": 2
+        },
+        {
+          "pattern": "(over budget|cost overrun|too expensive|costs? too much|inefficien)",
+          "label": "Cost/budget concern",
+          "weight": 1
+        },
+        {
+          "pattern": "(always|keep|keeps|constantly) (going|running|getting|falling|miss|late|behind)",
+          "label": "Recurring operational issue",
+          "weight": 1
+        },
+        {
+          "pattern": "compare .{0,20}(actual|planned|expected|baseline|target|budget|forecast)",
+          "label": "Variance/comparison analysis",
+          "weight": 1
+        },
+        {
+          "pattern": "(want|need) .{0,15}(visibility|insight|transparency|overview|picture) (into|of|across)",
+          "label": "Visibility/insight request",
+          "weight": 2
+        },
+        {
+          "pattern": "single pane of glass|unified (view|dashboard|platform)|one (place|platform|system) (to|for)",
+          "label": "Unified view/platform intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(too much|overwhelm|drown|flood|overload|avalanche).{0,15}(data|information|report|alert|log)",
+          "label": "Data overload concern",
+          "weight": 1
+        },
+        {
+          "pattern": "(spreadsheet|Excel|manual|paper|fax).{0,20}(mess|chaos|error|outdated|slow|painful|tedious|broken|nightmare)",
+          "label": "Manual process pain point",
+          "weight": 2
+        },
+        {
+          "pattern": "flying blind|no visibility|can't see|don't know (what|how|where|if)",
+          "label": "Visibility gap",
+          "weight": 2
+        },
+        {
+          "pattern": "(falling|fall) through the cracks",
+          "label": "Process gap idiom",
+          "weight": 1
+        },
+        {
+          "pattern": "make sense (of|out of)",
+          "label": "Sense-making intent",
+          "weight": 1
+        },
+        {
+          "pattern": "\\bwhy (are|is|do|does|did|was|were) .{0,20}(bad|wrong|low|high|slow|late|behind|failing|poor|declining)",
+          "label": "Root cause questioning",
+          "weight": 2
+        },
+        {
+          "pattern": "can't (find|locate|discover|access|get to|search)",
+          "label": "Discovery/search difficulty",
+          "weight": 2
+        },
+        {
+          "pattern": "how (do|can|will|would|should) we (know|measure|tell|track|assess|evaluate|determine) (if|whether|how|what)",
+          "label": "Measurement/assessment need",
+          "weight": 2
+        },
+        {
+          "pattern": "(based on|rely on|using) (gut|instinct|intuition|guesswork|feel|anecdote)",
+          "label": "Need for data-driven decisions",
+          "weight": 2
+        },
+        {
+          "pattern": "(drowning|overwhelmed|overloaded|swamped|buried|crushed)( (in|by|with))?",
+          "label": "Team overwhelm/overload",
+          "weight": 1
+        },
+        {
+          "pattern": "can't (tell|see|determine|understand) what (happened|went wrong|changed|caused|is going on)",
+          "label": "Lack of historical insight",
+          "weight": 2
+        },
+        {
+          "pattern": "(left hand|right hand|silos|siloed|disconnected|doesn't know what .{0,20} doing)",
+          "label": "Organizational disconnection",
+          "weight": 2
+        },
+        {
+          "pattern": "(take|takes|taking) .{0,30}(week|day|month|forever|too long|hours|two weeks) to (get|pull|produce|find|create|generate|answer|compile)",
+          "label": "Slow data delivery",
+          "weight": 2
+        },
+        {
+          "pattern": "(notebook|prototype|POC|proof of concept|demo).{0,20}(never|didn't|hasn't|not).{0,15}(production|deployed|live|shipped|operationalized)",
+          "label": "MLOps/productionization gap",
+          "weight": 2
+        },
+        {
+          "pattern": "(competitor|competition|market|rival).{0,20}(before|ahead|faster|first|know)",
+          "label": "Competitive intelligence need",
+          "weight": 1
+        },
+        {
+          "pattern": "(own truth|their own .{0,10}(numbers|version|data|metrics))|who.?s right",
+          "label": "Conflicting truths/metrics",
+          "weight": 2
+        },
+        {
+          "pattern": "(connect|bridge|link|integrate).{0,30}(shop floor|operations|front.?line|field).{0,30}(back office|headquarters|HQ|management|corporate|finance)",
+          "label": "Operations-to-office integration",
+          "weight": 2
+        },
+        {
+          "pattern": "(nobody|no one) (read|use|look|care|trust|understand|maintain).{0,10}(s |ed |ing )",
+          "label": "Adoption/usage problem",
+          "weight": 1
+        },
+        {
+          "pattern": "(broke|break|broken|fail|crash).{0,30}(nobody|no one|can't).{0,20}(fix|understand|debug|maintain)",
+          "label": "Unmaintainable system",
+          "weight": 2
+        },
+        {
+          "pattern": "keep (starting|building|creating).{0,20}(never|don't|not).{0,10}(finish|complete|deliver|ship)",
+          "label": "Project completion failure",
+          "weight": 1
+        },
+        {
+          "pattern": "(agree|consensus|alignment|aligned|consistent).{0,15}(on |)(numbers|data|metrics|definition|KPI)",
+          "label": "Data consistency/trust concern",
+          "weight": 2
+        },
+        {
+          "pattern": "(not enough|need more|lack of|missing) (answer|insight|information|data|analytics|visibility)",
+          "label": "Insight gap",
+          "weight": 1
+        },
+        {
+          "pattern": "everything is in (spreadsheet|Excel|email|silo|different)",
+          "label": "Data fragmentation",
+          "weight": 2
+        },
+        {
+          "pattern": "data is (everywhere|scattered|fragmented|siloed|all over)",
+          "label": "Data scattering",
+          "weight": 2
+        },
+        {
+          "pattern": "(paper|manual|fax|handwritten|hand.?written|pen and paper|clipboard)",
+          "label": "Paper/manual process",
+          "weight": 2
         }
       ]
     },
@@ -320,7 +515,26 @@
         "model drift",
         "digital twin",
         "computer vision",
-        "machine vision"
+        "machine vision",
+        "optimize",
+        "optimization",
+        "personalize",
+        "personalization",
+        "churn",
+        "attrition",
+        "segmentation",
+        "clustering",
+        "root cause",
+        "root cause analysis",
+        "early warning",
+        "fraud detection",
+        "demand forecasting",
+        "demand planning",
+        "propensity",
+        "detect",
+        "detection",
+        "automate",
+        "automation"
       ],
       "velocity": "Batch (typically)",
       "use_case": "Machine learning",
@@ -406,6 +620,101 @@
         {
           "pattern": "(identify|find|discover|pinpoint) which.{0,30}(correlat|caus|affect|influenc|driv)",
           "label": "Comparison/identification",
+          "weight": 1
+        },
+        {
+          "pattern": "(too many|reduce|fewer|less|minimize) .{0,15}(defect|error|failure|reject|waste|downtime|false positive|scrap)",
+          "label": "Defect/error reduction goal",
+          "weight": 2
+        },
+        {
+          "pattern": "catch .{0,15}(fraud|abuse|anomal|error|issue|outlier|suspicious)",
+          "label": "Fraud/anomaly catch intent",
+          "weight": 2
+        },
+        {
+          "pattern": "figure out (why|what|when|how|which)",
+          "label": "Root cause investigation",
+          "weight": 1
+        },
+        {
+          "pattern": "improve .{0,15}(outcome|result|performance|quality|efficiency|yield|accuracy|throughput)",
+          "label": "Improvement/optimization goal",
+          "weight": 1
+        },
+        {
+          "pattern": "(which|what) .{0,20}(work|effective|successful|best|worst|cause|drive|influence)",
+          "label": "Effectiveness analysis",
+          "weight": 1
+        },
+        {
+          "pattern": "(want to|need to|trying to) (understand|know|learn|see|find out)",
+          "label": "Understanding/discovery intent",
+          "weight": 1
+        },
+        {
+          "pattern": "\\b(detect|identify|catch|find|spot) .{0,20}(threat|anomal|fraud|pattern|issue|problem|risk|degradation|failure|outlier|suspicious|crisis|outbreak|disease|incident|breach|leak)",
+          "label": "Threat/anomaly detection intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(take|takes|taking) too (long|much time)",
+          "label": "Process speed optimization",
+          "weight": 1
+        },
+        {
+          "pattern": "(running out|out of stock|stockout|shortage|surplus|overstock|excess inventory)",
+          "label": "Demand/supply imbalance",
+          "weight": 2
+        },
+        {
+          "pattern": "(speed up|faster|quicker|accelerate|shorten) .{0,15}(process|development|cycle|turnaround|delivery|response)",
+          "label": "Process acceleration intent",
+          "weight": 1
+        },
+        {
+          "pattern": "(waste|wasting|too much) .{0,15}(energy|time|money|resource|material|effort)",
+          "label": "Waste/inefficiency concern",
+          "weight": 1
+        },
+        {
+          "pattern": "(reduce|decrease|minimize|lower|cut) .{0,15}(cost|delay|time|waste|error|risk|churn|turnover)",
+          "label": "Reduction/improvement goal",
+          "weight": 1
+        },
+        {
+          "pattern": "(leaving|churning|dropping off|abandoning|unsubscribing|canceling|attriting)",
+          "label": "Churn/attrition behavior",
+          "weight": 2
+        },
+        {
+          "pattern": "raise more|increase .{0,15}(revenue|sales|conversion|donation|engagement|retention)",
+          "label": "Growth/increase goal",
+          "weight": 1
+        },
+        {
+          "pattern": "(proactive|preventive|preventative|before .{0,15}(happen|break|fail|problem|too late))",
+          "label": "Proactive/preventive intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(aging|deteriorat|degrading|wear|end of life|replace first|prioriti).{0,15}(infrastructure|asset|equipment|pipeline|system|fleet|replace|inspection|maintenance)",
+          "label": "Asset lifecycle/aging concern",
+          "weight": 2
+        },
+        {
+          "pattern": "(infrastructure|asset|equipment|system|fleet).{0,15}(aging|old|deteriorat|degrading|end of life|obsolete|failing)",
+          "label": "Aging infrastructure (reversed)",
+          "weight": 2
+        },
+        {
+          "pattern": "don't know (what|which|where|when|how) to .{0,15}(replace|fix|maintain|prioriti|invest|upgrade)",
+          "label": "Prioritization uncertainty",
+          "weight": 1
+        },
+        {
+          "pattern": "(no good way|difficult|hard|struggle|challenge|pain|tedious|manual) .{0,15}(to |)(search|find|discover|access|analyze|report|manage|process)",
+          "label": "Pain point with current process",
           "weight": 1
         }
       ]
@@ -498,6 +807,21 @@
           "pattern": "(California|Illinois|CCPA|CPRA|BIPA|state|jurisdiction).{0,15}(privacy|regulation|require|law)",
           "label": "Privacy jurisdiction",
           "weight": 1
+        },
+        {
+          "pattern": "(implement|set up|configure|establish|enforce).{0,15}(access control|security|permission|authorization|data protection)",
+          "label": "Access control implementation",
+          "weight": 2
+        },
+        {
+          "pattern": "(discover|find|locate|identify|classify|inventory).{0,15}(PII|sensitive|personal|protected|confidential).{0,15}data",
+          "label": "PII discovery/classification",
+          "weight": 2
+        },
+        {
+          "pattern": "(can't|cannot|not allowed to|must not|prohibited from) .{0,30}(move|transfer|export|send|transmit|copy).{0,30}(data|information).{0,20}(out of|outside|from|across|to another)",
+          "label": "Data residency/sovereignty constraint",
+          "weight": 2
         }
       ]
     },
@@ -645,7 +969,13 @@
         "traceability",
         "integrate",
         "integration",
-        "unify"
+        "unify",
+        "migrate",
+        "migration",
+        "normalize",
+        "normalization",
+        "modernize",
+        "modernization"
       ],
       "velocity": "Varies",
       "use_case": "Layered analytics",
@@ -674,6 +1004,26 @@
           "weight": 1
         },
         {
+          "pattern": "move .{0,30}to .{0,15}(cloud|modern|new|target|Azure|AWS|GCP|Fabric)",
+          "label": "Cloud migration intent",
+          "weight": 2
+        },
+        {
+          "pattern": "bring .{0,20}(together|into one|in one place|under one|into a single)",
+          "label": "Data consolidation intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(genealogy|provenance|birth.?to.?|end.?to.?end|full.?life|cradle.?to.?)",
+          "label": "Full lifecycle traceability",
+          "weight": 2
+        },
+        {
+          "pattern": "360.?degree (view|profile|picture)|single view of|holistic view|complete (view|picture|profile)",
+          "label": "360-degree/holistic view",
+          "weight": 2
+        },
+        {
           "pattern": "(single source of truth|golden record|master data|one version of|trust the numbers|conflicting data|different numbers)",
           "label": "Trust/consistency concern",
           "weight": 2
@@ -692,6 +1042,36 @@
           "pattern": "(anonymiz|de.?identif|aggregat|blend).{0,15}(data|metric|result|benchmark)",
           "label": "Anonymization/aggregation",
           "weight": 1
+        },
+        {
+          "pattern": "(never match|don't match|numbers? (are|is) (different|wrong)|trust the (number|data|report))",
+          "label": "Data trust/matching problem",
+          "weight": 2
+        },
+        {
+          "pattern": "(more |)(reliable|trustworthy|accurate|dependable|consistent) .{0,15}(data|numbers?|metrics?|reports?|dashboards?|analytics|information)",
+          "label": "Data reliability concern",
+          "weight": 2
+        },
+        {
+          "pattern": "(duplicate|stale|undocumented|orphaned|unknown).{0,15}data",
+          "label": "Data quality/hygiene concern",
+          "weight": 1
+        },
+        {
+          "pattern": "(inherit|acqui|merger|merge).{0,20}(system|platform|database|data|company)",
+          "label": "Post-M&A data integration",
+          "weight": 2
+        },
+        {
+          "pattern": "(three|two|multiple|several|different) .{0,10}(of everything|CRM|ERP|system|database|warehouse|platform)",
+          "label": "System proliferation",
+          "weight": 2
+        },
+        {
+          "pattern": "(nothing|don't|doesn't|can't|cannot) (talk|connect|integrate|communicate|share) (to|with) each other",
+          "label": "System isolation",
+          "weight": 2
         }
       ]
     },
@@ -715,7 +1095,9 @@
         "customer-facing",
         "embedded analytics",
         "chatbot",
-        "natural language"
+        "natural language",
+        "self-service",
+        "mobile app"
       ],
       "velocity": "Varies",
       "use_case": "Application backend",
@@ -737,6 +1119,16 @@
         {
           "pattern": "(self.?service|drag.?and.?drop|no.?code|low.?code|non.?technical).{0,10}(user|analyst|team|staff)",
           "label": "Self-service for non-technical users",
+          "weight": 1
+        },
+        {
+          "pattern": "(look it up|find it|answer it|check it|get it) (themselves|by themselves|on their own|without|independently)",
+          "label": "Self-service lookup intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(wish|want|need).{0,15}(could|to) just .{0,15}(look|find|search|ask|query|check|see)",
+          "label": "Self-service desire",
           "weight": 1
         },
         {
@@ -796,6 +1188,16 @@
           "pattern": "(search|discover|find|explore).{0,15}(across|within|through) .{0,15}(data|document|record|artifact|catalog)",
           "label": "Cross-data search/discovery",
           "weight": 1
+        },
+        {
+          "pattern": "(search|discover|find|browse|explore) .{0,20}(collection|catalog|archive|library|repository|corpus|database|knowledge)",
+          "label": "Collection search intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(more|better) (accessible|discoverable|searchable|usable|findable)",
+          "label": "Accessibility/discoverability goal",
+          "weight": 1
         }
       ]
     },
@@ -846,6 +1248,21 @@
           "pattern": "(best practice|knowledge shar|lesson|benchmark).{0,15}(across|between|among|for)",
           "label": "Best practices/knowledge sharing",
           "weight": 1
+        },
+        {
+          "pattern": "(defin|mean).{0,20}differently|different definition",
+          "label": "Semantic inconsistency",
+          "weight": 2
+        },
+        {
+          "pattern": "(no|lack of|missing|without) (documentation|standard|framework|process|governance|catalog|standardized)",
+          "label": "Governance gap",
+          "weight": 2
+        },
+        {
+          "pattern": "(defin|mean|interpret|calculat|count).{0,10}(s |ed |es |ing ).{0,10}differently|different (definition|meaning|interpretation)",
+          "label": "Semantic inconsistency (broad)",
+          "weight": 2
         }
       ]
     }
