@@ -150,6 +150,31 @@
           "pattern": "(sensor|probe|meter|gauge|monitor).{0,30}(every|per|each) \\d+",
           "label": "Sensor cadence pattern",
           "weight": 2
+        },
+        {
+          "pattern": "within \\d+ (minutes|hours|seconds)",
+          "label": "Latency SLA",
+          "weight": 2
+        },
+        {
+          "pattern": "closed.?loop|automatic(ally)? (adjust|control|respond|trigger|initiate)",
+          "label": "Closed-loop/automatic control",
+          "weight": 2
+        },
+        {
+          "pattern": "near.?real.?time",
+          "label": "Near-real-time",
+          "weight": 2
+        },
+        {
+          "pattern": "(log|record|track|capture).{0,20}(every|continuously|constantly|all)",
+          "label": "Continuous logging",
+          "weight": 1
+        },
+        {
+          "pattern": "(monitor|watch|observe|track).{0,20}(temperature|pressure|flow|level|speed|rate|performance)",
+          "label": "Process monitoring",
+          "weight": 1
         }
       ]
     },
@@ -287,6 +312,31 @@
         {
           "pattern": "export .{0,20} (to|for|as) (Excel|PDF|CSV|PowerPoint|email)",
           "label": "Export to common formats",
+          "weight": 1
+        },
+        {
+          "pattern": "(analyz|process|scan|review|examine).{0,15}\\d+[,.]?\\d*\\s*(million|billion|thousand|[KMB])\\b",
+          "label": "Scale analytics",
+          "weight": 2
+        },
+        {
+          "pattern": "(benchmark|compare|rank).{0,15}(against|across|between|to|with)",
+          "label": "Benchmarking",
+          "weight": 1
+        },
+        {
+          "pattern": "(produce|generate|create|build).{0,15}(report|visualization|dashboard|chart|summary)",
+          "label": "Reporting output",
+          "weight": 1
+        },
+        {
+          "pattern": "(review|investigate|audit|examine|assess).{0,15}(historical|past|previous|prior|existing)",
+          "label": "Retrospective analysis",
+          "weight": 1
+        },
+        {
+          "pattern": "currently.{0,30}(want|need|target|goal)",
+          "label": "Currently/improvement",
           "weight": 1
         }
       ]
@@ -480,6 +530,36 @@
           "pattern": "automat(e|ed|ic).{0,20}(classif|categoriz|decision|triage|sort|grade|assess|diagnos)",
           "label": "Automated classification/decision",
           "weight": 2
+        },
+        {
+          "pattern": "(entity|identity|record) (resolution|matching|linking|dedup)",
+          "label": "Entity resolution",
+          "weight": 2
+        },
+        {
+          "pattern": "(simulat|what.?if|scenario|monte carlo).{0,15}(model|analys|run|environment)",
+          "label": "Simulation/what-if",
+          "weight": 2
+        },
+        {
+          "pattern": "(risk|quality|priority|threat|fraud|credit) (scor|rank|rating|assessment)",
+          "label": "Scoring/ranking",
+          "weight": 2
+        },
+        {
+          "pattern": "(fuzzy match|entity match|text (min|analyt)|natural language (process|understand))",
+          "label": "NLP/text understanding",
+          "weight": 1
+        },
+        {
+          "pattern": "(image|scan|X.?ray|CT|MRI|photo|video).{0,20}(analy|classif|detect|recogni|process|assess)",
+          "label": "Image/vision analysis",
+          "weight": 2
+        },
+        {
+          "pattern": "(identify|find|discover|pinpoint) which.{0,30}(correlat|caus|affect|influenc|driv)",
+          "label": "Comparison/identification",
+          "weight": 1
         }
       ]
     },
@@ -584,6 +664,21 @@
           "pattern": "(ISO \\d+|SOC ?[12]|FedRAMP|NIST|CMMC|CLIA|CAP|AS9100|ITAR|DFARS)",
           "label": "Certification/standard reference",
           "weight": 2
+        },
+        {
+          "pattern": "(court|legal|admissibl|litigation|evidence|forensic)",
+          "label": "Court/legal admissibility",
+          "weight": 1
+        },
+        {
+          "pattern": "(delete|erase|purge|remove|forget).{0,20}(data|record|information).{0,20}(request|right|upon|customer|user)",
+          "label": "Data deletion rights",
+          "weight": 1
+        },
+        {
+          "pattern": "(California|Illinois|CCPA|CPRA|BIPA|state|jurisdiction).{0,15}(privacy|regulation|require|law)",
+          "label": "Privacy jurisdiction",
+          "weight": 1
         }
       ]
     },
@@ -639,6 +734,11 @@
         {
           "pattern": "(inventory|order|booking|reservation|ticket).{0,15}(management|tracking|processing|system)",
           "label": "Inventory/order management",
+          "weight": 1
+        },
+        {
+          "pattern": "(automat|instant).{0,15}(pay|refund|reimburse|credit|notify|calculate|process|initiate)",
+          "label": "Automated payout/action",
           "weight": 1
         }
       ]
@@ -715,6 +815,16 @@
         {
           "pattern": "(different|various|multiple|mixed) (format|schema|structure|encoding|naming convention)",
           "label": "Multi-format data",
+          "weight": 1
+        },
+        {
+          "pattern": "(satellite|radar|geospatial|GIS|remote sensing|imagery|LiDAR|NDVI|spectral)",
+          "label": "Geospatial data",
+          "weight": 1
+        },
+        {
+          "pattern": "\\d+\\s*(GB|MB)\\s*(per|each|a)\\s*(file|image|scan|page|record|sample|biopsy)",
+          "label": "Large file processing",
           "weight": 1
         }
       ]
@@ -819,6 +929,21 @@
           "pattern": "(single source of truth|golden record|master data|one version of|trust the numbers|conflicting data|different numbers)",
           "label": "Trust/consistency concern",
           "weight": 2
+        },
+        {
+          "pattern": "(cross.?referenc|cross.?check|reconcil|validat).{0,15}(against|with|between|across)",
+          "label": "Cross-referencing",
+          "weight": 1
+        },
+        {
+          "pattern": "(consistency|consistent|standardiz|uniform).{0,15}(across|between|among).{0,15}(facilit|plant|site|location|factor|region|unit)",
+          "label": "Consistency across sites",
+          "weight": 1
+        },
+        {
+          "pattern": "(anonymiz|de.?identif|aggregat|blend).{0,15}(data|metric|result|benchmark)",
+          "label": "Anonymization/aggregation",
+          "weight": 1
         }
       ]
     },
@@ -1007,6 +1132,11 @@
         {
           "pattern": "(classif|tag|label|categoriz|taxonomy).{0,15}(data|asset|dataset|column|field|table)",
           "label": "Data classification/tagging",
+          "weight": 1
+        },
+        {
+          "pattern": "(best practice|knowledge shar|lesson|benchmark).{0,15}(across|between|among|for)",
+          "label": "Best practices/knowledge sharing",
           "weight": 1
         }
       ]
