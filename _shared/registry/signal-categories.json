@@ -39,7 +39,10 @@
         "late-arriving",
         "CDC",
         "change data capture",
-        "replication"
+        "replication",
+        "event",
+        "sensor",
+        "temperature"
       ],
       "velocity": "Real-time",
       "use_case": "Event analytics",
@@ -223,7 +226,10 @@
         "ad-hoc",
         "time-series",
         "VWAP",
-        "canary deployment"
+        "canary deployment",
+        "pipeline",
+        "database",
+        "query"
       ],
       "velocity": "Batch",
       "use_case": "Analytics / Reporting",
@@ -904,7 +910,9 @@
         "RAG",
         "retrieval-augmented generation",
         "LLM",
-        "synthetic data"
+        "synthetic data",
+        "prediction",
+        "pattern recognition"
       ],
       "velocity": "Batch (typically)",
       "use_case": "Machine learning",
@@ -1162,7 +1170,9 @@
         "KYC",
         "insider threat",
         "air-gapped",
-        "data residency"
+        "data residency",
+        "regulatory",
+        "risk"
       ],
       "velocity": "Varies",
       "use_case": "Sensitive data",
@@ -1762,7 +1772,8 @@
         "classification schema",
         "data product",
         "data publishing",
-        "data mesh"
+        "data mesh",
+        "metrics"
       ],
       "velocity": "Varies",
       "use_case": "Semantic governance",

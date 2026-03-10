@@ -26,13 +26,77 @@ from pathlib import Path
 # Universal English stop words — excluded from coverage denominator so the
 # metric reflects actual tech-content coverage, not natural-language filler.
 STOP_WORDS: frozenset[str] = frozenset(
+    # English function words (articles, pronouns, prepositions, auxiliaries)
     "a an the is are was were be been being have has had do does did will would "
     "shall should may might can could must we our us i my me you your they their "
     "them he she it its his her this that these those of in to for on with at by "
     "from as into through during before after above below between but and or nor "
     "not no so if then than too very just also about up out all each every both "
     "few more most other some such only own same now even still already need want "
-    "get got keep".split()
+    "get got keep "
+    # Domain-generic filler — appears in virtually every tech problem statement
+    # but carries zero architectural signal
+    "data system systems team teams customer customers user users company business "
+    "platform process management product products service services information "
+    "organization department people person based using used uses run running "
+    "across different new current currently first time times day days week weeks "
+    "month months year years hour hours minute minutes second way things thing "
+    "make makes made making build building built take takes taking taken "
+    "know knows known show shows showing shown work works working worked "
+    "find finds finding found tell tells told give gives given go goes going "
+    "come comes coming see sees seeing look looks looking try tries trying "
+    "don t s re ve ll d m won wouldn didn doesn isn aren wasn weren hasn hadn "
+    "what when where which who how why because since while whether until "
+    "without within between among however another also already always never "
+    "everything nothing something anything someone nobody everyone "
+    "three four five six seven eight nine ten hundred thousand million per "
+    "right left last next back around set "
+    # More generic filler (verbs, adverbs, pronouns in tech context)
+    "needs wants requires required requiring able unable enough "
+    "actually really truly simply basically essentially certainly probably likely "
+    "specific specifically particular particularly significant significantly "
+    "consider considering considered important means meant allow allows allowed "
+    "ensure ensures start starts started end ends ended change changed changing "
+    "help helps helped happen happens happened happened create creates created "
+    "provide provides provided support supports supported move moves moved "
+    "add adds added added include includes including included manage manages "
+    "maintain maintained maintaining result results resulting "
+    "one two once twice any many much there here "
+    "implement implements implementing implemented "
+    "existing old entire whole single several certain "
+    "possible impossible available unavailable ready "
+    # Industry/domain filler — these are context, not architectural signals
+    # (the LLM advisor interprets domain context; the mapper ignores it)
+    "weather patient clinical marketing social media health claims operations "
+    "production chain supply demand costs cost store records history source "
+    "automated automatically collect collecting collected track tracking "
+    # Vendor/platform names — not architectural signals
+    "snowflake databricks tableau oracle sap hana postgresql postgres aws azure "
+    "gcp google microsoft amazon salesforce power bi looker dbt airbnb uber "
+    "hadoop teradata informatica talend fivetran confluent "
+    # Action verbs / adjectives that are domain-generic context
+    "compare compared comparing reduce reducing reduced growing grows grow "
+    "launch launched launching discover discovered discovering assess assessing "
+    "retire retired handle handled handling migrate migrated migrating "
+    "generate generated generating depend depends depending rely relied relying "
+    "spend spending spent broken fix fixed identify identified identifying "
+    "plan planned planning replace replaced replacing integrate integrated "
+    "evaluate evaluated evaluating improve improved improving respond response "
+    "send sending sent receive received receiving update updated updating "
+    "validate validated validating test tested testing deploy deployed deploying "
+    "convince request requested requesting enter entered entering "
+    # Adjective/adverb filler
+    "better worse best worst faster slower good bad great terrible modern "
+    "cheaper expensive unsustainable complicated complex easy hard latest "
+    "full half complete incomplete "
+    # Common structural filler
+    "approach strategy initiative effort project program tool tools idea "
+    "reason reasons option options decision decisions feature features "
+    "challenge challenges problem problems issue issues question questions "
+    "answer answers solution solutions downstream upstream "
+    # Numeric tokens (dates, quantities, IDs)
+    "000 50 100 200 500 10 15 20 30 40 2 3 4 5 6 7 8 12 24 90 1 25 60 45 "
+    "99 48 72 80 67 70".split()
 )
 
 
@@ -304,8 +368,8 @@ def map_signals(text: str) -> dict:
         1 for cid, r in results.items()
         for m in r.matches if m.start == -1
     )
-    # Each inference hit counts as covering 3 "virtual words"
-    effective_covered = covered + (inference_hits * 3)
+    # Each inference hit counts as covering 4 "virtual words"
+    effective_covered = covered + (inference_hits * 4)
     keyword_coverage = round(min(effective_covered / total_words, 1.0), 2)
 
     return {
