@@ -7,12 +7,12 @@ and items_to_deploy), maps items to phases from item-type-registry.json,
 and outputs a pre-filled test-plan.md with criteria_mapping already populated.
 
 Usage:
-    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff projects/my-project/prd/architecture-handoff.md
-    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff projects/my-project/prd/architecture-handoff.md --output test-plan-draft.md
+    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/my-project/prd/architecture-handoff.md
+    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/my-project/prd/architecture-handoff.md --output test-plan-draft.md
 
 Importable:
     from test_plan_prefill import prefill
-    result = prefill("projects/my-project/prd/architecture-handoff.md")
+    result = prefill("_projects/my-project/prd/architecture-handoff.md")
 """
 
 from __future__ import annotations
@@ -91,9 +91,24 @@ def _parse_frontmatter(text: str) -> dict[str, str]:
 
 _PHASE_HEADING_RE = re.compile(r"^###\s+Phase\s+(\d+):\s*(.+)", re.MULTILINE)
 
+_CHECKLIST_JSON = REPO_ROOT / "_shared" / "registry" / "validation-checklists.json"
+
+
+def _load_checklist_phases(task_flow: str) -> dict[int, str]:
+    """Return {phase_number: phase_name} from validation-checklists.json."""
+    import json
+
+    if not _CHECKLIST_JSON.exists():
+        return {}
+    data = json.loads(_CHECKLIST_JSON.read_text(encoding="utf-8"))
+    tf_data = data.get("task_flows", {}).get(task_flow, {})
+    phases = tf_data.get("phases", {})
+    # phases is {name: {...}} — assign sequential numbers
+    return {i + 1: name for i, name in enumerate(phases)}
+
 
 def _parse_checklist_phases(checklist_text: str) -> dict[int, str]:
-    """Return {phase_number: phase_name} from validation checklist."""
+    """Return {phase_number: phase_name} from validation checklist markdown (legacy)."""
     phases: dict[int, str] = {}
     for m in _PHASE_HEADING_RE.finditer(checklist_text):
         phases[int(m.group(1))] = m.group(2).strip()
@@ -307,18 +322,21 @@ def prefill(handoff_path: str) -> dict:
     items = parsed["items_to_deploy"]
     arch_date = parsed["created"] or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    # Load validation checklist
+    # Load validation checklist (JSON registry preferred, legacy markdown fallback)
     checklist_phases: dict[int, str] = {}
     if task_flow and task_flow != "TBD":
-        checklist_path = REPO_ROOT / "validation" / f"{task_flow}.md"
-        if checklist_path.exists():
-            checklist_text = checklist_path.read_text(encoding="utf-8")
-            checklist_phases = _parse_checklist_phases(checklist_text)
-        else:
-            print(
-                f"Warning: validation checklist not found: {checklist_path}",
-                file=sys.stderr,
-            )
+        checklist_phases = _load_checklist_phases(task_flow)
+        if not checklist_phases:
+            # Legacy fallback to markdown files
+            checklist_path = REPO_ROOT / "validation" / f"{task_flow}.md"
+            if checklist_path.exists():
+                checklist_text = checklist_path.read_text(encoding="utf-8")
+                checklist_phases = _parse_checklist_phases(checklist_text)
+            else:
+                print(
+                    f"Warning: validation checklist not found for task flow: {task_flow}",
+                    file=sys.stderr,
+                )
 
     # Map ACs
     criteria_mapping: list[dict[str, str]] = []
@@ -429,7 +447,7 @@ def _emit_yaml(data: dict) -> str:
         for entry in data["criteria_mapping"]:
             lines.append(f'  - ac_id: {entry["ac_id"]}')
             lines.append(f'    type: {entry["type"]}')
-            lines.append(f'    checklist_ref: "{entry["checklist_ref"]}"')
+            lines.append(f'    phase: "{entry["phase"]}"')
             lines.append(f'    test_method: "{entry["test_method"]}"')
     else:
         lines.append("  []")

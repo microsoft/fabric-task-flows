@@ -29,6 +29,9 @@
 
 <!-- /fabric-test skill appends learnings here after validation phases -->
 
+- **Design-only validation is structural, not runtime.** When no live workspace exists, validate .platform files, content file presence, and cross-references (byPath, Sparkcompute.yml). REST API validation requires `az login` and a provisioned workspace.
+- **ML Model cannot be validated at deploy time.** MLExperiment deploys fine, but MLModel requires at least one experiment run before registration. Always document as manual step.
+
 ## Timing & Propagation
 
 <!-- Learnings about delays, propagation, and ordering constraints -->

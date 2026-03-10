@@ -35,6 +35,7 @@
 | utility-meter-modernization | lambda | Documented ✅ | Pipeline complete — 14 items, 5 ADRs, partial validation (8 manual steps pending) | D-1 Event Hub, D-2 source DB creds | Resolve external prerequisites → complete manual steps |
 | modern-dw-stuff | medallion | Test Plan ✅ | FINAL handoff + test plan produced | None | User Sign-Off (Phase 2b) |
 | grid-intelligence | TBD | Design | Discovery Brief produced; DRAFT architecture in progress | None | Design Review (Phase 1b) |
+| game-day-intelligence | medallion | Documented ✅ | Pipeline complete — 12 items, 5 ADRs, validation passed (1 ML Model manual) | None | Complete |
 > Project rows are generated locally by agents. See `projects/` folder (gitignored) for per-project artifacts.
 
 ---
