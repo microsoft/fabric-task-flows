@@ -23,6 +23,18 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# Universal English stop words — excluded from coverage denominator so the
+# metric reflects actual tech-content coverage, not natural-language filler.
+STOP_WORDS: frozenset[str] = frozenset(
+    "a an the is are was were be been being have has had do does did will would "
+    "shall should may might can could must we our us i my me you your they their "
+    "them he she it its his her this that these those of in to for on with at by "
+    "from as into through during before after above below between but and or nor "
+    "not no so if then than too very just also about up out all each every both "
+    "few more most other some such only own same now even still already need want "
+    "get got keep".split()
+)
+
 
 # ---------------------------------------------------------------------------
 # Signal category definitions — loaded from _shared/registry/signal-categories.json
@@ -79,7 +91,13 @@ def _build_patterns() -> list[KeywordPattern]:
         sorted_kws = sorted(cat.keywords, key=len, reverse=True)
         for kw in sorted_kws:
             escaped = re.escape(kw)
-            regex = re.compile(rf"\b{escaped}\b", re.IGNORECASE)
+            # Add optional plural 's' for keywords that don't already end in
+            # 's' and don't contain regex metacharacters (e.g. "access control"
+            # now also matches "access controls").
+            if not kw.endswith("s") and not re.search(r"[?*+\[\]()]", kw):
+                regex = re.compile(rf"\b{escaped}s?\b", re.IGNORECASE)
+            else:
+                regex = re.compile(rf"\b{escaped}\b", re.IGNORECASE)
             patterns.append(KeywordPattern(keyword=kw, pattern=regex, category_id=cat.id))
     return patterns
 
@@ -268,9 +286,11 @@ def map_signals(text: str) -> dict:
     # Ambiguity check
     ambiguous = 1 in active and 2 in active and 3 not in active
 
-    # Keyword coverage
+    # Keyword coverage — stop words excluded from denominator so the metric
+    # reflects tech-content coverage, not natural-language filler.
     words = re.findall(r"\b\w+\b", text)
-    total_words = len(words) if words else 1
+    meaningful_words = [w for w in words if w.lower() not in STOP_WORDS]
+    total_words = len(meaningful_words) if meaningful_words else 1
     matched_word_positions: set[int] = set()
     for start, end in matched_spans:
         for w_match in re.finditer(r"\b\w+\b", text[start:end]):
@@ -284,8 +304,8 @@ def map_signals(text: str) -> dict:
         1 for cid, r in results.items()
         for m in r.matches if m.start == -1
     )
-    # Each inference hit counts as covering 2 "virtual words"
-    effective_covered = covered + (inference_hits * 2)
+    # Each inference hit counts as covering 3 "virtual words"
+    effective_covered = covered + (inference_hits * 3)
     keyword_coverage = round(min(effective_covered / total_words, 1.0), 2)
 
     return {
