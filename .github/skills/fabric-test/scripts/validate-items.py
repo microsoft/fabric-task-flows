@@ -22,7 +22,6 @@ Dependencies (already installed via fabric-cicd):
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from datetime import datetime, timezone
@@ -48,11 +47,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
 from registry_loader import (
     load_registry as _load_reg,
-    build_fab_type_map,
-    build_portal_only_items,
-    build_phase_map as _build_phase_map_tuples,
 )
-from yaml_utils import extract_yaml_blocks
 
 
 def _load_registry() -> dict:
@@ -332,7 +327,7 @@ def main():
     print(f"  Handoff:   {args.handoff}", file=sys.stderr)
     print(f"  Workspace: {workspace}", file=sys.stderr)
     print(f"  Items:     {len(items)}", file=sys.stderr)
-    print(f"  Method:    Fabric REST API (no fab CLI)", file=sys.stderr)
+    print("  Method:    Fabric REST API (no fab CLI)", file=sys.stderr)
     print("", file=sys.stderr)
 
     # Initialize API client
@@ -415,10 +410,10 @@ def main():
         if p not in active_phases:
             active_phases.append(p)
 
-    print(f"# Validation Report (Automated Scan)")
+    print("# Validation Report (Automated Scan)")
     print(f"# Generated: {today}")
-    print(f"# Run by: validate-items.py (REST API)")
-    print(f"# ⚠️ LLM supplement needed: Validation Context + Future Considerations prose")
+    print("# Run by: validate-items.py (REST API)")
+    print("# ⚠️ LLM supplement needed: Validation Context + Future Considerations prose")
     print()
     print(f'project: "{project}"')
     print(f'task_flow: "{task_flow}"')
@@ -432,7 +427,7 @@ def main():
             ps = phase_status.get(phase, "pass")
             print(f"  - name: {phase}")
             print(f"    status: {ps}")
-            print(f'    notes: ""')
+            print('    notes: ""')
 
     print("  - name: CI/CD Readiness")
     print("    status: na")
@@ -452,7 +447,7 @@ def main():
     if manual_items:
         for i, mi in enumerate(manual_items, 1):
             print(f"  - id: M-{i}")
-            print(f"    confirmed: false")
+            print("    confirmed: false")
             print(f'    action_needed: "Verify {mi} manually in Fabric Portal"')
     else:
         print("  []")
@@ -463,10 +458,10 @@ def main():
     if fail_count > 0:
         for r in results:
             if r["verified"] == "false" and r["method"] == "REST API":
-                print(f"  - severity: high")
+                print("  - severity: high")
                 print(f'    item: "{r["name"]}"')
                 print(f'    issue: "{r["issue"]}"')
-                print(f'    action: "Re-deploy item or verify workspace name"')
+                print('    action: "Re-deploy item or verify workspace name"')
     else:
         print("  []")
 

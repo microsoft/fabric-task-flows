@@ -13,7 +13,6 @@ Usage:
 
 import argparse
 import os
-import re
 import sys
 from datetime import datetime, timezone
 
@@ -456,7 +455,7 @@ def docs_readme(project: str, display_name: str) -> str:
 
 
 def docs_architecture(project: str) -> str:
-    return f"""# Architecture
+    return """# Architecture
 
 <!-- /fabric-document: generate from Architecture Handoff -->
 
@@ -490,7 +489,7 @@ def docs_architecture(project: str) -> str:
 
 
 def docs_deployment_log(project: str) -> str:
-    return f"""# Deployment Log
+    return """# Deployment Log
 
 **Deployed:** <!-- /fabric-document: timestamp -->
 **Task flow:** <!-- /fabric-document: name -->
@@ -647,7 +646,7 @@ def update_projects_md(repo_root: str, project: str):
     with open(projects_path, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"  ✅ Added row to PROJECTS.md")
+    print("  ✅ Added row to PROJECTS.md")
 
 
 # ---------------------------------------------------------------------------
@@ -717,9 +716,9 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
     print(f"✅ Project '{project}' scaffolded with {len(files)} template files")
     print()
     print("Next steps:")
-    print(f"  1. Invoke @fabric-advisor to fill in prd/discovery-brief.md")
-    print(f"  2. Each agent edits its pre-created file — no file creation needed")
-    print(f"  3. Pipeline auto-chains per _shared/workflow-guide.md")
+    print("  1. Invoke @fabric-advisor to fill in prd/discovery-brief.md")
+    print("  2. Each agent edits its pre-created file — no file creation needed")
+    print("  3. Pipeline auto-chains per _shared/workflow-guide.md")
 
 
 def main():

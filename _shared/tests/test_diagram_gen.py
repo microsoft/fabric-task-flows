@@ -1,0 +1,267 @@
+"""Tests for diagram-gen.py — verifies ASCII architecture diagram generation."""
+
+import importlib.util
+import sys
+from pathlib import Path
+
+SHARED_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(SHARED_DIR / "lib"))
+
+# Import yaml_utils stub before sys.path manipulation triggers E402
+from yaml_utils import parse_yaml as _parse_yaml_stub  # noqa: E402
+
+REPO_ROOT = SHARED_DIR.parent
+DESIGN_SKILL = REPO_ROOT / ".github" / "skills" / "fabric-design"
+SCRIPT_PATH = DESIGN_SKILL / "scripts" / "diagram-gen.py"
+
+# Pre-load review-prescan so diagram-gen can import it
+_rp_spec = importlib.util.spec_from_file_location(
+    "review-prescan",
+    str(DESIGN_SKILL / "scripts" / "review-prescan.py"),
+)
+_rp_mod = importlib.util.module_from_spec(_rp_spec)
+sys.modules["review-prescan"] = _rp_mod
+_rp_spec.loader.exec_module(_rp_mod)
+
+# diagram-gen.py references _parse_yaml from review-prescan (unused dead code)
+# but the function doesn't exist — provide a stub to avoid AttributeError
+_rp_mod._parse_yaml = _parse_yaml_stub
+
+# Now load diagram-gen
+_spec = importlib.util.spec_from_file_location("diagram_gen", str(SCRIPT_PATH))
+_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+
+_make_box = _mod._make_box
+_compute_box_width = _mod._compute_box_width
+generate_diagram = _mod.generate_diagram
+LAYER_MAP = _mod.LAYER_MAP
+LAYER_ORDER = _mod.LAYER_ORDER
+
+
+# ── Sample handoff content ──────────────────────────────────────────
+
+
+SAMPLE_HANDOFF = """\
+---
+project: Test Project
+task_flow: medallion
+---
+
+# Architecture Handoff
+
+**Project:** Test Project
+**Task Flow:** medallion
+
+## Items
+
+```yaml
+items:
+  - id: 1
+    name: bronze-lakehouse
+    type: Lakehouse
+    depends_on: []
+  - id: 2
+    name: silver-notebook
+    type: Notebook
+    depends_on: [bronze-lakehouse]
+  - id: 3
+    name: gold-report
+    type: Report
+    depends_on: [silver-notebook]
+```
+
+## Waves
+
+```yaml
+waves:
+  - id: 1
+    name: Foundation
+    items: [bronze-lakehouse]
+  - id: 2
+    name: Processing
+    items: [silver-notebook]
+  - id: 3
+    name: Serving
+    items: [gold-report]
+```
+"""
+
+EMPTY_ITEMS_HANDOFF = """\
+---
+project: Empty
+task_flow: test
+---
+
+# Architecture Handoff
+
+```yaml
+other_data:
+  - key: value
+```
+"""
+
+
+def _write_handoff(tmp_path, content):
+    """Write content to a temp handoff file and return the path."""
+    p = tmp_path / "architecture-handoff.md"
+    p.write_text(content, encoding="utf-8")
+    return str(p)
+
+
+# ── _make_box tests ─────────────────────────────────────────────────
+
+
+class TestMakeBox:
+    def test_box_has_correct_corners(self):
+        lines = _make_box("test", "Lakehouse", wave=1, width=20)
+        assert lines[0].startswith("┌")
+        assert lines[0].endswith("┐")
+        assert lines[-1].startswith("└")
+        assert lines[-1].endswith("┘")
+
+    def test_box_contains_name(self):
+        lines = _make_box("my-lakehouse", "Lakehouse", wave=1, width=24)
+        content = "\n".join(lines)
+        assert "my-lakehouse" in content
+
+    def test_box_contains_type(self):
+        lines = _make_box("test", "Lakehouse", wave=1, width=20)
+        content = "\n".join(lines)
+        assert "(Lakehouse)" in content
+
+    def test_box_contains_wave_when_set(self):
+        lines = _make_box("test", "Lakehouse", wave=2, width=20)
+        content = "\n".join(lines)
+        assert "[W2]" in content
+
+    def test_box_omits_wave_when_none(self):
+        lines = _make_box("test", "Lakehouse", wave=None, width=20)
+        content = "\n".join(lines)
+        assert "[W" not in content
+
+    def test_box_lines_uniform_width(self):
+        lines = _make_box("test", "Lakehouse", wave=1, width=24)
+        for line in lines:
+            assert len(line) == 24
+
+    def test_box_side_borders(self):
+        lines = _make_box("test", "Lakehouse", wave=None, width=20)
+        for line in lines[1:-1]:
+            assert line.startswith("│ ")
+            assert line.endswith(" │")
+
+    def test_box_minimum_width(self):
+        lines = _make_box("x", "Y", wave=None, width=20)
+        assert len(lines[0]) == 20
+
+
+# ── _compute_box_width tests ───────────────────────────────────────
+
+
+class TestComputeBoxWidth:
+    def test_minimum_width(self):
+        items = [{"name": "a", "type": "B"}]
+        assert _compute_box_width(items) >= 20
+
+    def test_width_grows_with_name(self):
+        short_items = [{"name": "x", "type": "Y"}]
+        long_items = [{"name": "very-long-item-name", "type": "Y"}]
+        assert _compute_box_width(long_items) >= _compute_box_width(short_items)
+
+    def test_width_accounts_for_type(self):
+        items = [{"name": "x", "type": "Spark Job Definition"}]
+        width = _compute_box_width(items)
+        assert width >= len("(Spark Job Definition)") + 6
+
+
+# ── LAYER_MAP constants ────────────────────────────────────────────
+
+
+class TestLayerMap:
+    def test_common_types_mapped(self):
+        assert LAYER_MAP["Lakehouse"] == "STORAGE"
+        assert LAYER_MAP["Notebook"] == "PROCESSING"
+        assert LAYER_MAP["Report"] == "SERVING"
+        assert LAYER_MAP["Pipeline"] == "INGESTION"
+        assert LAYER_MAP["Environment"] == "COMPUTE"
+
+    def test_layer_order_has_all_layers(self):
+        for layer in set(LAYER_MAP.values()):
+            assert layer in LAYER_ORDER
+
+
+# ── generate_diagram integration tests ──────────────────────────────
+
+
+class TestGenerateDiagram:
+    def test_returns_string(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    def test_contains_title_bar(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert "Test Project" in result
+        assert "medallion" in result
+
+    def test_contains_double_border(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert "╔" in result
+        assert "╗" in result
+        assert "╚" in result
+        assert "╝" in result
+
+    def test_contains_all_items(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert "bronze-lakehouse" in result
+        assert "silver-notebook" in result
+        assert "gold-report" in result
+
+    def test_contains_wave_headers(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert "Wave 1" in result
+        assert "Wave 2" in result
+        assert "Wave 3" in result
+
+    def test_wave_order_preserved(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        w1 = result.index("Wave 1")
+        w2 = result.index("Wave 2")
+        w3 = result.index("Wave 3")
+        assert w1 < w2 < w3
+
+    def test_contains_box_characters(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert "┌" in result
+        assert "┐" in result
+        assert "└" in result
+        assert "┘" in result
+
+    def test_box_balance(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert result.count("┌") == result.count("┘")
+        assert result.count("┐") == result.count("└")
+
+    def test_inter_wave_arrows(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert "▼" in result
+
+    def test_no_items_returns_message(self, tmp_path):
+        path = _write_handoff(tmp_path, EMPTY_ITEMS_HANDOFF)
+        result = generate_diagram(path)
+        assert "No items found" in result
+
+    def test_no_blockers_message(self, tmp_path):
+        path = _write_handoff(tmp_path, SAMPLE_HANDOFF)
+        result = generate_diagram(path)
+        assert "No blockers" in result

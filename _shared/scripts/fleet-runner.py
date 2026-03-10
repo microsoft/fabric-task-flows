@@ -30,7 +30,6 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SCRIPTS_DIR = REPO_ROOT / "_shared" / "scripts"
@@ -267,7 +266,7 @@ def process_project(problem: dict, dry_run: bool = False) -> dict:
 def print_fleet_summary(results: list[dict]) -> None:
     """Print a summary table of all fleet results."""
     print(f"\n{'═'*100}")
-    print(f"  FLEET DEPLOYMENT SUMMARY")
+    print("  FLEET DEPLOYMENT SUMMARY")
     print(f"{'═'*100}")
     print(f"  {'ID':>3}  {'Project':<30}  {'Category':<25}  {'Status':<20}  {'Candidates':<30}")
     print(f"  {'─'*3}  {'─'*30}  {'─'*25}  {'─'*20}  {'─'*30}")
@@ -347,7 +346,7 @@ def main():
 
     # Run self-heal before fleet if requested
     if args.heal:
-        print(f"\n  🔧 Running self-heal before fleet deployment...")
+        print("\n  🔧 Running self-heal before fleet deployment...")
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
         cmd = [sys.executable, str(SCRIPTS_DIR / "self-heal.py"),

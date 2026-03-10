@@ -137,7 +137,7 @@ def update_registry(registry: dict, cli_types: dict[str, str],
                 "definition": False
             },
             "availability": "preview",
-            "notes": f"Auto-added by sync-item-types.py — needs manual metadata review"
+            "notes": "Auto-added by sync-item-types.py — needs manual metadata review"
         }
         reg_types[fab_type] = stub
         added += 1

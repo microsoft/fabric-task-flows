@@ -125,8 +125,7 @@ def parse_diagram(task_flow: str) -> list[DiagramItem]:
         )
 
     items: list[DiagramItem] = []
-    prev_item_type = ""
-    
+
     for ji in json_items:
         is_alt = "alternativeGroup" in ji
         alt_group = ji.get("alternativeGroup")
@@ -148,8 +147,6 @@ def parse_diagram(task_flow: str) -> list[DiagramItem]:
             is_alternative=is_alt,
             alternative_group=alt_group,
         ))
-        prev_item_type = ji["itemType"]
-
     return items
 
 
@@ -293,7 +290,7 @@ def _emit_items_yaml(deploy_items: list[DeployItem]) -> str:
         if di.is_alternative and di.alternative_note:
             lines.append(f"    note: \"{di.alternative_note}\"")
         if di.portal_only:
-            lines.append(f"    note: portal-only — verify manually")
+            lines.append("    note: portal-only — verify manually")
     return "\n".join(lines)
 
 
@@ -342,36 +339,36 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     parts: list[str] = [
-        f"# Architecture Handoff (Scaffolded)",
-        f"",
+        "# Architecture Handoff (Scaffolded)",
+        "",
         f"**Project:** {project}",
         f"**Task Flow:** {task_flow}",
         f"**Generated:** {today}",
-        f"",
-        f"> ⚠️ This is a pre-filled scaffold. The architect must review and add:",
-        f"> - Decision rationale and alternatives considered",
-        f"> - Trade-offs analysis",
-        f"> - Deployment strategy prose",
-        f"> - Refined acceptance criteria",
-        f"",
-        f"## Items to Deploy",
-        f"",
-        f"```yaml",
+        "",
+        "> ⚠️ This is a pre-filled scaffold. The architect must review and add:",
+        "> - Decision rationale and alternatives considered",
+        "> - Trade-offs analysis",
+        "> - Deployment strategy prose",
+        "> - Refined acceptance criteria",
+        "",
+        "## Items to Deploy",
+        "",
+        "```yaml",
         _emit_items_yaml(deploy_items),
-        f"```",
-        f"",
-        f"## Deployment Waves",
-        f"",
-        f"```yaml",
+        "```",
+        "",
+        "## Deployment Waves",
+        "",
+        "```yaml",
         _emit_waves_yaml(waves),
-        f"```",
-        f"",
-        f"## Acceptance Criteria (Stubs)",
-        f"",
-        f"```yaml",
+        "```",
+        "",
+        "## Acceptance Criteria (Stubs)",
+        "",
+        "```yaml",
         _emit_ac_yaml(deploy_items, task_flow),
-        f"```",
-        f"",
+        "```",
+        "",
     ]
 
     return "\n".join(parts)

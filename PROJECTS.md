@@ -36,6 +36,7 @@
 | modern-dw-stuff | medallion | Test Plan ✅ | FINAL handoff + test plan produced | None | User Sign-Off (Phase 2b) |
 | grid-intelligence | TBD | Design | Discovery Brief produced; DRAFT architecture in progress | None | Design Review (Phase 1b) |
 | game-day-intelligence | medallion | Documented ✅ | Pipeline complete — 12 items, 5 ADRs, validation passed (1 ML Model manual) | None | Complete |
+| game-day-intelligence-v2 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
 > Project rows are generated locally by agents. See `projects/` folder (gitignored) for per-project artifacts.
 
 ---

@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.0.1] — 2026-03-10
+
+### Fixed
+
+- **CI test path broken** — `ci.yml` referenced old `tests/` directory; updated to `_shared/tests/` (post-restructuring regression)
+- **check-drift.py crash on Windows** — Unicode box-drawing characters failed with cp1252 encoding; added `sys.stdout.reconfigure(encoding='utf-8')` fallback
+- **README stale paths** — Directory tree referenced old `tests/` location and `fab` CLI; updated to `_shared/tests/` and `fabric-cicd`
+- **144 ruff lint errors** — Auto-fixed 114 (f-string placeholders, unused imports), manually fixed 30 (unused variables, ambiguous names, import order via per-file-ignores)
+
+### Added
+
+- `_shared/lib/__init__.py` for proper package recognition and CI coverage detection
+- **10 new test files** covering all 15 scripts (542 total tests, up from 139):
+  - `test_check_drift.py` — 36 tests for documentation drift detection
+  - `test_signal_mapper.py` — 45 tests for problem-to-task-flow mapping
+  - `test_decision_resolver.py` — 90 tests for decision guide resolution
+  - `test_review_prescan.py` — 41 tests for engineer/tester review pre-computation
+  - `test_handoff_scaffolder.py` — 51 tests for architecture handoff generation
+  - `test_test_plan_prefill.py` — 26 tests for test plan pre-filling
+  - `test_validate_items.py` — 20 tests for REST API validation
+  - `test_diagram_gen.py` — 24 tests for deployment diagram generation
+  - `test_diagram_validator.py` — 22 tests for diagram structural validation
+  - `test_taskflow_template_gen.py` — 28 tests for fabric-cicd workspace templates
+
 ## [1.0.0] — 2026-03-08
 
 ### Summary

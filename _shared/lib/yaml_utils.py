@@ -36,8 +36,8 @@ def extract_and_parse_yaml_blocks(content: str) -> list[dict[str, Any]]:
     blocks: list[dict[str, Any]] = []
     for match in YAML_FENCE_RE.finditer(content):
         raw = match.group(1)
-        lines = [l for l in raw.split("\n")
-                 if l.strip() and not l.strip().startswith("#")]
+        lines = [line for line in raw.split("\n")
+                 if line.strip() and not line.strip().startswith("#")]
         if not lines:
             continue
         parsed = parse_yaml(raw)

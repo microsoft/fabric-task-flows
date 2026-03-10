@@ -257,7 +257,7 @@ def _build_test_method(
 
     # Registry-driven test method generation
     dm = DEPLOY_METHODS.get(item_type) or DEPLOY_METHODS.get(fab_type) or {}
-    tm = TEST_METHOD_MAP.get(item_type) or TEST_METHOD_MAP.get(fab_type) or {}
+    _tm = TEST_METHOD_MAP.get(item_type) or TEST_METHOD_MAP.get(fab_type) or {}
 
     deploy_note = ""
     if dm.get("availability") == "preview":

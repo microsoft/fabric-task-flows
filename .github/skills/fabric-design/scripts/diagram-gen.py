@@ -18,9 +18,7 @@ Importable:
 from __future__ import annotations
 
 import argparse
-import re
 import sys
-from typing import Any
 
 # Reuse the lightweight YAML parser from review-prescan
 import importlib
@@ -283,9 +281,9 @@ def main():
             sev = finding["severity"].upper()
             print(f"  [{sev}] {finding['id']}: {finding['message']}")
         if result["valid"]:
-            print(f"  ✅ Diagram validated")
+            print("  ✅ Diagram validated")
         else:
-            print(f"  ❌ Diagram validation failed")
+            print("  ❌ Diagram validation failed")
             sys.exit(1)
 
 

@@ -270,7 +270,7 @@ def check_ingestion_consistency(dc: DriftChecker):
     def normalize(s: str) -> str:
         return re.sub(r"\s*\(.*?\)", "", s).strip().lower()
 
-    yaml_normalized = {normalize(l): l for l in yaml_labels}
+    yaml_normalized = {normalize(entry): entry for entry in yaml_labels}
     table_normalized = {normalize(c): c for c in table_cols}
 
     # Check each YAML option has a corresponding table column
@@ -483,6 +483,9 @@ def check_integration_first(dc: DriftChecker):
 
 def main():
     import argparse
+    if sys.stdout.encoding and sys.stdout.encoding.lower().startswith("cp"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(description="Documentation drift detection")
     parser.add_argument("--check", action="store_true", help="CI mode: exit 1 on failure")
     parser.add_argument("--verbose", action="store_true", help="Show passing checks too")

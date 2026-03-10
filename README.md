@@ -66,7 +66,7 @@ Skills are composable, auto-activating instruction packs stored in `.github/skil
 | `/fabric-discover` | 0a | Signal inference from problem statements | "analyze my data problem", "what task flow fits" |
 | `/fabric-design` | 1a, 1b, 1c | DRAFT → Review → FINAL architecture | "design architecture", "medallion vs lambda" |
 | `/fabric-test` | 2a, 3 | Test plan + post-deployment validation | "create test plan", "map acceptance criteria" |
-| `/fabric-deploy` | 2c | Wave-based deployment via `fab` CLI | "deploy items", "run deployment" |
+| `/fabric-deploy` | 2c | Wave-based deployment via `fabric-cicd` | "deploy items", "run deployment" |
 | `/fabric-document` | 4 | Wiki + ADR synthesis from handoffs | "generate docs", "write ADRs" |
 | `/fabric-heal` | Standalone | Signal mapper self-healing | "heal signal mapper", "improve coverage" |
 
@@ -177,10 +177,6 @@ task-flows/
 ├── diagrams/                          # Deployment diagrams per task flow
 │   ├── _index.md                      # Routing table with item/wave counts
 │   └── {task-flow}.md                 # 13 diagrams — phased deployment flow, dependency order
-├── tests/                             # Automated tests
-│   ├── test_registry_loader.py        # Item-type registry validation
-│   ├── test_deploy_script_gen.py      # Deploy script correctness
-│   └── test_taskflow_gen.py           # Task flow JSON schema compliance
 ├── _shared/                           # Shared infrastructure
 │   ├── registry/                      # Canonical JSON data files
 │   │   ├── item-type-registry.json    # Single source of truth for Fabric item types
@@ -199,6 +195,12 @@ task-flows/
 │   │   ├── new-project.py             # Project scaffolder
 │   │   ├── fleet-runner.py            # Batch project runner
 │   │   └── sync-item-types.py         # Registry alignment
+│   ├── tests/                         # Automated tests
+│   │   ├── test_registry_loader.py    # Item-type registry validation
+│   │   ├── test_deploy_script_gen.py  # Deploy script correctness
+│   │   ├── test_taskflow_gen.py       # Task flow JSON schema compliance
+│   │   ├── test_text_utils.py         # Slugify and text utilities
+│   │   └── test_yaml_utils.py         # YAML extraction and parsing
 │   ├── workflow-guide.md              # Pipeline orchestration guide
 │   └── learnings.md                   # Accumulated operational learnings
 ├── _projects/                         # Per-project documentation (local only — gitignored)

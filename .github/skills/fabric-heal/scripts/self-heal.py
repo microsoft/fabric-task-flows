@@ -180,7 +180,7 @@ def main():
     print(f"{'═'*60}")
 
     # 1. Baseline measurement
-    print(f"\n  📊 Measuring current performance...")
+    print("\n  📊 Measuring current performance...")
     before = benchmark_signal_mapper(problems)
     print(f"     Avg coverage:      {before['avg_coverage']:.1%}")
     print(f"     Zero candidates:   {before['zero_candidates']}/{before['total_problems']}")
@@ -188,8 +188,8 @@ def main():
     print(f"     Ambiguous:         {before['ambiguous']}/{before['total_problems']}")
 
     if args.measure_only:
-        print(f"\n  [MEASURE-ONLY] No fixes applied.")
-        print(f"\n  Per-category coverage:")
+        print("\n  [MEASURE-ONLY] No fixes applied.")
+        print("\n  Per-category coverage:")
         for cat, cov in sorted(before["category_coverage"].items()):
             print(f"    {cat}: {cov:.1%}")
         return
@@ -197,12 +197,12 @@ def main():
     # 2. Note: Healing actions are already applied to signal-mapper.py
     # (keyword expansion + lambda inference fix were applied directly)
     # This script measures the effect.
-    print(f"\n  🔧 Healing actions already applied to signal-mapper.py:")
-    print(f"     - Keyword expansion (+15 terms across 4 categories)")
-    print(f"     - Lambda inference fix (Cat 1+2 → synthesize Cat 3)")
+    print("\n  🔧 Healing actions already applied to signal-mapper.py:")
+    print("     - Keyword expansion (+15 terms across 4 categories)")
+    print("     - Lambda inference fix (Cat 1+2 → synthesize Cat 3)")
 
     # 3. After measurement
-    print(f"\n  📊 Re-measuring after healing...")
+    print("\n  📊 Re-measuring after healing...")
     after = benchmark_signal_mapper(problems)
     print(f"     Avg coverage:      {after['avg_coverage']:.1%}")
     print(f"     Zero candidates:   {after['zero_candidates']}/{after['total_problems']}")
@@ -215,7 +215,7 @@ def main():
     lambda_delta = after["lambda_suggested"] - before["lambda_suggested"]
 
     print(f"\n  {'─'*56}")
-    print(f"  RESULTS:")
+    print("  RESULTS:")
     print(f"     Coverage:   {before['avg_coverage']:.1%} → {after['avg_coverage']:.1%} ({'+' if cov_delta >= 0 else ''}{cov_delta:.1%})")
     print(f"     Zero-cand:  {before['zero_candidates']} → {after['zero_candidates']} ({'-' if zero_delta >= 0 else '+'}{abs(zero_delta)})")
     print(f"     Lambda:     {before['lambda_suggested']} → {after['lambda_suggested']} (+{lambda_delta})")
@@ -230,9 +230,9 @@ def main():
         content += history_entry
 
         LEARNINGS_PATH.write_text(content, encoding="utf-8")
-        print(f"\n  ✅ Healing history logged to _shared/learnings.md")
+        print("\n  ✅ Healing history logged to _shared/learnings.md")
     else:
-        print(f"\n  [DRY RUN] Would log healing history to learnings.md")
+        print("\n  [DRY RUN] Would log healing history to learnings.md")
 
     print(f"\n{'═'*60}\n")
 

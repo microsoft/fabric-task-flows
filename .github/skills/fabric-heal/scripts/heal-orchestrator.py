@@ -430,9 +430,9 @@ def main():
     print(f"\n{'═' * 70}")
     print(f"  HEAL ORCHESTRATOR — {args.iterations} iterations")
     if args.no_agent:
-        print(f"  Mode: Template fallback (no agent)")
+        print("  Mode: Template fallback (no agent)")
     else:
-        print(f"  Mode: Agent-driven (/fabric-heal)")
+        print("  Mode: Agent-driven (/fabric-heal)")
     print(f"{'═' * 70}")
 
     stale_iterations = 0  # early-stop if no new gaps found
@@ -451,11 +451,11 @@ def main():
             print(f"  📝 Generated {len(batch)} problems (template fallback)")
         else:
             prompt = generate_prompt(iteration)
-            print(f"\n  ┌─────────────────────────────────────────────┐")
-            print(f"  │  AGENT PROMPT — /fabric-heal Mode 1         │")
-            print(f"  │  Paste the prompt below to the agent,       │")
-            print(f"  │  then press Enter when done.                │")
-            print(f"  └─────────────────────────────────────────────┘\n")
+            print("\n  ┌─────────────────────────────────────────────┐")
+            print("  │  AGENT PROMPT — /fabric-heal Mode 1         │")
+            print("  │  Paste the prompt below to the agent,       │")
+            print("  │  then press Enter when done.                │")
+            print("  └─────────────────────────────────────────────┘\n")
             print(prompt)
             print(f"\n  {'─' * 50}")
             input("  ⏎  Press Enter after the agent has written "
@@ -464,7 +464,7 @@ def main():
         # ── Step 2: Parse and benchmark ────────────────────────────────
         problems = parse_problems(PROBLEMS_PATH)
         if not problems:
-            print(f"  ⚠️  No problems parsed — skipping iteration")
+            print("  ⚠️  No problems parsed — skipping iteration")
             continue
 
         print(f"  📊 Benchmarking {len(problems)} problems...")
@@ -491,12 +491,12 @@ def main():
         if uncovered:
             print(f"  🔍 Top uncovered: {', '.join(uncovered[:8])}")
         else:
-            print(f"  ✅ No significant uncovered terms")
+            print("  ✅ No significant uncovered terms")
             stale_iterations += 1
 
         # Early stop check
         if stale_iterations >= 3:
-            print(f"\n  ⏹️  No new gaps for 3 iterations — early stopping")
+            print("\n  ⏹️  No new gaps for 3 iterations — early stopping")
             result = {
                 "iteration": iteration + 1,
                 "problems": len(problems),
@@ -512,21 +512,21 @@ def main():
         after_metrics = None
         if not args.dry_run and uncovered:
             if args.no_agent:
-                print(f"  ⏭️  Skipping heal phase (no agent, template mode)")
+                print("  ⏭️  Skipping heal phase (no agent, template mode)")
             else:
                 heal_prompt = generate_heal_prompt(iteration, metrics, uncovered)
-                print(f"\n  ┌─────────────────────────────────────────────┐")
-                print(f"  │  AGENT PROMPT — /fabric-heal Mode 2         │")
-                print(f"  │  Paste the prompt below to the agent,       │")
-                print(f"  │  then press Enter when done.                │")
-                print(f"  └─────────────────────────────────────────────┘\n")
+                print("\n  ┌─────────────────────────────────────────────┐")
+                print("  │  AGENT PROMPT — /fabric-heal Mode 2         │")
+                print("  │  Paste the prompt below to the agent,       │")
+                print("  │  then press Enter when done.                │")
+                print("  └─────────────────────────────────────────────┘\n")
                 print(heal_prompt)
                 print(f"\n  {'─' * 50}")
                 input("  ⏎  Press Enter after the agent has patched "
                       "signal-mapper.py... ")
 
                 # ── Step 5: Re-benchmark after healing ─────────────────
-                print(f"  📊 Re-benchmarking after healing...")
+                print("  📊 Re-benchmarking after healing...")
                 after_metrics = benchmark_signal_mapper(problems)
                 delta = after_metrics["avg_coverage"] - metrics["avg_coverage"]
                 print(f"     Coverage:  {metrics['avg_coverage']:.1%} → "
@@ -576,7 +576,7 @@ def main():
     # Log to learnings.md
     if not args.dry_run:
         log_summary(all_results, args.dry_run)
-        print(f"\n  ✅ Results logged to _shared/learnings.md")
+        print("\n  ✅ Results logged to _shared/learnings.md")
 
     # Save detailed results
     with open(RESULTS_PATH, "w", encoding="utf-8") as f:
@@ -587,7 +587,7 @@ def main():
     if BACKUP_PATH.exists():
         shutil.copy2(BACKUP_PATH, PROBLEMS_PATH)
         BACKUP_PATH.unlink()
-        print(f"  ♻️  Restored original problem-statements.md")
+        print("  ♻️  Restored original problem-statements.md")
 
     print(f"\n{'═' * 70}\n")
 

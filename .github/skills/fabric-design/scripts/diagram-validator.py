@@ -154,7 +154,7 @@ def main():
               f"max width {result['stats']['max_line_width']}, "
               f"{result['stats']['box_opens']} boxes)")
     else:
-        print(f"\n  ❌ Diagram has issues")
+        print("\n  ❌ Diagram has issues")
 
     sys.exit(0 if result["valid"] else 1)
 

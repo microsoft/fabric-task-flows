@@ -4,6 +4,10 @@ version = "1.0.0"
 description = "Microsoft Fabric architecture task flows and deployment automation"
 requires-python = ">=3.11"
 
+[tool.ruff.lint.per-file-ignores]
+".github/skills/**/scripts/*.py" = ["E402"]
+"_shared/scripts/*.py" = ["E402"]
+
 [tool.pytest.ini_options]
 testpaths = ["_shared/tests"]
 pythonpath = ["_shared"]

@@ -135,8 +135,8 @@ def analyze_prescans(projects: list[Path]) -> list[str]:
         return [f"No prescans possible ({projects_analyzed} projects analyzed)"]
 
     # Aggregate patterns
-    area_counts = Counter(f.get("area", "unknown") for f in all_findings)
-    severity_counts = Counter(f.get("severity", "unknown") for f in all_findings)
+    _area_counts = Counter(f.get("area", "unknown") for f in all_findings)
+    _severity_counts = Counter(f.get("severity", "unknown") for f in all_findings)
     yellow_findings = [f for f in all_findings if f.get("severity") == "yellow"]
     red_findings = [f for f in all_findings if f.get("severity") == "red"]
 
@@ -149,7 +149,7 @@ def analyze_prescans(projects: list[Path]) -> list[str]:
     yellow_patterns = Counter(f.get("finding", "")[:60] for f in yellow_findings)
     recurring = [(pattern, count) for pattern, count in yellow_patterns.most_common(10) if count > 1]
     if recurring:
-        results.append(f"Recurring yellow patterns across projects:")
+        results.append("Recurring yellow patterns across projects:")
         for pattern, count in recurring:
             results.append(f"  - ({count}x) {pattern}")
 
@@ -196,7 +196,7 @@ def mine_project_artifacts(projects: list[Path]) -> list[str]:
 
     for proj_dir in projects:
         state_file = proj_dir / "pipeline-state.json"
-        status_file = proj_dir / "STATUS.md"
+        _status_file = proj_dir / "STATUS.md"
 
         # Analyze pipeline state
         if state_file.exists():
@@ -284,7 +284,7 @@ def mine_project_artifacts(projects: list[Path]) -> list[str]:
         findings.append(f"Stale projects (scaffolded, never progressed): {', '.join(stale_projects)}")
 
     if naming_issues:
-        findings.append(f"Item naming violations (hyphens in hyphen-rejecting types):")
+        findings.append("Item naming violations (hyphens in hyphen-rejecting types):")
         for issue in naming_issues[:5]:
             findings.append(f"  - {issue}")
 
@@ -439,7 +439,7 @@ def run_multi_problem_stress_test(problems: list[dict], passes: int) -> list[str
             findings.append(f"  - {p}")
 
     # Most recommended task flows
-    findings.append(f"Task flow candidate frequency across all problems:")
+    findings.append("Task flow candidate frequency across all problems:")
     for tf, count in all_candidates.most_common(8):
         findings.append(f"  - {tf}: {count}x")
 
@@ -494,7 +494,7 @@ def main():
     if args.problem_file:
         problems = parse_problem_file(args.problem_file)
         print(f"\n{'='*60}")
-        print(f"  MULTI-PROBLEM STRESS TEST")
+        print("  MULTI-PROBLEM STRESS TEST")
         print(f"  {len(problems)} problems × {args.passes} passes")
         print(f"{'='*60}\n")
         multi_findings = run_multi_problem_stress_test(problems, args.passes)
@@ -529,7 +529,7 @@ def main():
 
         # Run prescans
         print(f"\n{'='*60}")
-        print(f"  REVIEW PRESCAN ANALYSIS")
+        print("  REVIEW PRESCAN ANALYSIS")
         print(f"{'='*60}\n")
         prescan_findings = analyze_prescans(projects)
         for f in prescan_findings:
@@ -540,7 +540,7 @@ def main():
     if all_findings:
         new_text = update_learnings(all_findings)
         print(f"\n{'='*60}")
-        print(f"  LEARNINGS UPDATE")
+        print("  LEARNINGS UPDATE")
         print(f"{'='*60}\n")
 
         if args.dry_run:

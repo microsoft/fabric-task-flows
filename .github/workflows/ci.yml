@@ -23,7 +23,7 @@ jobs:
       - name: Run tests
         env:
           PYTHONPATH: _shared
-        run: python -m pytest tests/ -v --cov=lib --cov-report=term-missing
+        run: python -m pytest _shared/tests/ -v --cov=lib --cov-report=term-missing
 
       - name: Lint with ruff
         run: pip install ruff && ruff check _shared/

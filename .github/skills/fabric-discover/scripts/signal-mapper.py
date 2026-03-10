@@ -22,7 +22,6 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TextIO
 
 
 # ---------------------------------------------------------------------------
@@ -280,7 +279,7 @@ def _to_yaml(data: dict) -> str:
         lines.append(f"    velocity: {s['velocity']}")
         lines.append(f"    confidence: {s['confidence']}")
         lines.append(f"    source_keywords: {json.dumps(s['source_keywords'])}")
-        lines.append(f"    source_quotes: []")
+        lines.append("    source_quotes: []")
 
     lines.append("")
     lines.append("task_flow_candidates:")

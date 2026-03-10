@@ -43,7 +43,6 @@ from registry_loader import (
     build_item_notes_map,
 )
 from yaml_utils import (
-    parse_yaml as _parse_yaml,
     extract_and_parse_yaml_blocks,
     extract_frontmatter,
     find_block,
@@ -608,7 +607,7 @@ def _check_naming_safety(items: list[dict]) -> list[dict]:
 
     for item in items:
         name = item.get("name", "")
-        item_type = item.get("type", "")
+        _item_type = item.get("type", "")
         if not name or "-" not in name:
             continue
 

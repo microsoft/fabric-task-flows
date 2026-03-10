@@ -236,7 +236,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "2b-sign-off": (
-            f"🛑 HUMAN GATE — Phase 2b Sign-Off"
+            "🛑 HUMAN GATE — Phase 2b Sign-Off"
             + (f" (Revision {state.get('sign_off_revisions', 0)}/3)" if state.get('sign_off_revisions', 0) > 0 else "")
             + f"\n\n"
             f"Review both documents before approving:\n"
@@ -309,7 +309,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
     """Run deterministic pre-compute scripts for a phase. Returns output lines."""
     pp = _project_path(project)
     handoff_path = str(REPO_ROOT / pp / "prd" / "architecture-handoff.md")
-    task_flow = state.get("task_flow")
+    _task_flow = state.get("task_flow")
     outputs: list[str] = []
 
     if phase == "0a-discovery" and state.get("problem_statement"):
@@ -370,7 +370,6 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
     current = state["current_phase"]
 
     # Find next pending phase
-    current_idx = PHASE_ORDER.index(current)
     current_status = state["phases"][current]["status"]
 
     if current_status == "complete":
@@ -600,8 +599,8 @@ def advance(project: str, approved: bool = False, revise: bool = False,
 
         _save_state(project, state)
         print(f"🔄  Revision {revision_count + 1}/3 — Pipeline reset to Phase 1c (Finalize).")
-        print(f"   The architect will incorporate your feedback and re-finalize.")
-        print(f"   Run 'next' to get the architect prompt.")
+        print("   The architect will incorporate your feedback and re-finalize.")
+        print("   Run 'next' to get the architect prompt.")
         return state
 
     # Verify output before marking complete
@@ -609,13 +608,13 @@ def advance(project: str, approved: bool = False, revise: bool = False,
     if not ok:
         print(f"⚠️  Cannot advance — {msg}")
         print(f"   Phase '{current}' has not produced its expected output.")
-        print(f"   Run the agent for this phase first, then try advance again.")
+        print("   Run the agent for this phase first, then try advance again.")
         return state
 
     # Check human gate enforcement
     if not _is_auto(state, current) and not approved:
         print(f"🛑  Cannot advance — Phase '{current}' is a human gate.")
-        print(f"   Review the deliverables, then run:")
+        print("   Review the deliverables, then run:")
         print(f"   python _shared/scripts/run-pipeline.py advance --project {project} --approve")
         return state
 
@@ -821,7 +820,7 @@ def _print_signoff_diagram(project: str) -> None:
 
     if diagram_text and diagram_text.strip():
         print(f"\n{'─' * 68}")
-        print(f"  ARCHITECTURE DIAGRAM")
+        print("  ARCHITECTURE DIAGRAM")
         print(f"{'─' * 68}\n")
         print(diagram_text)
         print()
@@ -880,9 +879,9 @@ def main() -> None:
         print(f"\n  Next agent: {agent}")
         print(f"  Phase: {phase}")
         if is_gate:
-            print(f"  ⚠️  This phase is a human gate — review deliverables before advancing")
+            print("  ⚠️  This phase is a human gate — review deliverables before advancing")
         print(f"\n{'─' * 68}")
-        print(f"  AGENT PROMPT (copy to Copilot CLI):")
+        print("  AGENT PROMPT (copy to Copilot CLI):")
         print(f"{'─' * 68}\n")
         print(prompt)
 
@@ -895,7 +894,7 @@ def main() -> None:
         print(f"  Phase: {phase}")
         print(f"  Auto-chain: {'🛑 No (human gate — use --approve)' if is_gate else '🟢 Yes'}")
         print(f"\n{'─' * 68}")
-        print(f"  AGENT PROMPT:")
+        print("  AGENT PROMPT:")
         print(f"{'─' * 68}\n")
         print(prompt)
 
