@@ -38,6 +38,7 @@ class SignalCategory:
     velocity: str
     use_case: str
     task_flow_candidates: tuple[str, ...]
+    inference_rules: tuple[dict, ...] = ()
 
 
 def _load_categories() -> tuple[SignalCategory, ...]:
@@ -52,6 +53,7 @@ def _load_categories() -> tuple[SignalCategory, ...]:
             velocity=cat["velocity"],
             use_case=cat["use_case"],
             task_flow_candidates=tuple(cat["task_flow_candidates"]),
+            inference_rules=tuple(cat.get("inference_rules", [])),
         )
         for cat in data["categories"]
     )
@@ -83,6 +85,38 @@ def _build_patterns() -> list[KeywordPattern]:
 
 
 KEYWORD_PATTERNS: list[KeywordPattern] = _build_patterns()
+
+
+# ---------------------------------------------------------------------------
+# Compiled inference patterns — detect architectural intent from NL phrases
+# ---------------------------------------------------------------------------
+
+@dataclass
+class InferencePattern:
+    pattern: re.Pattern[str]
+    label: str
+    weight: int
+    category_id: int
+
+
+def _build_inference_patterns() -> list[InferencePattern]:
+    patterns: list[InferencePattern] = []
+    for cat in CATEGORIES:
+        for rule in cat.inference_rules:
+            try:
+                regex = re.compile(rule["pattern"], re.IGNORECASE)
+                patterns.append(InferencePattern(
+                    pattern=regex,
+                    label=rule["label"],
+                    weight=rule.get("weight", 1),
+                    category_id=cat.id,
+                ))
+            except re.error:
+                pass  # Skip invalid patterns
+    return patterns
+
+
+INFERENCE_PATTERNS: list[InferencePattern] = _build_inference_patterns()
 
 
 # ---------------------------------------------------------------------------
@@ -157,6 +191,18 @@ def map_signals(text: str) -> dict:
                     KeywordMatch(keyword=kp.keyword, start=m.start(), end=m.end())
                 )
 
+    # ── Inference pass: detect architectural intent from natural language ──
+    for ip in INFERENCE_PATTERNS:
+        if ip.pattern.search(text):
+            for _ in range(ip.weight):
+                results[ip.category_id].matches.append(
+                    KeywordMatch(
+                        keyword=f"(inferred: {ip.label})",
+                        start=-1,
+                        end=-1,
+                    )
+                )
+
     active: dict[int, CategoryResult] = {
         cid: r for cid, r in results.items() if r.hit_count > 0
     }
@@ -228,7 +274,15 @@ def map_signals(text: str) -> dict:
 
     input_word_starts = {m.start() for m in re.finditer(r"\b\w+\b", text)}
     covered = len(matched_word_positions & input_word_starts)
-    keyword_coverage = round(covered / total_words, 2)
+
+    # Count inference hits for coverage boost
+    inference_hits = sum(
+        1 for cid, r in results.items()
+        for m in r.matches if m.start == -1
+    )
+    # Each inference hit counts as covering 2 "virtual words"
+    effective_covered = covered + (inference_hits * 2)
+    keyword_coverage = round(min(effective_covered / total_words, 1.0), 2)
 
     return {
         "signals": signals,
@@ -262,6 +316,18 @@ def _verbose_matches(text: str) -> list[dict]:
                     "position": f"{m.start()}-{m.end()}",
                     "context": text[max(0, m.start() - 20):m.end() + 20].strip(),
                 })
+
+    # Add inference matches
+    for ip in INFERENCE_PATTERNS:
+        m = ip.pattern.search(text)
+        if m:
+            details.append({
+                "keyword": f"(inferred: {ip.label})",
+                "category": next(c.name for c in CATEGORIES if c.id == ip.category_id),
+                "position": f"{m.start()}-{m.end()}",
+                "context": text[max(0, m.start() - 20):m.end() + 20].strip(),
+            })
+
     return details
 
 

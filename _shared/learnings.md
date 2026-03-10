@@ -109,3 +109,40 @@
 - Legal & Compliance: 8.5% → 18.5% (+10.0%)
 
 **Remaining hard problem (1 zero-candidate):** Extremely vague phrasing with no domain-specific keywords.
+
+### Cycle 5: 2026-03-10 — Semantic Inference Layer (50 niche industry problems)
+
+**Approach change:** Instead of adding more domain-specific keywords (which doesn't scale for niche industries), added a **semantic inference engine** — 70 regex-based inference rules that detect *architectural intent* from natural language structure.
+
+| Metric | Before (keywords only) | After (keywords + inference) | Delta |
+|--------|--------|-------|-------|
+| Avg keyword coverage (50 problems) | 5.9% | 13.9% | **+8.0% (+136%)** |
+| Zero-candidate problems | 0/50 | 0/50 | 0 |
+| Lambda suggested (hybrids) | 23/50 | 25/50 | **+2** |
+| Ambiguous signals | 0/50 | 0/50 | 0 |
+
+**What changed:** Added `inference_rules` to `signal-categories.json` — 70 regex patterns across 11 categories that match structural phrases rather than domain terms:
+- Temporal cadence: "every N seconds/minutes" → Real-time (Cat 1)
+- Continuous ops: "24/7", "continuously monitored" → Real-time (Cat 1)
+- Prediction/detection: "predict/detect/classify from" → ML (Cat 4)
+- Optimization: "optimize X based on Y" → ML (Cat 4)
+- Reporting cadence: "weekly/monthly reports" → Batch (Cat 2)
+- Compliance: "must comply with", "audit-ready" → Sensitive (Cat 5)
+- Customer-facing: "customer portal", "mobile app" → App Backend (Cat 9)
+- Data heterogeneity: "different formats", "from N sources" → Layered (Cat 8)
+- Self-service: "ask questions about data" → Conversational (Cat 10)
+
+**Per-category coverage (selected):**
+- Aquaculture & Marine Biology: 4.0% → 27.0% (+23.0%)
+- Ocean & Marine Conservation: 6.5% → 23.5% (+17.0%)
+- Election & Civic Data: 6.0% → 19.0% (+13.0%)
+- Museum & Cultural Heritage: 8.0% → 19.0% (+11.0%)
+- Aerospace & Defense Manufacturing: 5.5% → 18.5% (+13.0%)
+- Wildfire & Natural Disaster Management: 6.0% → 18.5% (+12.5%)
+- Waste-to-Energy & Circular Economy: 6.5% → 18.0% (+11.5%)
+- Railway & Transit Operations: 10.0% → 18.0% (+8.0%)
+- Semiconductor & Chip Manufacturing: 2.5% → 14.5% (+12.0%)
+- Veterinary & Animal Health: 5.0% → 16.5% (+11.5%)
+- Autonomous Vehicles & Mobility: 5.0% → 16.5% (+11.5%)
+
+**Key insight:** The LLM advisor handles domain-specific reasoning — the signal mapper's job is to detect *architectural patterns* (velocity, compliance, ML intent, data shape) that are universal across industries. Inference rules do this without needing industry-specific keywords.

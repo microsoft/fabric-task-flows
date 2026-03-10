@@ -74,6 +74,83 @@
       "task_flow_candidates": [
         "event-analytics",
         "event-medallion"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "every \\d+ (seconds|minutes|milliseconds)",
+          "label": "Temporal frequency (every N units)",
+          "weight": 2
+        },
+        {
+          "pattern": "\\d+ms latency",
+          "label": "Millisecond latency requirement",
+          "weight": 2
+        },
+        {
+          "pattern": "(sampling|reporting) every",
+          "label": "Periodic sampling/reporting",
+          "weight": 1
+        },
+        {
+          "pattern": "24/7|round-the-clock",
+          "label": "Always-on operations",
+          "weight": 2
+        },
+        {
+          "pattern": "continuously (monitored|recording)",
+          "label": "Continuous monitoring/recording",
+          "weight": 2
+        },
+        {
+          "pattern": "nonstop|always-on",
+          "label": "Nonstop/always-on operations",
+          "weight": 1
+        },
+        {
+          "pattern": "alert[s]? when",
+          "label": "Alert trigger condition",
+          "weight": 2
+        },
+        {
+          "pattern": "notify .{0,20} when",
+          "label": "Notification trigger condition",
+          "weight": 2
+        },
+        {
+          "pattern": "trigger when",
+          "label": "Event trigger condition",
+          "weight": 1
+        },
+        {
+          "pattern": "detect .{0,15} in real.?time",
+          "label": "Real-time detection intent",
+          "weight": 2
+        },
+        {
+          "pattern": "flag .{0,15} immediately",
+          "label": "Immediate flagging intent",
+          "weight": 2
+        },
+        {
+          "pattern": "real.?time (map|view|display|feed|tracker)",
+          "label": "Real-time display/visualization",
+          "weight": 2
+        },
+        {
+          "pattern": "live (view|feed|display|monitor|stream)",
+          "label": "Live feed/display",
+          "weight": 2
+        },
+        {
+          "pattern": "\\d+ (events|messages|transactions|readings|measurements) per (second|minute)",
+          "label": "High-throughput velocity",
+          "weight": 2
+        },
+        {
+          "pattern": "(sensor|probe|meter|gauge|monitor).{0,30}(every|per|each) \\d+",
+          "label": "Sensor cadence pattern",
+          "weight": 2
+        }
       ]
     },
     {
@@ -165,6 +242,53 @@
       "task_flow_candidates": [
         "basic-data-analytics",
         "medallion"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "(daily|weekly|monthly|quarterly|annual|yearly|nightly) (reports?|dashboard|analytics|summary|digest)",
+          "label": "Periodic reporting cadence",
+          "weight": 2
+        },
+        {
+          "pattern": "(end[- ]of[- ](day|week|month|quarter|year))",
+          "label": "End-of-period processing",
+          "weight": 2
+        },
+        {
+          "pattern": "once (a|per) (day|week|month)",
+          "label": "Periodic execution frequency",
+          "weight": 1
+        },
+        {
+          "pattern": "(dashboard|report|view) showing",
+          "label": "Visualization display intent",
+          "weight": 1
+        },
+        {
+          "pattern": "(want|need) to (see|view|visualize|track|monitor)",
+          "label": "Visualization need",
+          "weight": 1
+        },
+        {
+          "pattern": "give .{0,20} (visibility|insight)",
+          "label": "Insight/visibility request",
+          "weight": 1
+        },
+        {
+          "pattern": "(historical|trend|over time|year-over-year|month-over-month) (analysis|comparison|data)",
+          "label": "Historical/trend analysis",
+          "weight": 2
+        },
+        {
+          "pattern": "(planning|forecast|budget|capacity plan).{0,20}(team|committee|board)",
+          "label": "Planning/forecasting for stakeholders",
+          "weight": 1
+        },
+        {
+          "pattern": "export .{0,20} (to|for|as) (Excel|PDF|CSV|PowerPoint|email)",
+          "label": "Export to common formats",
+          "weight": 1
+        }
       ]
     },
     {
@@ -202,6 +326,28 @@
       "task_flow_candidates": [
         "lambda",
         "event-medallion"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "(real.?time|live|streaming).{0,50}(and|plus|while also|as well as).{0,50}(batch|daily|weekly|monthly|report|historical)",
+          "label": "Real-time plus batch dual velocity",
+          "weight": 2
+        },
+        {
+          "pattern": "(batch|daily|weekly|report).{0,50}(and|plus|but also|while).{0,50}(real.?time|live|streaming|alert|immediate)",
+          "label": "Batch plus real-time dual velocity",
+          "weight": 2
+        },
+        {
+          "pattern": "(immediate|instant).{0,30}(and|plus|with).{0,30}(deep|detailed|comprehensive|full)",
+          "label": "Speed plus depth requirement",
+          "weight": 1
+        },
+        {
+          "pattern": "(monitor|track|watch).{0,30}(and|plus).{0,30}(report|analyze|review)",
+          "label": "Monitoring plus reporting",
+          "weight": 1
+        }
       ]
     },
     {
@@ -283,6 +429,58 @@
       "use_case": "Machine learning",
       "task_flow_candidates": [
         "basic-machine-learning-models"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "\\b(predict|detect|classify|identify|recognize|categorize|score|rank)\\b.{0,30}(from|based on|using)",
+          "label": "Prediction/detection from data",
+          "weight": 2
+        },
+        {
+          "pattern": "\\b(optimize|improve|reduce|maximize|minimize)\\b.{0,30}(based on|using|from|by analyzing)",
+          "label": "Data-driven optimization",
+          "weight": 1
+        },
+        {
+          "pattern": "(correlat|model the|relationship between|compare .{0,20} (with|to|against))",
+          "label": "Correlation/modeling intent",
+          "weight": 1
+        },
+        {
+          "pattern": "build .{0,20} model",
+          "label": "Model building intent",
+          "weight": 1
+        },
+        {
+          "pattern": "(pattern|anomal|outlier|trend).{0,15}(detection|discovery|identification|analysis|recognition)",
+          "label": "Pattern/anomaly discovery",
+          "weight": 2
+        },
+        {
+          "pattern": "\\d+(\\.\\d+)?% (accuracy|precision|recall|F1|AUC)",
+          "label": "ML performance metric",
+          "weight": 2
+        },
+        {
+          "pattern": "currently .{0,20} want .{0,20} \\d+%",
+          "label": "Performance improvement goal",
+          "weight": 1
+        },
+        {
+          "pattern": "(training|labeled|annotated) (data|set|corpus|examples)",
+          "label": "Training data reference",
+          "weight": 2
+        },
+        {
+          "pattern": "\\d+[,.]?\\d*\\s*(cases|samples|examples|records|observations).{0,20}(train|learn|build)",
+          "label": "Training dataset size",
+          "weight": 2
+        },
+        {
+          "pattern": "automat(e|ed|ic).{0,20}(classif|categoriz|decision|triage|sort|grade|assess|diagnos)",
+          "label": "Automated classification/decision",
+          "weight": 2
+        }
       ]
     },
     {
@@ -355,6 +553,38 @@
       "use_case": "Sensitive data",
       "task_flow_candidates": [
         "sensitive-data-insights"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "(must|required to|obligated to|need to) (comply|report|retain|disclose|notify|file)",
+          "label": "Compliance obligation",
+          "weight": 2
+        },
+        {
+          "pattern": "(audit|inspection|oversight).{0,15}(ready|trail|log|evidence|proof)",
+          "label": "Audit readiness",
+          "weight": 2
+        },
+        {
+          "pattern": "(retain|retention|archive).{0,20}\\d+\\s*(year|month|day)",
+          "label": "Data retention period",
+          "weight": 2
+        },
+        {
+          "pattern": "(FDA|EPA|SEC|OSHA|FINRA|DOT|USDA|FAA|FCC|CMS|OCC|CFPB|CFTC|NRC).{0,20}(require|mandate|regulation|reporting|submission|compliance)",
+          "label": "Regulatory body requirement",
+          "weight": 2
+        },
+        {
+          "pattern": "(role.?based|row.?level|column.?level|need.?to.?know|least privilege|segregation of duties)",
+          "label": "Access control pattern",
+          "weight": 2
+        },
+        {
+          "pattern": "(ISO \\d+|SOC ?[12]|FedRAMP|NIST|CMMC|CLIA|CAP|AS9100|ITAR|DFARS)",
+          "label": "Certification/standard reference",
+          "weight": 2
+        }
       ]
     },
     {
@@ -389,6 +619,28 @@
       "use_case": "Transactional",
       "task_flow_candidates": [
         "translytical"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "(write back|update .{0,15} record|insert .{0,15} into|modify .{0,15} in real.?time)",
+          "label": "Write-back/record mutation intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(operational|transactional|OLTP) (system|database|workload)",
+          "label": "Operational/transactional system",
+          "weight": 2
+        },
+        {
+          "pattern": "(trigger|initiate|kick off|launch) .{0,20} (process|workflow|action|task|job|order)",
+          "label": "Process triggering intent",
+          "weight": 1
+        },
+        {
+          "pattern": "(inventory|order|booking|reservation|ticket).{0,15}(management|tracking|processing|system)",
+          "label": "Inventory/order management",
+          "weight": 1
+        }
       ]
     },
     {
@@ -443,6 +695,28 @@
       "use_case": "SQL analytics",
       "task_flow_candidates": [
         "data-analytics-sql-endpoint"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "\\d+\\s*(GB|TB|PB|gigabyte|terabyte|petabyte)\\s*(per|a|each)\\s*(day|week|month|hour|page|scan|image)",
+          "label": "Large file volume",
+          "weight": 2
+        },
+        {
+          "pattern": "(image|video|audio|photo|scan|X-ray|CT|MRI|recording|footage).{0,20}(per|each|every)\\s*(day|hour|patient|site|unit)",
+          "label": "Media data volume",
+          "weight": 2
+        },
+        {
+          "pattern": "(OCR|text extraction|document processing|parse|digitiz|transcript)",
+          "label": "Document processing/extraction",
+          "weight": 2
+        },
+        {
+          "pattern": "(different|various|multiple|mixed) (format|schema|structure|encoding|naming convention)",
+          "label": "Multi-format data",
+          "weight": 1
+        }
       ]
     },
     {
@@ -519,6 +793,33 @@
       "use_case": "Layered analytics",
       "task_flow_candidates": [
         "medallion"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "(different|various|multiple|each .{0,10} (provides|sends|has)) .{0,30}(format|schema|naming convention|standard)",
+          "label": "Data heterogeneity across sources",
+          "weight": 1
+        },
+        {
+          "pattern": "(normaliz|standardiz|harmoniz|reconcil|consolidat|unif|integrat).{0,20}(data|across|from|into)",
+          "label": "Normalization/standardization intent",
+          "weight": 2
+        },
+        {
+          "pattern": "from\\s+\\d+\\s+(source|system|vendor|platform|partner|provider|foundry|facility|clinic|plant|site|farm)",
+          "label": "Multiple source diversity",
+          "weight": 2
+        },
+        {
+          "pattern": "(migrat|moderniz|decommission|replac|retir|sunset).{0,20}(legacy|old|existing|current|mainframe|on.?prem)",
+          "label": "Migration/modernization intent",
+          "weight": 1
+        },
+        {
+          "pattern": "(single source of truth|golden record|master data|one version of|trust the numbers|conflicting data|different numbers)",
+          "label": "Trust/consistency concern",
+          "weight": 2
+        }
       ]
     },
     {
@@ -566,6 +867,28 @@
       "task_flow_candidates": [
         "app-backend",
         "conversational-analytics"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "(customer|user|client|patient|consumer|employee|member|subscriber).{0,20}(portal|app|interface|dashboard|experience)",
+          "label": "Consumer-facing application",
+          "weight": 2
+        },
+        {
+          "pattern": "(API|endpoint|integration|webhook|feed).{0,20}(for|to|serving|powering|feeding)",
+          "label": "Integration API purpose",
+          "weight": 1
+        },
+        {
+          "pattern": "(self.?service|drag.?and.?drop|no.?code|low.?code|non.?technical).{0,10}(user|analyst|team|staff)",
+          "label": "Self-service for non-technical users",
+          "weight": 1
+        },
+        {
+          "pattern": "(embed|integrat).{0,15}(analytics|report|chart|visual).{0,15}(in|into|within) .{0,15}(app|portal|product|platform)",
+          "label": "Embedded analytics in application",
+          "weight": 2
+        }
       ]
     },
     {
@@ -596,6 +919,33 @@
         "app-backend",
         "translytical",
         "conversational-analytics"
+      ],
+      "inference_rules": [
+        {
+          "pattern": "(ask|query|question).{0,20}(about|against|from|across) .{0,15}(data|database|system|collection)",
+          "label": "Conversational data querying",
+          "weight": 2
+        },
+        {
+          "pattern": "(natural language|plain English|non.?technical .{0,10}(user|people|staff|team)) .{0,20}(query|search|ask|explore)",
+          "label": "Natural language query intent",
+          "weight": 2
+        },
+        {
+          "pattern": "(AI|intelligent|smart) (assistant|agent|copilot|bot|chat)",
+          "label": "AI assistant/agent",
+          "weight": 2
+        },
+        {
+          "pattern": "(chatbot|virtual assistant|conversational)",
+          "label": "Conversational AI interface",
+          "weight": 1
+        },
+        {
+          "pattern": "(search|discover|find|explore).{0,15}(across|within|through) .{0,15}(data|document|record|artifact|catalog)",
+          "label": "Cross-data search/discovery",
+          "weight": 1
+        }
       ]
     },
     {
@@ -637,7 +987,29 @@
       ],
       "velocity": "Varies",
       "use_case": "Semantic governance",
-      "task_flow_candidates": []
+      "task_flow_candidates": [],
+      "inference_rules": [
+        {
+          "pattern": "(who owns|data owner|data steward|accountab|responsib).{0,15}(data|domain|dataset|table)",
+          "label": "Data ownership/stewardship",
+          "weight": 2
+        },
+        {
+          "pattern": "(common|shared|unified|standard|consistent).{0,15}(vocabulary|terminology|definition|naming|metric|KPI)",
+          "label": "Vocabulary/standards alignment",
+          "weight": 2
+        },
+        {
+          "pattern": "(catalog|discover|search|browse|inventory).{0,15}(data|dataset|table|asset|artifact|resource)",
+          "label": "Data catalog/discovery",
+          "weight": 1
+        },
+        {
+          "pattern": "(classif|tag|label|categoriz|taxonomy).{0,15}(data|asset|dataset|column|field|table)",
+          "label": "Data classification/tagging",
+          "weight": 1
+        }
+      ]
     }
   ]
 }

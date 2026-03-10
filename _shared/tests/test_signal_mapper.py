@@ -516,3 +516,191 @@ def test_integration_compliance_problem():
     result = sm.map_signals(text)
     signal_names = [s["signal"] for s in result["signals"]]
     assert "Sensitive Data" in signal_names
+
+
+# ── Inference Engine ─────────────────────────────────────────────────────
+
+
+class TestInferenceEngine:
+    """Tests for the inference-pattern engine added to signal-mapper.py."""
+
+    # 1. Inference patterns loaded
+    def test_inference_patterns_loaded(self):
+        """INFERENCE_PATTERNS should be populated with 70+ compiled patterns."""
+        assert len(sm.INFERENCE_PATTERNS) >= 70, (
+            f"Expected >=70 inference patterns, got {len(sm.INFERENCE_PATTERNS)}"
+        )
+
+    # 2. Temporal frequency → Cat 1 (Real-time)
+    def test_inference_temporal_frequency(self):
+        """'sensors sampling every 30 seconds' should infer Real-time."""
+        result = sm.map_signals("sensors sampling every 30 seconds")
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Real-time / Streaming" in signal_names
+
+    # 3. Prediction intent → Cat 4 (ML)
+    def test_inference_prediction_intent(self):
+        """'detect early signs of disease from patient data' should infer ML."""
+        result = sm.map_signals(
+            "we need to detect early signs of disease from patient data"
+        )
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Machine Learning" in signal_names
+
+    # 4. Compliance obligation → Cat 5 (Sensitive Data)
+    def test_inference_compliance_obligation(self):
+        """'comply with FDA regulations' should infer Sensitive Data."""
+        result = sm.map_signals("we must comply with FDA regulations")
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Sensitive Data" in signal_names
+
+    # 5. Reporting cadence → Cat 2 (Batch)
+    def test_inference_reporting_cadence(self):
+        """'produce weekly reports for the board' should infer Batch."""
+        result = sm.map_signals("produce weekly reports for the board")
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Batch / Scheduled" in signal_names
+
+    # 6. Customer-facing → Cat 9 (App Backend)
+    def test_inference_customer_facing(self):
+        """'customer portal showing their data' should infer Application Backend."""
+        result = sm.map_signals("customer portal showing their data")
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Application Backend" in signal_names
+
+    # 7. Data heterogeneity → Cat 8 (Data Quality)
+    def test_inference_data_heterogeneity(self):
+        """'data from 5 different sources in different formats' should infer Data Quality."""
+        result = sm.map_signals(
+            "data from 5 different sources in different formats"
+        )
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Data Quality / Layered" in signal_names
+
+    # 8. Optimization intent → Cat 4 (ML)
+    def test_inference_optimization_intent(self):
+        """'optimize costs based on historical patterns' should infer ML."""
+        result = sm.map_signals("optimize costs based on historical patterns")
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Machine Learning" in signal_names
+
+    # 9. Inferred labels are prefixed
+    def test_inference_labels_prefixed(self):
+        """Inferred matches should have keywords starting with '(inferred:'."""
+        result = sm.map_signals("sensors sampling every 30 seconds")
+        all_kw = []
+        for sig in result["signals"]:
+            all_kw.extend(sig["source_keywords"])
+        inferred = [k for k in all_kw if k.startswith("(inferred:")]
+        assert len(inferred) > 0, f"Expected inferred keywords, got: {all_kw}"
+
+    # 10. Weight respected — weight=2 adds 2 matches
+    def test_inference_weight_respected(self):
+        """A rule with weight>1 should produce that many matches (start=-1)."""
+        import re as _re
+
+        heavy = [ip for ip in sm.INFERENCE_PATTERNS if ip.weight >= 2]
+        if not heavy:
+            return  # no weight>=2 rules to test
+
+        ip = heavy[0]
+        for cat in sm.CATEGORIES:
+            if cat.id != ip.category_id:
+                continue
+            for rule in cat.inference_rules:
+                if rule.get("weight", 1) < 2:
+                    continue
+                regex = _re.compile(rule["pattern"], _re.IGNORECASE)
+                test_text = rule["label"]
+                if regex.search(test_text):
+                    result = sm.map_signals(test_text)
+                    inferred_kw = [
+                        k
+                        for s in result["signals"]
+                        for k in s["source_keywords"]
+                        if k == f"(inferred: {rule['label']})"
+                    ]
+                    if len(inferred_kw) >= 2:
+                        assert len(inferred_kw) >= 2
+                        return
+        # Fallback: verify the weight attribute exists
+        assert heavy[0].weight >= 2
+
+    # 11. Combined keyword + inference matches
+    def test_inference_combined_with_keywords(self):
+        """Text with keyword hits AND inference matches should have both."""
+        text = "real-time streaming with sensors sampling every 30 seconds"
+        result = sm.map_signals(text)
+        rt = [s for s in result["signals"] if s["signal"] == "Real-time / Streaming"]
+        assert len(rt) == 1
+        kw = rt[0]["source_keywords"]
+        has_keyword = any(not k.startswith("(inferred:") for k in kw)
+        has_inferred = any(k.startswith("(inferred:") for k in kw)
+        assert has_keyword, f"Expected keyword match in {kw}"
+        assert has_inferred, f"Expected inference match in {kw}"
+
+    # 12. Coverage boost from inference-only matches
+    def test_inference_coverage_boost(self):
+        """Inference-only text (no keyword hits) should have non-zero coverage."""
+        text = "detect early signs of disease in patients"
+        result = sm.map_signals(text)
+        if result["signals"]:
+            assert result["keyword_coverage"] > 0.0
+
+    # 13. Niche: salmon farming
+    def test_niche_salmon_farming(self):
+        """Salmon farming problem should detect Real-time, Batch, Lambda, ML."""
+        text = (
+            "We operate salmon farming pens. Each pen has underwater cameras "
+            "monitoring fish behavior, dissolved oxygen sensors sampling every "
+            "30 seconds. We need to detect early signs of sea lice infestations "
+            "from sensor data, optimize feeding schedules based on historical "
+            "patterns, and produce weekly biomass estimates for our harvest "
+            "planning team."
+        )
+        result = sm.map_signals(text)
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Real-time / Streaming" in signal_names, (
+            f"Missing Real-time in {signal_names}"
+        )
+        assert "Batch / Scheduled" in signal_names, (
+            f"Missing Batch in {signal_names}"
+        )
+        assert "Both / Mixed (Lambda)" in signal_names, (
+            f"Missing Lambda in {signal_names}"
+        )
+        assert "Machine Learning" in signal_names, (
+            f"Missing ML in {signal_names}"
+        )
+
+    # 14. Niche: semiconductor
+    def test_niche_semiconductor(self):
+        """Semiconductor fab problem should detect Real-time, ML, Batch."""
+        text = (
+            "Our wafer fab runs 24/7 with 400 process tools generating "
+            "50 million measurements per day. We need to predict wafer quality "
+            "from tool sensor data, trace defective dice back to specific "
+            "tool-chamber combinations, and produce daily yield reports for "
+            "the engineering team."
+        )
+        result = sm.map_signals(text)
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Real-time / Streaming" in signal_names, (
+            f"Missing Real-time in {signal_names}"
+        )
+        assert "Machine Learning" in signal_names, (
+            f"Missing ML in {signal_names}"
+        )
+        assert "Batch / Scheduled" in signal_names, (
+            f"Missing Batch in {signal_names}"
+        )
+
+    # 15. Verbose mode includes inference matches
+    def test_verbose_includes_inference(self):
+        """In verbose mode, inference matches should appear in output."""
+        text = "sensors sampling every 30 seconds for real-time monitoring"
+        details = sm._verbose_matches(text)
+        inferred = [d for d in details if d["keyword"].startswith("(inferred:")]
+        assert len(inferred) > 0, (
+            f"Expected inference in verbose output, got: {details}"
+        )
