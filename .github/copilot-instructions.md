@@ -33,10 +33,10 @@ All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event
 | Project index | `PROJECTS.md` (root-level dashboard) |
 | Task flow overview | `task-flows.md` → H2 anchor (`## Medallion`) |
 | Deployment diagram | `diagrams/{task-flow-id}.md` |
-| Validation checklist | `validation/{task-flow-id}.md` |
-| Project status | `projects/{workspace}/STATUS.md` |
-| Project documentation | `projects/{workspace}/docs/` |
-| Project deployments | `projects/{workspace}/deployments/` |
+| Validation checklist | `_shared/registry/validation-checklists.json` |
+| Project status | `_projects/{workspace}/STATUS.md` |
+| Project documentation | `_projects/{workspace}/docs/` |
+| Project deployments | `_projects/{workspace}/deployments/` |
 
 Decision guides live in `decisions/` and are shared across task flows. Shared reference content (workflow guide, item type registry, operational learnings) lives in `_shared/`. Skill-specific references (prerequisites, CLI commands, deployment patterns, templates) live in each skill's `references/` subdirectory.
 
@@ -48,15 +48,14 @@ Each content directory has an `_index.md` routing table that agents should read 
 |-----------|-------|---------|
 | `decisions/` | `decisions/_index.md` | Find decision guides by ID; use `quick_decision` in YAML frontmatter for fast resolution |
 | `diagrams/` | `diagrams/_index.md` | Find deployment diagram by task flow; includes item/wave counts |
-| `validation/` | `validation/_index.md` | Find validation checklist by task flow; includes phase names |
 
 **Agent context loading rule:** Read the `_index.md` first, then fetch only the specific file needed. Do not scan entire directories. Decision guide YAML frontmatter contains a `quick_decision` field with a compact decision tree — resolve from frontmatter before reading the full guide body.
 
-**Diagram skip markers:** Diagram files contain `<!-- AGENT: Skip to "## Deployment Order" -->` markers. Agents should jump past the ASCII visual diagram to the structured deployment order table.
+**Deployment order registry:** Use `_shared/registry/deployment-order.json` for programmatic access to deployment orders. This is the canonical source of truth — markdown tables in diagram files are for human visualization only. Load via `from diagram_parser import get_deployment_items`.
 
 ### Project scaffolding
 
-New projects are scaffolded via `python scripts/run-pipeline.py start "Project Name" --problem "description"`, which calls `new-project.py` internally to create all directories and template files, then initializes `pipeline-state.json` for phase tracking. Agents edit pre-existing files — they do not create directories or boilerplate. See `_shared/workflow-guide.md` for details.
+New projects are scaffolded via `python _shared/scripts/run-pipeline.py start "Project Name" --problem "description"`, which calls `new-project.py` internally to create all directories and template files, then initializes `pipeline-state.json` for phase tracking. Agents edit pre-existing files — they do not create directories or boilerplate. See `_shared/workflow-guide.md` for details.
 
 ### Orchestrator agent (`.github/agents/`)
 

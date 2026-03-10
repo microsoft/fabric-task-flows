@@ -23,11 +23,11 @@ Covers the full QA lifecycle: write the test plan, then validate after deploymen
 
 ### Step 1: Load Architecture
 
-Read `projects/[name]/prd/architecture-handoff.md` (FINAL). Extract items, acceptance criteria, deployment waves.
+Read `_projects/[name]/prd/architecture-handoff.md` (FINAL). Extract items, acceptance criteria, deployment waves.
 
 ### Step 2: Load Validation Checklist
 
-Read `validation/[task-flow].md` for task-flow-specific validation phases.
+Read task flow data from `_shared/registry/validation-checklists.json` for task-flow-specific validation phases.
 
 ### Step 3: Map ACs to Test Methods
 
@@ -50,7 +50,7 @@ Define CVPs — checks that, if failed, block deployment.
 
 ### Step 6: Produce Test Plan
 
-Write to `projects/[name]/prd/test-plan.md` using schema `schemas/test-plan.md`.
+Write to `_projects/[name]/prd/test-plan.md` using schema `schemas/test-plan.md`.
 
 ---
 
@@ -58,10 +58,10 @@ Write to `projects/[name]/prd/test-plan.md` using schema `schemas/test-plan.md`.
 
 ### Step 1: Load Context
 
-1. `projects/[name]/prd/test-plan.md` — acceptance criteria mapping
-2. `projects/[name]/prd/deployment-handoff.md` — what was deployed
-3. `validation/[task-flow].md` — task-flow-specific checklist
-4. `projects/[name]/prd/phase-progress.md` — resume from partial
+1. `_projects/[name]/prd/test-plan.md` — acceptance criteria mapping
+2. `_projects/[name]/prd/deployment-handoff.md` — what was deployed
+3. `_shared/registry/validation-checklists.json` — task-flow-specific checklist
+4. `_projects/[name]/prd/phase-progress.md` — resume from partial
 5. `_shared/learnings.md` — known timing/propagation gotchas
 
 ### Step 2: Validate by Phase
@@ -69,7 +69,7 @@ Write to `projects/[name]/prd/test-plan.md` using schema `schemas/test-plan.md`.
 Run `validate-items.py` to verify deployed items via the Fabric REST API:
 
 ```bash
-python .github/skills/fabric-test/scripts/validate-items.py projects/[name]/prd/deployment-handoff.md
+python .github/skills/fabric-test/scripts/validate-items.py _projects/[name]/prd/deployment-handoff.md
 ```
 
 Execute checks in order: Foundation → Environment → Ingestion → Transformation → Visualization → ML
@@ -85,13 +85,13 @@ Execute checks in order: Foundation → Environment → Ingestion → Transforma
 
 ### Step 4: Produce Validation Report
 
-Write to `projects/[name]/prd/validation-report.md` using schema `schemas/validation-report.md`.
+Write to `_projects/[name]/prd/validation-report.md` using schema `schemas/validation-report.md`.
 
 Required prose: Validation Context (max 100 words), Future Considerations (max 100 words).
 
 ### Step 5: Create Remediation Log (if issues)
 
-Write `projects/[name]/prd/remediation-log.md` using schema `schemas/remediation-log.md`.
+Write `_projects/[name]/prd/remediation-log.md` using schema `schemas/remediation-log.md`.
 
 ### Step 6: Record Learnings
 

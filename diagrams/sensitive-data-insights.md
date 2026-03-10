@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -86,46 +86,14 @@
 │                    │   🔐 RLS/OLS      │                                        │
 │                    └─────────┬─────────┘                                        │
 │                              │                                                  │
-│                    ┌─────────┴─────────┐                                        │
-│                    ▼                   ▼                                        │
-│           ┌─────────────┐      ┌─────────────┐                                  │
-│           │   Report    │      │  Dashboard  │                                  │
-│           │    [LC]     │      │    [LC]     │                                  │
-│           └─────────────┘      └─────────────┘                                  │
+│                              ▼                                                  │
+│                     ┌─────────────┐                                              │
+│                     │   Report    │                                              │
+│                     │    [LC]     │                                              │
+│                     └─────────────┘                                              │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   🔐 = Security control
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1a  │ Lakehouse (raw)  │ [LC]     │ (none - foundation)    │ Ingestion          │
-│   1b  │ Lakehouse (mask) │ [LC]     │ (none - foundation)    │ Anonymized data    │
-│   1c  │ Warehouse        │ [LC]     │ (none - foundation)    │ Aggregated layer   │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2   │ Environment      │ [CF]     │ Lakehouses             │ Notebooks, Spark   │
-│   2   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3a  │ Copy Job         │ [LC]     │ Lakehouse (raw)        │ Raw data           │
-│   3b  │ Dataflow Gen2    │ [LC]     │ Lakehouse (raw)        │ Masked ingestion   │
-│   3c  │ Pipeline         │ [LC/CF]  │ Lakehouse (raw)        │ Orchestrated load  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4a  │ Notebook         │ [CF]     │ Environment, Lakehouse │ Masking logic      │
-│   4b  │ Spark Job Def    │ [CF]     │ Environment, Lakehouse │ Scheduled masking  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5   │ Semantic Model   │ [LC/CF]  │ Warehouse              │ Secured reports    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6a  │ Report           │ [LC]     │ Semantic Model         │ Dashboard          │
-│   6b  │ Dashboard        │ [LC]     │ Report(s)              │ (optional)         │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6c  │ Data Agent       │ [LC]     │ Warehouse (anonymized) │ (optional)         │
-│       │                  │          │ OR Semantic Model      │ ⚠️ Inherits RLS/OLS │
-│   6d  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Security Decision

@@ -1,0 +1,693 @@
+{
+  "$schema": "validation-checklists-schema.json",
+  "description": "Post-deployment validation data for all task flows. Contains manual steps, phases, and detailed checklist items.",
+  "shared": {
+    "ai_governance_checklist": [
+      "Data Agent created (if using)",
+      "Data Agent bound to appropriate data source (Lakehouse, Warehouse, KQL Database, or Semantic Model)",
+      "Data Agent greeting and instructions configured",
+      "Data Agent access permissions set",
+      "Natural language query returns correct data (test 3-5 representative questions)",
+      "Agent handles out-of-scope questions gracefully",
+      "Ontology created (if using) with business terms mapped to data fields"
+    ],
+    "variable_library_checklist": [
+      "Variable Library item exists in workspace",
+      "Variables defined for stage-specific configuration",
+      "Active value set matches current deployment stage",
+      "Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library"
+    ]
+  },
+  "task_flows": {
+    "app-backend": {
+      "description": "Post-deployment validation for App Backend task flow.",
+      "has_shared_ai_governance": false,
+      "manual_steps": [
+        {"item_type": "SQL Database", "action": "Create tables/schema, configure security (RLS/OLS if needed), verify OneLake mirroring"},
+        {"item_type": "Cosmos DB", "action": "Create containers, configure partition keys, load sample data, verify OneLake mirroring"},
+        {"item_type": "GraphQL API", "action": "Select data sources, choose tables/views to expose, define relationships, test queries"},
+        {"item_type": "User Data Functions", "action": "Write function code, add PyPI libraries, publish functions, test with sample inputs"},
+        {"item_type": "Variable Library", "action": "Add variables, create value sets per stage, set active value set, configure item references"},
+        {"item_type": "Semantic Model", "action": "Configure connection to database (via OneLake mirror), set query mode (Direct Lake / DirectQuery)"},
+        {"item_type": "Report", "action": "Connect to Semantic Model, build visualizations, configure refresh"},
+        {"item_type": "Data Agent", "action": "Add data sources (up to 5), select tables, write instructions, add example queries"},
+        {"item_type": "Ontology", "action": "Define entity types/properties/relationships, bind to data sources, refresh graph"}
+      ],
+      "phases": {
+        "Foundation": [
+          "SQL Database OR Cosmos DB exists in workspace",
+          "Database is accessible (connection test succeeds)",
+          "Tables/containers are created with correct schema",
+          "Sample data is loaded for testing",
+          "OneLake mirroring is active (data visible in Delta format)",
+          "SQL analytics endpoint is available (for SQL Database)",
+          "Cross-database queries work from SQL analytics endpoint"
+        ],
+        "Configuration": [
+          "Variable Library item exists in workspace",
+          "Variables are defined with correct types and default values",
+          "Value sets exist for each deployment stage (Dev/PPE/Prod)",
+          "Active value set is correct for current workspace",
+          "Item reference variables point to correct workspace + item IDs",
+          "Consuming items (Notebooks, Pipelines, Shortcuts) reference the Variable Library"
+        ],
+        "API Layer": {
+          "GraphQL API": [
+            "GraphQL API item exists in workspace",
+            "Data source(s) connected (SQL Database, Cosmos DB, or Lakehouse SQL endpoint)",
+            "Schema auto-generated with expected types and fields",
+            "Relationships defined between related entities (if applicable)",
+            "Test query returns expected results in built-in editor",
+            "Mutations work for write operations (via stored procedures if SQL Database)",
+            "Endpoint URL is accessible and returns valid responses",
+            "Permissions are configured (who can query the API)"
+          ],
+          "User Data Functions": [
+            "User Data Functions item exists in workspace",
+            "Required PyPI libraries are installed (pandas, requests, etc.)",
+            "All functions have @udf.function() decorator",
+            "Functions are published (no pending changes indicator)",
+            "Each function tested with sample inputs in Run Only mode",
+            "REST endpoints are accessible from external HTTP clients",
+            "Functions that write to database successfully persist data",
+            "Error handling returns meaningful error messages"
+          ]
+        },
+        "Analytics": [
+          "Semantic Model exists and is connected to database (via OneLake mirror)",
+          "Query mode is configured (Direct Lake for optimal performance)",
+          "Measures and relationships are defined",
+          "Data refresh succeeds (or Direct Lake auto-refreshes)",
+          "Semantic Model is accessible to report consumers"
+        ],
+        "Consumption": {
+          "Report": [
+            "Report exists and is connected to Semantic Model",
+            "Visualizations render with correct data",
+            "Filters and slicers work as expected",
+            "Report is shared with intended audience"
+          ],
+          "Data Agent": [
+            "Data Agent item exists in workspace",
+            "Data sources added (up to 5)",
+            "Relevant tables selected in explorer",
+            "Custom instructions configured (if applicable)",
+            "Example queries added for few-shot learning (if applicable)",
+            "Test questions return accurate, data-backed answers",
+            "Generated SQL/DAX/KQL queries are correct"
+          ],
+          "Ontology": [
+            "Ontology item exists in workspace",
+            "Entity types defined with properties and relationships",
+            "Data bindings configured to OneLake sources",
+            "Graph model refreshed and visualized",
+            "NL2Ontology queries return expected results"
+          ]
+        }
+      }
+    },
+    "basic-data-analytics": {
+      "description": "Post-deployment validation for Basic Data Analytics task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "Copy Job", "action": "Configure source/destination connections in UI"},
+        {"item_type": "Dataflow Gen2", "action": "Publish dataflow; set up refresh credentials"},
+        {"item_type": "Pipeline", "action": "Configure external connections; set triggers"},
+        {"item_type": "Semantic Model", "action": "Bind to Warehouse (if Direct Lake); set refresh credentials"},
+        {"item_type": "Report", "action": "Verify semantic model binding"},
+        {"item_type": "Activator", "action": "Configure alert conditions and actions"}
+      ],
+      "phases": {
+        "Warehouse": [
+          "Warehouse created and accessible",
+          "Permissions configured"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Ingestion": [
+          "Ingestion item created (Copy Job / Dataflow / Pipeline)",
+          "Connections configured",
+          "Test run successful",
+          "Data visible in Warehouse"
+        ],
+        "Semantic Layer": [
+          "Semantic Model created",
+          "Bound to Warehouse",
+          "Measures and relationships validated",
+          "Report created",
+          "Visuals rendering correctly"
+        ],
+        "Monitoring": [
+          "Scorecard created (if using)",
+          "Activator alerts configured (if using)",
+          "Test alerts triggered successfully"
+        ]
+      }
+    },
+    "basic-machine-learning-models": {
+      "description": "Post-deployment validation for Basic Machine Learning Models task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "Lakehouse", "action": "Verify permissions; configure for ML data"},
+        {"item_type": "Environment", "action": "Configure Spark settings; install ML libraries; publish"},
+        {"item_type": "Notebook", "action": "Set default lakehouse; verify environment attachment"},
+        {"item_type": "Experiment", "action": "Verify experiment tracking enabled"},
+        {"item_type": "ML Model", "action": "Register best model from experiment"},
+        {"item_type": "Report", "action": "Verify semantic model binding; check predictions data"}
+      ],
+      "phases": {
+        "Foundation": [
+          "Lakehouse created",
+          "Environment created and published",
+          "ML libraries installed (sklearn, mlflow, etc.)"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Data Exploration": [
+          "Exploration notebook attached to environment",
+          "Notebook can read data from Lakehouse",
+          "Data profiling complete"
+        ],
+        "Training": [
+          "Experiment created",
+          "Training notebook runs successfully",
+          "MLflow logging working",
+          "Metrics tracked in experiment"
+        ],
+        "Model Registration": [
+          "Best run identified",
+          "Model registered from experiment",
+          "Model version tagged"
+        ],
+        "Batch Predictions": [
+          "Prediction notebook loads model successfully",
+          "Predictions written to Lakehouse",
+          "Prediction table accessible"
+        ],
+        "Visualization": [
+          "Report built on Lakehouse data",
+          "Predictions visible in report",
+          "Model metrics dashboard (optional)"
+        ]
+      }
+    },
+    "conversational-analytics": {
+      "description": "Post-deployment validation for Conversational Analytics task flow.",
+      "has_shared_ai_governance": false,
+      "manual_steps": [
+        {"item_type": "Lakehouse", "action": "Verify data is populated from upstream task flow"},
+        {"item_type": "Warehouse", "action": "Verify data is populated from upstream task flow"},
+        {"item_type": "Semantic Model", "action": "Bind to storage; validate measures and relationships"},
+        {"item_type": "Data Agent", "action": "Create and bind to Semantic Model; configure access"},
+        {"item_type": "Ontology", "action": "(Optional) Define business terms"}
+      ],
+      "phases": {
+        "Foundation": [
+          "Storage item exists and contains data (Lakehouse or Warehouse)",
+          "Data is current (ingestion pipeline from upstream task flow is running)",
+          "Workspace permissions configured for agent consumers"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Semantic Layer": [
+          "Semantic Model created and bound to storage",
+          "Key measures defined (aggregations, KPIs)",
+          "Relationships between tables validated",
+          "Direct Lake mode configured (if using Lakehouse)",
+          "Data refresh working (if using Import mode)"
+        ],
+        "Agent Deployment": [
+          "Data Agent created in workspace",
+          "Agent bound to Semantic Model",
+          "Agent greeting / instructions configured",
+          "Access permissions set (who can chat with the agent)",
+          "Agent published and accessible to end users"
+        ],
+        "Agent Testing": [
+          "Natural language query returns correct data (test 3-5 representative questions)",
+          "Agent correctly handles ambiguous questions (asks for clarification)",
+          "Agent respects data security (row-level security if applicable)",
+          "Agent handles 'I don't know' gracefully (questions outside data scope)",
+          "Response latency is acceptable for interactive use"
+        ],
+        "Optional Governance": [
+          "Ontology created (if using) with business terms mapped to semantic model fields",
+          "Activator alerts configured (if monitoring agent usage patterns)"
+        ]
+      }
+    },
+    "data-analytics-sql-endpoint": {
+      "description": "Post-deployment validation for Data Analytics Using SQL Endpoint task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "Lakehouse", "action": "Verify permissions; SQL analytics endpoint auto-created"},
+        {"item_type": "Notebook", "action": "Set default lakehouse; verify environment attachment"},
+        {"item_type": "Spark Job Definition", "action": "Set default lakehouse; configure schedule"},
+        {"item_type": "Semantic Model", "action": "Bind to Lakehouse; configure Direct Lake (recommended) or Import/DirectQuery"},
+        {"item_type": "Report", "action": "Verify semantic model binding"},
+        {"item_type": "Paginated Report", "action": "Configure parameters; verify data source"},
+        {"item_type": "Scorecard", "action": "Configure goals and metrics"}
+      ],
+      "phases": {
+        "Foundation": [
+          "Lakehouse created",
+          "SQL analytics endpoint accessible",
+          "Delta tables created"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Data Processing": [
+          "Processing method configured:",
+          {"options": ["OPTION A: Notebook (for ad-hoc/development)", "OPTION B: Spark Job Definition (for scheduled)"]},
+          "Data transformations complete",
+          "Delta tables populated"
+        ],
+        "Semantic Layer": [
+          "Semantic Model created",
+          "Connected to SQL analytics endpoint",
+          "Relationships defined",
+          "Measures created",
+          "Refresh configured"
+        ],
+        "Visualization": [
+          "Report created and rendering",
+          "Paginated Report working (if applicable)",
+          "Scorecard metrics populated (if applicable)"
+        ]
+      }
+    },
+    "event-analytics": {
+      "description": "Post-deployment validation for Event Analytics task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "Eventhouse", "action": "Create KQL databases; configure retention policies"},
+        {"item_type": "Eventstream", "action": "Configure source connections (Event Hubs, Kafka, etc.)"},
+        {"item_type": "Copy Job", "action": "Configure source/destination connections"},
+        {"item_type": "Pipeline", "action": "Configure external connections; set triggers/schedule"},
+        {"item_type": "Activator", "action": "Configure alert conditions and actions"},
+        {"item_type": "KQL Queryset", "action": "Attach to Eventhouse database"},
+        {"item_type": "Notebook", "action": "Attach to Eventhouse; configure Environment"},
+        {"item_type": "Real-Time Dashboard", "action": "Bind to KQL Database (within Eventhouse); configure auto-refresh"},
+        {"item_type": "Report", "action": "Verify data source binding"}
+      ],
+      "phases": {
+        "Foundation": [
+          "Eventhouse created",
+          "KQL database(s) provisioned",
+          "Environment configured (if using notebooks)"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Real-Time Ingestion": [
+          "Eventstream created and connected to source",
+          "Data flowing into Eventhouse",
+          "Activator alerts configured (if using)",
+          "Test alert triggered"
+        ],
+        "Batch Ingestion": [
+          "Copy job / Pipeline / Dataflow created",
+          "Batch data loaded into Eventhouse",
+          "Schedule configured"
+        ],
+        "Query & Analysis": [
+          "KQL Queryset connected to database",
+          "Queries returning results",
+          "Notebooks running (if using data science)",
+          "ML experiment tracking (if applicable)"
+        ],
+        "Visualization": [
+          "Real-Time Dashboard rendering live data",
+          "Report created with correct data bindings"
+        ]
+      }
+    },
+    "event-medallion": {
+      "description": "Post-deployment validation for Event Medallion task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "Eventhouse", "action": "Verify permissions; configure KQL databases"},
+        {"item_type": "Eventstream", "action": "Configure event source; start stream"},
+        {"item_type": "Copy Job", "action": "Configure source connections (batch)"},
+        {"item_type": "Pipeline", "action": "Configure activities and schedule"},
+        {"item_type": "KQL Queryset", "action": "Configure materialized views; update policies"},
+        {"item_type": "Real-Time Dashboard", "action": "Configure tiles; bind to KQL Database; set refresh"},
+        {"item_type": "Report", "action": "Verify data source binding"},
+        {"item_type": "Activator", "action": "Configure trigger conditions; set actions"}
+      ],
+      "phases": {
+        "Foundation": [
+          "Eventhouse created",
+          "KQL Database (Bronze) created",
+          "KQL Database (Silver) created",
+          "KQL Database (Gold) created"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Ingestion": [
+          "Real-time ingestion configured:",
+          {"sub_items": ["Eventstream connected to source", "Eventstream routing to Bronze"]},
+          "Batch ingestion configured (if applicable):",
+          {"sub_items": ["Copy Job or Pipeline configured", "Data loading to Bronze"]}
+        ],
+        "Transformation": [
+          "KQL Queryset created",
+          "Bronze → Silver transformation working",
+          "Silver → Gold aggregations working",
+          "Update policies configured (continuous ingestion)",
+          "Materialized views created"
+        ],
+        "Visualization": [
+          "Real-Time Dashboard created",
+          "Real-Time Dashboard tiles connected to Gold",
+          "Report created (for historical analysis)",
+          "Refresh configured"
+        ],
+        "Monitoring": [
+          "Activator configured (if applicable)",
+          "Alert conditions defined",
+          "Actions configured (email, Teams, etc.)"
+        ]
+      }
+    },
+    "general": {
+      "description": "Post-deployment validation for General task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "Lakehouse", "action": "Verify permissions"},
+        {"item_type": "Warehouse", "action": "Verify permissions; configure schema"},
+        {"item_type": "Eventhouse", "action": "Verify permissions; configure KQL databases"},
+        {"item_type": "SQL Database", "action": "Verify permissions; configure connection"},
+        {"item_type": "Environment", "action": "Configure Spark settings; publish"},
+        {"item_type": "Copy Job", "action": "Configure source connections"},
+        {"item_type": "Dataflow Gen2", "action": "Configure data sources; publish"},
+        {"item_type": "Pipeline", "action": "Configure activities and schedule"},
+        {"item_type": "Eventstream", "action": "Configure event source; start stream"},
+        {"item_type": "Mirrored Database", "action": "Verify sync status"},
+        {"item_type": "Notebook", "action": "Set default lakehouse; verify environment"},
+        {"item_type": "KQL Queryset", "action": "Configure queries"},
+        {"item_type": "Semantic Model", "action": "Bind to data source; configure Direct Lake (recommended) or Import/DirectQuery"},
+        {"item_type": "Report", "action": "Verify semantic model binding"},
+        {"item_type": "Real-Time Dashboard", "action": "Configure tiles; set refresh"},
+        {"item_type": "Activator", "action": "Configure trigger conditions"}
+      ],
+      "phases": {
+        "Foundation": {
+          "description": "Choose applicable storage",
+          "items": [
+            "Lakehouse (for big data, Spark, ML)",
+            "Warehouse (for T-SQL, BI)",
+            "Eventhouse (for real-time, streaming)",
+            "SQL Database (for OLTP, transactional)",
+            "Mirrored Database (for external sync)"
+          ]
+        },
+        "Compute Environment": [
+          "Environment created (if using Spark)",
+          "Variable Library configured (if applicable)",
+          "Libraries installed"
+        ],
+        "Ingestion": {
+          "Batch ingestion": [
+            "Copy Job configured",
+            "Dataflow Gen2 configured",
+            "Pipeline configured",
+            "dbt job configured",
+            "Airflow job configured"
+          ],
+          "Real-time ingestion": [
+            "Eventstream configured",
+            "Custom Stream Connector configured"
+          ],
+          "Mirroring": [
+            "Mirrored Database syncing",
+            "Mirrored Dataverse syncing"
+          ]
+        },
+        "Transformation": [
+          "Notebooks running",
+          "Spark Job Definitions scheduled",
+          "Dataflow Gen2 transforms",
+          "KQL Querysets configured",
+          "Stored procedures created"
+        ],
+        "Semantic & Visualization": [
+          "Semantic Model created",
+          "Reports rendering",
+          "Dashboards configured",
+          "Paginated Reports working",
+          "Scorecards populated",
+          "Real-Time Dashboards live"
+        ]
+      }
+    },
+    "lambda": {
+      "description": "Post-deployment validation for Lambda task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "Lakehouse", "action": "Verify permissions"},
+        {"item_type": "Warehouse", "action": "Verify permissions; run initial DDL"},
+        {"item_type": "Eventhouse", "action": "Configure retention policies"},
+        {"item_type": "Environment", "action": "Configure Spark settings; publish"},
+        {"item_type": "Copy Job", "action": "Configure batch source connections"},
+        {"item_type": "Eventstream", "action": "Configure real-time source (Event Hub, etc.)"},
+        {"item_type": "Notebook", "action": "Set default lakehouse"},
+        {"item_type": "KQL Queryset", "action": "Deploy materialized views"},
+        {"item_type": "Semantic Model", "action": "Bind to Warehouse; configure Direct Lake (recommended) or Import/DirectQuery"},
+        {"item_type": "Real-Time Dashboard", "action": "Build dashboard tiles"},
+        {"item_type": "Activator", "action": "Configure alert rules"}
+      ],
+      "phases": {
+        "Foundation": [
+          "Lakehouse(s) created (batch layer)",
+          "Warehouse created (gold layer)",
+          "Eventhouse created (speed layer)"
+        ],
+        "Environment": [
+          "Environment created and published"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Ingestion": [
+          "Batch ingestion working (Copy Job / Pipeline)",
+          "Real-time ingestion working (Eventstream)"
+        ],
+        "Transformation": [
+          "Batch notebooks running",
+          "KQL queries processing stream data"
+        ],
+        "Serving Layer": [
+          "Semantic Model bound to batch data",
+          "Reports rendering batch views",
+          "Real-Time Dashboard showing live data"
+        ],
+        "Monitoring & ML": [
+          "Activator configured for both layers",
+          "ML models registered and scoring"
+        ]
+      }
+    },
+    "medallion": {
+      "description": "Post-deployment validation for Medallion task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "Lakehouse", "action": "Verify permissions per layer"},
+        {"item_type": "Environment", "action": "Configure Spark settings; publish environment"},
+        {"item_type": "Copy Job", "action": "Configure source connections"},
+        {"item_type": "Eventstream", "action": "Configure event source; start stream"},
+        {"item_type": "Notebook", "action": "Set default lakehouse; verify environment attachment"},
+        {"item_type": "Spark Job Definition", "action": "Set default lakehouse; configure schedule"},
+        {"item_type": "Semantic Model", "action": "Bind to Gold layer (Lakehouse or Warehouse); configure Direct Lake (recommended) or Import/DirectQuery"},
+        {"item_type": "Report", "action": "Verify semantic model binding"}
+      ],
+      "phases": {
+        "Foundation": [
+          "Bronze Lakehouse created",
+          "Silver Lakehouse created",
+          "Gold layer created (choose ONE):",
+          {"options": ["OPTION A: Lakehouse Gold (for Spark, ML, Delta Lake, read-only via SQL)", "OPTION B: Warehouse Gold (for T-SQL read/write, BI, stored procedures)"]}
+        ],
+        "Environment": [
+          "Environment created and published",
+          "Libraries installed"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Ingestion": [
+          "Ingestion items configured",
+          "Data flowing to Bronze layer"
+        ],
+        "Transformation": [
+          "Bronze → Silver notebook working",
+          "Silver → Gold notebook working",
+          "Data quality validated per layer"
+        ],
+        "Visualization": [
+          "Semantic Model bound to Gold",
+          "Reports rendering correctly"
+        ],
+        "ML": [
+          "Experiment runs successfully",
+          "Model registered"
+        ]
+      }
+    },
+    "semantic-governance": {
+      "description": "Post-deployment validation for Semantic Governance task flow.",
+      "has_shared_ai_governance": false,
+      "manual_steps": [
+        {"item_type": "Lakehouse", "action": "Verify data is populated from upstream task flow"},
+        {"item_type": "Semantic Model", "action": "Bind to storage; validate measures and relationships"},
+        {"item_type": "Ontology", "action": "Define business terms, domains, relationships"},
+        {"item_type": "Graph Model", "action": "Define entity types and edge types"},
+        {"item_type": "Graph Queryset", "action": "Create in Fabric workspace portal; author graph queries (portal-only)"},
+        {"item_type": "Data Agent", "action": "(Optional) Create and bind to Semantic Model + Ontology"}
+      ],
+      "phases": {
+        "Foundation": [
+          "Lakehouse (or Warehouse) exists and contains data",
+          "Workspace permissions configured for governance team",
+          "Data sources identified for ontology scope"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Semantic Model": [
+          "Semantic Model created and bound to storage",
+          "Key measures and relationships defined",
+          "Field descriptions populated (these inform the Ontology)",
+          "Model endorsed (Certified or Promoted) if using endorsement"
+        ],
+        "Ontology Definition": [
+          "Ontology created in workspace",
+          "Business domains defined (e.g., Sales, Finance, Operations)",
+          "Key business terms created with definitions",
+          "Terms mapped to Semantic Model fields/tables",
+          "Synonyms and abbreviations documented",
+          "Domain owners assigned"
+        ],
+        "Knowledge Graph": [
+          "Graph Model created with entity types and relationships",
+          "Entity types correspond to ontology business terms",
+          "Edge types define meaningful relationships (e.g., 'reports-to', 'sells-in', 'part-of')",
+          "Graph Queryset created with representative queries",
+          "Graph queries return expected traversal results",
+          "Graph relationships are consistent with Semantic Model relationships"
+        ],
+        "Governance Validation": [
+          "Business terms are consistent across Ontology and Semantic Model",
+          "No orphaned terms (terms without data mapping)",
+          "No unmapped fields (important data fields without business terms)",
+          "Cross-domain relationships are documented",
+          "Governance report/dashboard created (if using)",
+          "Data Agent configured with ontology context (if using)"
+        ],
+        "External Integration": [
+          "Purview catalog synced (if using Microsoft Purview)",
+          "Data classification labels applied",
+          "Lineage tracked from source through governance layer"
+        ]
+      }
+    },
+    "sensitive-data-insights": {
+      "description": "Post-deployment validation for Sensitive Data Insights task flow.",
+      "has_shared_ai_governance": false,
+      "ai_governance_checklist_override": [
+        "Data Agent created (if using)",
+        "Data Agent bound to anonymized Warehouse or Semantic Model (with RLS/OLS)",
+        "Data Agent greeting and instructions configured",
+        "Data Agent access permissions set (⚠️ verify RLS/OLS inheritance)",
+        "Natural language query returns correct data (test 3-5 representative questions)",
+        "Agent does NOT expose masked/redacted data",
+        "Agent handles out-of-scope questions gracefully",
+        "Ontology created (if using) with business terms mapped to data fields"
+      ],
+      "manual_steps": [
+        {"item_type": "Lakehouse", "action": "Configure strict permissions; enable audit logging"},
+        {"item_type": "Warehouse", "action": "Configure RLS/CLS; verify aggregation only"},
+        {"item_type": "Environment", "action": "Configure isolated compute; restrict network"},
+        {"item_type": "Copy Job", "action": "Use managed identity; verify encryption"},
+        {"item_type": "Dataflow Gen2", "action": "Configure masking transforms"},
+        {"item_type": "Pipeline", "action": "Configure secure orchestration"},
+        {"item_type": "Notebook", "action": "Implement masking logic; PII redaction"},
+        {"item_type": "Spark Job Definition", "action": "Configure scheduled anonymization"},
+        {"item_type": "Semantic Model", "action": "Configure RLS/OLS rules"},
+        {"item_type": "Report", "action": "Verify security inheritance"}
+      ],
+      "phases": {
+        "Foundation (Secured)": [
+          "Raw Lakehouse created with strict permissions",
+          "Masked Lakehouse created with restricted access",
+          "Warehouse created with aggregation-only data",
+          "Audit logging enabled on all storage"
+        ],
+        "Compute Environment (Isolated)": [
+          "Environment created",
+          "Network restrictions configured",
+          "Managed identity configured"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Secure Ingestion": [
+          "Ingestion method configured:",
+          {"sub_items": ["Managed identity used (no secrets in code)", "Encryption in transit verified", "Source connection secured"]},
+          "Data flowing to raw Lakehouse"
+        ],
+        "Secure Transformation": [
+          "Masking/anonymization logic implemented:",
+          {"sub_items": ["PII columns identified", "Hashing/tokenization applied", "Redaction configured"]},
+          "Anonymized data in masked Lakehouse",
+          "Aggregated data in Warehouse"
+        ],
+        "Secure Visualization": [
+          "Semantic Model created",
+          "Row-Level Security (RLS) configured",
+          "Object-Level Security (OLS) configured",
+          "Reports render correctly per user role",
+          "Security inheritance verified"
+        ],
+        "Security Validation": [
+          "No PII visible in aggregated layer",
+          "RLS blocks unauthorized rows",
+          "OLS hides sensitive columns",
+          "Audit logs capturing access",
+          "Managed identities used throughout"
+        ]
+      }
+    },
+    "translytical": {
+      "description": "Post-deployment validation for Translytical task flow.",
+      "has_shared_ai_governance": true,
+      "manual_steps": [
+        {"item_type": "SQL Database", "action": "Verify permissions; configure schema for writeback"},
+        {"item_type": "Semantic Model", "action": "Bind to SQL Database; configure Direct Lake (via OneLake mirroring) or DirectQuery (for live OLTP data)"},
+        {"item_type": "Report", "action": "Enable writeback features; configure data entry"},
+        {"item_type": "User Data Functions", "action": "Deploy functions; configure triggers"}
+      ],
+      "phases": {
+        "Foundation (Transactional Storage)": [
+          "SQL Database created",
+          "Tables configured for read/write",
+          "Write permissions granted to app identity",
+          "Schema supports writeback scenario"
+        ],
+        "Variable Library": "$ref:shared.variable_library_checklist",
+        "Semantic Layer": [
+          "Semantic Model created",
+          "Connected to SQL Database",
+          "DirectQuery mode configured (for real-time)",
+          "Relationships defined",
+          "Measures created"
+        ],
+        "Visualization (Writeback)": [
+          "Report created",
+          "Writeback features enabled",
+          "Data entry forms configured (if applicable)",
+          "Write operations working",
+          "User actions triggering updates"
+        ],
+        "Development (Actions)": [
+          "User Data Functions deployed:",
+          {"sub_items": ["Write to SQL function working", "Notification function working (if applicable)", "Workflow trigger function working (if applicable)"]},
+          "Functions callable from report",
+          "Writeback persisting to SQL Database"
+        ],
+        "Writeback Validation": [
+          "Users can enter data in reports",
+          "Entered data persists to SQL Database",
+          "Changes visible on report refresh",
+          "Notifications triggering (if configured)",
+          "Downstream workflows executing (if configured)"
+        ]
+      }
+    }
+  }
+}

@@ -117,7 +117,6 @@ Who will BUILD and MAINTAIN this solution?
 | **Lakehouse** | Point-and-click | Storage creation and management |
 | **Warehouse** | Visual + T-SQL | DW tables and views |
 | **Report** | Power BI Desktop/Web | Interactive visualizations |
-| **Dashboard** | Pin tiles | Executive summaries |
 | **Paginated Report** | Report Builder | Print-ready reports |
 | **Scorecard** | Web UI | Goal tracking |
 | **Eventstream** | Visual canvas | Stream routing |
@@ -149,7 +148,7 @@ Who will BUILD and MAINTAIN this solution?
 | Role | Skills Needed | Items They'll Use |
 |------|--------------|-------------------|
 | **Business Analyst** | Power Query, Excel, Power BI | Dataflow Gen2, Report, Scorecard |
-| **BI Developer** | Power BI, DAX, data modeling | Semantic Model, Report, Dashboard |
+| **BI Developer** | Power BI, DAX, data modeling | Semantic Model, Report |
 | **Citizen Developer** | Drag-and-drop, basic logic | Copy Job, Dataflow Gen2, Eventstream |
 | **Operations Analyst** | Monitoring, dashboards | Real-Time Dashboard, Activator |
 

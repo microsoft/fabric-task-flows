@@ -40,15 +40,15 @@ get data ──→ store data ──→ visualize ──→ track data
 
 **Workloads:** Data Factory, Data Warehouse, Real-Time Intelligence, Power BI
 
-**Items:** Activator, Copy job, Dashboard, Data agent (optional), Dataflow Gen2, Ontology (optional), Paginated Report, Pipeline, Report, Scorecard, Semantic model, Warehouse
+**Items:** Activator, Copy job, Data agent (optional), Dataflow Gen2, Ontology (optional), Paginated Report, Pipeline, Report, Scorecard, Semantic model, Warehouse
 
 | Decision | Options | Guide |
 |----------|---------|-------|
 | Ingestion Method | Copy Job, Dataflow Gen2, Pipeline | [Ingestion Selection](decisions/ingestion-selection.md) |
-| Visualization Type | Report, Dashboard, Paginated Report, Scorecard | [Visualization Selection](decisions/visualization-selection.md) |
+| Visualization Type | Report, Paginated Report, Scorecard | [Visualization Selection](decisions/visualization-selection.md) |
 | Skillset Approach | Low-Code vs Code-First | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [basic-data-analytics](diagrams/basic-data-analytics.md) | **Validation:** [basic-data-analytics](validation/basic-data-analytics.md)
+**Diagrams:** [basic-data-analytics](diagrams/basic-data-analytics.md)
 
 ---
 
@@ -78,7 +78,7 @@ store data ──┤
 | Processing Method | Notebook (primary for ML) | [Processing Selection](decisions/processing-selection.md) |
 | Skillset Approach | Low-Code vs Code-First | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [basic-machine-learning-models](diagrams/basic-machine-learning-models.md) | **Validation:** [basic-machine-learning-models](validation/basic-machine-learning-models.md)
+**Diagrams:** [basic-machine-learning-models](diagrams/basic-machine-learning-models.md)
 
 ---
 
@@ -96,14 +96,14 @@ store data ──→ prepare data ──→ store data ──→ visualize
 
 **Workloads:** Data Engineering, Data Science, Data Warehouse, Power BI
 
-**Items:** Dashboard, Data agent (optional), Lakehouse, Notebook, Ontology (optional), Paginated Report, Report, Scorecard, Semantic model, Spark Job Definition, SQL analytics endpoint
+**Items:** Data agent (optional), Lakehouse, Notebook, Ontology (optional), Paginated Report, Report, Scorecard, Semantic model, Spark Job Definition, SQL analytics endpoint
 
 | Decision | Options | Guide |
 |----------|---------|-------|
 | Processing Method | Notebook, Spark Job Definition | [Processing Selection](decisions/processing-selection.md) |
-| Visualization Type | Report, Dashboard, Paginated Report, Scorecard | [Visualization Selection](decisions/visualization-selection.md) |
+| Visualization Type | Report, Paginated Report, Scorecard | [Visualization Selection](decisions/visualization-selection.md) |
 
-**Diagrams:** [data-analytics-sql-endpoint](diagrams/data-analytics-sql-endpoint.md) | **Validation:** [data-analytics-sql-endpoint](validation/data-analytics-sql-endpoint.md)
+**Diagrams:** [data-analytics-sql-endpoint](diagrams/data-analytics-sql-endpoint.md)
 
 ---
 
@@ -133,7 +133,7 @@ get data ─────────────────┘                 
 | Ingestion Method | Eventstream (streaming), Copy Job, Dataflow Gen2, Pipeline (batch) | [Ingestion Selection](decisions/ingestion-selection.md) |
 | Visualization Type | Real-Time Dashboard (primary), Report | [Visualization Selection](decisions/visualization-selection.md) |
 
-**Diagrams:** [event-analytics](diagrams/event-analytics.md) | **Validation:** [event-analytics](validation/event-analytics.md)
+**Diagrams:** [event-analytics](diagrams/event-analytics.md)
 
 ---
 
@@ -161,7 +161,7 @@ get data ──┘                                                              
 | Ingestion Method | Eventstream (streaming), Copy Job, Pipeline (batch) | [Ingestion Selection](decisions/ingestion-selection.md) |
 | Visualization Type | Real-Time Dashboard (live), Report (historical) | [Visualization Selection](decisions/visualization-selection.md) |
 
-**Diagrams:** [event-medallion](diagrams/event-medallion.md) | **Validation:** [event-medallion](validation/event-medallion.md)
+**Diagrams:** [event-medallion](diagrams/event-medallion.md)
 
 ---
 
@@ -194,7 +194,7 @@ mirror data ────────┘
 | Visualization Type | Report vs Dashboard vs Paginated vs Scorecard vs Real-Time Dashboard | [Visualization Selection](decisions/visualization-selection.md) |
 | Team Skillset | Code-First [CF] vs Low-Code [LC] | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [general](diagrams/general.md) | **Validation:** [general](validation/general.md)
+**Diagrams:** [general](diagrams/general.md)
 
 ---
 
@@ -226,7 +226,7 @@ get data ──→ store data ──→ prepare data ──→ store data ──
 | Ingestion Method | Copy Job, Pipeline (batch), Eventstream (streaming) | [Ingestion Selection](decisions/ingestion-selection.md) |
 | Processing Method | Notebook, Spark Job Definition, KQL Queryset | [Processing Selection](decisions/processing-selection.md) |
 
-**Diagrams:** [lambda](diagrams/lambda.md) | **Validation:** [lambda](validation/lambda.md)
+**Diagrams:** [lambda](diagrams/lambda.md)
 
 ---
 
@@ -247,7 +247,7 @@ get data ──┘                                                              
 
 **Workloads:** Data Engineering, Data Factory, Data Science, Data Warehouse, Real-Time Intelligence, Power BI
 
-**Items:** Copy job, Dashboard, Data agent (optional), Dataflow Gen2, Environment, Eventstream, Experiment, Lakehouse, ML model, Notebook, Ontology (optional), Pipeline, Report, Spark Job Definition, Warehouse
+**Items:** Copy job, Data agent (optional), Dataflow Gen2, Environment, Eventstream, Experiment, Lakehouse, ML model, Notebook, Ontology (optional), Pipeline, Report, Spark Job Definition, Warehouse
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -256,7 +256,7 @@ get data ──┘                                                              
 | Processing Method | Notebook vs Spark Job Definition | [Processing Selection](decisions/processing-selection.md) |
 | Team Skillset | Code-First [CF] vs Low-Code [LC] | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [medallion](diagrams/medallion.md) | **Validation:** [medallion](validation/medallion.md)
+**Diagrams:** [medallion](diagrams/medallion.md)
 
 ---
 
@@ -280,7 +280,7 @@ get data ──→ store data ──┤
 
 **Workloads:** Data Engineering, Data Factory, Data Science, Data Warehouse, Power BI
 
-**Items:** Copy job, Dashboard, Data agent (optional), Dataflow Gen2, Environment, Experiment, Lakehouse, ML model, Notebook, Ontology (optional), Pipeline, Report, Spark Job Definition, Warehouse
+**Items:** Copy job, Data agent (optional), Dataflow Gen2, Environment, Experiment, Lakehouse, ML model, Notebook, Ontology (optional), Pipeline, Report, Spark Job Definition, Warehouse
 
 | Decision | Options | Guide |
 |----------|---------|-------|
@@ -288,7 +288,7 @@ get data ──→ store data ──┤
 | Ingestion Method | Copy Job, Dataflow Gen2, Pipeline (with encryption) | [Ingestion Selection](decisions/ingestion-selection.md) |
 | Processing Method | Notebook, Spark Job Definition (with data masking) | [Processing Selection](decisions/processing-selection.md) |
 
-**Diagrams:** [sensitive-data-insights](diagrams/sensitive-data-insights.md) | **Validation:** [sensitive-data-insights](validation/sensitive-data-insights.md)
+**Diagrams:** [sensitive-data-insights](diagrams/sensitive-data-insights.md)
 
 ---
 
@@ -312,7 +312,7 @@ store data ──→ visualize ──→ develop
 |----------|---------|-------|
 | Storage Solution | SQL Database (OLTP-capable with read/write transactions) | [Storage Selection](decisions/storage-selection.md) |
 
-**Diagrams:** [translytical](diagrams/translytical.md) | **Validation:** [translytical](validation/translytical.md)
+**Diagrams:** [translytical](diagrams/translytical.md)
 
 ---
 
@@ -339,10 +339,10 @@ store data ──→ expose API ──→ business logic
 | Storage Type | SQL Database, SQL Database + Cosmos DB Mirroring | [Storage Selection](decisions/storage-selection.md) |
 | API Layer | GraphQL API, User Data Functions (REST), Direct Connection | [API Selection](decisions/api-selection.md) |
 | Parameterization | Variable Library, parameter.yml, Environment Variables | [Parameterization Selection](decisions/parameterization-selection.md) |
-| Visualization Type | Report, Data Agent, Dashboard | [Visualization Selection](decisions/visualization-selection.md) |
+| Visualization Type | Report, Data Agent | [Visualization Selection](decisions/visualization-selection.md) |
 | Skillset Approach | Code-First (primary for this flow) | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [app-backend](diagrams/app-backend.md) | **Validation:** [app-backend](validation/app-backend.md)
+**Diagrams:** [app-backend](diagrams/app-backend.md)
 
 ---
 
@@ -370,7 +370,7 @@ store data ──→ model data ──→ deploy agent ──→ govern (optiona
 | Governance Layer | Ontology for business vocabulary (optional) | (Portal configuration) |
 | Skillset Approach | Low-Code (primary — agent + semantic model are UI-driven) | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [conversational-analytics](diagrams/conversational-analytics.md) | **Validation:** [conversational-analytics](validation/conversational-analytics.md)
+**Diagrams:** [conversational-analytics](diagrams/conversational-analytics.md)
 
 ---
 
@@ -398,4 +398,4 @@ store data ──→ model data ──→ define vocabulary ──→ build grap
 | Consumption Layer | Data Agent (conversational), Report (dashboards), Both | [Visualization Selection](decisions/visualization-selection.md) |
 | External Integration | Microsoft Purview (catalog/lineage), Azure OpenAI (AI context) | (Optional — configure per environment) |
 
-**Diagrams:** [semantic-governance](diagrams/semantic-governance.md) | **Validation:** [semantic-governance](validation/semantic-governance.md)
+**Diagrams:** [semantic-governance](diagrams/semantic-governance.md)

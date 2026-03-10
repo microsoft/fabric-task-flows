@@ -1,5 +1,0 @@
-instancePool: ""
-targetPlatform: spark
-runtimeVersion: "1.3"
-automaticLog:
-  enabled: true

@@ -1,15 +1,14 @@
 # Deployment Handoff Schema
 
 > Schema for `/fabric-deploy` post-deployment output.
-> Save as: `projects/[name]/prd/deployment-handoff.md`
+> Save as: `_projects/[name]/prd/deployment-handoff.md`
 
 Use the YAML template below. Every field has a max length noted in comments.
 The `implementation_notes` and `configuration_rationale` sections allow brief prose.
 
 ```yaml
 project: ""                    # from architecture handoff
-task_flow: ""                  # from architecture handoff
-validation_checklist: ""       # path — e.g., "validation/lambda.md"
+task_flow: ""                  # from architecture handoff (used to look up validation in _shared/registry/validation-checklists.json)
 deployment_tool: fab           # fab | fabric-cicd
 parameterization: none         # none | parameter-yml | env-vars
 

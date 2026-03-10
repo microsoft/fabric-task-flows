@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -69,35 +69,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type            │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1   │ Lakehouse            │ [LC]     │ (none - foundation)    │ All notebooks,     │
-│       │                      │          │                        │ Report             │
-├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2   │ Environment          │ [CF]     │ (none)                 │ Notebooks (compute)│
-│   2   │ Variable Library     │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3   │ Notebook (explore)   │ [CF]     │ Lakehouse, Environment │ Training           │
-├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4   │ Experiment           │ [CF]     │ Lakehouse, Environment │ ML Model           │
-├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5   │ ML Model             │ [CF]     │ Experiment             │ Predictions        │
-├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6   │ Notebook (predict)   │ [CF]     │ ML Model, Lakehouse    │ Report data        │
-├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   7   │ Report               │ [LC]     │ Lakehouse (with        │ (end)              │
-│       │                      │          │ predictions)           │                    │
-├───────┼──────────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   7a  │ Data Agent           │ [LC]     │ Lakehouse (with        │ (optional)         │
-│       │                      │          │ predictions)           │                    │
-│   7b  │ Ontology             │ [LC]     │ (optional)             │ (optional)         │
-└───────┴──────────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## ML Workflow Decision

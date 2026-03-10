@@ -58,7 +58,7 @@ Coverage %, zero-candidate count, uncovered terms list.
 ### Process
 
 1. Map uncovered terms to signal categories (1-11)
-2. Edit `scripts/signal-mapper.py` keyword tuples via `edit` tool
+2. Edit `.github/skills/fabric-discover/scripts/signal-mapper.py` keyword tuples via `edit` tool
 3. Log changes to `_shared/learnings.md` under "## Healing History"
 
 ### Constraints
@@ -70,7 +70,7 @@ Coverage %, zero-candidate count, uncovered terms list.
 
 ## References
 
-- `scripts/signal-mapper.py` — current keyword categories
+- `.github/skills/fabric-discover/scripts/signal-mapper.py` — current keyword categories
 - `problem-statements.md` — existing format (in this skill's folder)
 - `_shared/learnings.md` — healing history
 - `task-flows.md` — task flow descriptions

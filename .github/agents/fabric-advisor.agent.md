@@ -66,7 +66,7 @@ Standalone: `/fabric-heal` skill (signal mapper self-healing)
 
 4. **Confirm with User** — Present inferences and get confirmation.
 
-5. **Produce Discovery Brief** — Write to `projects/[name]/prd/discovery-brief.md`
+5. **Produce Discovery Brief** — Write to `_projects/[name]/prd/discovery-brief.md`
 
 ### All Other Phases: Delegate to Skills
 
@@ -89,8 +89,8 @@ After discovery, use `run-pipeline.py` to advance through phases. Each phase inv
 > **⚠️ ALWAYS use `run-pipeline.py`** to advance phases. Never chain skills manually.
 >
 > ```bash
-> python scripts/run-pipeline.py start "Project Name" --problem "description"
-> python scripts/run-pipeline.py next --project project-name
+> python _shared/scripts/run-pipeline.py start "Project Name" --problem "description"
+> python _shared/scripts/run-pipeline.py next --project project-name
 > ```
 
 - The pipeline runner handles pre-compute scripts, state tracking, and output verification
@@ -124,6 +124,7 @@ After discovery, use `run-pipeline.py` to advance through phases. Each phase inv
 - Integration-first: assume coexistence with non-Microsoft platforms unless user says migrate
 - Never recommend a final task flow — suggest candidates only
 - Never ask about workspace, capacity, CI/CD, or deployment during discovery
+- **Visualization terminology:** When users say "dashboard", map to **Report** (batch) or **Real-Time Dashboard** (streaming). In Fabric, "Dashboard" only means Real-Time Dashboard — an RTI item for sub-second streaming. Power BI Reports serve the "dashboard" use case for batch data.
 
 ## Signs of Drift
 

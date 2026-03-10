@@ -1,6 +1,12 @@
 # Deployment Diagrams
 
-> Agents: read this index to find the right diagram. When reading a diagram file, skip to `## Deployment Order` for structured data — the ASCII art above it is for human visualization.
+> **Agents: Use `_shared/registry/deployment-order.json` for programmatic access to deployment orders.** The markdown tables below are for human visualization.
+
+For deterministic deployment ordering, load the JSON registry:
+```python
+from diagram_parser import get_deployment_items
+items = get_deployment_items("medallion")  # Returns list of deployment items
+```
 
 | Task Flow | Diagram | Items | Waves | Primary Storage |
 |-----------|---------|-------|-------|-----------------|

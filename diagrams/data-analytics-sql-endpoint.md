@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -48,42 +48,13 @@
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │  PHASE 4: VISUALIZATION (Visualize)                                             │
 │  ════════════════════════════════════                                           │
-│  ┌───────────┐   ┌───────────┐   ┌─────────────────┐   ┌─────────────────┐     │
-│  │  Report   │   │ Dashboard │   │ Paginated Report│   │   Scorecard     │     │
-│  │   [LC]    │   │   [LC]    │   │      [LC]       │   │     [LC]        │     │
-│  └───────────┘   └───────────┘   └─────────────────┘   └─────────────────┘     │
+│  ┌───────────┐   ┌─────────────────┐   ┌─────────────────┐                      │
+│  │  Report   │   │ Paginated Report│   │   Scorecard     │                      │
+│  │   [LC]    │   │      [LC]       │   │     [LC]        │                      │
+│  └───────────┘   └─────────────────┘   └─────────────────┘                      │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
-```
-
-## Deployment Order
-
-```
-┌───────┬────────────────────────┬──────────┬────────────────────────────┬────────────────────────┐
-│ Order │ Item Type              │ Skillset │ Depends On                 │ Required For           │
-├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
-│   1   │ Lakehouse              │ [LC]     │ (none - foundation)        │ SQL analytics endpoint │
-│       │                        │          │                            │ (auto), All processing │
-│   1   │ Variable Library       │ [LC]     │ (depends on: none)         │ Stage-specific config (if multi-env) │
-├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
-│   1a  │ SQL analytics endpoint │ [auto]   │ Lakehouse (auto-created)   │ Semantic Model         │
-├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
-│   2a  │ Notebook               │ [CF]     │ Lakehouse                  │ Delta tables           │
-│   2b  │ Spark Job Definition   │ [CF]     │ Lakehouse                  │ Delta tables           │
-├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
-│   3   │ Semantic Model         │ [LC/CF]  │ SQL analytics endpoint     │ Reports                │
-│       │                        │          │ (Lakehouse)                │                        │
-├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
-│   4a  │ Report                 │ [LC]     │ Semantic Model             │ (optional)             │
-│   4b  │ Dashboard              │ [LC]     │ Report(s)                  │ (optional)             │
-│   4c  │ Paginated Report       │ [LC]     │ Semantic Model             │ (optional)             │
-│   4d  │ Scorecard              │ [LC]     │ Semantic Model             │ (optional)             │
-├───────┼────────────────────────┼──────────┼────────────────────────────┼────────────────────────┤
-│   4e  │ Data Agent             │ [LC]     │ Lakehouse SQL endpoint OR  │ (optional)             │
-│       │                        │          │ Semantic Model             │                        │
-│   4f  │ Ontology               │ [LC]     │ Semantic Model             │ (optional)             │
-└───────┴────────────────────────┴──────────┴────────────────────────────┴────────────────────────┘
 ```
 
 ## Data Processing Decision

@@ -27,9 +27,9 @@ Confirm Phase 2b (User Sign-Off) is complete. Never deploy without approval.
 ### Step 2: Load Context
 
 Read in this order:
-1. `projects/[name]/prd/architecture-handoff.md` — items, waves, dependencies
+1. `_projects/[name]/prd/architecture-handoff.md` — items, waves, dependencies
 2. `diagrams/[task-flow].md` — skip to `## Deployment Order`
-3. `projects/[name]/prd/test-plan.md` — awareness of what will be validated
+3. `_projects/[name]/prd/test-plan.md` — awareness of what will be validated
 4. `_shared/learnings.md` — known gotchas before deploying
 
 ### Step 3: Deploy by Wave
@@ -69,7 +69,7 @@ For portal-only items (Real-Time Dashboard, Activator/Reflex, Mirrored Database)
 
 ### Step 5: Produce Deployment Handoff
 
-Write to `projects/[name]/prd/deployment-handoff.md` using schema:
+Write to `_projects/[name]/prd/deployment-handoff.md` using schema:
 
 ```yaml
 items_deployed:
@@ -103,7 +103,7 @@ Fix deployment and configuration issues identified during validation.
 
 ### Step 1: Load Remediation Log
 
-Read `projects/[name]/prd/remediation-log.md`. Filter issues where `routed_to: engineer`.
+Read `_projects/[name]/prd/remediation-log.md`. Filter issues where `routed_to: engineer`.
 
 ### Step 2: Fix Issues
 

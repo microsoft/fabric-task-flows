@@ -45,7 +45,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
-sys.path.insert(0, str(REPO_ROOT / "_shared"))
+sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
 from registry_loader import (
     load_registry as _load_reg,
     build_fab_type_map,
@@ -284,7 +284,7 @@ def _parse_handoff(path: str) -> tuple[str, str, str, list[dict]]:
 # ---------------------------------------------------------------------------
 
 # Use the shared banner module
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
 from banner import print_banner
 
 

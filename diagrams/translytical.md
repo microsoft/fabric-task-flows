@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -60,28 +60,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   ✏️ = Writeback enabled
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1   │ SQL Database     │ [LC]     │ (none - foundation)    │ Semantic Model,    │
-│       │                  │          │                        │ User Data Functions│
-│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2   │ Semantic Model   │ [LC/CF]  │ SQL Database           │ Report             │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3   │ Report           │ [LC]     │ Semantic Model         │ User interactions  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4   │ User Data Funcs  │ [CF]     │ SQL Database           │ Writeback actions  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5a  │ Data Agent       │ [LC]     │ SQL Database OR        │ (optional)         │
-│       │                  │          │ Semantic Model         │                    │
-│   5b  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Writeback Scenarios

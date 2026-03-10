@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -58,36 +58,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both   [Portal] = Fabric Portal only (Graph Queryset)
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1   │ Lakehouse        │ [LC/CF]  │ (none - foundation)    │ Semantic Model,    │
-│       │                  │          │ May already exist from │ Graph Model        │
-│       │                  │          │ another task flow      │                    │
-│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2   │ Semantic Model   │ [LC/CF]  │ Lakehouse (or          │ Ontology,          │
-│       │                  │          │ Warehouse/SQL DB)      │ Data Agent         │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3   │ Ontology         │ [LC]     │ Semantic Model         │ Graph Model        │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4   │ Graph Model      │ [LC]     │ Ontology               │ Graph Queryset     │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5   │ Graph Queryset   │ [Portal] │ Graph Model            │ (consumption)      │
-│       │                  │          │ ⚠ Portal-only          │                    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6a  │ Data Agent       │ [LC]     │ Semantic Model +       │ (optional)         │
-│       │                  │          │ Ontology               │                    ││
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6b  │ Report           │ [LC]     │ Semantic Model         │ (optional)         │
-│       │                  │          │                        │ Governance         │
-│       │                  │          │                        │ dashboards         │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Integration with Other Task Flows

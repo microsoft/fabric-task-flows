@@ -24,7 +24,7 @@ Covers the full architect lifecycle: design the DRAFT, review it, finalize it.
 
 ### Step 1: Load Discovery Brief
 
-Read `projects/[name]/prd/discovery-brief.md` for inferred signals, 4V's, and task flow candidates.
+Read `_projects/[name]/prd/discovery-brief.md` for inferred signals, 4V's, and task flow candidates.
 
 If no Discovery Brief exists, ask:
 1. Project name
@@ -75,7 +75,7 @@ If the user selected **single environment**, default to Environment Variables an
 
 ### Step 4: Produce DRAFT Architecture Handoff
 
-Write to `projects/[name]/prd/architecture-handoff.md`:
+Write to `_projects/[name]/prd/architecture-handoff.md`:
 
 - **YAML frontmatter:** phase, task_flow, deployment_mode
 - **Architecture diagram:** ASCII data flow with actual item names
@@ -102,10 +102,10 @@ Perform BOTH deployment feasibility AND testability review in a single pass.
 
 ### Step 1: Load Context (Read Each File ONCE)
 
-1. `projects/[name]/prd/architecture-handoff.md` — the DRAFT
-2. `diagrams/[task-flow].md` — skip to `## Deployment Order`
-3. `_shared/item-type-registry.json` — REST API creation support per item type
-4. `validation/[task-flow].md` — task-flow-specific validation checklist
+1. `_projects/[name]/prd/architecture-handoff.md` — the DRAFT
+2. `_shared/registry/deployment-order.json` — deployment order for task flow
+3. `_shared/registry/item-type-registry.json` — REST API creation support and skillset per item type
+4. `_shared/registry/validation-checklists.json` — task-flow-specific validation checklist
 
 ### Step 2: Engineer Review (Deployment Feasibility)
 
@@ -117,8 +117,8 @@ Assess: AC specificity, test coverage, untestable criteria, edge cases, CLI synt
 
 ### Step 4: Write Both Reviews
 
-1. **Engineer Review** → `projects/[name]/prd/engineer-review.md` (schema: `schemas/engineer-review.md`)
-2. **Tester Review** → `projects/[name]/prd/tester-review.md` (schema: `schemas/tester-review.md`)
+1. **Engineer Review** → `_projects/[name]/prd/engineer-review.md` (schema: `schemas/engineer-review.md`)
+2. **Tester Review** → `_projects/[name]/prd/tester-review.md` (schema: `schemas/tester-review.md`)
 
 Set `review_outcome`: ANY red → `revise`, NO red → `approved`.
 
@@ -130,7 +130,7 @@ Incorporate review feedback into the DRAFT to produce the FINAL handoff.
 
 ### Step 1: Read Reviews
 
-Load `projects/[name]/prd/engineer-review.md` and `projects/[name]/prd/tester-review.md`.
+Load `_projects/[name]/prd/engineer-review.md` and `_projects/[name]/prd/tester-review.md`.
 
 ### Step 2: Address Findings
 

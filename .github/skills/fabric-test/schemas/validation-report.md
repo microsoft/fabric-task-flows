@@ -1,7 +1,7 @@
 # Validation Report Schema
 
 > Schema for `/fabric-test` Mode 2 output (post-deployment validation).
-> Save as: `projects/[name]/prd/validation-report.md`
+> Save as: `_projects/[name]/prd/validation-report.md`
 
 Use the YAML template below. Every field has a max length noted in comments.
 The `validation_context` and `future_considerations` sections allow brief prose.

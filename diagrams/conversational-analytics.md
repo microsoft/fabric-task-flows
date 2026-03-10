@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -46,28 +46,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1   │ Lakehouse or     │ [LC/CF]  │ (none - foundation)    │ Semantic Model     │
-│       │ Warehouse        │          │ Deploy via another     │                    │
-│       │                  │          │ task flow if needed    │                    │
-│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2   │ Semantic Model   │ [LC/CF]  │ Storage (populated)    │ Data Agent         │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3   │ Data Agent       │ [LC]     │ Semantic Model         │ (end-user access)  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4a  │ Ontology         │ [LC]     │ (optional)             │ (optional)         ││
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4b  │ Activator        │ [LC]     │ Data Agent or          │ (optional)         │
-│       │                  │          │ Semantic Model         │                    │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Integration with Other Task Flows

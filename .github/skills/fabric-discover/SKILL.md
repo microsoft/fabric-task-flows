@@ -33,7 +33,7 @@ Ask exactly two questions:
 
 If shell is available, the pipeline runner executes:
 ```bash
-python scripts/signal-mapper.py --text "<problem>" --format json
+python .github/skills/fabric-discover/scripts/signal-mapper.py --text "<problem>" --format json
 ```
 This produces a draft signal table with keyword coverage and task flow candidates.
 
@@ -72,7 +72,7 @@ Present inferred signals and 4V's assessment. Get confirmation or corrections.
 
 ### Step 6: Produce Discovery Brief
 
-Write to `projects/[name]/prd/discovery-brief.md`:
+Write to `_projects/[name]/prd/discovery-brief.md`:
 
 ```markdown
 ## Problem Statement

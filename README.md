@@ -12,7 +12,7 @@ A documentation-only knowledge base of pre-defined architectures, decision guide
 
 ## 🚀 Quick Start
 
-1. **Start a project** — run `python scripts/run-pipeline.py start "Your Project Name" --problem "describe your problem"`
+1. **Start a project** — run `python _shared/scripts/run-pipeline.py start "Your Project Name" --problem "describe your problem"`
 2. **Follow the prompts** — the runner generates agent prompts; paste each into chat. Use `advance` + `next` to progress.
 3. **Review & approve** — the only human gate is Phase 2b (architecture + test plan sign-off, via `--approve`)
 4. **Everything else is automatic** — design, review, deploy, validate, document
@@ -118,10 +118,10 @@ See the fabric-deploy skill's `references/` for CI/CD practices and parallel dep
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `run-pipeline.py` | Pipeline orchestrator — tracks phase state, auto-chains skills | `python scripts/run-pipeline.py start "Project"` |
-| `new-project.py` | Project scaffolder — creates all template files | `python scripts/new-project.py "Project Name"` |
-| `fleet-runner.py` | Batch runner — runs all problem statements through the pipeline | `python scripts/fleet-runner.py --problem-file ...` |
-| `sync-item-types.py` | Registry alignment | `python scripts/sync-item-types.py --check` |
+| `run-pipeline.py` | Pipeline orchestrator — tracks phase state, auto-chains skills | `python _shared/scripts/run-pipeline.py start "Project"` |
+| `new-project.py` | Project scaffolder — creates all template files | `python _shared/scripts/new-project.py "Project Name"` |
+| `fleet-runner.py` | Batch runner — runs all problem statements through the pipeline | `python _shared/scripts/fleet-runner.py --problem-file ...` |
+| `sync-item-types.py` | Registry alignment | `python _shared/scripts/sync-item-types.py --check` |
 
 Each skill also bundles pre-compute scripts (e.g., `signal-mapper.py`, `deploy-script-gen.py`, `check-drift.py`) in its own `scripts/` subdirectory. The `check-drift.py` script (in `/fabric-test`) runs 26 cross-reference checks across 6 categories: Task Flow Cross-References, Decision Guide Consistency, Ingestion Guide Internal Consistency, Signal Mapping Validity, Registry Cross-References, Integration First / Better Together compliance.
 
@@ -201,7 +201,7 @@ task-flows/
 │   │   └── sync-item-types.py         # Registry alignment
 │   ├── workflow-guide.md              # Pipeline orchestration guide
 │   └── learnings.md                   # Accumulated operational learnings
-├── projects/                          # Per-project documentation (local only — gitignored)
+├── _projects/                         # Per-project documentation (local only — gitignored)
 │   └── {workspace-name}/
 │       ├── STATUS.md                  # Phase log, blockers, wave progress
 │       ├── pipeline-state.json        # Pipeline orchestration state
@@ -228,7 +228,7 @@ All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-an
 | Deployment diagram | `diagrams/{task-flow-id}.md` |
 | Validation checklist | `_shared/registry/validation-checklists.json` |
 | Decision guides | `decisions/{decision-id}.md` |
-| Project docs | `projects/{workspace}/docs/` |
+| Project docs | `_projects/{workspace}/docs/` |
 | Shared references | `_shared/{file}.md` |
 
 ## 📝 Contributing

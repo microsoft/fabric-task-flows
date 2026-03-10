@@ -58,6 +58,8 @@ quick_decision: |
 # Visualization Type Selection
 
 > Choose the right visualization type based on your interactivity needs, distribution requirements, and data refresh patterns.
+>
+> **⚠️ Terminology:** Users often say "dashboard" when they mean an interactive Power BI **Report**. In Fabric, a "Dashboard" is ONLY a **Real-Time Dashboard** — an RTI item connected to a KQL Database for sub-second streaming data. When users ask for "dashboards" in a batch context, map to **Report**. Only use Real-Time Dashboard when the architecture includes Eventhouse/Eventstream.
 
 ## Quick Decision Tree
 

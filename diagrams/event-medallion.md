@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -78,32 +78,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1   │ Eventhouse       │ [LC]     │ (none - foundation)    │ KQL Databases      │
-│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2a  │ Eventstream      │ [LC]     │ Eventhouse             │ Real-time data     │
-│   2b  │ Copy Job         │ [LC]     │ Eventhouse             │ Batch data         │
-│   2c  │ Pipeline         │ [LC/CF]  │ Eventhouse             │ Orchestrated data  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3   │ KQL Queryset     │ [CF]     │ Eventhouse, data       │ Transformations    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4a  │ Real-Time Dash   │ [LC]     │ KQL Database           │ Live monitoring    │
-│   4b  │ Report           │ [LC]     │ KQL Database           │ Historical views   │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5   │ Activator        │ [LC]     │ Eventstream OR KQL     │ (optional alerts)  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5a  │ Data Agent       │ [LC]     │ KQL Database Gold OR   │ (optional)         │
-│       │                  │          │ Eventhouse             │                    │
-│   5b  │ Ontology         │ [LC]     │ (optional)             │ (optional)         │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Medallion Layer Decision

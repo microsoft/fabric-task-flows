@@ -2,11 +2,11 @@
 
 ## Adding a new task flow
 
-1. Add an H2 section to `task-flows.md` following the existing structure: description, task count, ASCII flow diagram, workloads, items, decision table with links, and diagram/validation links.
+1. Add an H2 section to `task-flows.md` following the existing structure: description, task count, ASCII flow diagram, workloads, items, decision table with links, and diagram link.
 2. Create `diagrams/{task-flow-id}.md` with phased deployment flow using the symbols from `legend.md` (`[LC]`/`[CF]` skillset tags, `──►` flow, `OR` for choices).
-3. Create `validation/{task-flow-id}.md` with a post-deployment manual steps table and a phase-by-phase checklist (Foundation → Environment → Ingestion → Transformation → Visualization → ML).
-4. Update `diagrams/_index.md` and `validation/_index.md` with the new entry.
-5. Run `python scripts/new-project.py` to verify scaffolding works with the new task flow.
+3. Add the task flow entry to `_shared/registry/validation-checklists.json` with manual_steps, phases, and checklist items.
+4. Update `diagrams/_index.md` with the new entry.
+5. Run `python _shared/scripts/new-project.py` to verify scaffolding works with the new task flow.
 
 ## Adding a decision guide
 
@@ -20,18 +20,23 @@ Deployment diagrams use ASCII box-drawing characters with phased sections separa
 
 ## Validation checklist structure
 
-Every validation file starts with a "Post-Deployment Manual Steps" table (Item Type → Manual Action Required), followed by phased checklists using `- [ ]` checkboxes. Phases follow the standard order: Foundation, Environment, Ingestion, Transformation, Visualization, ML (if applicable).
+Validation data is consolidated in `_shared/registry/validation-checklists.json`. Each task flow entry contains:
+- `manual_steps` — per-item-type actions requiring human configuration
+- `phases` — ordered validation stages with detailed checklist items
+- `has_shared_ai_governance` — whether to use the shared AI governance checklist
+
+Phases follow the standard order: Foundation, Environment, Ingestion, Transformation, Visualization, ML (if applicable).
 
 ## Scripts
 
-The `scripts/` directory contains pipeline utilities. Pre-compute scripts live in each skill's `scripts/` subdirectory under `.github/skills/`.
+Pipeline utilities live in `_shared/scripts/`. Shared library modules live in `_shared/lib/`. Pre-compute scripts live in each skill's `scripts/` subdirectory under `.github/skills/`.
 
 | Script | Location | Purpose |
 |--------|----------|---------|
-| `run-pipeline.py` | `scripts/` | Pipeline orchestrator — `start`, `next`, `status`, `advance`, `reset` commands |
-| `new-project.py` | `scripts/` | Scaffolds a new project with all template files + `pipeline-state.json` |
-| `fleet-runner.py` | `scripts/` | Batch runner for multiple problem statements |
-| `sync-item-types.py` | `scripts/` | Syncs `_shared/item-type-registry.json` against Fabric item types |
+| `run-pipeline.py` | `_shared/scripts/` | Pipeline orchestrator — `start`, `next`, `status`, `advance`, `reset` commands |
+| `new-project.py` | `_shared/scripts/` | Scaffolds a new project with all template files + `pipeline-state.json` |
+| `fleet-runner.py` | `_shared/scripts/` | Batch runner for multiple problem statements |
+| `sync-item-types.py` | `_shared/scripts/` | Syncs `_shared/registry/item-type-registry.json` against Fabric item types |
 | `signal-mapper.py` | `fabric-discover/scripts/` | Maps problem signals to task flow candidates |
 | `decision-resolver.py` | `fabric-design/scripts/` | Resolves decision guide YAML frontmatter for agents |
 | `handoff-scaffolder.py` | `fabric-design/scripts/` | Pre-fills handoff template YAML from diagram metadata |
@@ -44,10 +49,17 @@ The `scripts/` directory contains pipeline utilities. Pre-compute scripts live i
 | `test-plan-prefill.py` | `fabric-test/scripts/` | Prefills test plan from acceptance criteria |
 | `check-drift.py` | `fabric-test/scripts/` | Documentation drift detection (26 cross-reference checks) |
 | `validate-items.py` | `fabric-test/scripts/` | Validates deployed items via Fabric REST API |
-| `registry_loader.py` | `_shared/` | Shared module — all scripts import item type metadata from here |
-| `yaml_utils.py` | `_shared/` | Shared module — YAML extraction and parsing (consolidated from 6 scripts) |
-| `text_utils.py` | `_shared/` | Shared module — slugify and text utilities |
-| `diagram_parser.py` | `_shared/` | Shared module — deployment diagram table parser |
+| `registry_loader.py` | `_shared/lib/` | Shared module — all scripts import item type metadata from here |
+| `yaml_utils.py` | `_shared/lib/` | Shared module — YAML extraction and parsing (consolidated from 6 scripts) |
+| `text_utils.py` | `_shared/lib/` | Shared module — slugify and text utilities |
+| `diagram_parser.py` | `_shared/lib/` | Shared module — deployment order registry loader |
+
+**Registries:** All canonical registry files live in `_shared/registry/`:
+- `_shared/registry/item-type-registry.json` — Single source of truth for item type metadata including skillset (LC/CF)
+- `_shared/registry/deployment-order.json` — Canonical deployment order for all task flows
+- `_shared/registry/validation-checklists.json` — Post-deployment manual steps and phases per task flow
+
+Update these JSON files when adding/modifying task flows — the markdown tables in diagram/validation files are for human visualization only.
 
 > ⚠️ **Enforcement:** These scripts are NOT optional helpers — they are mandatory pre-compute steps. Every pipeline phase has a pre-compute script that MUST run before the LLM adds judgment.
 

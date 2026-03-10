@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -46,7 +46,7 @@
 │                    ┌──────────────────┼──────────────────┐                      │
 │                    ▼                  ▼                  ▼                      │
 │           ┌─────────────┐    ┌─────────────────┐   ┌───────────┐                │
-│           │   Report    │    │ Paginated Report│   │ Dashboard │                │
+│           │   Report    │    │ Paginated Report│   │ Scorecard │                │
 │           │    [LC]     │    │      [LC]       │   │   [LC]    │                │
 │           └─────────────┘    └─────────────────┘   └───────────┘                │
 │                                       │                                         │
@@ -76,37 +76,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1   │ Warehouse        │ [LC]     │ (none - foundation)    │ All ingestion,     │
-│       │                  │          │                        │ Semantic Model     │
-│   1   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2a  │ Copy Job         │ [LC]     │ Warehouse              │ Data in Warehouse  │
-│   2b  │ Dataflow Gen2    │ [LC]     │ Warehouse              │ Data in Warehouse  │
-│   2c  │ Pipeline         │ [LC/CF]  │ Warehouse              │ Data in Warehouse  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3   │ Semantic Model   │ [LC/CF]  │ Warehouse (populated)  │ Reports, Dashboard │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4a  │ Report           │ [LC]     │ Semantic Model         │ Dashboard          │
-│   4b  │ Paginated Report │ [LC]     │ Semantic Model         │ (optional)         │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5   │ Dashboard        │ [LC]     │ Report(s)              │ (optional)         │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6a  │ Scorecard        │ [LC]     │ Semantic Model         │ (optional)         │
-│   6b  │ Activator        │ [LC]     │ Semantic Model OR      │ (optional)         │
-│       │                  │          │ Report                 │                    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6c  │ Data Agent       │ [LC]     │ Warehouse OR           │ (optional)         │
-│       │                  │          │ Semantic Model         │                    │
-│   6d  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Ingestion Path

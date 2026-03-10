@@ -1,11 +1,11 @@
 # Documentation Templates
 
-Templates used by `/fabric-document` to generate project wiki documentation in `projects/[workspace]/docs/`.
+Templates used by `/fabric-document` to generate project wiki documentation in `_projects/[workspace]/docs/`.
 
 ## Directory Structure
 
 ```
-projects/[workspace-name]/
+_projects/[workspace-name]/
 ├── docs/
 │   ├── README.md              # Project overview with navigation
 │   ├── decisions/

@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -73,10 +73,10 @@
 │  │  └───────┬───────┘                │    │  └────────┬────────┘             │ │
 │  │          │                        │    │           │                      │ │
 │  │          ▼                        │    │           │                      │ │
-│  │  ┌─────────────┐  ┌─────────────┐ │    │           │                      │ │
-│  │  │   Report    │  │  Dashboard  │ │    │           │                      │ │
-│  │  │    [LC]     │  │    [LC]     │ │    │           │                      │ │
-│  │  └─────────────┘  └─────────────┘ │    │           │                      │ │
+│  │  ┌─────────────┐                 │    │           │                      │ │
+│  │  │   Report    │                 │    │           │                      │ │
+│  │  │    [LC]     │                 │    │           │                      │ │
+│  │  └─────────────┘                 │    │           │                      │ │
 │  └───────────────────────────────────┘    └──────────────────────────────────┘ │
 │                   │                                   │                         │
 │                   └─────────────┬─────────────────────┘                         │
@@ -92,44 +92,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1a  │ Lakehouse        │ [LC]     │ (none - foundation)    │ Batch processing   │
-│   1b  │ Warehouse        │ [LC]     │ (none - foundation)    │ Batch gold layer   │
-│   1c  │ Eventhouse       │ [LC]     │ (none - foundation)    │ Real-time layer    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2   │ Environment      │ [CF]     │ Lakehouse              │ Notebooks, Spark   │
-│   2   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3a  │ Copy Job         │ [LC]     │ Lakehouse              │ Batch ingestion    │
-│   3b  │ Dataflow Gen2    │ [LC]     │ Lakehouse              │ Batch + transform  │
-│   3c  │ Pipeline         │ [LC/CF]  │ Lakehouse              │ Orchestration      │
-│   3d  │ Eventstream      │ [LC]     │ Eventhouse             │ Real-time ingest   │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4a  │ Notebook         │ [CF]     │ Environment, Lakehouse │ Batch transforms   │
-│   4b  │ Spark Job Def    │ [CF]     │ Environment, Lakehouse │ Scheduled batch    │
-│   4c  │ KQL Queryset     │ [CF]     │ Eventhouse             │ Stream transforms  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5a  │ Semantic Model   │ [LC/CF]  │ Warehouse/Lakehouse    │ Batch reports      │
-│   5b  │ Real-Time Dash   │ [LC]     │ Eventhouse             │ Live monitoring    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6a  │ Report           │ [LC]     │ Semantic Model         │ Dashboard          │
-│   6b  │ Dashboard        │ [LC]     │ Reports                │ (optional)         │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   7a  │ Activator        │ [LC]     │ Eventstream/Reports    │ Alerts             │
-│   7b  │ Experiment       │ [CF]     │ Lakehouse, Environment │ ML Model           │
-│   7c  │ ML Model         │ [CF]     │ Experiment             │ Predictions        │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   7d  │ Data Agent       │ [LC]     │ Warehouse, Lakehouse,  │ (optional)         │
-│       │                  │          │ OR Semantic Model      │                    │
-│   7e  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Lambda Decision

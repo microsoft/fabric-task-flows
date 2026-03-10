@@ -92,6 +92,7 @@ quick_decision: |
   Database replication (CDC) → Mirroring
   Dataverse / Dynamics 365 source → Fabric Link
   Data already in ADLS/S3/GCS/OneLake → Shortcut
+  Sensor/IoT data (proprietary formats) → Eventstream (streaming) or Notebook (batch)
   Small-medium + transforms needed → Dataflow Gen2
   Small-medium + no transforms → Copy Job
   Large + code-first team → Pipeline + Notebook
@@ -102,7 +103,9 @@ quick_decision: |
 
 # Ingestion Method Selection
 
-> Choose the right method to get data into Microsoft Fabric. Start with the **4 V's assessment** to understand your data profile, then use the decision tree and comparison table to pick the right tool.
+> Choose the right method to get data into Microsoft Fabric. Start with the **4 V's assessment** to understand your data profile, then use the reference matrix and tool guide to pick the right tool.
+>
+> **Agents:** Resolve from `quick_decision` in frontmatter first. Only read body for edge cases.
 
 ## The 4 V's Assessment
 
@@ -111,206 +114,37 @@ Before choosing an ingestion method, assess your project across four dimensions:
 | Dimension | Question | Options | Guides To |
 |-----------|----------|---------|-----------|
 | **Volume** | How much data? | Small–medium (< 1 GB) → Dataflow Gen2 · Large–very large (> 1 GB) → Notebooks, Copy Job, Pipeline (Copy activity) | Tool selection below |
-| **Velocity** | How fast? | Real-time → Eventstream, Mirroring · Always-live → Shortcut, Fabric Link · Batch → Pipeline, Dataflow Gen2, Copy Job | Decision tree below |
-| **Variety** | What types? | Sources: DBs, files, APIs, SaaS · Shapes: structured, semi-structured (CSV/JSON), unstructured (logs/media) · Landing: see [Storage Selection](storage-selection.md) | Variety section below |
+| **Velocity** | How fast? | Real-time → Eventstream, Mirroring · Always-live → Shortcut, Fabric Link · Batch → Pipeline, Dataflow Gen2, Copy Job | Tool selection below |
+| **Variety** | What types? | Sources: DBs, files, APIs, SaaS, sensors · Shapes: structured, semi-structured, unstructured · Landing: see [Storage Selection](storage-selection.md) | Variety section below |
 | **Versatility** | What skills? | Low-code: Pipelines, Dataflow Gen2, Eventstream, Copy Job · Code-first: Notebooks | [Skillset Selection](skillset-selection.md) |
 
-### 4 V's Quick-Reference Matrix
+### Reference Matrix
 
-| Tool | Volume | Velocity | Variety (Sources) | Versatility |
-|------|--------|----------|-------------------|-------------|
-| **Copy Job** | Small → Large | Batch | 100+ connectors (DBs, files, APIs) | Low-code [LC] |
-| **Dataflow Gen2** | Small → Medium | Batch | 150+ connectors (DBs, files, SaaS) | Low-code [LC] |
-| **Pipeline** | Any | Batch | Activities + connectors + Notebooks | Low-code + Code [LC/CF] |
-| **Notebook** | Large → Very Large | Batch | Custom code (any source) | Code-first [CF] |
-| **Eventstream** | Any (streaming) | Real-time | Event Hubs, Kafka, custom apps | Low-code [LC] |
-| **Mirroring** | Any | Continuous CDC | Azure SQL, Azure SQL MI, Cosmos DB, Snowflake, Databricks, SQL Server 2025, MySQL (preview), PostgreSQL (preview) | Low-code [LC] |
-| **Shortcut** | Any | Always live (zero-copy) | ADLS Gen2, S3, GCS, cross-workspace Fabric items | Low-code [LC] |
-| **Fabric Link** | Any | Continuous sync | Dataverse (Dynamics 365, Power Platform) | Low-code [LC] |
-
-## Quick Decision Tree
-
-```
-Is your data ALREADY in a cloud store or another Fabric workspace?
-│
-├─► YES (ADLS Gen2, S3, GCS, or another Lakehouse) ─► SHORTCUT
-│
-└─► NO (data needs to be moved into Fabric)
-    │
-    ├─► Is the source DATAVERSE (Dynamics 365 / Power Platform)?
-    │   │
-    │   └─► YES ────────────────────────────► FABRIC LINK
-    │
-    ├─► Is your data arriving in REAL-TIME (streaming)?
-    │   │
-    │   └─► YES ────────────────────────────► EVENTSTREAM
-    │
-    ├─► Do you need to REPLICATE an entire database continuously?
-    │   │
-    │   └─► YES ────────────────────────────► MIRRORING
-    │
-    └─► NO (batch / scheduled)
-        │
-        ├─► What VOLUME of data?
-        │   │
-        │   ├─► Small–medium (< 1 GB per load)
-        │   │   │
-        │   │   ├─► Need transformations? ───► DATAFLOW GEN2
-        │   │   │
-        │   │   └─► No transforms needed ───► COPY JOB
-        │   │
-        │   └─► Large–very large (> 1 GB per load)
-        │       │
-        │       ├─► Code-first team ────────► PIPELINE + Notebook
-        │       │
-        │       ├─► Need orchestration ─────► PIPELINE (with Copy activity)
-        │       │
-        │       └─► Simple one-to-one copy ─► COPY JOB
-        │
-        ├─► No connector exists + code-first team?
-        │   │
-        │   └─► YES ────────────────────────► NOTEBOOK (standalone)
-        │
-        └─► Need COMPLEX ORCHESTRATION regardless of volume?
-            │
-            └─► YES ────────────────────────► PIPELINE
-```
-
-## Comparison Table
-
-| Criteria | Copy Job | Dataflow Gen2 | Pipeline | Notebook | Eventstream | Mirroring | Shortcut | Fabric Link |
-|----------|----------|---------------|----------|----------|-------------|-----------|----------|-------------|
-| **Volume** | Small → Large | Small → Medium | Any | Large → Very Large | Any (streaming) | Any | Any | Any |
-| **Velocity** | Batch | Batch | Batch | Batch | Real-time streaming | Continuous CDC | Always live | Continuous sync |
-| **Variety** | 100+ connectors | 150+ connectors | Activities + connectors | Custom code (any) | Event sources | Database-specific | ADLS, S3, GCS, OneLake | Dataverse only |
-| **Versatility** | Low-Code [LC] | Low-Code [LC] | Low-Code + Code [LC/CF] | Code-First [CF] | Low-Code [LC] | Low-Code [LC] | Low-Code [LC] | Low-Code [LC] |
-| **Transformation** | None | Power Query (M) | Orchestrates others | Full code (Python/Spark) | Stream processing | None | None | None |
-| **Scheduling** | Built-in schedule | Built-in schedule | Advanced scheduling | Via Pipeline | Continuous | Automatic | N/A (always live) | Automatic |
-| **Error Handling** | Basic retry | Basic retry | Advanced (conditions, retry) | Custom code | Dead-letter queues | Automatic retry | N/A | Automatic retry |
-| **Incremental Load** | ✅ Supported | ✅ Supported | ✅ Advanced patterns | ✅ Custom code | N/A (streaming) | ✅ Built-in CDC | N/A (live reference) | ✅ Built-in sync |
-| **Complexity** | Low | Low-Medium | Medium-High | High | Medium | Low | Very Low | Low |
+| Tool | Volume | Velocity | Variety (Sources) | Versatility | Transformation | Scheduling | Complexity |
+|------|--------|----------|-------------------|-------------|----------------|------------|------------|
+| **Copy Job** | Small → Large | Batch | 100+ connectors (DBs, files, APIs) | Low-code [LC] | None | Built-in | Low |
+| **Dataflow Gen2** | Small → Medium | Batch | 150+ connectors (DBs, files, SaaS) | Low-code [LC] | Power Query (M) | Built-in | Low-Medium |
+| **Pipeline** | Any | Batch | Activities + connectors + Notebooks | Low-code + Code [LC/CF] | Orchestrates others | Advanced | Medium-High |
+| **Notebook** | Large → Very Large | Batch | Custom code (any source) | Code-first [CF] | Full code (Python/Spark) | Via Pipeline | High |
+| **Eventstream** | Any (streaming) | Real-time | Event Hubs, Kafka, custom apps, IoT | Low-code [LC] | Stream processing | Continuous | Medium |
+| **Mirroring** | Any | Continuous CDC | Azure SQL, Azure SQL MI, Cosmos DB, Snowflake, Databricks, SQL Server 2025, MySQL (preview), PostgreSQL (preview) | Low-code [LC] | None | Automatic | Low |
+| **Shortcut** | Any | Always live (zero-copy) | ADLS Gen2, S3, GCS, cross-workspace Fabric items | Low-code [LC] | None | N/A (always live) | Very Low |
+| **Fabric Link** | Any | Continuous sync | Dataverse (Dynamics 365, Power Platform) | Low-code [LC] | None | Automatic | Low |
 
 ## When to Choose Each
 
-### Choose COPY JOB when:
-
-- ✅ You need **simple data movement** without transformation
-- ✅ Source data is already in the right format
-- ✅ You want **quick setup** with minimal configuration
-- ✅ One-to-one copy from source to destination
-- ✅ Built-in **incremental refresh** is sufficient
-- ✅ No complex orchestration needed
-
-**Example Use Cases:**
-- Copy files from Azure Blob to Lakehouse
-- Load CSV/Parquet from external storage
-- Simple database table extraction
-
-### Choose DATAFLOW GEN2 when:
-
-- ✅ You need **visual, no-code transformations**
-- ✅ Business users will maintain the data flows
-- ✅ Transformations are **Power Query compatible** (filter, merge, pivot, etc.)
-- ✅ You want a **familiar Excel/Power BI** experience
-- ✅ Data cleansing and shaping before loading
-
-**Example Use Cases:**
-- Clean and reshape data before loading to warehouse
-- Merge multiple sources into single destination
-- Apply business rules during ETL
-- Unpivot or pivot data structures
-
-### Choose PIPELINE when:
-
-- ✅ You need **complex orchestration** with multiple steps
-- ✅ Workflows require **conditional logic** (if/else, loops)
-- ✅ You need to **call notebooks, Spark jobs, or other items**
-- ✅ **Error handling** with custom retry and failure paths
-- ✅ **Parameterized** runs with different configurations
-- ✅ Dependencies between multiple data processing steps
-
-**Example Use Cases:**
-- Medallion architecture orchestration (Bronze → Silver → Gold)
-- Conditional data loading based on source availability
-- Trigger notebooks after data lands
-- Complex ETL with multiple destinations
-
-### Choose EVENTSTREAM when:
-
-- ✅ Data arrives in **real-time** (IoT sensors, logs, clicks)
-- ✅ You need **sub-minute data freshness**
-- ✅ Source is **streaming** (Event Hubs, Kafka, custom apps)
-- ✅ You want **stream processing** (filtering, routing, windowing)
-- ✅ Destination is **Eventhouse, Lakehouse, or KQL Database**
-
-**Example Use Cases:**
-- IoT sensor data ingestion
-- Application log streaming
-- Real-time clickstream analytics
-- Live event monitoring
-
-### Choose MIRRORING when:
-
-- ✅ You need to **replicate an entire database** to OneLake
-- ✅ Source is Azure SQL, Azure SQL MI, Cosmos DB, Snowflake, SQL Server 2025, Azure Databricks (Unity Catalog), Azure Database for MySQL (preview), or Azure Database for PostgreSQL (preview)
-- ✅ You want **CDC (Change Data Capture)** without custom code
-- ✅ **Near real-time sync** of operational data
-- ✅ No transformation needed (raw replication)
-
-**Example Use Cases:**
-- Sync Azure SQL Database to Lakehouse for analytics
-- Replicate Cosmos DB for cross-region or analytics
-- Mirror Snowflake data into Fabric
-- Mirror Azure Databricks Unity Catalog for cross-platform collaboration
-- Mirror Azure SQL Managed Instance for near-real-time analytics
-- Replicate Azure Database for MySQL to OneLake (preview)
-
-### Choose SHORTCUT when:
-
-- ✅ Data **already lives** in ADLS Gen2, S3, GCS, or another Fabric workspace
-- ✅ You want **zero-copy access** — no data movement, no duplication
-- ✅ You need to **share data across workspaces** without copying
-- ✅ You want data to be **always live** — no schedule, no sync lag
-- ✅ Destination is **Lakehouse** (Files or Tables section)
-
-**Example Use Cases:**
-- Reference existing Delta tables in ADLS Gen2 from a Lakehouse
-- Share a Gold layer across multiple consumer workspaces
-- Access S3 Parquet files without copying into OneLake
-- Create a Bronze layer that points to an external data lake
-- Access Databricks-managed Delta tables via Unity Catalog shortcut
-- Multi-cloud analytics: reference AWS S3 or GCS data alongside Azure sources
-
-### Choose FABRIC LINK when:
-
-- ✅ Source is **Dataverse** (Dynamics 365, Power Platform apps)
-- ✅ You want **continuous sync** of Dataverse tables to OneLake
-- ✅ You need **zero-ETL** — no pipeline or dataflow to build
-- ✅ Data should land as **Delta tables in a Lakehouse**
-- ✅ Setup is from **Power Platform admin center** (not Fabric)
-
-**Example Use Cases:**
-- Analyze Dynamics 365 Sales data alongside financial reports
-- Build Power BI dashboards on Dataverse CRM data in Fabric
-- Combine Power Platform app data with other Fabric sources
-
-### Choose NOTEBOOK (standalone) when:
-
-- ✅ **No built-in connector exists** for your source
-- ✅ You need **custom API ingestion** (REST, GraphQL, proprietary)
-- ✅ Source requires **complex authentication** or parsing logic
-- ✅ Your team is **code-first** (Python, PySpark, Scala)
-- ✅ You need ingestion + transformation in a **single step**
-
-**Example Use Cases:**
-- Pull data from a proprietary REST API with custom auth
-- Web scraping or screen-scraping legacy systems
-- Complex file parsing (nested JSON, multi-sheet Excel, XML with namespaces)
-- Ingest + transform in one pass for code-first teams
+| Tool | Choose When | Example Use Cases |
+|------|------------|-------------------|
+| **Copy Job** | Simple data movement, no transforms, quick setup, one-to-one copy | Copy Blob→Lakehouse, CSV/Parquet load, simple DB extraction |
+| **Dataflow Gen2** | Visual no-code transforms, business user ETL, Power Query compatible | Cleanse+reshape before load, merge sources, pivot/unpivot |
+| **Pipeline** | Complex orchestration, conditional logic, multi-step ETL, error handling | Medallion orchestration, trigger notebooks, parameterized runs |
+| **Notebook** | Custom API ingestion, proprietary formats, sensor/IoT parsing, code-first team | REST API with custom auth, wearable sensor data, video/media processing, web scraping |
+| **Eventstream** | Real-time streaming, sub-minute freshness, IoT sensors (streaming), logs | IoT ingestion, application logs, clickstream, live monitoring |
+| **Mirroring** | Replicate entire database, CDC without code, near-real-time sync | Azure SQL→Lakehouse, Cosmos DB replication, Snowflake mirror |
+| **Shortcut** | Data already in ADLS/S3/GCS/OneLake, zero-copy, cross-workspace sharing | Reference existing Delta tables, share Gold layer, multi-cloud access |
+| **Fabric Link** | Dataverse source (Dynamics 365, Power Platform), zero-ETL sync | Dynamics 365 analytics, Power Platform data in Fabric |
 
 ## Combining Ingestion Methods
-
-### Common Patterns
 
 | Pattern | Ingestion Method | Orchestration |
 |---------|------------------|---------------|
@@ -322,27 +156,10 @@ Is your data ALREADY in a cloud store or another Fabric workspace?
 | **Zero-copy data lake access** | Shortcut | None (always live) |
 | **Dataverse / Dynamics 365** | Fabric Link | Automatic |
 | **Custom source (no connector)** | Notebook (standalone) | Via Pipeline or manual |
-| **Databricks collaboration** | Mirrored Databricks Catalog or Shortcut | Automatic or always live |
-| **Multi-cloud data access** | Shortcut (S3, GCS) | None (always live) |
-| **Platform migration (user-initiated)** | Copy Job + Pipeline (phased cutover) | Pipeline schedule |
-
-### Pipeline Orchestration Example
-
-```
-Pipeline: Medallion_ETL
-│
-├─ Activity 1: Copy Job (source → Bronze)
-│
-├─ Activity 2: Notebook (Bronze → Silver transformation)
-│
-├─ Activity 3: Notebook (Silver → Gold aggregation)
-│
-└─ Activity 4: Semantic Model refresh (optional)
-```
+| **Sensor/IoT batch (proprietary)** | Notebook (standalone) | Via Pipeline or manual |
+| **Platform migration** | Copy Job + Pipeline (phased cutover) | Pipeline schedule |
 
 ## Variety — What Types of Data?
-
-Understanding the **variety** of your data sources, shapes, and landing targets helps narrow down which tools fit.
 
 ### Source Types
 
@@ -351,13 +168,11 @@ Understanding the **variety** of your data sources, shapes, and landing targets 
 | **Databases** | SQL Server, Azure SQL MI, Oracle, MySQL, PostgreSQL | Copy Job, Pipeline, Mirroring |
 | **Files** | CSV, Parquet, JSON, Excel, XML | Copy Job, Dataflow Gen2 |
 | **APIs** | REST endpoints, OData feeds | Dataflow Gen2, Pipeline + Notebook |
+| **Sensors / IoT** | Wearables, GPS, telemetry, proprietary protocols | Eventstream (streaming) or Notebook (batch) |
 | **SaaS Apps** | Salesforce, Dynamics 365, SharePoint | Dataflow Gen2 (built-in connectors) |
 | **Streaming** | Event Hubs, Kafka, IoT Hub, custom apps | Eventstream |
-| **Cloud Storage** | ADLS Gen2, S3, GCS | Shortcut (zero-copy) or Copy Job |
+| **Cloud / Cross-workspace / Multi-cloud** | ADLS Gen2, S3, GCS, OneLake, Databricks | Shortcut (zero-copy) |
 | **Dataverse** | Dynamics 365, Power Platform apps | Fabric Link |
-| **Cross-workspace** | Other Fabric Lakehouses | Shortcut |
-| **Databricks** | Unity Catalog, Delta tables | Mirrored Databricks Catalog or Shortcut |
-| **Multi-cloud** | AWS S3, GCS, Azure Blob | Shortcut (zero-copy) |
 
 ### Data Shapes
 
@@ -386,28 +201,11 @@ See [Storage Selection](storage-selection.md) for choosing the right landing tar
 
 ## Guiding Principles
 
-### No One-Size-Fits-All
-
-Every project has a unique combination of Volume, Velocity, Variety, and Versatility. Choose ingestion tools based on **your specific requirements** — not industry trends or tool preferences. A Copy Job that solves the problem is better than a Notebook that impresses nobody.
-
-### Keep it Simple
-
-Start with the **simplest tool** that meets requirements. Add complexity only when justified:
-
-| If this works... | Don't use this instead... | Unless you need... |
-|------------------|--------------------------|-------------------|
-| Copy Job | Pipeline with Copy Activity | Conditional logic, error routing, multi-step |
-| Dataflow Gen2 | Notebook with Spark | > 1 GB transforms, custom code, ML features |
-| Built-in schedule | Pipeline scheduling | Dependencies between multiple items |
-| Mirroring | Pipeline + CDC patterns | Transformation during replication |
-| Shortcut | Copy Job or Pipeline | Transformation, snapshots, or non-Lakehouse target |
-| Fabric Link | Dataflow Gen2 with Dataverse connector | Custom transforms during sync |
-
 ### Consider Team Skills
 
-Match tools to your team's capabilities and invest in training strategically:
+Match tools to your team's capabilities:
 
-- **T-SQL team** → Pipeline + Copy Activity + Warehouse stored procs (leverage existing skills)
+- **T-SQL team** → Pipeline + Copy Activity + Warehouse stored procs
 - **Python/Spark team** → Pipeline + Notebook (maximum flexibility)
 - **Business analysts** → Dataflow Gen2 (Power Query is familiar from Excel/Power BI)
 - **Mixed team** → Pipeline as orchestrator, with Dataflow Gen2 AND Notebook activities
@@ -416,12 +214,12 @@ See [Skillset Selection](skillset-selection.md) for the full Versatility assessm
 
 ### Optimize and Monitor
 
-Build observability into your ingestion from day one — don't bolt it on later:
+Build observability into your ingestion from day one:
 
 - **Measure** — Track ingestion duration, row counts, and data freshness per run
 - **Alert** — Use Activator or Pipeline failure notifications to catch issues early
 - **Diagnose** — Log source-to-destination lineage so you can trace data quality issues
-- **Baseline** — Establish normal run times before optimizing; you can't improve what you don't measure
+- **Baseline** — Establish normal run times before optimizing
 
 ## Anti-Patterns
 
@@ -430,13 +228,12 @@ Build observability into your ingestion from day one — don't bolt it on later:
 | Use Eventstream for batch data | Overhead, complexity for batch | Use Copy Job or Dataflow Gen2 |
 | Build transformations in Pipeline activities | Hard to maintain | Use Dataflow Gen2 or Notebook |
 | Use Dataflow Gen2 for > 1 GB transforms | Performance limits at scale | Use Notebook or Pipeline + Copy |
-| Use Copy Job when need complex joins | No transformation support | Use Dataflow Gen2 |
-| Skip Pipeline for multi-step ETL | Error handling, dependencies | Use Pipeline for orchestration |
+| Use Copy Job when you need complex joins | No transformation support | Use Dataflow Gen2 |
 | Over-engineer small data with Notebooks | Unnecessary complexity | Use Dataflow Gen2 or Copy Job |
-| Skip monitoring setup | Silent failures, data freshness drift | Add Activator alerts from day one |
-| Copy data that's already in ADLS/S3/GCS | Unnecessary duplication and cost | Use Shortcut for zero-copy access |
+| Copy data already in ADLS/S3/GCS | Unnecessary duplication and cost | Use Shortcut for zero-copy access |
 | Build ETL pipeline for Dataverse data | Unnecessary when Fabric Link exists | Use Fabric Link for zero-ETL sync |
 | Use Shortcut when you need snapshots | Shortcuts are always live, no versioning | Use Copy Job for point-in-time copies |
+| Skip monitoring setup | Silent failures, data freshness drift | Add Activator alerts from day one |
 
 ## Related Decisions
 

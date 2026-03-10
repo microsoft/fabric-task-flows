@@ -1,7 +1,7 @@
 # Test Plan Schema
 
 > Schema for `/fabric-test` Mode 1 output (Test Plan from FINAL architecture).
-> Save as: `projects/[name]/prd/test-plan.md`
+> Save as: `_projects/[name]/prd/test-plan.md`
 
 Use the YAML template below. Every field has a max length noted in comments.
 Prose sections are constrained — word limits noted inline.
@@ -16,7 +16,7 @@ test_plan_date: ""             # YYYY-MM-DD
 criteria_mapping:
   - ac_id: AC-1                # ID from architecture handoff
     type: structural           # structural | data-flow
-    checklist_ref: ""          # e.g., "validation/lambda.md#foundation"
+    phase: ""                  # e.g., "Foundation" — from validation-checklists.json
     test_method: ""            # how to verify (≤20 words — typically a fab command)
 
 # Items/configs that MUST work for the project to succeed

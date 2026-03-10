@@ -1,0 +1,1586 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "description": "Canonical deployment order registry for all Fabric task flows",
+  "taskFlows": {
+    "app-backend": {
+      "primaryStorage": "SQL Database / Cosmos DB",
+      "items": [
+        {
+          "order": "1a",
+          "itemType": "SQL Database",
+          "dependsOn": [],
+          "requiredFor": [
+            "GraphQL API",
+            "User Data Functions"
+          ],
+          "alternativeGroup": "foundation-storage"
+        },
+        {
+          "order": "1a",
+          "itemType": "Cosmos DB",
+          "dependsOn": [],
+          "requiredFor": [
+            "GraphQL API",
+            "User Data Functions"
+          ],
+          "alternativeGroup": "foundation-storage"
+        },
+        {
+          "order": "1b",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "2a",
+          "itemType": "GraphQL API",
+          "dependsOn": [
+            "SQL Database",
+            "Cosmos DB"
+          ],
+          "requiredFor": [
+            "App reads"
+          ]
+        },
+        {
+          "order": "2b",
+          "itemType": "User Data Functions",
+          "dependsOn": [
+            "SQL Database",
+            "Cosmos DB"
+          ],
+          "requiredFor": [
+            "App writes",
+            "logic"
+          ]
+        },
+        {
+          "order": "3",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "SQL Database",
+            "Cosmos DB"
+          ],
+          "requiredFor": [
+            "Report"
+          ],
+          "optional": true,
+          "notes": "Connects via OneLake mirror"
+        },
+        {
+          "order": "4a",
+          "itemType": "Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [
+            "Admin dashboard"
+          ],
+          "optional": true
+        },
+        {
+          "order": "4b",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "SQL Database",
+            "Cosmos DB"
+          ],
+          "requiredFor": [
+            "Conversational AI"
+          ],
+          "optional": true
+        },
+        {
+          "order": "4c",
+          "itemType": "Ontology",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [
+            "Cross-domain vocab"
+          ],
+          "optional": true
+        }
+      ]
+    },
+    "basic-data-analytics": {
+      "primaryStorage": "Warehouse",
+      "items": [
+        {
+          "order": "1",
+          "itemType": "Warehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "All ingestion",
+            "Semantic Model"
+          ]
+        },
+        {
+          "order": "1",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "2a",
+          "itemType": "Copy Job",
+          "dependsOn": [
+            "Warehouse"
+          ],
+          "requiredFor": [
+            "Data in Warehouse"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "2b",
+          "itemType": "Dataflow Gen2",
+          "dependsOn": [
+            "Warehouse"
+          ],
+          "requiredFor": [
+            "Data in Warehouse"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "2c",
+          "itemType": "Pipeline",
+          "dependsOn": [
+            "Warehouse"
+          ],
+          "requiredFor": [
+            "Data in Warehouse"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "3",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "Warehouse"
+          ],
+          "requiredFor": [
+            "Report"
+          ],
+          "notes": "Requires populated Warehouse"
+        },
+        {
+          "order": "4a",
+          "itemType": "Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "notes": "End - BI"
+        },
+        {
+          "order": "4b",
+          "itemType": "Paginated Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "5a",
+          "itemType": "Scorecard",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "5b",
+          "itemType": "Activator",
+          "dependsOn": [
+            "Semantic Model",
+            "Report"
+          ],
+          "requiredFor": [
+            "Monitoring"
+          ],
+          "optional": true
+        },
+        {
+          "order": "5c",
+          "itemType": "Eventhouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Observational data"
+          ],
+          "optional": true
+        },
+        {
+          "order": "6c",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "Warehouse",
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "6d",
+          "itemType": "Ontology",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        }
+      ]
+    },
+    "basic-machine-learning-models": {
+      "primaryStorage": "Lakehouse",
+      "items": [
+        {
+          "order": "1",
+          "itemType": "Lakehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "All notebooks",
+            "Report"
+          ]
+        },
+        {
+          "order": "2",
+          "itemType": "Environment",
+          "dependsOn": [],
+          "requiredFor": [
+            "Notebook"
+          ]
+        },
+        {
+          "order": "2",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "3",
+          "itemType": "Notebook (explore)",
+          "dependsOn": [
+            "Lakehouse",
+            "Environment"
+          ],
+          "requiredFor": [
+            "Training"
+          ]
+        },
+        {
+          "order": "4",
+          "itemType": "Experiment",
+          "dependsOn": [
+            "Lakehouse",
+            "Environment"
+          ],
+          "requiredFor": [
+            "ML Model"
+          ]
+        },
+        {
+          "order": "5",
+          "itemType": "ML Model",
+          "dependsOn": [
+            "Experiment"
+          ],
+          "requiredFor": [
+            "Predictions"
+          ]
+        },
+        {
+          "order": "6",
+          "itemType": "Notebook (predict)",
+          "dependsOn": [
+            "ML Model",
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Report data"
+          ]
+        },
+        {
+          "order": "7",
+          "itemType": "Report",
+          "dependsOn": [
+            "Lakehouse"
+          ],
+          "requiredFor": [],
+          "notes": "End - uses Lakehouse with predictions"
+        },
+        {
+          "order": "7a",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "Lakehouse",
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "7b",
+          "itemType": "Ontology",
+          "dependsOn": [],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "8a",
+          "itemType": "Activator",
+          "dependsOn": [
+            "Semantic Model",
+            "Report"
+          ],
+          "requiredFor": [
+            "Monitoring"
+          ],
+          "optional": true
+        },
+        {
+          "order": "8b",
+          "itemType": "Eventhouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Observational data"
+          ],
+          "optional": true
+        }
+      ]
+    },
+    "conversational-analytics": {
+      "primaryStorage": "Lakehouse or Warehouse",
+      "items": [
+        {
+          "order": "1",
+          "itemType": "Lakehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Semantic Model"
+          ],
+          "alternativeGroup": "foundation-storage",
+          "notes": "Deploy via another task flow if needed"
+        },
+        {
+          "order": "1",
+          "itemType": "Warehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Semantic Model"
+          ],
+          "alternativeGroup": "foundation-storage",
+          "notes": "Deploy via another task flow if needed"
+        },
+        {
+          "order": "1",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "2",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "Lakehouse",
+            "Warehouse"
+          ],
+          "requiredFor": [
+            "Data Agent"
+          ],
+          "notes": "Requires populated storage"
+        },
+        {
+          "order": "3",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "notes": "End-user access"
+        },
+        {
+          "order": "4a",
+          "itemType": "Ontology",
+          "dependsOn": [],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "4b",
+          "itemType": "Activator",
+          "dependsOn": [
+            "Data Agent",
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        }
+      ]
+    },
+    "data-analytics-sql-endpoint": {
+      "primaryStorage": "Lakehouse (SQL endpoint)",
+      "items": [
+        {
+          "order": "1",
+          "itemType": "Lakehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "SQL analytics endpoint",
+            "All processing"
+          ]
+        },
+        {
+          "order": "1",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "1a",
+          "itemType": "SQL analytics endpoint",
+          "dependsOn": [
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Semantic Model"
+          ],
+          "notes": "Auto-created with Lakehouse"
+        },
+        {
+          "order": "2a",
+          "itemType": "Notebook",
+          "dependsOn": [
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Delta tables"
+          ],
+          "alternativeGroup": "processing"
+        },
+        {
+          "order": "2b",
+          "itemType": "Spark Job Definition",
+          "dependsOn": [
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Delta tables"
+          ],
+          "alternativeGroup": "processing"
+        },
+        {
+          "order": "3",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "SQL analytics endpoint"
+          ],
+          "requiredFor": [
+            "Report"
+          ]
+        },
+        {
+          "order": "4a",
+          "itemType": "Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "notes": "End - BI"
+        },
+        {
+          "order": "4b",
+          "itemType": "Paginated Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "4c",
+          "itemType": "Scorecard",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "4e",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "SQL analytics endpoint",
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "4f",
+          "itemType": "Ontology",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "5a",
+          "itemType": "Activator",
+          "dependsOn": [
+            "Semantic Model",
+            "Report"
+          ],
+          "requiredFor": [
+            "Monitoring"
+          ],
+          "optional": true
+        },
+        {
+          "order": "5b",
+          "itemType": "Eventhouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Observational data"
+          ],
+          "optional": true
+        }
+      ]
+    },
+    "event-analytics": {
+      "primaryStorage": "Eventhouse",
+      "items": [
+        {
+          "order": "1",
+          "itemType": "Eventhouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "All ingestion",
+            "queries",
+            "dashboard"
+          ]
+        },
+        {
+          "order": "1b",
+          "itemType": "Environment",
+          "dependsOn": [],
+          "requiredFor": [
+            "Notebook"
+          ],
+          "optional": true
+        },
+        {
+          "order": "1b",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "2a",
+          "itemType": "Eventstream",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Real-time data ingestion"
+          ]
+        },
+        {
+          "order": "2b",
+          "itemType": "Copy Job",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Batch data ingestion"
+          ],
+          "alternativeGroup": "batch-ingestion",
+          "optional": true
+        },
+        {
+          "order": "2c",
+          "itemType": "Dataflow Gen2",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Batch data ingestion"
+          ],
+          "alternativeGroup": "batch-ingestion",
+          "optional": true
+        },
+        {
+          "order": "2d",
+          "itemType": "Pipeline",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Orchestrated ingestion"
+          ],
+          "alternativeGroup": "batch-ingestion",
+          "optional": true
+        },
+        {
+          "order": "3",
+          "itemType": "Activator",
+          "dependsOn": [
+            "Eventstream",
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Alert actions"
+          ],
+          "optional": true
+        },
+        {
+          "order": "4a",
+          "itemType": "KQL Queryset",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Ad-hoc analysis"
+          ]
+        },
+        {
+          "order": "4b",
+          "itemType": "Notebook",
+          "dependsOn": [
+            "Eventhouse",
+            "Environment"
+          ],
+          "requiredFor": [
+            "Data science"
+          ],
+          "optional": true
+        },
+        {
+          "order": "4c",
+          "itemType": "Experiment",
+          "dependsOn": [
+            "Eventhouse",
+            "Environment"
+          ],
+          "requiredFor": [
+            "ML training"
+          ],
+          "optional": true
+        },
+        {
+          "order": "4d",
+          "itemType": "ML Model",
+          "dependsOn": [
+            "Experiment"
+          ],
+          "requiredFor": [
+            "Predictions"
+          ],
+          "optional": true
+        },
+        {
+          "order": "5a",
+          "itemType": "Real-Time Dashboard",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Live monitoring"
+          ]
+        },
+        {
+          "order": "5b",
+          "itemType": "Report",
+          "dependsOn": [
+            "Eventhouse",
+            "Semantic Model"
+          ],
+          "requiredFor": [
+            "Analytics"
+          ],
+          "optional": true
+        },
+        {
+          "order": "5d",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "Eventhouse",
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "5e",
+          "itemType": "Ontology",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        }
+      ]
+    },
+    "event-medallion": {
+      "primaryStorage": "Eventhouse + Lakehouse",
+      "items": [
+        {
+          "order": "1",
+          "itemType": "Eventhouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "KQL Databases"
+          ]
+        },
+        {
+          "order": "1",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "2a",
+          "itemType": "Eventstream",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Real-time data"
+          ]
+        },
+        {
+          "order": "2b",
+          "itemType": "Copy Job",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Batch data"
+          ],
+          "alternativeGroup": "batch-ingestion",
+          "optional": true
+        },
+        {
+          "order": "2c",
+          "itemType": "Pipeline",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Orchestrated data"
+          ],
+          "alternativeGroup": "batch-ingestion",
+          "optional": true
+        },
+        {
+          "order": "3",
+          "itemType": "KQL Queryset",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Transformations"
+          ],
+          "notes": "Requires data in Eventhouse"
+        },
+        {
+          "order": "4a",
+          "itemType": "Real-Time Dashboard",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Live monitoring"
+          ]
+        },
+        {
+          "order": "4b",
+          "itemType": "Report",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Historical views"
+          ],
+          "optional": true
+        },
+        {
+          "order": "5",
+          "itemType": "Activator",
+          "dependsOn": [
+            "Eventstream",
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Alerts"
+          ],
+          "optional": true
+        },
+        {
+          "order": "5a",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "Eventhouse",
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "5b",
+          "itemType": "Ontology",
+          "dependsOn": [],
+          "requiredFor": [],
+          "optional": true
+        }
+      ]
+    },
+    "lambda": {
+      "primaryStorage": "Lakehouse + Eventhouse + Warehouse",
+      "items": [
+        {
+          "order": "1a",
+          "itemType": "Lakehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Batch processing"
+          ]
+        },
+        {
+          "order": "1b",
+          "itemType": "Warehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Batch gold layer"
+          ]
+        },
+        {
+          "order": "1c",
+          "itemType": "Eventhouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Real-time layer"
+          ]
+        },
+        {
+          "order": "2",
+          "itemType": "Environment",
+          "dependsOn": [
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Notebook",
+            "Spark Job Definition"
+          ]
+        },
+        {
+          "order": "2",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "3a",
+          "itemType": "Copy Job",
+          "dependsOn": [
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Batch ingestion"
+          ],
+          "alternativeGroup": "batch-ingestion"
+        },
+        {
+          "order": "3b",
+          "itemType": "Dataflow Gen2",
+          "dependsOn": [
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Batch + transform"
+          ],
+          "alternativeGroup": "batch-ingestion"
+        },
+        {
+          "order": "3c",
+          "itemType": "Pipeline",
+          "dependsOn": [
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Orchestration"
+          ],
+          "alternativeGroup": "batch-ingestion"
+        },
+        {
+          "order": "3d",
+          "itemType": "Eventstream",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Real-time ingest"
+          ]
+        },
+        {
+          "order": "4a",
+          "itemType": "Notebook",
+          "dependsOn": [
+            "Environment",
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Batch transforms"
+          ],
+          "alternativeGroup": "batch-transform"
+        },
+        {
+          "order": "4b",
+          "itemType": "Spark Job Definition",
+          "dependsOn": [
+            "Environment",
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Scheduled batch"
+          ],
+          "alternativeGroup": "batch-transform"
+        },
+        {
+          "order": "4c",
+          "itemType": "KQL Queryset",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Stream transforms"
+          ]
+        },
+        {
+          "order": "5a",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "Warehouse",
+            "Lakehouse"
+          ],
+          "requiredFor": [
+            "Batch reports"
+          ]
+        },
+        {
+          "order": "5b",
+          "itemType": "Real-Time Dashboard",
+          "dependsOn": [
+            "Eventhouse"
+          ],
+          "requiredFor": [
+            "Live monitoring"
+          ]
+        },
+        {
+          "order": "6",
+          "itemType": "Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "notes": "End - BI"
+        },
+        {
+          "order": "7a",
+          "itemType": "Activator",
+          "dependsOn": [
+            "Eventstream",
+            "Report"
+          ],
+          "requiredFor": [
+            "Alerts"
+          ],
+          "optional": true
+        },
+        {
+          "order": "7b",
+          "itemType": "Experiment",
+          "dependsOn": [
+            "Lakehouse",
+            "Environment"
+          ],
+          "requiredFor": [
+            "ML Model"
+          ],
+          "optional": true
+        },
+        {
+          "order": "7c",
+          "itemType": "ML Model",
+          "dependsOn": [
+            "Experiment"
+          ],
+          "requiredFor": [
+            "Predictions"
+          ],
+          "optional": true
+        },
+        {
+          "order": "7d",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "Warehouse",
+            "Lakehouse",
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "7e",
+          "itemType": "Ontology",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        }
+      ]
+    },
+    "medallion": {
+      "primaryStorage": "Lakehouse (Bronze/Silver/Gold)",
+      "items": [
+        {
+          "order": "1a",
+          "itemType": "Lakehouse Bronze",
+          "dependsOn": [],
+          "requiredFor": [
+            "Ingestion",
+            "Lakehouse Silver"
+          ]
+        },
+        {
+          "order": "1b",
+          "itemType": "Lakehouse Silver",
+          "dependsOn": [],
+          "requiredFor": [
+            "Gold layer"
+          ]
+        },
+        {
+          "order": "1c",
+          "itemType": "Lakehouse Gold",
+          "dependsOn": [],
+          "requiredFor": [
+            "Semantic Model",
+            "ML"
+          ],
+          "alternativeGroup": "gold-layer"
+        },
+        {
+          "order": "1c",
+          "itemType": "Warehouse Gold",
+          "dependsOn": [],
+          "requiredFor": [
+            "Semantic Model",
+            "BI"
+          ],
+          "alternativeGroup": "gold-layer"
+        },
+        {
+          "order": "2",
+          "itemType": "Environment",
+          "dependsOn": [
+            "Lakehouse Bronze",
+            "Lakehouse Silver",
+            "Lakehouse Gold"
+          ],
+          "requiredFor": [
+            "Notebook",
+            "Spark Job Definition"
+          ]
+        },
+        {
+          "order": "2",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "3a",
+          "itemType": "Copy Job",
+          "dependsOn": [
+            "Lakehouse Bronze"
+          ],
+          "requiredFor": [
+            "Raw data ingestion"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "3b",
+          "itemType": "Dataflow Gen2",
+          "dependsOn": [
+            "Lakehouse Bronze"
+          ],
+          "requiredFor": [
+            "Raw data ingestion"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "3c",
+          "itemType": "Pipeline",
+          "dependsOn": [
+            "Lakehouse Bronze"
+          ],
+          "requiredFor": [
+            "Orchestrated load"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "3d",
+          "itemType": "Eventstream",
+          "dependsOn": [
+            "Lakehouse Bronze"
+          ],
+          "requiredFor": [
+            "Streaming data"
+          ],
+          "alternativeGroup": "ingestion",
+          "optional": true
+        },
+        {
+          "order": "4a",
+          "itemType": "Notebook",
+          "dependsOn": [
+            "Environment",
+            "Lakehouse Bronze"
+          ],
+          "requiredFor": [
+            "Transformations"
+          ],
+          "alternativeGroup": "transformation"
+        },
+        {
+          "order": "4b",
+          "itemType": "Spark Job Definition",
+          "dependsOn": [
+            "Environment",
+            "Lakehouse Bronze"
+          ],
+          "requiredFor": [
+            "Scheduled jobs"
+          ],
+          "alternativeGroup": "transformation"
+        },
+        {
+          "order": "5",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "Lakehouse Gold",
+            "Warehouse Gold"
+          ],
+          "requiredFor": [
+            "Report"
+          ]
+        },
+        {
+          "order": "6",
+          "itemType": "Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "notes": "End - BI"
+        },
+        {
+          "order": "7a",
+          "itemType": "Experiment",
+          "dependsOn": [
+            "Lakehouse Gold",
+            "Environment"
+          ],
+          "requiredFor": [
+            "ML Model"
+          ],
+          "optional": true
+        },
+        {
+          "order": "7b",
+          "itemType": "ML Model",
+          "dependsOn": [
+            "Experiment"
+          ],
+          "requiredFor": [],
+          "optional": true
+        }
+      ]
+    },
+    "semantic-governance": {
+      "primaryStorage": "Lakehouse",
+      "items": [
+        {
+          "order": "1",
+          "itemType": "Lakehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Semantic Model",
+            "Graph Model"
+          ],
+          "notes": "May already exist from another task flow"
+        },
+        {
+          "order": "1",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "2",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "Lakehouse",
+            "Warehouse",
+            "SQL Database"
+          ],
+          "requiredFor": [
+            "Ontology",
+            "Data Agent"
+          ]
+        },
+        {
+          "order": "3",
+          "itemType": "Ontology",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [
+            "Graph Model"
+          ]
+        },
+        {
+          "order": "4",
+          "itemType": "Graph Model",
+          "dependsOn": [
+            "Ontology"
+          ],
+          "requiredFor": [
+            "Graph Queryset"
+          ]
+        },
+        {
+          "order": "5",
+          "itemType": "Graph Queryset",
+          "dependsOn": [
+            "Graph Model"
+          ],
+          "requiredFor": [
+            "Consumption"
+          ],
+          "notes": "Portal-only item"
+        },
+        {
+          "order": "6a",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "6b",
+          "itemType": "Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [
+            "Governance dashboards"
+          ],
+          "optional": true
+        }
+      ]
+    },
+    "sensitive-data-insights": {
+      "primaryStorage": "Lakehouse",
+      "items": [
+        {
+          "order": "1a",
+          "itemType": "Lakehouse (raw)",
+          "dependsOn": [],
+          "requiredFor": [
+            "Ingestion"
+          ]
+        },
+        {
+          "order": "1b",
+          "itemType": "Lakehouse (mask)",
+          "dependsOn": [],
+          "requiredFor": [
+            "Anonymized data"
+          ]
+        },
+        {
+          "order": "1c",
+          "itemType": "Warehouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Aggregated layer"
+          ]
+        },
+        {
+          "order": "2",
+          "itemType": "Environment",
+          "dependsOn": [
+            "Lakehouse (raw)",
+            "Lakehouse (mask)"
+          ],
+          "requiredFor": [
+            "Notebook",
+            "Spark Job Definition"
+          ]
+        },
+        {
+          "order": "2",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "3a",
+          "itemType": "Copy Job",
+          "dependsOn": [
+            "Lakehouse (raw)"
+          ],
+          "requiredFor": [
+            "Raw data"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "3b",
+          "itemType": "Dataflow Gen2",
+          "dependsOn": [
+            "Lakehouse (raw)"
+          ],
+          "requiredFor": [
+            "Masked ingestion"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "3c",
+          "itemType": "Pipeline",
+          "dependsOn": [
+            "Lakehouse (raw)"
+          ],
+          "requiredFor": [
+            "Orchestrated load"
+          ],
+          "alternativeGroup": "ingestion"
+        },
+        {
+          "order": "4a",
+          "itemType": "Notebook",
+          "dependsOn": [
+            "Environment",
+            "Lakehouse (raw)"
+          ],
+          "requiredFor": [
+            "Masking logic"
+          ],
+          "alternativeGroup": "transformation"
+        },
+        {
+          "order": "4b",
+          "itemType": "Spark Job Definition",
+          "dependsOn": [
+            "Environment",
+            "Lakehouse (raw)"
+          ],
+          "requiredFor": [
+            "Scheduled masking"
+          ],
+          "alternativeGroup": "transformation"
+        },
+        {
+          "order": "5",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "Warehouse"
+          ],
+          "requiredFor": [
+            "Secured reports"
+          ]
+        },
+        {
+          "order": "6",
+          "itemType": "Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "notes": "End - BI"
+        },
+        {
+          "order": "6c",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "Warehouse",
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true,
+          "notes": "Uses anonymized data only"
+        },
+        {
+          "order": "6d",
+          "itemType": "Ontology",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "7a",
+          "itemType": "Activator",
+          "dependsOn": [
+            "Semantic Model",
+            "Report"
+          ],
+          "requiredFor": [
+            "Monitoring"
+          ],
+          "optional": true
+        },
+        {
+          "order": "7b",
+          "itemType": "Eventhouse",
+          "dependsOn": [],
+          "requiredFor": [
+            "Observational data"
+          ],
+          "optional": true
+        }
+      ]
+    },
+    "translytical": {
+      "primaryStorage": "SQL Database",
+      "items": [
+        {
+          "order": "1",
+          "itemType": "SQL Database",
+          "dependsOn": [],
+          "requiredFor": [
+            "Semantic Model",
+            "User Data Functions"
+          ]
+        },
+        {
+          "order": "1",
+          "itemType": "Variable Library",
+          "dependsOn": [],
+          "requiredFor": [
+            "Stage-specific config"
+          ],
+          "optional": true
+        },
+        {
+          "order": "2",
+          "itemType": "Semantic Model",
+          "dependsOn": [
+            "SQL Database"
+          ],
+          "requiredFor": [
+            "Report"
+          ]
+        },
+        {
+          "order": "3",
+          "itemType": "Report",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [
+            "User interactions"
+          ]
+        },
+        {
+          "order": "4",
+          "itemType": "User Data Functions",
+          "dependsOn": [
+            "SQL Database"
+          ],
+          "requiredFor": [
+            "Writeback actions"
+          ]
+        },
+        {
+          "order": "5a",
+          "itemType": "Data Agent",
+          "dependsOn": [
+            "SQL Database",
+            "Semantic Model",
+            "Ontology"
+          ],
+          "requiredFor": [],
+          "optional": true
+        },
+        {
+          "order": "5b",
+          "itemType": "Ontology",
+          "dependsOn": [
+            "Semantic Model"
+          ],
+          "requiredFor": [],
+          "optional": true
+        }
+      ]
+    }
+  }
+}

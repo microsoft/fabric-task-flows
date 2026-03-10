@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -94,12 +94,11 @@
 │                            │     [LC/CF]       │     (Lakehouse or Warehouse)   │
 │                            └─────────┬─────────┘                                │
 │                                      │                                          │
-│                    ┌─────────────────┴─────────────────┐                        │
-│                    ▼                                   ▼                        │
-│           ┌─────────────┐                      ┌─────────────┐                  │
-│           │   Report    │                      │  Dashboard  │                  │
-│           │    [LC]     │                      │    [LC]     │                  │
-│           └─────────────┘                      └─────────────┘                  │
+│                                      ▼                                          │
+│                             ┌─────────────┐                                     │
+│                             │   Report    │                                     │
+│                             │    [LC]     │                                     │
+│                             └─────────────┘                                     │
 │                                                                                 │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │  PHASE 6: MACHINE LEARNING (Optional)                                           │
@@ -117,44 +116,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   1a  │ Lakehouse Bronze │ [LC]     │ (none - foundation)    │ Ingestion, Silver  │
-│   1b  │ Lakehouse Silver │ [LC]     │ (none - foundation)    │ Gold layer         │
-│   1c  │ Lakehouse Gold   │ [LC]     │ (none - foundation)    │ Semantic Model, ML │
-│       │ ──OR──           │          │                        │ (CHOOSE ONE)       │
-│   1c  │ Warehouse Gold   │ [LC]     │ (none - foundation)    │ Semantic Model, BI │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   2   │ Environment      │ [CF]     │ Lakehouses             │ Notebooks, Spark   │
-│   2   │ Variable Library │ [LC]     │ (depends on: none)     │ Stage-specific config (if multi-env) │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   3a  │ Copy Job         │ [LC]     │ Bronze Lakehouse       │ Raw data ingestion │
-│   3b  │ Dataflow Gen2    │ [LC]     │ Bronze Lakehouse       │ Raw data ingestion │
-│   3c  │ Pipeline         │ [LC/CF]  │ Bronze Lakehouse       │ Orchestrated load  │
-│   3d  │ Eventstream      │ [LC]     │ Bronze Lakehouse       │ Streaming data     │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   4a  │ Notebook         │ [CF]     │ Environment, Bronze    │ Transformations    │
-│   4b  │ Spark Job Def    │ [CF]     │ Environment, Bronze    │ Scheduled jobs     │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   5   │ Semantic Model   │ [LC/CF]  │ Gold Lakehouse OR      │ Reports            │
-│       │                  │          │ Gold Warehouse         │                    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   6a  │ Report           │ [LC]     │ Semantic Model         │ Dashboard          │
-│   6b  │ Dashboard        │ [LC]     │ Report(s)              │ (optional)         │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   7a  │ Experiment       │ [CF]     │ Gold Lakehouse, Env    │ ML Model           │
-│   7b  │ ML Model         │ [CF]     │ Experiment             │ (optional)         │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│   7c  │ Data Agent       │ [LC]     │ Gold Lakehouse OR      │ (optional)         │
-│       │                  │          │ Semantic Model         │                    │
-│   7d  │ Ontology         │ [LC]     │ Semantic Model         │ (optional)         │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Gold Layer Decision

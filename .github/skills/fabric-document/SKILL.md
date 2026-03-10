@@ -33,7 +33,7 @@ Read all 5 handoff documents (parse YAML fields directly, not prose):
 
 ### Step 2: Generate Wiki Pages
 
-Write to `projects/[name]/docs/`:
+Write to `_projects/[name]/docs/`:
 
 1. **README.md** — Stakeholder-friendly overview
    - Problem statement (from Discovery Brief)

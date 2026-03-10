@@ -1,7 +1,7 @@
 # Tester Review Schema
 
 > Schema for `/fabric-test` Mode 0 output (DRAFT architecture testability review).
-> Save as: `projects/[name]/prd/tester-review.md`
+> Save as: `_projects/[name]/prd/tester-review.md`
 
 Use the YAML template below. Every field has a max length noted in comments.
 Do NOT add prose sections outside this structure. The architect parses this programmatically.

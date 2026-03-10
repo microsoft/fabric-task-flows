@@ -26,9 +26,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 
 # Load shared utilities
-sys.path.insert(0, str(REPO_ROOT / "_shared"))
+sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
 from yaml_utils import extract_yaml_blocks, parse_yaml_value
-REGISTRY = json.loads((REPO_ROOT / "_shared" / "item-type-registry.json").read_text(encoding="utf-8"))
+REGISTRY = json.loads((REPO_ROOT / "_shared" / "registry" / "item-type-registry.json").read_text(encoding="utf-8"))
 
 TASK_TYPE_MAP: dict[str, str] = {}
 for type_name, type_info in REGISTRY["types"].items():

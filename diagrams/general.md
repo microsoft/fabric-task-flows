@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -75,10 +75,10 @@
 │          │                                                                      │
 │   ┌──────┴──────┬─────────────┬─────────────┬─────────────┐                    │
 │   ▼             ▼             ▼             ▼             ▼                    │
-│ ┌───────┐ ┌─────────┐ ┌───────────┐ ┌───────────┐ ┌───────────────┐           │
-│ │Report │ │Dashboard│ │ Paginated │ │ Scorecard │ │ Real-Time     │           │
-│ │ [LC]  │ │  [LC]   │ │Report [LC]│ │   [LC]    │ │Dashboard [LC] │           │
-│ └───────┘ └─────────┘ └───────────┘ └───────────┘ └───────────────┘           │
+│ ┌───────┐ ┌───────────┐ ┌───────────┐ ┌───────────────┐                          │
+│ │Report │ │ Paginated │ │ Scorecard │ │ Real-Time     │                          │
+│ │ [LC]  │ │Report [LC]│ │   [LC]    │ │Dashboard [LC] │                          │
+│ └───────┘ └───────────┘ └───────────┘ └───────────────┘                          │
 │                                                                                 │
 │   ┌───────────────┐    ┌───────────────┐                                       │
 │   │  Data Agent   │    │   Ontology    │                                       │

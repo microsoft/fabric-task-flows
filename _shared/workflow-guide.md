@@ -22,19 +22,19 @@ Use the pipeline runner script to manage the full lifecycle. It scaffolds the pr
 
 ```bash
 # Start a new pipeline
-python scripts/run-pipeline.py start "Your Project Name" --problem "describe your problem"
+python _shared/scripts/run-pipeline.py start "Your Project Name" --problem "describe your problem"
 
 # Check pipeline status
-python scripts/run-pipeline.py status --project your-project-name
+python _shared/scripts/run-pipeline.py status --project your-project-name
 
 # Get the next agent prompt (after each phase completes)
-python scripts/run-pipeline.py next --project your-project-name
+python _shared/scripts/run-pipeline.py next --project your-project-name
 
 # Mark current phase complete and advance
-python scripts/run-pipeline.py advance --project your-project-name
+python _shared/scripts/run-pipeline.py advance --project your-project-name
 
 # Reset a phase (for re-runs after fixes)
-python scripts/run-pipeline.py reset --project your-project-name --phase 1b-review
+python _shared/scripts/run-pipeline.py reset --project your-project-name --phase 1b-review
 ```
 
 The runner creates a `pipeline-state.json` file in each project directory that tracks which phases are complete, which agent to invoke next, and whether the transition is automatic or requires human approval.
@@ -51,11 +51,11 @@ The `advance` command enforces human gates defined in `pipeline-state.json` tran
 
 ```bash
 # This will be blocked at the sign-off gate:
-python scripts/run-pipeline.py advance --project my-project
+python _shared/scripts/run-pipeline.py advance --project my-project
 # 🛑  Cannot advance — Phase '2a-test-plan' is a human gate.
 
 # Explicitly approve after reviewing architecture + test plan:
-python scripts/run-pipeline.py advance --project my-project --approve
+python _shared/scripts/run-pipeline.py advance --project my-project --approve
 ```
 
 All other transitions (`auto: true`) advance automatically without `--approve`.
@@ -65,7 +65,7 @@ All other transitions (`auto: true`) advance automatically without `--approve`.
 If pipeline state gets out of sync (e.g., after degraded-mode operation), reconcile rebuilds state from file evidence:
 
 ```bash
-python scripts/run-pipeline.py reconcile --project my-project
+python _shared/scripts/run-pipeline.py reconcile --project my-project
 ```
 
 This scans `prd/` output files, detects which phases are actually complete, extracts `task_flow` if missing, and fixes `current_phase`. It's idempotent — safe to run multiple times.
@@ -73,7 +73,7 @@ This scans `prd/` output files, detects which phases are actually complete, extr
 You can also reconcile before advancing in one step:
 
 ```bash
-python scripts/run-pipeline.py advance --project my-project --reconcile
+python _shared/scripts/run-pipeline.py advance --project my-project --reconcile
 ```
 
 ### Shell Unavailable Fallback
@@ -99,10 +99,10 @@ When an agent loses shell/powershell access mid-session, the pipeline would norm
 
 **Agent responsibilities in degraded mode:**
 1. Log in `STATUS.md`: `| [Phase] | [Date] | Degraded mode — shell unavailable, state edited directly |`
-2. Include in the next agent prompt: `⚠️ State was advanced in degraded mode. Run 'python scripts/run-pipeline.py reconcile --project [name]' when shell is available.`
+2. Include in the next agent prompt: `⚠️ State was advanced in degraded mode. Run 'python _shared/scripts/run-pipeline.py reconcile --project [name]' when shell is available.`
 3. Skip pre-compute scripts gracefully — proceed with LLM reasoning alone
 
-**When shell returns:** Run `python scripts/run-pipeline.py reconcile --project [name]` to verify state consistency and heal any drift.
+**When shell returns:** Run `python _shared/scripts/run-pipeline.py reconcile --project [name]` to verify state consistency and heal any drift.
 
 ---
 
@@ -119,15 +119,15 @@ To start a new project, mention `@fabric-advisor` in chat (the orchestrator) wit
 Before invoking any agent, scaffold the project:
 
 ```bash
-python scripts/new-project.py "Your Project Name"
+python _shared/scripts/new-project.py "Your Project Name"
 ```
 
 This creates:
-- `projects/[name]/prd/` — 7 template files for agent handoffs (discovery-brief, architecture-handoff, engineer-review, tester-review, test-plan, deployment-handoff, validation-report)
-- `projects/[name]/docs/` — README, architecture, deployment-log, and 5 ADR templates
-- `projects/[name]/deployments/` — empty, for deployment scripts
-- `projects/[name]/STATUS.md` — phase tracking
-- `projects/[name]/pipeline-state.json` — pipeline orchestration state (for `run-pipeline.py`)
+- `_projects/[name]/prd/` — 7 template files for agent handoffs (discovery-brief, architecture-handoff, engineer-review, tester-review, test-plan, deployment-handoff, validation-report)
+- `_projects/[name]/docs/` — README, architecture, deployment-log, and 5 ADR templates
+- `_projects/[name]/deployments/` — empty, for deployment scripts
+- `_projects/[name]/STATUS.md` — phase tracking
+- `_projects/[name]/pipeline-state.json` — pipeline orchestration state (for `run-pipeline.py`)
 - Updates `PROJECTS.md` with a new row
 
 **Agents edit pre-existing files — they do not create directories or boilerplate.** Each template file contains section headers, YAML frontmatter, and HTML comments marking where the agent fills in content.
@@ -138,7 +138,7 @@ This creates:
 
 Mention `@fabric-advisor` and describe your problem — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports." The advisor asks clarifying questions, infers architectural signals (data velocity, volume, use cases), and produces a **Discovery Brief** with task flow candidates.
 
-**Produces:** Discovery Brief → `projects/[name]/prd/discovery-brief.md`
+**Produces:** Discovery Brief → `_projects/[name]/prd/discovery-brief.md`
 
 ---
 
@@ -148,7 +148,7 @@ The architect receives the Discovery Brief and selects the best-fit task flow. I
 
 **ADR Write-Through:** The architect also fills in the pre-scaffolded ADR files (`docs/decisions/001-task-flow.md` through `005-visualization.md`) during this phase. Decisions are documented at the moment they're made — not deferred to Phase 4. This ensures reviewers in Phase 1b can reference the full decision rationale, and the "why" behind choices is captured while context is fresh.
 
-**Produces:** DRAFT Architecture Handoff → `projects/[name]/prd/architecture-handoff.md` + ADRs → `projects/[name]/docs/decisions/001-*.md` through `005-*.md`
+**Produces:** DRAFT Architecture Handoff → `_projects/[name]/prd/architecture-handoff.md` + ADRs → `_projects/[name]/docs/decisions/001-*.md` through `005-*.md`
 
 ---
 
@@ -180,7 +180,7 @@ Architect (DRAFT) ──► Reviewer ──► review_outcome?
                                        (iteration 2, max 3)
 ```
 
-**Produces:** Deployment Feasibility Review → `projects/[name]/prd/engineer-review.md` + Testability Review → `projects/[name]/prd/tester-review.md`
+**Produces:** Deployment Feasibility Review → `_projects/[name]/prd/engineer-review.md` + Testability Review → `_projects/[name]/prd/tester-review.md`
 
 ---
 
@@ -196,7 +196,7 @@ The architect incorporates both reviews into the FINAL handoff. A Design Review 
 
 The tester receives the FINAL handoff and maps each acceptance criterion to a concrete validation check. It identifies critical verification points, edge cases, and any pre-deployment blockers that need resolution before deployment can begin.
 
-**Produces:** Test Plan → `projects/[name]/prd/test-plan.md`
+**Produces:** Test Plan → `_projects/[name]/prd/test-plan.md`
 
 ---
 
@@ -223,7 +223,7 @@ This is your chance to catch misunderstandings, adjust scope, or ask questions �
 │  • Deployment order             │     │                                 │
 │  • Alternatives considered      │     │                                 │
 │                                 │     │                                 │
-│  projects/[name]/prd/            │     │  projects/[name]/prd/            │
+│  _projects/[name]/prd/            │     │  _projects/[name]/prd/            │
 │  architecture-handoff.md        │     │  test-plan.md                   │
 └─────────────────────────────────┘     └─────────────────────────────────┘
                          │                         │
@@ -251,12 +251,12 @@ Walk through these before giving the go-ahead:
 
 - **Approve:** Say "approved" or "go ahead and deploy" to continue the pipeline.
   ```bash
-  python scripts/run-pipeline.py advance --project my-project --approve
+  python _shared/scripts/run-pipeline.py advance --project my-project --approve
   ```
 
 - **Request revisions:** If something doesn't look right, say "revise" with your feedback. The pipeline loops back to the architect (Phase 1c) to incorporate your changes, then regenerates the test plan and returns to sign-off.
   ```bash
-  python scripts/run-pipeline.py advance --project my-project --revise --feedback "Change storage from Lakehouse to Warehouse for the Silver layer"
+  python _shared/scripts/run-pipeline.py advance --project my-project --revise --feedback "Change storage from Lakehouse to Warehouse for the Silver layer"
   ```
 
   The revision loop runs a maximum of **3 cycles**. After 3 revisions, you must either approve or reset the pipeline.
@@ -293,7 +293,7 @@ Walk through these before giving the go-ahead:
 
 After your approval, the engineer deploys all Fabric items following the FINAL handoff's deployment order. Items are deployed by dependency wave — independent items go in parallel, dependent items wait for their prerequisites. The engineer reviews the test plan before deploying so it knows which verification points matter.
 
-**Produces:** Deployment Handoff → `projects/[name]/prd/deployment-handoff.md` with items created, manual steps required, and known issues
+**Produces:** Deployment Handoff → `_projects/[name]/prd/deployment-handoff.md` with items created, manual steps required, and known issues
 
 ### Design-Only Mode (Local Script Generation)
 
@@ -302,7 +302,7 @@ When the user selects **design-only** during architecture (instead of providing 
 1. **Architect** sets `deployment-mode: design-only` in the Architecture Handoff
 2. **Tester** produces the Test Plan as normal (validation criteria don't change)
 3. **User** signs off on the architecture and test plan
-4. **Engineer** generates `deploy-{project}.sh`, `deploy-{project}.ps1`, and `deploy-{project}.py` scripts in `projects/[name]/deployments/` — the Python script embeds the `FabricDeployer` utility inline (idempotent item creation, retry with backoff, and branded output)
+4. **Engineer** generates `deploy-{project}.sh`, `deploy-{project}.ps1`, and `deploy-{project}.py` scripts in `_projects/[name]/deployments/` — the Python script embeds the `FabricDeployer` utility inline (idempotent item creation, retry with backoff, and branded output)
 5. **User** runs the script of their choice at their convenience — all scripts prompt for workspace name at runtime (authentication, capacity, and tenant are handled by the `fab` CLI)
 
 > **When to use design-only mode:** Teams that want architecture decisions documented and reviewed before provisioning any Fabric resources, or when deploying to a workspace managed by a separate infrastructure team.
@@ -338,12 +338,12 @@ Engineer (Deploy) ──► Tester (Validate) ──► validation status?
                                               (max 3 iterations)
 ```
 
-Issues are tracked in `projects/[name]/prd/remediation-log.md`. The loop exits when:
+Issues are tracked in `_projects/[name]/prd/remediation-log.md`. The loop exits when:
 - ✅ All issues resolved → proceed to Phase 4 (Document)
 - 🛑 Design issues found → escalate to architect/user
 - 🛑 Max 3 remediation iterations reached → escalate to user
 
-**Produces:** Validation Report → `projects/[name]/prd/validation-report.md` (PASSED / PARTIAL / FAILED) + Remediation Log → `projects/[name]/prd/remediation-log.md` (if issues found)
+**Produces:** Validation Report → `_projects/[name]/prd/validation-report.md` (PASSED / PARTIAL / FAILED) + Remediation Log → `_projects/[name]/prd/remediation-log.md` (if issues found)
 
 ---
 
@@ -351,7 +351,7 @@ Issues are tracked in `projects/[name]/prd/remediation-log.md`. The loop exits w
 
 The documenter gathers all handoffs — architecture, test plan, deployment log, and validation report — and synthesizes them into project documentation. It produces ADRs explaining the "why" behind each decision and a project README tying everything together.
 
-**Produces:** README, ADRs, architecture page, deployment log → `projects/[name]/docs/`
+**Produces:** README, ADRs, architecture page, deployment log → `_projects/[name]/docs/`
 
 ---
 
@@ -371,8 +371,8 @@ The answer to all of these is always YES. Use `run-pipeline.py advance && next` 
 
 **Pattern to follow:**
 1. Agent A completes → writes output to `prd/` files
-2. Run `python scripts/run-pipeline.py advance --project [name]` (verifies output, advances state)
-3. Run `python scripts/run-pipeline.py next --project [name]` (generates next agent prompt)
+2. Run `python _shared/scripts/run-pipeline.py advance --project [name]` (verifies output, advances state)
+3. Run `python _shared/scripts/run-pipeline.py next --project [name]` (generates next agent prompt)
 4. Paste prompt into chat → agent B completes → repeat
 5. At Phase 2b: runner blocks — requires `advance --approve` after user reviews
 
@@ -400,16 +400,16 @@ Each agent reads the previous agent's output from the project folder. The orches
 
 | Agent | Reads From | Writes To | Format |
 |-------|-----------|-----------|--------|
-| /fabric-discover | (user input) | `projects/[name]/prd/discovery-brief.md` | Markdown |
-| /fabric-design | `prd/discovery-brief.md` | `projects/[name]/prd/architecture-handoff.md` | Markdown + YAML data blocks |
-| /fabric-design (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/engineer-review.md` | YAML schema |
-| /fabric-design (review) | `prd/architecture-handoff.md` | `projects/[name]/prd/tester-review.md` | YAML schema |
+| /fabric-discover | (user input) | `_projects/[name]/prd/discovery-brief.md` | Markdown |
+| /fabric-design | `prd/discovery-brief.md` | `_projects/[name]/prd/architecture-handoff.md` | Markdown + YAML data blocks |
+| /fabric-design (review) | `prd/architecture-handoff.md` | `_projects/[name]/prd/engineer-review.md` | YAML schema |
+| /fabric-design (review) | `prd/architecture-handoff.md` | `_projects/[name]/prd/tester-review.md` | YAML schema |
 | /fabric-design (finalize) | `prd/engineer-review.md` + `prd/tester-review.md` | `prd/architecture-handoff.md` (updated to FINAL) | Markdown + YAML data blocks |
-| /fabric-test (plan) | `prd/architecture-handoff.md` (FINAL) | `projects/[name]/prd/test-plan.md` | YAML schema |
-| /fabric-deploy | `prd/architecture-handoff.md` + `prd/test-plan.md` | `projects/[name]/prd/deployment-handoff.md` + `prd/phase-progress.md` | YAML schema |
-| /fabric-test (validate) | `prd/deployment-handoff.md` + `validation/[task-flow].md` | `projects/[name]/prd/validation-report.md` + `prd/remediation-log.md` | YAML schema |
+| /fabric-test (plan) | `prd/architecture-handoff.md` (FINAL) | `_projects/[name]/prd/test-plan.md` | YAML schema |
+| /fabric-deploy | `prd/architecture-handoff.md` + `prd/test-plan.md` | `_projects/[name]/prd/deployment-handoff.md` + `prd/phase-progress.md` | YAML schema |
+| /fabric-test (validate) | `prd/deployment-handoff.md` + `_shared/registry/validation-checklists.json` | `_projects/[name]/prd/validation-report.md` + `prd/remediation-log.md` | YAML schema |
 | /fabric-deploy (remediate) | `prd/remediation-log.md` | `prd/remediation-log.md` (updated) + `prd/phase-progress.md` | YAML schema |
-| /fabric-document | All 5 documents in `prd/` | `projects/[name]/docs/` | Markdown (wiki output) |
+| /fabric-document | All 5 documents in `prd/` | `_projects/[name]/docs/` | Markdown (wiki output) |
 
 ---
 

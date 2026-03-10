@@ -2,7 +2,7 @@
 
 ## Deployment Flow
 
-<!-- AGENT: Skip to "## Deployment Order" for structured item/wave data. The visual diagram below is for human reference. -->
+<!-- AGENT: Use _shared/registry/deployment-order.json for deployment order data. This visual diagram is for human reference. -->
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -66,32 +66,6 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Either
-```
-
-## Deployment Order
-
-```
-┌───────┬──────────────────┬──────────┬────────────────────────┬────────────────────┐
-│ Order │ Item Type        │ Skillset │ Depends On             │ Required For       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│  1a   │ SQL Database     │ [LC]     │ (none — foundation)    │ GraphQL API,       │
-│       │  OR Cosmos DB    │          │                        │ User Data Functions│
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│  1b   │ Variable Library │ [LC]     │ (none — optional)      │ Stage config       │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│  2a   │ GraphQL API      │ [LC]     │ SQL Database/Cosmos DB │ App reads          │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│  2b   │ User Data Funcs  │ [CF]     │ SQL Database/Cosmos DB │ App writes, logic  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│  3    │ Semantic Model   │ [LC/CF]  │ SQL Database/Cosmos DB │ Report             │
-│       │                  │          │ (via OneLake mirror)   │                    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│  4a   │ Report           │ [LC]     │ Semantic Model         │ Admin dashboard    │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│  4b   │ Data Agent       │ [LC]     │ SQL Database/Cosmos DB │ Conversational AI  │
-├───────┼──────────────────┼──────────┼────────────────────────┼────────────────────┤
-│  4c   │ Ontology         │ [LC]     │ Semantic Model         │ Cross-domain vocab │
-└───────┴──────────────────┴──────────┴────────────────────────┴────────────────────┘
 ```
 
 ## Storage Decision: SQL Database vs Cosmos DB
