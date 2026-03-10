@@ -5,10 +5,10 @@ fixes to framework scripts, then measures improvement by re-running the
 signal mapper stress test.
 
 Usage:
-    python scripts/self-heal.py                          # Full heal cycle
-    python scripts/self-heal.py --dry-run                # Preview changes only
-    python scripts/self-heal.py --measure-only           # Just run before/after comparison
-    python scripts/self-heal.py --problem-file .github/skills/fabric-heal/problem-statements.md
+    python .github/skills/fabric-heal/scripts/self-heal.py                          # Full heal cycle
+    python .github/skills/fabric-heal/scripts/self-heal.py --dry-run                # Preview changes only
+    python .github/skills/fabric-heal/scripts/self-heal.py --measure-only           # Just run before/after comparison
+    python .github/skills/fabric-heal/scripts/self-heal.py --problem-file .github/skills/fabric-heal/problem-statements.md
 
 The heal cycle:
   1. Snapshot current signal mapper performance (baseline)

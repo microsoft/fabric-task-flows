@@ -9,10 +9,10 @@ project data, then mines all project artifacts for common patterns. Appends
 new findings to _shared/learnings.md.
 
 Usage:
-    python scripts/analyze-inefficiencies.py --problem "your problem statement"
-    python scripts/analyze-inefficiencies.py --problem "..." --runs 20
-    python scripts/analyze-inefficiencies.py --all-projects
-    python scripts/analyze-inefficiencies.py --problem "..." --runs 20 --all-projects --dry-run
+    python .github/skills/fabric-heal/scripts/analyze-inefficiencies.py --problem "your problem statement"
+    python .github/skills/fabric-heal/scripts/analyze-inefficiencies.py --problem "..." --runs 20
+    python .github/skills/fabric-heal/scripts/analyze-inefficiencies.py --all-projects
+    python .github/skills/fabric-heal/scripts/analyze-inefficiencies.py --problem "..." --runs 20 --all-projects --dry-run
 """
 
 from __future__ import annotations
@@ -27,9 +27,9 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS_DIR = REPO_ROOT / "scripts"
-PROJECTS_DIR = REPO_ROOT / "projects"
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+SCRIPTS_DIR = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts"
+PROJECTS_DIR = REPO_ROOT / "_projects"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
 
 

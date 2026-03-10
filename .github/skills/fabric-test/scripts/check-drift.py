@@ -7,9 +7,9 @@ before they reach users. Modeled after power-bi-projects'
 documentationDrift.test.ts but tailored for a docs-only Markdown repo.
 
 Usage:
-    python scripts/check-drift.py          # Run all checks
-    python scripts/check-drift.py --check  # CI mode: exit 1 on failure
-    python scripts/check-drift.py --verbose # Show passing checks too
+    python .github/skills/fabric-test/scripts/check-drift.py          # Run all checks
+    python .github/skills/fabric-test/scripts/check-drift.py --check  # CI mode: exit 1 on failure
+    python .github/skills/fabric-test/scripts/check-drift.py --verbose # Show passing checks too
 
 Exit codes:
     0 — no drift detected
@@ -24,15 +24,15 @@ import sys
 import yaml
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 
 # Canonical task flow IDs — single source of truth
 TASK_FLOW_SOURCE = REPO_ROOT / "task-flows.md"
 DIAGRAMS_DIR = REPO_ROOT / "diagrams"
-VALIDATION_DIR = REPO_ROOT / "validation"
+VALIDATION_REGISTRY = REPO_ROOT / "_shared" / "registry" / "validation-checklists.json"
 DECISIONS_DIR = REPO_ROOT / "decisions"
 ADVISOR_PATH = REPO_ROOT / ".github" / "agents" / "fabric-advisor.agent.md"
-REGISTRY_PATH = REPO_ROOT / "_shared" / "item-type-registry.json"
+REGISTRY_PATH = REPO_ROOT / "_shared" / "registry" / "item-type-registry.json"
 
 
 # ── helpers ──────────────────────────────────────────────────────────
@@ -187,19 +187,14 @@ def check_task_flow_coverage(dc: DriftChecker):
              len(missing_diagram_index) == 0,
              f"Diagram files not indexed: {sorted(missing_diagram_index)}")
 
-    # Validation checklists
-    validation_files = {p.stem for p in VALIDATION_DIR.glob("*.md") if p.name != "_index.md"}
-    validation_index = extract_ids_from_index(VALIDATION_DIR / "_index.md")
+    # Validation checklists (from JSON registry)
+    validation_registry = json.loads(VALIDATION_REGISTRY.read_text(encoding="utf-8"))
+    validation_task_flows = set(validation_registry.get("task_flows", {}).keys())
 
-    missing_validation = canonical - validation_files
-    dc.check("every task flow has a validation checklist",
+    missing_validation = canonical - validation_task_flows
+    dc.check("every task flow has a validation checklist in JSON registry",
              len(missing_validation) == 0,
-             f"Missing validation files: {sorted(missing_validation)}")
-
-    missing_val_index = validation_files - validation_index
-    dc.check("every validation file is in validation/_index.md",
-             len(missing_val_index) == 0,
-             f"Validation files not indexed: {sorted(missing_val_index)}")
+             f"Missing validation entries: {sorted(missing_validation)}")
 
     # Advisor signal coverage
     signal_flows = extract_signal_task_flows(ADVISOR_PATH)

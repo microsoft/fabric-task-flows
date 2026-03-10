@@ -7,9 +7,9 @@ pre-filled review findings in the engineer-review schema format. The LLM
 reviewer then only adds judgment-based findings.
 
 Usage:
-    python scripts/review-prescan.py --handoff projects/my-project/prd/architecture-handoff.md
-    python scripts/review-prescan.py --handoff handoff.md --format json
-    python scripts/review-prescan.py --handoff handoff.md --output review.yaml
+    python .github/skills/fabric-design/scripts/review-prescan.py --handoff projects/my-project/prd/architecture-handoff.md
+    python .github/skills/fabric-design/scripts/review-prescan.py --handoff handoff.md --format json
+    python .github/skills/fabric-design/scripts/review-prescan.py --handoff handoff.md --output review.yaml
 
 Importable:
     from review_prescan import prescan
@@ -29,12 +29,12 @@ from typing import Any
 
 # ---------------------------------------------------------------------------
 # Portal-only items — cannot be created via REST API
-# Source: _shared/item-type-registry.json (rest_api.creatable field)
+# Source: registry/item-type-registry.json (rest_api.creatable field)
 # ---------------------------------------------------------------------------
 
-# Portal-only items — loaded from _shared/item-type-registry.json
+# Portal-only items — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
 from registry_loader import (
     build_portal_only_items,
     build_deploy_method_map,

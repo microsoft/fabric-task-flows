@@ -9,7 +9,7 @@ Checks:
 - No empty diagram
 
 Usage:
-    python scripts/diagram-validator.py --diagram "..." --items "name1,name2"
+    python .github/skills/fabric-design/scripts/diagram-validator.py --diagram "..." --items "name1,name2"
 
 Importable:
     from diagram_validator import validate_diagram

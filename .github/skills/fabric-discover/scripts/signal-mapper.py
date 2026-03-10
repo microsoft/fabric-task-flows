@@ -8,10 +8,10 @@ draft signal table that the advisor can confirm/adjust instead of discovering
 from scratch.
 
 Usage:
-    python scripts/signal-mapper.py --text "We need real-time IoT sensor data"
-    python scripts/signal-mapper.py --text-file problem.txt
-    echo "batch ETL pipeline" | python scripts/signal-mapper.py
-    python scripts/signal-mapper.py --text "..." --format json --verbose --top 5
+    python .github/skills/fabric-discover/scripts/signal-mapper.py --text "We need real-time IoT sensor data"
+    python .github/skills/fabric-discover/scripts/signal-mapper.py --text-file problem.txt
+    echo "batch ETL pipeline" | python .github/skills/fabric-discover/scripts/signal-mapper.py
+    python .github/skills/fabric-discover/scripts/signal-mapper.py --text "..." --format json --verbose --top 5
 """
 
 from __future__ import annotations
@@ -26,10 +26,10 @@ from typing import TextIO
 
 
 # ---------------------------------------------------------------------------
-# Signal category definitions — loaded from _shared/signal-categories.json
+# Signal category definitions — loaded from _shared/registry/signal-categories.json
 # ---------------------------------------------------------------------------
 
-SIGNAL_CATEGORIES_PATH = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "signal-categories.json"
+SIGNAL_CATEGORIES_PATH = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "registry" / "signal-categories.json"
 
 @dataclass(frozen=True)
 class SignalCategory:

@@ -9,11 +9,11 @@ Two modes:
                a richer JSON with descriptive task names.
 
 Usage:
-    python scripts/taskflow-gen.py scaffold --task-flow medallion --project "My Project"
-    python scripts/taskflow-gen.py scaffold --task-flow medallion --project "My Project" --output task-flow.json
+    python .github/skills/fabric-deploy/scripts/taskflow-gen.py scaffold --task-flow medallion --project "My Project"
+    python .github/skills/fabric-deploy/scripts/taskflow-gen.py scaffold --task-flow medallion --project "My Project" --output task-flow.json
 
-    python scripts/taskflow-gen.py finalize --handoff projects/x/prd/architecture-handoff.md --project "My Project"
-    python scripts/taskflow-gen.py finalize --handoff projects/x/prd/architecture-handoff.md --project "My Project" --output task-flow.json
+    python .github/skills/fabric-deploy/scripts/taskflow-gen.py finalize --handoff projects/x/prd/architecture-handoff.md --project "My Project"
+    python .github/skills/fabric-deploy/scripts/taskflow-gen.py finalize --handoff projects/x/prd/architecture-handoff.md --project "My Project" --output task-flow.json
 
 Importable:
     from taskflow_gen import generate_scaffold, generate_finalize

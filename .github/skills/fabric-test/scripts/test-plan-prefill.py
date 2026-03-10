@@ -3,13 +3,12 @@
 Pre-fill a test plan by mapping architecture handoff ACs to validation phases.
 
 Reads an architecture-handoff.md (YAML code fences with acceptance_criteria
-and items_to_deploy), reads the matching validation checklist from
-validation/[task-flow].md, and outputs a pre-filled test-plan.md with
-criteria_mapping already populated.
+and items_to_deploy), maps items to phases from item-type-registry.json,
+and outputs a pre-filled test-plan.md with criteria_mapping already populated.
 
 Usage:
-    python scripts/test-plan-prefill.py --handoff projects/my-project/prd/architecture-handoff.md
-    python scripts/test-plan-prefill.py --handoff projects/my-project/prd/architecture-handoff.md --output test-plan-draft.md
+    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff projects/my-project/prd/architecture-handoff.md
+    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff projects/my-project/prd/architecture-handoff.md --output test-plan-draft.md
 
 Importable:
     from test_plan_prefill import prefill
@@ -30,9 +29,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 # Item type → validation phase mapping
 # ---------------------------------------------------------------------------
 
-# Phase mapping — loaded from _shared/item-type-registry.json
+# Phase mapping — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
-sys.path.insert(0, str(REPO_ROOT / "_shared"))
+sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
 from registry_loader import (
     build_phase_map,
     build_fab_type_map as _build_fab_types,
@@ -201,9 +200,9 @@ def _detect_item_type(ac: dict[str, str], items: list[dict[str, str]]) -> str | 
 _slugify_phase = slugify_phase
 
 
-def _build_checklist_ref(task_flow: str, phase_num: int, phase_name: str) -> str:
-    slug = _slugify_phase(f"phase-{phase_num}-{phase_name}")
-    return f"validation/{task_flow}.md#{slug}"
+def _build_phase_ref(phase_num: int, phase_name: str) -> str:
+    """Return a phase reference string (just the phase name, since JSON is source of truth)."""
+    return f"Phase {phase_num}: {phase_name}"
 
 
 def _build_test_method(
@@ -340,16 +339,16 @@ def prefill(handoff_path: str) -> dict:
             phase_name, phase_num = phase_info
             # Use actual checklist phase name if available
             actual_name = checklist_phases.get(phase_num, phase_name)
-            checklist_ref = _build_checklist_ref(task_flow, phase_num, actual_name)
+            phase_ref = _build_phase_ref(phase_num, actual_name)
         else:
-            checklist_ref = ""
+            phase_ref = ""
 
         ac_type, test_method, deploy_note = _build_test_method(ac, item_type, items)
 
         entry = {
             "ac_id": ac_id,
             "type": ac_type,
-            "checklist_ref": checklist_ref,
+            "phase": phase_ref,
             "test_method": test_method,
         }
         if deploy_note:

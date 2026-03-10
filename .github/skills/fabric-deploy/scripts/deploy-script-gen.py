@@ -7,9 +7,9 @@ YAML blocks) and generates filled .sh and .ps1 deploy scripts from the
 templates in _shared/.
 
 Usage:
-    python scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project"
-    python scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project" --output-dir projects/my-project/deployments/
-    python scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project" --shell bash
+    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project"
+    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project" --output-dir projects/my-project/deployments/
+    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project" --shell bash
 
 Importable:
     from deploy_script_gen import generate
@@ -34,9 +34,10 @@ ASSETS_DIR = SKILL_DIR / "assets"
 # Item type → fab command mapping
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Item type mappings — loaded from _shared/item-type-registry.json
+# Item type mappings — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
-_SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
+_SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"
+_REGISTRY_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "registry"
 sys.path.insert(0, str(_SHARED_DIR))
 from registry_loader import build_fab_commands, build_display_names
 from banner import BANNER_ART
@@ -46,7 +47,7 @@ from text_utils import slugify
 # REST API creation support map: lowercase alias → True/False
 FAB_COMMANDS: dict[str, bool] = build_fab_commands()
 DISPLAY_NAMES: dict[str, str] = build_display_names()
-REGISTRY: dict = json.loads((_SHARED_DIR / "item-type-registry.json").read_text(encoding="utf-8"))
+REGISTRY: dict = json.loads((_REGISTRY_DIR / "item-type-registry.json").read_text(encoding="utf-8"))
 
 # Task-flow-specific prompts
 TASK_FLOW_PROMPTS: dict[str, list[tuple[str, str, str, str, bool]]] = {

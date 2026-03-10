@@ -7,9 +7,9 @@ rows (box-drawing format), and emits a partial architecture-handoff.md with
 items_to_deploy, deployment_waves, and stub acceptance criteria.
 
 Usage:
-    python scripts/handoff-scaffolder.py --task-flow medallion --project "My Project"
-    python scripts/handoff-scaffolder.py --task-flow lambda --project "My Project" --decisions decisions.yaml
-    python scripts/handoff-scaffolder.py --task-flow medallion --project "My Project" --output handoff.md
+    python .github/skills/fabric-design/scripts/handoff-scaffolder.py --task-flow medallion --project "My Project"
+    python .github/skills/fabric-design/scripts/handoff-scaffolder.py --task-flow lambda --project "My Project" --decisions decisions.yaml
+    python .github/skills/fabric-design/scripts/handoff-scaffolder.py --task-flow medallion --project "My Project" --output handoff.md
 
 Importable:
     from handoff_scaffolder import scaffold

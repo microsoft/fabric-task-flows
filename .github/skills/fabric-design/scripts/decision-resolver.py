@@ -8,7 +8,7 @@ decision guides in decisions/*.md.
 
 Usage:
     # Inline signals (JSON)
-    python scripts/decision-resolver.py --signals '{
+    python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{
         "skillset": "python",
         "velocity": "batch",
         "volume": "large",
@@ -17,13 +17,13 @@ Usage:
     }'
 
     # Signals from a YAML file
-    python scripts/decision-resolver.py --signals-file signals.yaml
+    python .github/skills/fabric-design/scripts/decision-resolver.py --signals-file signals.yaml
 
     # JSON output instead of YAML
-    python scripts/decision-resolver.py --signals '{"skillset": "python"}' --format json
+    python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{"skillset": "python"}' --format json
 
     # Verbose mode (prints rule evaluation trace)
-    python scripts/decision-resolver.py --signals '{"skillset": "python"}' --verbose
+    python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{"skillset": "python"}' --verbose
 
 Importable:
     from decision_resolver import resolve_all

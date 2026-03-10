@@ -7,8 +7,8 @@ ASCII diagram with validated box-drawing characters. Items are grouped by
 architectural layer and connected by arrows based on depends_on relationships.
 
 Usage:
-    python scripts/diagram-gen.py --handoff projects/my-project/prd/architecture-handoff.md
-    python scripts/diagram-gen.py --handoff handoff.md --output diagram.txt
+    python .github/skills/fabric-design/scripts/diagram-gen.py --handoff projects/my-project/prd/architecture-handoff.md
+    python .github/skills/fabric-design/scripts/diagram-gen.py --handoff handoff.md --output diagram.txt
 
 Importable:
     from diagram_gen import generate_diagram
