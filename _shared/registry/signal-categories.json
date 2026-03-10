@@ -29,7 +29,11 @@
         "GPS",
         "geofencing",
         "tracking",
-        "real-time monitoring"
+        "real-time monitoring",
+        "observability",
+        "scalability",
+        "doesn't scale",
+        "unplanned downtime"
       ],
       "velocity": "Real-time",
       "use_case": "Event analytics",
@@ -147,6 +151,16 @@
           "pattern": "(monitor|watch|observe|track).{0,20}(temperature|pressure|flow|level|speed|rate|performance)",
           "label": "Process monitoring",
           "weight": 1
+        },
+        {
+          "pattern": "(zero|no|eliminate|minimize) (unplanned |unexpected |)(downtime|outage|interruption|disruption)",
+          "label": "Zero-downtime aspiration",
+          "weight": 2
+        },
+        {
+          "pattern": "(architecture|system|platform|infrastructure).{0,20}(doesn.?t|does not|can.?t|cannot|won.?t) scale",
+          "label": "Scalability problem",
+          "weight": 2
         }
       ]
     },
@@ -181,7 +195,11 @@
         "self-service dashboards",
         "visibility",
         "benchmark",
-        "benchmarking"
+        "benchmarking",
+        "orchestration",
+        "DAG",
+        "Airflow",
+        "cost optimization"
       ],
       "velocity": "Batch",
       "use_case": "Analytics / Reporting",
@@ -406,6 +424,136 @@
           "weight": 2
         },
         {
+          "pattern": "(team|engineer|developer|analyst|people) (quit|left|resigned|departed|turnover|attrition)",
+          "label": "Knowledge loss / team departure",
+          "weight": 2
+        },
+        {
+          "pattern": "(vendor|platform) lock.?in|locked (us |)in|stuck with .{0,15}(vendor|platform|tool|system|contract)",
+          "label": "Vendor lock-in concern",
+          "weight": 1
+        },
+        {
+          "pattern": "(slow|takes? forever|loading|timeout|minutes to|hours to) .{0,15}(load|query|run|process|return|render|respond|execute|open)",
+          "label": "Performance/latency problem",
+          "weight": 2
+        },
+        {
+          "pattern": "(load|respond|run|process|render|execute|query).{0,10}(slowly|slow|so slow|too slow)",
+          "label": "Slowness complaint (reversed)",
+          "weight": 2
+        },
+        {
+          "pattern": "(can't|cannot|unable to|hard to|difficult to|impossible to) hire",
+          "label": "Talent shortage → automation need",
+          "weight": 1
+        },
+        {
+          "pattern": "every (department|team|group|division|unit|BU) .{0,20}(own|their own|bought|purchased|chose|picked|uses|using) .{0,10}(tool|system|platform|software|solution)",
+          "label": "Tool/platform fragmentation",
+          "weight": 2
+        },
+        {
+          "pattern": "(no way|can't|unable) to (find|discover|locate|search|identify) .{0,15}(what|data|information|report|dataset|table)",
+          "label": "Data discoverability gap",
+          "weight": 2
+        },
+        {
+          "pattern": "combining .{0,20}(data|information).{0,20}(owned by|from|across) .{0,15}(different|separate|multiple|three|various)",
+          "label": "Cross-domain data combination",
+          "weight": 2
+        },
+        {
+          "pattern": "(stale|outdated|old|delayed|lagging|behind|hours old|days old).{0,15}(data|information|report|numbers|dashboard|metrics)",
+          "label": "Data freshness/staleness",
+          "weight": 2
+        },
+        {
+          "pattern": "data (is |)(stale|outdated|old|delayed|behind)",
+          "label": "Stale data (direct)",
+          "weight": 2
+        },
+        {
+          "pattern": "(fined|penalty|violation|breach|incident|leaked|exposed).{0,15}(data|privacy|security|compliance|regulation|GDPR|breach)",
+          "label": "Compliance incident/penalty",
+          "weight": 2
+        },
+        {
+          "pattern": "(share|sharing|exchange) data .{0,15}(with|to|between) .{0,15}(partner|vendor|supplier|client|customer|external|third.?party)",
+          "label": "External data sharing",
+          "weight": 1
+        },
+        {
+          "pattern": "(biased|bias|fairness|discrimination|disparate impact|protected class)",
+          "label": "ML bias/fairness concern",
+          "weight": 2
+        },
+        {
+          "pattern": "(fail|failing|error).{0,15}(silently|without|no one|nobody|unnoticed|undetected)",
+          "label": "Silent failure / no observability",
+          "weight": 2
+        },
+        {
+          "pattern": "in (under|less than|within) \\d+\\s*(ms|millisecond|second|minute)",
+          "label": "Response time SLA",
+          "weight": 2
+        },
+        {
+          "pattern": "(can't|don't|unable to) (write|use|understand) (SQL|code|Python|script|query)",
+          "label": "Technical skill gap → self-service need",
+          "weight": 2
+        },
+        {
+          "pattern": "(executive KPI|health metric)",
+          "label": "Executive KPI/health metric",
+          "weight": 1
+        },
+        {
+          "pattern": "(need a |)(number|metric|report|answer|dashboard|slide) .{0,15}(for|in front of|to present|to show|to give) .{0,15}(board|CEO|CFO|CTO|executive|management|leadership|investor|stakeholder)",
+          "label": "Executive reporting need",
+          "weight": 2
+        },
+        {
+          "pattern": "(prove|demonstrate|show|justify|measure) .{0,15}(ROI|value|impact|benefit|return on|worth|business case)",
+          "label": "ROI/value justification",
+          "weight": 1
+        },
+        {
+          "pattern": "(auditor|audit|examiner|inspector|regulator) .{0,15}(coming|arriving|scheduled|next month|next quarter|this year|visit|examination|review)",
+          "label": "Upcoming audit/exam urgency",
+          "weight": 2
+        },
+        {
+          "pattern": "(\\d+ days?|\\d+ months?|\\d+ weeks?) to comply",
+          "label": "Compliance deadline",
+          "weight": 2
+        },
+        {
+          "pattern": "(lifted? and shift|lift.?and.?shift|same architecture|re.?architect)",
+          "label": "Architecture migration pattern",
+          "weight": 1
+        },
+        {
+          "pattern": "(instant|immediate) (answers?|response|results?|access|insight)",
+          "label": "Instant response demand",
+          "weight": 2
+        },
+        {
+          "pattern": "(lag|latency|delay|gap) .{0,15}(\\d+ (hour|minute|second|day)|between .{0,15}(event|data|collection|ingestion))",
+          "label": "Pipeline lag/latency measurement",
+          "weight": 2
+        },
+        {
+          "pattern": "(enterprise.?grade|production.?grade|bank.?grade) .{0,15}(security|governance|compliance|reliability|availability)",
+          "label": "Enterprise-grade requirements",
+          "weight": 1
+        },
+        {
+          "pattern": "(highly available|high availability|HA|perfectly consistent|strong consistency|CAP theorem)",
+          "label": "Availability/consistency requirement",
+          "weight": 1
+        },
+        {
           "pattern": "keep (starting|building|creating).{0,20}(never|don't|not).{0,10}(finish|complete|deliver|ship)",
           "label": "Project completion failure",
           "weight": 1
@@ -413,6 +561,56 @@
         {
           "pattern": "(agree|consensus|alignment|aligned|consistent).{0,15}(on |)(numbers|data|metrics|definition|KPI)",
           "label": "Data consistency/trust concern",
+          "weight": 2
+        },
+        {
+          "pattern": "(don't|doesn't|none of them|never|can't) agree",
+          "label": "Disagreement/inconsistency (broad)",
+          "weight": 1
+        },
+        {
+          "pattern": "(bottleneck|backlog|queue|waiting for|depends on|blocked by) .{0,15}(IT|data team|engineering|analyst|DBA|admin)",
+          "label": "IT bottleneck/dependency",
+          "weight": 2
+        },
+        {
+          "pattern": "(IT|data team|engineering|analyst|DBA) .{0,15}(bottleneck|backlog|overloaded|overwhelmed|can't keep up)",
+          "label": "IT bottleneck (reversed)",
+          "weight": 2
+        },
+        {
+          "pattern": "can't (compare|benchmark|measure|evaluate)",
+          "label": "Comparison difficulty",
+          "weight": 1
+        },
+        {
+          "pattern": "(report|measure|calculate|define|track).{0,15}(differently|inconsistently|their own way)",
+          "label": "Inconsistent measurement",
+          "weight": 2
+        },
+        {
+          "pattern": "don't (even |)know what (data|information|asset|system|report|dashboard|pipeline) we (have|own|possess|run)",
+          "label": "Data inventory gap",
+          "weight": 2
+        },
+        {
+          "pattern": "(every|each) (new |)(project|pipeline|integration|onboarding).{0,15}(from scratch|starts over|reinvent|rebuild)",
+          "label": "No reuse/starting fresh each time",
+          "weight": 2
+        },
+        {
+          "pattern": "(emailing|email|sharing|passing|circulating) .{0,15}(spreadsheet|Excel|CSV|attachment|report|file)",
+          "label": "Email-based data sharing",
+          "weight": 2
+        },
+        {
+          "pattern": "(asking|ask) .{0,15}(question|thing).{0,15}(can't|cannot|unable|don't know how to|no way to) answer",
+          "label": "Unanswerable questions",
+          "weight": 2
+        },
+        {
+          "pattern": "different (screen|system|tool|app|platform|portal).{0,15}(for|to) .{0,15}(billing|order|shipping|ticket|account|history|status|profile)",
+          "label": "Multi-system context switching",
           "weight": 2
         },
         {
@@ -433,6 +631,51 @@
         {
           "pattern": "(paper|manual|fax|handwritten|hand.?written|pen and paper|clipboard)",
           "label": "Paper/manual process",
+          "weight": 2
+        },
+        {
+          "pattern": "(campaign|marketing|advertising).{0,20}(working|effective|performing|ROI|impact|attribution|result)",
+          "label": "Campaign effectiveness measurement",
+          "weight": 1
+        },
+        {
+          "pattern": "(modern|next.?gen|contemporary|state.?of.?the.?art) data (platform|architecture|stack|infrastructure)",
+          "label": "Platform modernization intent",
+          "weight": 1
+        },
+        {
+          "pattern": "(every|all) (decision|choice|move).{0,20}(backed|driven|supported|informed) by data",
+          "label": "Data-driven decision culture",
+          "weight": 1
+        },
+        {
+          "pattern": "(data team|IT|engineering).{0,20}(says|told|estimated).{0,20}(\\d+\\s*(week|month|day|sprint))",
+          "label": "Delivery speed bottleneck",
+          "weight": 1
+        },
+        {
+          "pattern": "how much data.{0,20}(using|used|consumed|active|accessed) (vs|versus|compared|relative).{0,20}(stor|keep|have|sitting)",
+          "label": "Data usage vs storage analysis",
+          "weight": 1
+        },
+        {
+          "pattern": "(paying|spend|cost|bill|budget|invoice).{0,80}(cut|reduce|optimize|lower|half|save|decrease)",
+          "label": "Cost optimization pressure",
+          "weight": 1
+        },
+        {
+          "pattern": "(cut|reduce|optimize|lower|save|decrease).{0,20}(cost|spend|bill|budget|expenditure|invoice)",
+          "label": "Cost reduction intent (reverse)",
+          "weight": 1
+        },
+        {
+          "pattern": "(one|single|a) .{0,10}(fail|break|error|crash).{0,20}(cascade|chain|domino|trigger|cause).{0,15}(\\d+|many|multiple|other|downstream)",
+          "label": "Cascading failure pattern",
+          "weight": 2
+        },
+        {
+          "pattern": "(DAG|pipeline|job|workflow|process).{0,15}(fail|break|error|crash).{0,20}(cascade|chain|domino|\\d+ other)",
+          "label": "Orchestration cascade failure",
           "weight": 2
         }
       ]
@@ -514,6 +757,7 @@
         "retrain",
         "model drift",
         "digital twin",
+        "digital twins",
         "computer vision",
         "machine vision",
         "optimize",
@@ -534,7 +778,8 @@
         "detect",
         "detection",
         "automate",
-        "automation"
+        "automation",
+        "feature store"
       ],
       "velocity": "Batch (typically)",
       "use_case": "Machine learning",
@@ -716,6 +961,11 @@
           "pattern": "(no good way|difficult|hard|struggle|challenge|pain|tedious|manual) .{0,15}(to |)(search|find|discover|access|analyze|report|manage|process)",
           "label": "Pain point with current process",
           "weight": 1
+        },
+        {
+          "pattern": "(feature store|feature engineering|feature pipeline|model feature|ML feature)",
+          "label": "ML feature management",
+          "weight": 2
         }
       ]
     },
@@ -730,6 +980,7 @@
         "masking",
         "encryption",
         "access control",
+        "access controls",
         "GDPR",
         "SOC2",
         "audit",
@@ -975,7 +1226,13 @@
         "normalize",
         "normalization",
         "modernize",
-        "modernization"
+        "modernization",
+        "lakehouse",
+        "data-driven",
+        "entity resolution",
+        "master data",
+        "semantic layer",
+        "data trust"
       ],
       "velocity": "Varies",
       "use_case": "Layered analytics",
@@ -1072,6 +1329,46 @@
           "pattern": "(nothing|don't|doesn't|can't|cannot) (talk|connect|integrate|communicate|share) (to|with) each other",
           "label": "System isolation",
           "weight": 2
+        },
+        {
+          "pattern": "(nobody|no one|people don.?t|staff don.?t|team doesn.?t|organization doesn.?t).{0,30}(trusts?|believes?|rely on|have confidence in).{0,15}data",
+          "label": "Data trust deficit",
+          "weight": 2
+        },
+        {
+          "pattern": "(three|3|four|4|five|5|multiple|different) .{0,20}(version|number|figure|answer|result).{0,10}(of |for |)(the |our |)(same|revenue|metric|KPI|number)",
+          "label": "Single source of truth gap",
+          "weight": 2
+        },
+        {
+          "pattern": "(decision|we decide|make.{0,5}decision).{0,20}(data doesn.?t|data does not|data can.?t|no data|without data|lacking data)",
+          "label": "Decision-data gap",
+          "weight": 1
+        },
+        {
+          "pattern": "data doesn.?t support",
+          "label": "Data doesn't support decisions",
+          "weight": 1
+        },
+        {
+          "pattern": "(can.?t|cannot|impossible to) get a (straight|clear|consistent|reliable|definitive) answer",
+          "label": "Data inconsistency frustration",
+          "weight": 2
+        },
+        {
+          "pattern": "(merge|consolidate|unify|combine|deduplicate).{0,150}(different|multiple|duplicate|separate|various).{0,15}(ID|identifier|spelling|format|schema|address)",
+          "label": "Entity resolution/deduplication",
+          "weight": 2
+        },
+        {
+          "pattern": "(different|multiple|duplicate|separate|various).{0,10}(ID|identifier|spelling|format|schema|address).{0,20}(merge|consolidate|unify|combine|deduplicate|match|reconcile)",
+          "label": "Entity resolution/deduplication (reverse)",
+          "weight": 2
+        },
+        {
+          "pattern": "(semantic layer|metrics layer|metric store|universal metric|unified metric|business glossary)",
+          "label": "Semantic/metrics layer need",
+          "weight": 2
         }
       ]
     },
@@ -1135,6 +1432,16 @@
           "pattern": "(embed|integrat).{0,15}(analytics|report|chart|visual).{0,15}(in|into|within) .{0,15}(app|portal|product|platform)",
           "label": "Embedded analytics in application",
           "weight": 2
+        },
+        {
+          "pattern": "(business user|non.?technical|analyst|manager|executive).{0,20}(explore|access|query|interact|work with|use).{0,15}data.{0,15}(without|no |not ).{0,10}(SQL|code|coding|programming|technical|developer)",
+          "label": "Self-service/no-code analytics",
+          "weight": 2
+        },
+        {
+          "pattern": "(let|enable|allow|empower) .{0,15}(business|user|analyst|team|everyone).{0,15}(explore|access|discover|find|browse|search).{0,10}data",
+          "label": "Data exploration enablement",
+          "weight": 1
         }
       ]
     },
@@ -1222,7 +1529,7 @@
       ],
       "velocity": "Varies",
       "use_case": "Semantic governance",
-      "task_flow_candidates": [],
+      "task_flow_candidates": ["medallion", "data-analytics-sql-endpoint"],
       "inference_rules": [
         {
           "pattern": "(who owns|data owner|data steward|accountab|responsib).{0,15}(data|domain|dataset|table)",
@@ -1255,7 +1562,7 @@
           "weight": 2
         },
         {
-          "pattern": "(no|lack of|missing|without) (documentation|standard|framework|process|governance|catalog|standardized)",
+          "pattern": "(no|lack of|missing|without) (documentation|standard|framework|process|governance|catalog|standardized|standardization|reuse|reusability)",
           "label": "Governance gap",
           "weight": 2
         },
