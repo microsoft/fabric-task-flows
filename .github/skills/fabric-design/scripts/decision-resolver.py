@@ -19,6 +19,9 @@ Usage:
     # Signals from a YAML file
     python .github/skills/fabric-design/scripts/decision-resolver.py --signals-file signals.yaml
 
+    # Extract signals from a discovery brief (markdown)
+    python .github/skills/fabric-design/scripts/decision-resolver.py --discovery-brief _projects/my-project/prd/discovery-brief.md
+
     # JSON output instead of YAML
     python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{"skillset": "python"}' --format json
 
@@ -530,6 +533,203 @@ def _load_yaml_signals(path: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Discovery brief markdown parser
+# ---------------------------------------------------------------------------
+
+# Maps discovery brief signal names to resolver signal keys/values.
+_SIGNAL_MAP: dict[str, dict[str, str]] = {
+    "batch / scheduled":        {"velocity": "batch"},
+    "real-time / streaming":    {"velocity": "real-time"},
+    "both / mixed (lambda)":    {"velocity": "both"},
+    "machine learning":         {"use_case": "ml"},
+    "sensitive data":           {"use_case": "compliance"},
+    "transactional":            {"use_case": "transactional"},
+    "unstructured / semi-structured": {"data_pattern": "unstructured"},
+    "data quality / layered":   {"data_pattern": "layered"},
+    "application backend":      {"use_case": "app"},
+    "document / nosql / ai-ready": {"query_language": "nosql"},
+    "semantic governance":      {},  # informational only
+}
+
+# Maps 4V names to resolver keys.
+_V_MAP: dict[str, str] = {
+    "volume": "volume",
+    "velocity": "velocity",
+    "variety": "variety",
+    "versatility": "versatility",
+}
+
+# Extracts skillset and query_language from versatility values.
+_VERSATILITY_KEYWORDS: dict[str, dict[str, str]] = {
+    "code-first": {"skillset": "code-first"},
+    "code first": {"skillset": "code-first"},
+    "low-code":   {"skillset": "low-code"},
+    "low code":   {"skillset": "low-code"},
+    "python":     {"skillset": "python"},
+    "spark":      {"skillset": "spark", "query_language": "spark"},
+    "pyspark":    {"skillset": "pyspark", "query_language": "spark"},
+    "sql":        {"query_language": "t-sql"},
+    "t-sql":      {"query_language": "t-sql"},
+    "kql":        {"query_language": "kql"},
+    "nosql":      {"query_language": "nosql"},
+}
+
+
+def _parse_md_table(lines: list[str], start: int) -> list[list[str]]:
+    """Parse a markdown table starting at the header row index.
+
+    Returns a list of row-cells (list of stripped strings), skipping
+    the header and separator rows.
+    """
+    rows: list[list[str]] = []
+    i = start
+    # Skip header row
+    if i < len(lines) and "|" in lines[i]:
+        i += 1
+    # Skip separator row (|---|---|...)
+    if i < len(lines) and "|" in lines[i] and "-" in lines[i]:
+        i += 1
+    # Parse data rows
+    while i < len(lines):
+        line = lines[i].strip()
+        if not line or "|" not in line:
+            break
+        cells = [c.strip() for c in line.split("|")]
+        # Remove empty leading/trailing cells from | col1 | col2 |
+        if cells and cells[0] == "":
+            cells = cells[1:]
+        if cells and cells[-1] == "":
+            cells = cells[:-1]
+        rows.append(cells)
+        i += 1
+    return rows
+
+
+def _extract_confidence(text: str) -> str:
+    """Extract confidence level from a cell like '**High**' or 'Medium'."""
+    clean = text.replace("*", "").strip().lower()
+    if clean in ("high", "medium", "low"):
+        return clean
+    return "low"
+
+
+def _extract_signals_from_brief(path: str) -> dict:
+    """Extract resolver signal keys from a discovery brief markdown file.
+
+    Parses the '### Inferred Signals' and '### 4 V\\'s Assessment' tables
+    and maps their values to the flat signal dict expected by resolve_all().
+    """
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    lines = [l.rstrip("\n") for l in lines]
+    signals: dict = {}
+
+    # Find and parse the Inferred Signals table
+    for i, line in enumerate(lines):
+        if line.strip().lower().startswith("### inferred signals"):
+            # Find the table header (next line with |)
+            for j in range(i + 1, min(i + 5, len(lines))):
+                if "|" in lines[j] and "signal" in lines[j].lower():
+                    rows = _parse_md_table(lines, j)
+                    for row in rows:
+                        if len(row) < 3:
+                            continue
+                        signal_name = row[0].strip().lower()
+                        confidence = _extract_confidence(row[2]) if len(row) > 2 else "low"
+                        # Skip low-confidence signals
+                        if confidence == "low":
+                            continue
+                        # Map signal name to resolver keys
+                        for pattern, key_vals in _SIGNAL_MAP.items():
+                            if pattern in signal_name:
+                                for k, v in key_vals.items():
+                                    # velocity: prefer "both" over single values
+                                    if k == "velocity" and signals.get("velocity") == "both":
+                                        continue
+                                    # use_case: accumulate multiple values
+                                    if k == "use_case" and k in signals:
+                                        signals[k] = signals[k] + "+" + v
+                                    else:
+                                        signals[k] = v
+                                break
+                    break
+
+    # Find and parse the 4 V's Assessment table
+    for i, line in enumerate(lines):
+        stripped = line.strip().lower()
+        if "### 4 v" in stripped and "assessment" in stripped:
+            for j in range(i + 1, min(i + 5, len(lines))):
+                if "|" in lines[j] and ("v" in lines[j].lower() or "value" in lines[j].lower()):
+                    rows = _parse_md_table(lines, j)
+                    for row in rows:
+                        if len(row) < 3:
+                            continue
+                        v_name = row[0].strip().lower()
+                        v_value = row[1].strip().lower()
+                        confidence = _extract_confidence(row[2]) if len(row) > 2 else "low"
+                        if confidence == "low":
+                            continue
+
+                        resolver_key = _V_MAP.get(v_name)
+                        if not resolver_key:
+                            continue
+
+                        if resolver_key == "volume":
+                            # Normalize volume: look for size indicators
+                            if any(t in v_value for t in ("tb", "terabyte", "massive", "huge")):
+                                signals["volume"] = "large"
+                            elif any(t in v_value for t in ("gb", "thousand", "small", "moderate")):
+                                signals["volume"] = "small"
+                            else:
+                                signals["volume"] = v_value
+
+                        elif resolver_key == "velocity":
+                            # 4V velocity overrides signal-inferred velocity
+                            if any(t in v_value for t in ("both", "batch + real", "batch+real", "mixed")):
+                                signals["velocity"] = "both"
+                            elif any(t in v_value for t in ("real-time", "realtime", "streaming", "stream")):
+                                signals["velocity"] = "real-time"
+                            elif "batch" in v_value:
+                                signals["velocity"] = "batch"
+
+                        elif resolver_key == "versatility":
+                            # Extract skillset and query_language from versatility
+                            for keyword, kv in _VERSATILITY_KEYWORDS.items():
+                                if keyword in v_value:
+                                    signals.update(kv)
+
+                        elif resolver_key == "variety":
+                            signals["variety"] = v_value
+
+                    break
+
+    # If versatility gave us skillset=code-first but no query_language,
+    # and we have sql in the raw value, set it
+    if signals.get("skillset") == "code-first" and "query_language" not in signals:
+        # Re-scan for versatility row to check for sql
+        for i, line in enumerate(lines):
+            stripped = line.strip().lower()
+            if "### 4 v" in stripped and "assessment" in stripped:
+                for j in range(i + 1, min(i + 5, len(lines))):
+                    if "|" in lines[j]:
+                        rows = _parse_md_table(lines, j)
+                        for row in rows:
+                            if len(row) >= 2 and row[0].strip().lower() == "versatility":
+                                if "sql" in row[1].lower():
+                                    signals["query_language"] = "t-sql"
+                        break
+
+    # Default use_case to analytics if not set and batch/both velocity
+    if signals.get("velocity") in ("batch", "both"):
+        existing = signals.get("use_case", "")
+        if "analytics" not in existing:
+            signals["use_case"] = (existing + "+analytics").lstrip("+") if existing else "analytics"
+
+    return signals
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -542,6 +742,8 @@ def main() -> None:
                        help="JSON string of signal inputs")
     group.add_argument("--signals-file", type=str,
                        help="Path to a YAML file with signal inputs")
+    group.add_argument("--discovery-brief", type=str,
+                       help="Path to a discovery brief markdown file")
     parser.add_argument("--format", choices=["yaml", "json"], default="yaml",
                         help="Output format (default: yaml)")
     parser.add_argument("--verbose", action="store_true",
@@ -554,7 +756,7 @@ def main() -> None:
         except json.JSONDecodeError as e:
             print(f"Error: invalid JSON in --signals: {e}", file=sys.stderr)
             sys.exit(2)
-    else:
+    elif args.signals_file:
         try:
             signals = _load_yaml_signals(args.signals_file)
         except FileNotFoundError:
@@ -562,6 +764,15 @@ def main() -> None:
             sys.exit(2)
         except Exception as e:
             print(f"Error reading signals file: {e}", file=sys.stderr)
+            sys.exit(2)
+    else:
+        try:
+            signals = _extract_signals_from_brief(args.discovery_brief)
+        except FileNotFoundError:
+            print(f"Error: file not found: {args.discovery_brief}", file=sys.stderr)
+            sys.exit(2)
+        except Exception as e:
+            print(f"Error reading discovery brief: {e}", file=sys.stderr)
             sys.exit(2)
 
     result = resolve_all(signals)

@@ -620,3 +620,172 @@ def test_stream_data_pattern_triggers_eventstream():
 def test_visualization_ambiguous_when_signal_present_but_unclear():
     d = resolve_visualization({"interactivity": "medium"})
     assert d.confidence == "ambiguous"
+
+
+# ── _extract_signals_from_brief ──────────────────────────────────────────
+
+_extract_signals_from_brief = mod._extract_signals_from_brief
+
+
+def test_extract_brief_velocity_both():
+    brief = _write_brief(signals=[
+        ("Both / Mixed (Lambda)", "Batch + real-time", "**High**", "user confirmed"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["velocity"] == "both"
+
+
+def test_extract_brief_velocity_batch():
+    brief = _write_brief(signals=[
+        ("Batch / Scheduled", "Analytics", "**High**", "reporting"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["velocity"] == "batch"
+
+
+def test_extract_brief_velocity_realtime():
+    brief = _write_brief(signals=[
+        ("Real-time / Streaming", "Event analytics", "**High**", "IoT"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["velocity"] == "real-time"
+
+
+def test_extract_brief_skips_low_confidence():
+    brief = _write_brief(signals=[
+        ("Machine Learning", "ML models", "**Low**", "mentioned once"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert "use_case" not in result or "ml" not in result.get("use_case", "")
+
+
+def test_extract_brief_ml_signal():
+    brief = _write_brief(signals=[
+        ("Machine Learning", "Predictive models", "**High**", "AI-first"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert "ml" in result.get("use_case", "")
+
+
+def test_extract_brief_sensitive_data():
+    brief = _write_brief(signals=[
+        ("Sensitive Data", "Patient data", "**High**", "HIPAA"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert "compliance" in result.get("use_case", "")
+
+
+def test_extract_brief_4vs_volume_small():
+    brief = _write_brief(vs=[
+        ("Volume", "GBs — thousands of records", "**High**", "user confirmed"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["volume"] == "small"
+
+
+def test_extract_brief_4vs_volume_large():
+    brief = _write_brief(vs=[
+        ("Volume", "TBs — millions of records", "**High**", "user confirmed"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["volume"] == "large"
+
+
+def test_extract_brief_4vs_versatility_sql():
+    brief = _write_brief(vs=[
+        ("Versatility", "Code-first (SQL)", "**High**", "user confirmed"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["skillset"] == "code-first"
+    assert result["query_language"] == "t-sql"
+
+
+def test_extract_brief_4vs_versatility_python():
+    brief = _write_brief(vs=[
+        ("Versatility", "Python and Spark", "**High**", "user confirmed"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["skillset"] == "spark"
+    assert result["query_language"] == "spark"
+
+
+def test_extract_brief_analytics_default_for_batch():
+    brief = _write_brief(signals=[
+        ("Batch / Scheduled", "Reporting", "**High**", "metrics"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert "analytics" in result.get("use_case", "")
+
+
+def test_extract_brief_no_analytics_default_for_realtime():
+    brief = _write_brief(signals=[
+        ("Real-time / Streaming", "Event analytics", "**High**", "IoT"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    # Should not force analytics for pure real-time
+    uc = result.get("use_case", "")
+    assert "analytics" not in uc or uc == ""
+
+
+def test_extract_brief_end_to_end_resolves():
+    """Full discovery brief produces resolvable signals."""
+    brief = _write_brief(
+        signals=[
+            ("Batch / Scheduled", "Analytics", "**High**", "metrics"),
+            ("Real-time / Streaming", "Events", "**High**", "IoT"),
+            ("Both / Mixed (Lambda)", "Combined", "**High**", "confirmed"),
+        ],
+        vs=[
+            ("Volume", "GBs data", "**High**", "confirmed"),
+            ("Velocity", "Both batch + real-time", "**High**", "confirmed"),
+            ("Variety", "SQL DBs, files, APIs", "**High**", "confirmed"),
+            ("Versatility", "Code-first (SQL)", "**High**", "confirmed"),
+        ],
+    )
+    signals = _extract_signals_from_brief(brief)
+    result = resolve_all(signals)
+    # At least storage, ingestion, skillset should resolve
+    assert result["decisions"]["storage"]["confidence"] == "high"
+    assert result["decisions"]["skillset"]["confidence"] == "high"
+
+
+def test_extract_brief_real_file():
+    """Test with the actual patient-insight-hub discovery brief if it exists."""
+    brief_path = str(REPO_ROOT / "_projects" / "patient-insight-hub" / "prd" / "discovery-brief.md")
+    try:
+        signals = _extract_signals_from_brief(brief_path)
+    except FileNotFoundError:
+        return  # skip if project doesn't exist
+    result = resolve_all(signals)
+    assert result["decisions"]["storage"]["confidence"] == "high"
+    assert result["decisions"]["skillset"]["confidence"] == "high"
+
+
+# ── Helper to create test discovery briefs ───────────────────────────────
+
+def _write_brief(signals=None, vs=None):
+    """Write a temporary discovery brief and return its path."""
+    lines = ["## Discovery Brief\n", "\n", "**Project:** test-project\n", "\n"]
+
+    if signals:
+        lines.append("### Inferred Signals\n")
+        lines.append("\n")
+        lines.append("| Signal | Value | Confidence | Source |\n")
+        lines.append("|--------|-------|------------|--------|\n")
+        for row in signals:
+            lines.append(f"| {row[0]} | {row[1]} | {row[2]} | {row[3]} |\n")
+        lines.append("\n")
+
+    if vs:
+        lines.append("### 4 V's Assessment\n")
+        lines.append("\n")
+        lines.append("| V | Value | Confidence | Source |\n")
+        lines.append("|---|-------|------------|--------|\n")
+        for row in vs:
+            lines.append(f"| {row[0]} | {row[1]} | {row[2]} | {row[3]} |\n")
+        lines.append("\n")
+
+    f = tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8")
+    f.writelines(lines)
+    f.close()
+    return f.name

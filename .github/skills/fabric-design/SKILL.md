@@ -52,7 +52,7 @@ Choose from 11 task flows + general:
 Run `decision-resolver.py` to resolve all 7 decisions programmatically from Discovery Brief signals:
 
 ```bash
-python .github/skills/fabric-design/scripts/decision-resolver.py --signals-file _projects/[name]/prd/discovery-brief.md --format yaml
+python .github/skills/fabric-design/scripts/decision-resolver.py --discovery-brief _projects/[name]/prd/discovery-brief.md --format yaml
 ```
 
 Returns structured output: `choice`, `confidence`, `rule_matched`, and `guide` reference for each decision (storage, ingestion, processing, visualization, skillset, parameterization, api).
