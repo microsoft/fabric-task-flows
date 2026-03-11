@@ -50,6 +50,7 @@ Orchestrator passes `--mode heal` with benchmark results (coverage %, zero-candi
 ### Constraints
 
 - Never remove existing keywords or modify the matching algorithm
+- Clean up generated files: delete `problem-statements-batch*.md` after each loop completes
 - Prefer specific terms over generic ones
 
 ## References

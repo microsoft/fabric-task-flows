@@ -589,7 +589,20 @@ def main():
         BACKUP_PATH.unlink()
         print("  ♻️  Restored original problem-statements.md")
 
+    # Clean up generated files
+    _cleanup_generated_files()
+
     print(f"\n{'═' * 70}\n")
+
+
+def _cleanup_generated_files() -> None:
+    """Remove generated problem-statement batch files after healing loop."""
+    cleaned = 0
+    for batch_file in SKILL_DIR.glob("problem-statements-batch*.md"):
+        batch_file.unlink()
+        cleaned += 1
+    if cleaned:
+        print(f"  🧹 Cleaned up {cleaned} batch file(s)")
 
 
 if __name__ == "__main__":
