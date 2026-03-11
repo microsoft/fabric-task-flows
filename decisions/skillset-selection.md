@@ -54,32 +54,6 @@ Throughout the task flow documentation, you'll see these tags:
 | **[CF]** | Code-First | Data Engineers, Data Scientists |
 | **[LC/CF]** | Both Supported | Mixed Teams |
 
-## Quick Decision Tree
-
-```
-Who will BUILD and MAINTAIN this solution?
-│
-├─► Data Engineers / Developers
-│   │
-│   └─► Comfortable with Python, Spark, SQL?
-│       │
-│       ├─► YES ──────────────────────────► Code-First [CF]
-│       │
-│       └─► NO, prefer visual tools ──────► Low-Code [LC]
-│
-├─► Business Analysts / Citizen Developers
-│   │
-│   └─► Do they know Power Query / Excel?
-│       │
-│       ├─► YES ──────────────────────────► Low-Code [LC]
-│       │
-│       └─► NO ───────────────────────────► Training needed
-│
-└─► Mixed Team (Engineers + Analysts)
-    │
-    └─► Use [LC/CF] items where possible ─► Hybrid approach
-```
-
 ## Comparison Table
 
 | Criteria | Code-First [CF] | Low-Code [LC] |
@@ -132,74 +106,6 @@ Who will BUILD and MAINTAIN this solution?
 | **Warehouse** | Visual query editor | T-SQL stored procedures |
 | **Datamart** | Visual modeling | SQL views |
 
-## Workforce Planning
-
-### Code-First Team Requirements
-
-| Role | Skills Needed | Items They'll Use |
-|------|--------------|-------------------|
-| **Data Engineer** | Python, Spark, SQL, Git | Notebook, Spark Job Def, Pipeline, Environment |
-| **Data Scientist** | Python, ML frameworks, Statistics | Notebook, Experiment, ML Model |
-| **Analytics Engineer** | SQL, dbt, YAML | dbt Project, Warehouse, Notebook |
-| **Platform Engineer** | Python, Git, CI/CD | All [CF] items, deployment pipelines |
-
-### Low-Code Team Requirements
-
-| Role | Skills Needed | Items They'll Use |
-|------|--------------|-------------------|
-| **Business Analyst** | Power Query, Excel, Power BI | Dataflow Gen2, Report, Scorecard |
-| **BI Developer** | Power BI, DAX, data modeling | Semantic Model, Report |
-| **Citizen Developer** | Drag-and-drop, basic logic | Copy Job, Dataflow Gen2, Eventstream |
-| **Operations Analyst** | Monitoring, dashboards | Real-Time Dashboard, Activator |
-
-### Hybrid Team Model
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    HYBRID TEAM STRUCTURE                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  DATA PLATFORM TEAM (Code-First)                               │
-│  └─► Notebooks, Spark Jobs, Environments, Pipelines            │
-│      └─► Build reusable patterns and foundations               │
-│                                                                 │
-│              ▼                                                  │
-│                                                                 │
-│  ANALYTICS TEAM (Low-Code)                                      │
-│  └─► Reports, Dashboards, Scorecards, Dataflows                │
-│      └─► Consume curated data, build visualizations            │
-│                                                                 │
-│              ▼                                                  │
-│                                                                 │
-│  BUSINESS USERS                                                 │
-│  └─► View Reports, Track Scorecards, Receive Alerts            │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Evolution Paths
-
-### Low-Code to Code-First
-
-When you outgrow Low-Code tools:
-
-| From (LC) | To (CF) | When to Evolve |
-|-----------|---------|-----------------|
-| Dataflow Gen2 | Notebook | Complex logic, large scale, reusability |
-| Copy Job | Pipeline + Notebook | Conditional logic, error handling |
-| Visual Warehouse | Stored Procedures | Complex transformations |
-| Report (manual refresh) | Report + Pipeline | Automated refresh orchestration |
-
-### Code-First to Low-Code
-
-When to simplify:
-
-| From (CF) | To (LC) | When to Evolve |
-|-----------|---------|-----------------|
-| Simple Notebook | Dataflow Gen2 | Business user maintenance |
-| Spark aggregations | Semantic Model measures | Standard BI calculations |
-| Custom alerting code | Activator | Rules-based triggers |
-
 ## Decision Matrix by Use Case
 
 | Use Case | Small Scale / Quick | Large Scale / Production |
@@ -210,34 +116,6 @@ When to simplify:
 | **ML Training** | AutoML (limited) [LC] | Notebook + MLflow [CF] |
 | **Visualization** | Report [LC] | Report with TMDL [LC/CF] |
 | **Alerting** | Activator [LC] | Custom code + Azure Functions [CF] |
-
-## Common Patterns
-
-### Pattern 1: Code-First Foundation, Low-Code Consumption
-
-```
-Notebook [CF] ──► Lakehouse [LC] ──► Semantic Model [LC/CF] ──► Report [LC]
-     │                │
-     │                └─► Warehouse [LC] ──► Paginated Report [LC]
-     │
-     └─► Quality assured, governed data for business consumption
-```
-
-### Pattern 2: Low-Code End-to-End
-
-```
-Copy Job [LC] ──► Dataflow Gen2 [LC] ──► Semantic Model [LC] ──► Report [LC]
-     │
-     └─► Fast time-to-value, business-maintained
-```
-
-### Pattern 3: Code-First End-to-End
-
-```
-Pipeline [LC/CF] ──► Notebook [CF] ──► Lakehouse ──► Notebook [CF] ──► Report [LC]
-     │
-     └─► Maximum flexibility, engineering-maintained
-```
 
 ## Anti-Patterns
 

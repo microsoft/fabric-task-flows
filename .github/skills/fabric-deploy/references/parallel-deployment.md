@@ -4,7 +4,7 @@ Fabric item deployments can be significantly accelerated by deploying independen
 
 ## Dependency-Wave Analysis
 
-Every deployment diagram in `diagrams/[task-flow].md` includes a **Deployment Order** table with a "Depends On" column. This is the dependency graph. To parallelize:
+The canonical deployment order is in `_shared/registry/deployment-order.json`, accessible via `diagram_parser.get_deployment_items(task_flow)`. Each item includes `dependsOn` and `requiredFor` fields. To parallelize:
 
 1. **Identify foundation items** — items with no dependencies (depth 0)
 2. **Walk the graph** — for each remaining item, its depth = max(dependency depths) + 1
@@ -39,95 +39,15 @@ This produces **5 waves** instead of 15 sequential calls:
 
 **Key insight:** The speed layer items (Eventstream, KQL Queryset, RT Dashboard) only depend on Eventhouse — they can start in Wave 2 alongside Environment, rather than waiting for it.
 
-## Bash Parallel Template
+## Deploy Script Generation
 
-Use this pattern in generated deployment scripts:
+The `deploy-script-gen.py` script generates deployment scripts with wave-based parallelism built in. Use it instead of writing bash templates manually:
 
 ```bash
-#!/bin/bash
-set -e
-
-WORKSPACE_ID="${WORKSPACE_ID:?'Set WORKSPACE_ID environment variable'}"
-FAILED=0
-TOTAL_START=$(date +%s)
-
-# --- Parallel execution helper ---
-# Usage: run_wave "Wave Name" "cmd1" "cmd2" "cmd3"
-run_wave() {
-    local wave_name="$1"
-    shift
-    local pids=()
-    local cmds=()
-    local wave_start=$(date +%s)
-
-    echo ""
-    echo "═══════════════════════════════════════════"
-    echo "  $wave_name"
-    echo "═══════════════════════════════════════════"
-
-    for cmd in "$@"; do
-        echo "  ► Starting: $cmd"
-        eval "$cmd" &
-        pids+=($!)
-        cmds+=("$cmd")
-    done
-
-    local wave_failed=0
-    for i in "${!pids[@]}"; do
-        if ! wait "${pids[$i]}"; then
-            echo "  ✗ FAILED: ${cmds[$i]}"
-            wave_failed=$((wave_failed + 1))
-            FAILED=$((FAILED + 1))
-        else
-            echo "  ✓ Done: ${cmds[$i]}"
-        fi
-    done
-
-    local wave_end=$(date +%s)
-    echo "  ⏱ $wave_name completed in $((wave_end - wave_start))s ($wave_failed failures)"
-
-    if [ $wave_failed -gt 0 ]; then
-        echo "ERROR: $wave_name had $wave_failed failure(s). Stopping."
-        exit 1
-    fi
-}
-
-# --- Deploy in dependency waves ---
-
-run_wave "WAVE 1: Foundation" \
-    "python -c \"from fabric_cicd import deploy_with_config; deploy_with_config(config_file_path='config.yml')\"" \
-    # fabric-cicd handles item creation in dependency order within the wave
-
-# For fine-grained wave control, use REST API:
-# POST /v1/workspaces/{ws_id}/lakehouses  { "displayName": "item1" }
-# POST /v1/workspaces/{ws_id}/warehouses  { "displayName": "item2" }
-
-# ... continue for each wave ...
-
-# --- Summary ---
-TOTAL_END=$(date +%s)
-echo ""
-echo "═══════════════════════════════════════════"
-echo "  DEPLOYMENT COMPLETE"
-echo "  Total time: $((TOTAL_END - TOTAL_START))s"
-echo "  Failures: $FAILED"
-echo "═══════════════════════════════════════════"
+python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff _projects/[name]/prd/architecture-handoff.md
 ```
 
-## Error Handling
-
-- **Fail-fast on wave failure** — if any item in a wave fails, stop the entire deployment. Later waves depend on earlier ones.
-- **Capture PIDs** — track which background processes belong to which items for clear error reporting.
-- **Exit codes** — `wait $PID` returns the exit code of the background process. Check it per-item.
-
-## Timing Instrumentation
-
-Always include timing output so users can measure the speedup:
-
-- Log wave start/end timestamps
-- Log per-item completion
-- Log total deployment time at the end
-- This makes it easy to compare sequential vs. parallel performance
+The generated scripts include parallel execution helpers, wave grouping, error handling (fail-fast on wave failure), and timing instrumentation.
 
 ## When Not to Parallelize
 
@@ -139,10 +59,11 @@ Some operations must remain sequential:
 
 ## Applying to Any Task Flow
 
-1. Open `diagrams/[task-flow].md`
-2. Find the "Deployment Order" table
-3. Read the "Depends On" column
-4. Group items by dependency depth
-5. Generate waves using the bash template above
+1. Load deployment items: `from diagram_parser import get_deployment_items; items = get_deployment_items("[task-flow]")`
+2. Read the `dependsOn` field for each item
+3. Group items by dependency depth
+4. Generate waves using the bash template above
+
+> **⚠️ Do NOT read `diagrams/[task-flow].md` for deployment order.** Diagram files are for human visualization only. Use `diagram_parser.get_deployment_items()` for programmatic access.
 
 The engineer agent should perform this analysis automatically when generating deployment scripts.

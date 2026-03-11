@@ -17,7 +17,7 @@ Usage:
     python _shared/scripts/run-pipeline.py status --project my-project
 
     # Reset a phase (for re-runs)
-    python _shared/scripts/run-pipeline.py reset --project my-project --phase 1b-review
+    python _shared/scripts/run-pipeline.py reset --project my-project --phase 1-design
 
     # Advance in agent mode (suppress document echo — saves context)
     python _shared/scripts/run-pipeline.py advance --project my-project -q
@@ -49,9 +49,7 @@ from banner import print_banner
 # Phase ordering (linear)
 PHASE_ORDER = [
     "0a-discovery",
-    "1a-design",
-    "1b-review",
-    "1c-finalize",
+    "1-design",
     "2a-test-plan",
     "2b-sign-off",
     "2c-deploy",
@@ -62,10 +60,8 @@ PHASE_ORDER = [
 # Skill mapping — each phase delegates to a skill (except human gate)
 PHASE_SKILLS = {
     "0a-discovery":  "fabric-discover",
-    "1a-design":     "fabric-design",
-    "1b-review":     "fabric-design",      # Architect reviews their own DRAFT
-    "1c-finalize":   "fabric-design",      # Architect finalizes after review
-    "2a-test-plan":  "fabric-test",
+    "1-design":      "fabric-design",
+    "2a-test-plan":  "fabric-test",        # QA reviews architecture + creates test plan
     "2b-sign-off":   None,                 # human gate
     "2c-deploy":     "fabric-deploy",
     "3-validate":    "fabric-test",        # QA validates after deployment
@@ -78,14 +74,10 @@ PHASE_PRECOMPUTE: dict[str, list[list[str]]] = {
         # signal-mapper pre-processes user text → draft signal table
         # Args filled dynamically: ["python", ".github/skills/fabric-discover/scripts/signal-mapper.py", "--text", problem_text]
     ],
-    "1a-design": [
+    "1-design": [
         # decision-resolver + handoff-scaffolder run after architect selects task flow
         # These are invoked dynamically when task_flow is known
         # Located in .github/skills/fabric-design/scripts/
-    ],
-    "1b-review": [
-        # review-prescan does mechanical checks before LLM review
-        # ["python", ".github/skills/fabric-design/scripts/review-prescan.py", "--handoff", handoff_path]
     ],
     "2a-test-plan": [
         # test-plan-prefill maps ACs to validation phases
@@ -101,9 +93,7 @@ PHASE_PRECOMPUTE: dict[str, list[list[str]]] = {
 # Expected output files per phase (for verification guards)
 PHASE_OUTPUT_FILES: dict[str, list[str]] = {
     "0a-discovery":  ["prd/discovery-brief.md"],
-    "1a-design":     ["prd/architecture-handoff.md", "docs/decisions/001-task-flow.md"],
-    "1b-review":     ["prd/engineer-review.md", "prd/tester-review.md"],
-    "1c-finalize":   ["prd/architecture-handoff.md"],  # updated in-place
+    "1-design":      ["prd/architecture-handoff.md", "docs/decisions/001-task-flow.md"],
     "2a-test-plan":  ["prd/test-plan.md"],
     "2b-sign-off":   [],  # human gate — no file output
     "2c-deploy":     ["prd/deployment-handoff.md", "prd/phase-progress.md"],
@@ -177,61 +167,33 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
-        "1a-design": (
+        "1-design": (
             f"Use the /fabric-design skill. Read the skill at .github/skills/fabric-design/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
-            f"Read the Discovery Brief from {pp}/prd/discovery-brief.md.\n\n"
-            f"1. Read decisions/_index.md to find decision guides\n"
-            f"2. Read diagrams/_index.md to find the matching diagram\n"
-            f"3. Select the best-fit task flow and walk through decisions\n"
-            f"4. Write the DRAFT Architecture Handoff to {pp}/prd/architecture-handoff.md\n"
-            f"   - Include `task-flow: <id>` in the YAML frontmatter so the pipeline runner can extract it\n\n"
-            f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
-        ),
-
-        "1b-review": (
-            f"Use the /fabric-design skill (Mode 2: Review). Read the skill at .github/skills/fabric-design/SKILL.md for instructions.\n\n"
-            f"Project: {display_name} (folder: {pp})\n"
-            f"Task flow: {task_flow}\n\n"
-            f"1. Read the DRAFT Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
-            f"2. Read the matching diagram from diagrams/{task_flow}.md\n"
-            f"3. Read registry/item-type-registry.json for REST API creation support\n"
-            f"4. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
-            f"5. Produce BOTH reviews:\n"
-            f"   - Engineer review → edit {pp}/prd/engineer-review.md\n"
-            f"   - Tester review → edit {pp}/prd/tester-review.md\n"
-            f"6. Set review_outcome in each review:\n"
-            f"   - If red-severity findings exist → review_outcome: revise\n"
-            f"   - If no red findings → review_outcome: approved\n"
-            f"   - Track review_iteration (check existing file for previous iteration)\n\n"
-            f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
-        ),
-
-        "1c-finalize": (
-            f"Use the /fabric-design skill (Mode 3: Finalize). Read the skill at .github/skills/fabric-design/SKILL.md for instructions.\n\n"
-            f"Project: {display_name} (folder: {pp})\n"
-            f"Task flow: {task_flow}\n\n"
             + (
                 f"🔄 **SIGN-OFF REVISION {state.get('sign_off_revisions', 0)}/3** — The user requested changes at sign-off.\n"
                 f"Read their feedback from {pp}/prd/sign-off-feedback.md before revising.\n\n"
                 if state.get("sign_off_revisions", 0) > 0 else ""
             )
-            + f"1. Read the engineer review from {pp}/prd/engineer-review.md\n"
-            f"2. Read the tester review from {pp}/prd/tester-review.md\n"
-            f"3. Incorporate feedback into the Architecture Handoff at {pp}/prd/architecture-handoff.md\n"
-            f"4. Change status from DRAFT to FINAL. Populate the Design Review table.\n\n"
+            + f"Read the Discovery Brief from {pp}/prd/discovery-brief.md.\n\n"
+            f"1. Read decisions/_index.md to find decision guides\n"
+            f"2. Read diagrams/_index.md to find the matching diagram\n"
+            f"3. Select the best-fit task flow and walk through decisions\n"
+            f"4. Write the FINAL Architecture Handoff to {pp}/prd/architecture-handoff.md\n"
+            f"   - Include `task-flow: <id>` in the YAML frontmatter so the pipeline runner can extract it\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
         "2a-test-plan": (
-            f"Use the /fabric-test skill (Mode 1: Test Plan). Read the skill at .github/skills/fabric-test/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-test skill (Mode 1: Architecture Review + Test Plan). Read the skill at .github/skills/fabric-test/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the FINAL Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
-            f"2. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
-            f"3. Map each acceptance criterion to a concrete validation check\n"
-            f"4. Write the Test Plan to {pp}/prd/test-plan.md\n"
-            f"5. 🛑 HUMAN GATE: Present a consolidated sign-off summary and WAIT for user approval. This is the ONLY stop in the pipeline.\n\n"
+            f"2. Review the architecture for testability and deployment feasibility\n"
+            f"3. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
+            f"4. Map each acceptance criterion to a concrete validation check\n"
+            f"5. Write the Test Plan (with Architecture Concerns section if issues found) to {pp}/prd/test-plan.md\n"
+            f"6. 🛑 HUMAN GATE: Present a consolidated sign-off summary and WAIT for user approval. This is the ONLY stop in the pipeline.\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
@@ -269,18 +231,14 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Use the /fabric-test skill (Mode 2: Validate). Read the skill at .github/skills/fabric-test/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
-            f"1. Read the Deployment Handoff from {pp}/prd/deployment-handoff.md\n"
-            f"2. Read {pp}/prd/architecture-summary.json for item/AC reference (faster than full handoff)\n"
-            f"3. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
-            f"4. Read _shared/learnings.md for known validation gotchas\n"
-            f"5. Check {pp}/prd/remediation-log.md — if it exists and has resolved items, only re-validate those\n"
-            f"6. Validate deployment against the checklist and test plan\n"
-            f"7. Write the Validation Report to {pp}/prd/validation-report.md\n"
-            f"8. If issues found: categorize and write to {pp}/prd/remediation-log.md\n"
-            f"   - deployment/configuration/transient issues → route to engineer (use /fabric-deploy skill Mode 2: Remediate)\n"
-            f"   - design issues → escalate (pipeline pauses)\n"
-            f"   - Max 3 remediation iterations before escalating to user\n"
-            f"9. Append any new operational learnings to _shared/learnings.md\n\n"
+            f"Deployment is deterministic — items exist. Focus on manual config + smoke tests:\n\n"
+            f"1. Run validate-items.py to generate config checklist:\n"
+            f"   python .github/skills/fabric-test/scripts/validate-items.py {pp}/prd/deployment-handoff.md\n"
+            f"2. For each config step, verify in Fabric Portal and mark confirmed\n"
+            f"3. Run smoke tests (query data, trigger pipeline, render report)\n"
+            f"4. Write the Validation Report to {pp}/prd/validation-report.md\n"
+            f"   - status: passed (all config confirmed + smoke tests pass)\n"
+            f"   - status: failed (critical config issues)\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
@@ -324,17 +282,6 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
                 outputs.append(f"Signal mapper warning: {result.stderr.strip()}")
         except Exception as e:
             outputs.append(f"Signal mapper skipped: {e}")
-
-    elif phase == "1b-review" and os.path.exists(handoff_path):
-        # Run review prescan
-        cmd = [sys.executable, str(SKILLS_DIR / "fabric-design" / "scripts" / "review-prescan.py"),
-               "--handoff", handoff_path]
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            if result.returncode == 0:
-                outputs.append(f"Review prescan output:\n{result.stdout}")
-        except Exception as e:
-            outputs.append(f"Review prescan skipped: {e}")
 
     elif phase == "2a-test-plan" and os.path.exists(handoff_path):
         # Run test plan prefill
@@ -591,15 +538,15 @@ def advance(project: str, approved: bool = False, revise: bool = False,
             print(f"  📝 Feedback saved to {fb_path.relative_to(REPO_ROOT)}")
 
         state["sign_off_revisions"] = revision_count + 1
-        # Reset phases 1c through 2b for re-run
-        for phase in ["1c-finalize", "2a-test-plan", "2b-sign-off"]:
+        # Reset phases 1-design through 2b for re-run
+        for phase in ["1-design", "2a-test-plan", "2b-sign-off"]:
             state["phases"][phase]["status"] = "pending"
-        state["current_phase"] = "1c-finalize"
-        state["phases"]["1c-finalize"]["status"] = "in_progress"
+        state["current_phase"] = "1-design"
+        state["phases"]["1-design"]["status"] = "in_progress"
 
         _save_state(project, state)
-        print(f"🔄  Revision {revision_count + 1}/3 — Pipeline reset to Phase 1c (Finalize).")
-        print("   The architect will incorporate your feedback and re-finalize.")
+        print(f"🔄  Revision {revision_count + 1}/3 — Pipeline reset to Phase 1 (Design).")
+        print("   The architect will incorporate your feedback and revise.")
         print("   Run 'next' to get the architect prompt.")
         return state
 
@@ -621,14 +568,14 @@ def advance(project: str, approved: bool = False, revise: bool = False,
     state["phases"][current]["status"] = "complete"
 
     # Extract task_flow after architecture phase
-    if current == "1a-design" and not state.get("task_flow"):
+    if current == "1-design" and not state.get("task_flow"):
         tf = _extract_task_flow(project)
         if tf:
             state["task_flow"] = tf
             print(f"  📋 Extracted task_flow: {tf}")
 
-    # Generate compact architecture summary after finalize
-    if current == "1c-finalize":
+    # Generate compact architecture summary after design
+    if current == "1-design":
         _generate_architecture_summary(project)
 
     next_phase = _next_phase(current)

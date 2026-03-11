@@ -47,24 +47,6 @@ quick_decision: |
 
 > Choose how to expose Microsoft Fabric data to external applications, services, and frontends.
 
-## Quick Decision Guide
-
-```
-What does your application need?
-│
-├─► Read data with flexible queries ──────────► GRAPHQL API
-│   (clients choose fields, relationships)
-│
-├─► Custom business logic / transformations ──► USER DATA FUNCTIONS
-│   (validation, writeback, notifications)
-│
-├─► Simple CRUD from internal tools ─────────► DIRECT CONNECTION
-│   (existing SQL apps, admin dashboards)
-│
-└─► Both flexible reads AND custom logic ────► GRAPHQL API + USER DATA FUNCTIONS
-    (GraphQL for reads, UDFs for writes/logic)
-```
-
 ## Comparison Table
 
 | Criteria | GraphQL API | User Data Functions | Direct Connection |
@@ -80,34 +62,6 @@ What does your application need?
 | **Schema Evolution** | Additive — new fields don't break clients | Function signature changes may break | Schema changes break queries |
 | **Monitoring** | Built-in dashboard + request logging | Logs via Python logging module | Application-level |
 | **Maturity** | GA | Preview | GA |
-
-## When to Choose Each
-
-### Choose GRAPHQL API when:
-
-- ✅ Your application needs to **query specific fields** without over-fetching
-- ✅ You want **no backend code** — Fabric auto-generates schema and resolvers
-- ✅ Data is in **Warehouse, SQL Database, or Lakehouse** (SQL endpoint)
-- ✅ Multiple frontends need **different views** of the same data
-- ✅ You need **relationship traversal** (e.g., Customer → Orders → Products in one query)
-- ✅ **Schema evolution** is important — add fields without breaking existing clients
-
-### Choose USER DATA FUNCTIONS when:
-
-- ✅ You need **custom business logic** beyond simple data retrieval
-- ✅ Functions must **write data back** to SQL Database or other stores
-- ✅ You want to **centralize business rules** (validation, transformation, enrichment)
-- ✅ Functions need to **trigger side effects** (send emails, post to Teams, call external APIs)
-- ✅ **Activator rules** should invoke custom logic on events
-- ✅ You want **REST endpoints** callable from any HTTP client
-
-### Choose DIRECT CONNECTION when:
-
-- ✅ Application already has a **SQL data access layer** (Entity Framework, SQLAlchemy, etc.)
-- ✅ Use case is **simple CRUD** on a SQL Database
-- ✅ Application is **internal** and connection management is straightforward
-- ✅ You don't need API-level abstractions or custom business logic
-- ✅ Team prefers **SQL over GraphQL or REST**
 
 ## Combining Approaches
 

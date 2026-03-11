@@ -7,10 +7,10 @@ This is a **documentation-driven** knowledge base with supporting Python scripts
 ```
 Phase 0 — Discover:   @fabric-advisor + /fabric-discover skill
                         │ automatic
-Phase 1 — Design:     /fabric-design skill (DRAFT → Review → FINAL)
+Phase 1 — Design:     /fabric-design skill (produces FINAL architecture)
                         │ automatic
 Phase 2 — Plan+Approve+Deploy:
-                      /fabric-test skill (Test Plan)
+                      /fabric-test skill (Review + Test Plan)
                         │
                       ★ User Sign-Off (ONLY human gate)
                         │
@@ -26,40 +26,32 @@ Phase 4 — Document:    /fabric-document skill
 
 ### Content routing
 
-All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`, `event-analytics`). The 13 task flow IDs map to:
+All content is resolved by **task flow ID** (e.g., `medallion`, `lambda`). Key paths:
 
-| Content | Path pattern |
-|---------|-------------|
-| Project index | `PROJECTS.md` (root-level dashboard) |
-| Task flow overview | `task-flows.md` → H2 anchor (`## Medallion`) |
-| Deployment diagram | `diagrams/{task-flow-id}.md` |
-| Validation checklist | `_shared/registry/validation-checklists.json` |
-| Project status | `_projects/{workspace}/STATUS.md` |
-| Project documentation | `_projects/{workspace}/docs/` |
-| Project deployments | `_projects/{workspace}/deployments/` |
-
-Decision guides live in `decisions/` and are shared across task flows. Shared reference content (workflow guide, item type registry, operational learnings) lives in `_shared/`. Skill-specific references (prerequisites, CLI commands, deployment patterns, templates) live in each skill's `references/` subdirectory.
+| Content | Path |
+|---------|------|
+| Task flow overview | `task-flows.md` → H2 anchor |
+| Decision guides | `decisions/_index.md` → specific guide |
+| Project PRDs | `_projects/{workspace}/prd/` |
+| Project docs | `_projects/{workspace}/docs/` |
 
 ### Directory indexes
 
-Each content directory has an `_index.md` routing table that agents should read first:
-
-| Directory | Index | Purpose |
-|-----------|-------|---------|
-| `decisions/` | `decisions/_index.md` | Find decision guides by ID; use `quick_decision` in YAML frontmatter for fast resolution |
-| `diagrams/` | `diagrams/_index.md` | Find deployment diagram by task flow; includes item/wave counts |
-
-**Agent context loading rule:** Read the `_index.md` first, then fetch only the specific file needed. Do not scan entire directories. Decision guide YAML frontmatter contains a `quick_decision` field with a compact decision tree — resolve from frontmatter before reading the full guide body.
-
-**Deployment order registry:** Use `_shared/registry/deployment-order.json` for programmatic access to deployment orders. This is the canonical source of truth — markdown tables in diagram files are for human visualization only. Load via `from diagram_parser import get_deployment_items`.
-
-### Project scaffolding
-
-New projects are scaffolded via `python _shared/scripts/run-pipeline.py start "Project Name" --problem "description"`, which calls `new-project.py` internally to create all directories and template files, then initializes `pipeline-state.json` for phase tracking. Agents edit pre-existing files — they do not create directories or boilerplate. See `_shared/workflow-guide.md` for details.
+Read `_index.md` first, then fetch only the specific file needed. Decision guide YAML frontmatter contains a `quick_decision` field — resolve from frontmatter before reading the full body.
 
 ### Agent context efficiency
 
-> **⚠️ Always use `-q` with `advance`.** The pipeline runner echoes full PRD document contents after each phase transition. Agents already have this context (they just wrote the documents), so the echo wastes tokens. Use `python _shared/scripts/run-pipeline.py advance --project <name> -q` to suppress document echo and signoff diagram — only the phase status summary is printed.
+> **⚠️ Always use `-q` with `advance`** to suppress document echo.
+
+> **⚠️ NEVER read raw JSON, diagram files, or decision guide bodies directly.** Use Python tools:
+> - `decision-resolver.py` — resolves all 7 architectural decisions from signals
+> - `diagram_parser.get_deployment_items(task_flow)` — deployment order
+> - `registry_loader.build_*()` — item type metadata
+> - `test-plan-prefill.py` — registry data for test planning
+> - `validate-items.py` — validation checklists
+> - `signal-mapper.py` — signal category mapping
+>
+> Only read a decision guide body when `decision-resolver.py` returns `confidence: ambiguous`.
 
 ### Orchestrator agent (`.github/agents/`)
 
@@ -71,48 +63,33 @@ New projects are scaffolded via `python _shared/scripts/run-pipeline.py start "P
 
 Skills are composable, auto-activating instruction packs that do the actual work. Each skill has a `SKILL.md` with trigger phrases, bundled references, and focused single-workflow instructions.
 
-| Skill | Phase | Purpose | Constraint |
-|-------|-------|---------|------------|
-| `/fabric-discover` | 0a | Signal inference from problem statements | Read-only analysis; never decides task flow |
-| `/fabric-design` | 1a, 1b, 1c | DRAFT → Review → FINAL architecture | Never deploys |
-| `/fabric-test` | 2a, 3 | Test plan + post-deployment validation | Never invents ACs |
-| `/fabric-deploy` | 2c, 3+ | Wave-based deployment + remediation | Never makes architecture decisions |
-| `/fabric-document` | 4 | Wiki + ADR synthesis from handoffs | Documents only |
-| `/fabric-heal` | Standalone | Self-healing signal mapper (problem generation + keyword patching) | Never modifies matching algorithm |
+| Skill | Phase | Constraint |
+|-------|-------|------------|
+| `/fabric-discover` | 0a | Never decides task flow |
+| `/fabric-design` | 1a–1c | Never deploys |
+| `/fabric-test` | 2a, 3 | Never invents ACs |
+| `/fabric-deploy` | 2c, 3+ | Never makes architecture decisions |
+| `/fabric-document` | 4 | Documents only |
+| `/fabric-heal` | Standalone | Never modifies matching algorithm |
 
-Skills exchange structured **handoff documents** (Discovery Brief → Architecture Handoff → Test Plan → Deployment Handoff → Validation Report → Wiki Documentation). See each skill's `SKILL.md` for instructions. At Phase 2b (sign-off), the user can approve or request revisions (max 3 cycles) — see `_shared/workflow-guide.md`.
-
-### Decision guides (`decisions/`)
-
-Each guide uses **YAML frontmatter** with `id`, `title`, `description`, `triggers` (phrases that should route to this guide), and `options` (structured criteria for each choice). The body contains comparison tables, decision trees, and "when to use" guidance.
+Skills exchange structured **handoff documents**. See each skill's `SKILL.md` for instructions and `_shared/workflow-guide.md` for the full pipeline.
 
 ## Key Conventions
 
-> For contributor guidelines (adding task flows, diagram conventions, git workflow), see [CONTRIBUTING.md](../CONTRIBUTING.md).
+> For contributor guidelines, see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ### Deployment tooling
 
-> **⚠️ `fabric-cicd` is the ONLY deployment dependency.** Do NOT introduce `ms-fabric-cli` (`fab`) or other CLI tools. All deployment and validation uses `fabric-cicd` and the Fabric REST API.
-
-The `fabric-cicd` library (`pip install fabric-cicd`) handles deployment and provides the transitive dependencies (`azure-identity`, `requests`) used for REST API validation. The `/fabric-deploy` skill's `deploy-script-gen.py` generates `fabric-cicd` workspace directories, config files, and deploy scripts. Post-deployment validation uses `validate-items.py` which calls the Fabric REST API directly. See the deploy skill's `references/prerequisites.md` for setup.
+> **⚠️ `fabric-cicd` is the ONLY deployment dependency.** Do NOT introduce `ms-fabric-cli` or other CLI tools.
 
 ### Architecture vs. deployment details
 
-- **Architect** produces the conceptual blueprint (items, patterns, data flow). **Engineer** collects implementation details (connection GUIDs, credentials) at deploy time.
-- **Structural ACs** = verifiable after item creation. **Data Flow ACs** = verifiable after connections/data are configured.
-- **Architecture Blockers** = block sign-off. **Deployment Blockers** = block engineer only.
-
-### Sign-off revision loop
-
-At Phase 2b, the user can either approve the architecture or request revisions:
-- `advance --approve` → proceed to deployment
-- `advance --revise --feedback "..."` → save feedback, reset to Phase 1c (architect incorporates changes), then re-run test plan and sign-off
-- Maximum 3 revision cycles before the user must approve or abandon
+- **Architect** = conceptual blueprint. **Engineer** = implementation details at deploy time.
+- **Structural ACs** = verifiable after item creation. **Data Flow ACs** = verifiable after connections configured.
 
 ### Deployment practices
 
-- **Deployment:** `fabric-cicd` library — see fabric-deploy skill's `references/prerequisites.md`
-- **Validation:** `validate-items.py` (REST API) — see fabric-test skill
-- **CI/CD:** `fabric-cicd` library — see fabric-design skill's `references/cicd-practices.md`
-- **Parameterization:** Variable Library (preferred), parameter.yml, or env vars — see `decisions/parameterization-selection.md`
-- **Parallel deployment:** Waves from `diagrams/[task-flow].md` — see fabric-deploy skill's `references/parallel-deployment.md`
+- **Deployment + CI/CD:** `fabric-cicd` library — see deploy skill's `references/prerequisites.md` and design skill's `references/cicd-practices.md`
+- **Validation:** `validate-items.py` (REST API)
+- **Parameterization:** Variable Library (preferred) — see `decisions/parameterization-selection.md`
+- **Deployment order:** `diagram_parser.get_deployment_items()` — see deploy skill's `references/parallel-deployment.md`

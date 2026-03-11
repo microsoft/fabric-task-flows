@@ -19,8 +19,6 @@ pre-compute: [signal-mapper]
 
 # Fabric Discovery
 
-Infer architectural signals from a user's data problem statement and produce a structured Discovery Brief that the `fabric-design` skill consumes.
-
 ## Instructions
 
 ### Step 1: Gather Problem Statement
@@ -103,6 +101,4 @@ Write to `_projects/[name]/prd/discovery-brief.md`:
 
 ## Pipeline Handoff
 
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.
-
-After producing the Discovery Brief, advance the pipeline to Phase 1a (Design).
+After producing the Discovery Brief, advance to Phase 1a (Design).

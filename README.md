@@ -127,98 +127,20 @@ Each skill also bundles pre-compute scripts (e.g., `signal-mapper.py`, `deploy-s
 
 ## 📁 Repository Structure
 
-```
-task-flows/
-├── LICENSE                            # MIT License
-├── CONTRIBUTING.md                    # Contributor guidelines (task flows, diagrams, git workflow)
-├── PROJECTS.md                        # Mission control — all projects at a glance
-├── legend.md                          # Diagram symbols ([LC], [CF], ──►, OR)
-├── task-flows.md                      # All 13 task flow patterns (consolidated)
-├── .gitignore                         # Excludes __pycache__, projects/, .env
-├── .github/
-│   ├── copilot-instructions.md        # System-level agent context
-│   ├── agents/                        # GitHub Copilot custom agent
-│   │   └── fabric-advisor.agent.md    # Orchestrator — discovery + skill delegation
-│   └── skills/                        # Composable skills (6 skills)
-│       ├── fabric-discover/           # Phase 0a — signal inference
-│       │   ├── SKILL.md
-│       │   └── scripts/signal-mapper.py
-│       ├── fabric-design/             # Phases 1a, 1b, 1c — architecture lifecycle
-│       │   ├── SKILL.md
-│       │   ├── scripts/               # decision-resolver, handoff-scaffolder, review-prescan, diagram-gen, diagram-validator
-│       │   ├── references/            # adr-template, cicd-practices
-│       │   └── schemas/               # engineer-review, tester-review
-│       ├── fabric-test/               # Phases 2a, 3 — test plan + validation
-│       │   ├── SKILL.md
-│       │   ├── scripts/               # check-drift, test-plan-prefill, validate-items.py
-│       │   ├── references/            # validation-report-template
-│       │   └── schemas/               # test-plan, validation-report, remediation-log
-│       ├── fabric-deploy/             # Phase 2c — wave-based deployment
-│       │   ├── SKILL.md
-│       │   ├── scripts/               # deploy-script-gen, taskflow-gen, taskflow-template-gen
-│       │   ├── references/            # prerequisites, parallel-deployment, rollback-protocol, verified-item-definitions
-│       │   └── schemas/               # deployment-handoff, phase-progress
-│       ├── fabric-document/           # Phase 4 — wiki + ADR synthesis
-│       │   ├── SKILL.md
-│       │   └── references/            # documentation-templates, adr-template
-│       └── fabric-heal/               # Standalone — signal mapper self-healing
-│           ├── SKILL.md
-│           ├── problem-statements.md
-│           └── scripts/               # analyze-inefficiencies, heal-orchestrator, self-heal
-├── decisions/                         # Decision guides (7 guides)
-│   ├── _index.md                      # Routing table — agents read this first
-│   ├── storage-selection.md
-│   ├── ingestion-selection.md
-│   ├── processing-selection.md
-│   ├── visualization-selection.md
-│   ├── skillset-selection.md
-│   ├── parameterization-selection.md
-│   └── api-selection.md
-├── diagrams/                          # Deployment diagrams per task flow
-│   ├── _index.md                      # Routing table with item/wave counts
-│   └── {task-flow}.md                 # 13 diagrams — phased deployment flow, dependency order
-├── _shared/                           # Shared infrastructure
-│   ├── registry/                      # Canonical JSON data files
-│   │   ├── item-type-registry.json    # Single source of truth for Fabric item types
-│   │   ├── deployment-order.json      # Canonical deployment order for all task flows
-│   │   ├── validation-checklists.json # Post-deployment manual steps and phases
-│   │   ├── signal-categories.json     # Signal mapping categories
-│   │   └── general-task-flow-schema.json  # Task flow JSON schema
-│   ├── lib/                           # Shared Python modules
-│   │   ├── registry_loader.py         # Item type metadata loader
-│   │   ├── diagram_parser.py          # Deployment order registry loader
-│   │   ├── yaml_utils.py              # YAML extraction and parsing
-│   │   ├── text_utils.py              # Slugify and text utilities
-│   │   └── banner.py                  # CLI banner display
-│   ├── scripts/                       # Pipeline utilities
-│   │   ├── run-pipeline.py            # Pipeline orchestrator
-│   │   ├── new-project.py             # Project scaffolder
-│   │   ├── fleet-runner.py            # Batch project runner
-│   │   └── sync-item-types.py         # Registry alignment
-│   ├── tests/                         # Automated tests
-│   │   ├── test_registry_loader.py    # Item-type registry validation
-│   │   ├── test_deploy_script_gen.py  # Deploy script correctness
-│   │   ├── test_taskflow_gen.py       # Task flow JSON schema compliance
-│   │   ├── test_text_utils.py         # Slugify and text utilities
-│   │   └── test_yaml_utils.py         # YAML extraction and parsing
-│   ├── workflow-guide.md              # Pipeline orchestration guide
-│   └── learnings.md                   # Accumulated operational learnings
-├── _projects/                         # Per-project documentation (local only — gitignored)
-│   └── {workspace-name}/
-│       ├── STATUS.md                  # Phase log, blockers, wave progress
-│       ├── pipeline-state.json        # Pipeline orchestration state
-│       ├── prd/                       # Skill handoff documents
-│       │   ├── discovery-brief.md
-│       │   ├── architecture-handoff.md
-│       │   ├── engineer-review.md
-│       │   ├── tester-review.md
-│       │   ├── test-plan.md
-│       │   ├── deployment-handoff.md
-│       │   └── validation-report.md
-│       ├── docs/                      # Architecture docs, ADRs
-│       └── deployments/               # Generated deploy scripts
-└── README.md
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full directory tree and contributor guidelines.
+
+Key directories:
+
+| Directory | Purpose |
+|-----------|---------|
+| `.github/agents/` | Orchestrator agent (`@fabric-advisor`) |
+| `.github/skills/` | 6 composable skills (discover, design, test, deploy, document, heal) |
+| `decisions/` | 7 decision guides with YAML frontmatter |
+| `diagrams/` | 13 deployment diagrams (human reference — use `diagram_parser` for programmatic access) |
+| `_shared/registry/` | Canonical JSON data (use Python tools, not raw reads) |
+| `_shared/lib/` | Shared Python modules (`registry_loader`, `diagram_parser`, etc.) |
+| `_shared/scripts/` | Pipeline utilities (`run-pipeline.py`, `new-project.py`, `file-audit.py`) |
+| `_projects/` | Per-project documentation (gitignored) |
 
 ## 📂 Content Routing
 
@@ -235,26 +157,7 @@ All content resolves by **task flow ID** (e.g., `medallion`, `lambda`, `event-an
 
 ## 📝 Contributing
 
-### Adding a New Task Flow
-
-1. Add H2 section to `task-flows.md` with standard structure
-2. Create `diagrams/{task-flow-id}.md` with phased deployment flow
-3. Add entry to `_shared/registry/validation-checklists.json` with manual_steps, phases, and checklist items
-4. Update `diagrams/_index.md` with the new entry
-5. Reference decision guides in the task-flows.md section
-6. Run `python .github/skills/fabric-test/scripts/check-drift.py --check` to verify consistency
-
-### Adding a Decision Guide
-
-1. Create `decisions/{guide-id}.md` with YAML frontmatter (`id`, `title`, `description`, `triggers`, `options`, `quick_decision`)
-2. Add entry to `decisions/_index.md`
-3. Update this README's decision guides table
-
-### Updating Skills
-
-Skill files are in `.github/skills/`. Each SKILL.md includes trigger phrases, bundled references, and pre-compute script declarations. The single agent (`@fabric-advisor`) is in `.github/agents/`.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full details on scripts, pipeline state, and conventions.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding task flows, decision guides, updating skills, and git workflow conventions.
 
 ## 📄 License
 

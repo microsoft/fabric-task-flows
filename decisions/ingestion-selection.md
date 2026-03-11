@@ -105,20 +105,9 @@ quick_decision: |
 
 > Choose the right method to get data into Microsoft Fabric. Start with the **4 V's assessment** to understand your data profile, then use the reference matrix and tool guide to pick the right tool.
 >
-> **Agents:** Resolve from `quick_decision` in frontmatter first. Only read body for edge cases.
+> **Agents:** Use `decision-resolver.py` — do NOT read this file unless resolver returns ambiguous.
 
-## The 4 V's Assessment
-
-Before choosing an ingestion method, assess your project across four dimensions:
-
-| Dimension | Question | Options | Guides To |
-|-----------|----------|---------|-----------|
-| **Volume** | How much data? | Small–medium (< 1 GB) → Dataflow Gen2 · Large–very large (> 1 GB) → Notebooks, Copy Job, Pipeline (Copy activity) | Tool selection below |
-| **Velocity** | How fast? | Real-time → Eventstream, Mirroring · Always-live → Shortcut, Fabric Link · Batch → Pipeline, Dataflow Gen2, Copy Job | Tool selection below |
-| **Variety** | What types? | Sources: DBs, files, APIs, SaaS, sensors · Shapes: structured, semi-structured, unstructured · Landing: see [Storage Selection](storage-selection.md) | Variety section below |
-| **Versatility** | What skills? | Low-code: Pipelines, Dataflow Gen2, Eventstream, Copy Job · Code-first: Notebooks | [Skillset Selection](skillset-selection.md) |
-
-### Reference Matrix
+## Reference Matrix
 
 | Tool | Volume | Velocity | Variety (Sources) | Versatility | Transformation | Scheduling | Complexity |
 |------|--------|----------|-------------------|-------------|----------------|------------|------------|
@@ -130,19 +119,6 @@ Before choosing an ingestion method, assess your project across four dimensions:
 | **Mirroring** | Any | Continuous CDC | Azure SQL, Azure SQL MI, Cosmos DB, Snowflake, Databricks, SQL Server 2025, MySQL (preview), PostgreSQL (preview) | Low-code [LC] | None | Automatic | Low |
 | **Shortcut** | Any | Always live (zero-copy) | ADLS Gen2, S3, GCS, cross-workspace Fabric items | Low-code [LC] | None | N/A (always live) | Very Low |
 | **Fabric Link** | Any | Continuous sync | Dataverse (Dynamics 365, Power Platform) | Low-code [LC] | None | Automatic | Low |
-
-## When to Choose Each
-
-| Tool | Choose When | Example Use Cases |
-|------|------------|-------------------|
-| **Copy Job** | Simple data movement, no transforms, quick setup, one-to-one copy | Copy Blob→Lakehouse, CSV/Parquet load, simple DB extraction |
-| **Dataflow Gen2** | Visual no-code transforms, business user ETL, Power Query compatible | Cleanse+reshape before load, merge sources, pivot/unpivot |
-| **Pipeline** | Complex orchestration, conditional logic, multi-step ETL, error handling | Medallion orchestration, trigger notebooks, parameterized runs |
-| **Notebook** | Custom API ingestion, proprietary formats, sensor/IoT parsing, code-first team | REST API with custom auth, wearable sensor data, video/media processing, web scraping |
-| **Eventstream** | Real-time streaming, sub-minute freshness, IoT sensors (streaming), logs | IoT ingestion, application logs, clickstream, live monitoring |
-| **Mirroring** | Replicate entire database, CDC without code, near-real-time sync | Azure SQL→Lakehouse, Cosmos DB replication, Snowflake mirror |
-| **Shortcut** | Data already in ADLS/S3/GCS/OneLake, zero-copy, cross-workspace sharing | Reference existing Delta tables, share Gold layer, multi-cloud access |
-| **Fabric Link** | Dataverse source (Dynamics 365, Power Platform), zero-ETL sync | Dynamics 365 analytics, Power Platform data in Fabric |
 
 ## Combining Ingestion Methods
 
@@ -158,68 +134,6 @@ Before choosing an ingestion method, assess your project across four dimensions:
 | **Custom source (no connector)** | Notebook (standalone) | Via Pipeline or manual |
 | **Sensor/IoT batch (proprietary)** | Notebook (standalone) | Via Pipeline or manual |
 | **Platform migration** | Copy Job + Pipeline (phased cutover) | Pipeline schedule |
-
-## Variety — What Types of Data?
-
-### Source Types
-
-| Source Category | Examples | Best Tool |
-|----------------|----------|-----------|
-| **Databases** | SQL Server, Azure SQL MI, Oracle, MySQL, PostgreSQL | Copy Job, Pipeline, Mirroring |
-| **Files** | CSV, Parquet, JSON, Excel, XML | Copy Job, Dataflow Gen2 |
-| **APIs** | REST endpoints, OData feeds | Dataflow Gen2, Pipeline + Notebook |
-| **Sensors / IoT** | Wearables, GPS, telemetry, proprietary protocols | Eventstream (streaming) or Notebook (batch) |
-| **SaaS Apps** | Salesforce, Dynamics 365, SharePoint | Dataflow Gen2 (built-in connectors) |
-| **Streaming** | Event Hubs, Kafka, IoT Hub, custom apps | Eventstream |
-| **Cloud / Cross-workspace / Multi-cloud** | ADLS Gen2, S3, GCS, OneLake, Databricks | Shortcut (zero-copy) |
-| **Dataverse** | Dynamics 365, Power Platform apps | Fabric Link |
-
-### Data Shapes
-
-| Shape | Examples | Considerations |
-|-------|----------|---------------|
-| **Structured** | Relational tables, typed CSV | Any tool works — Copy Job is simplest |
-| **Semi-structured** | JSON, CSV with variable schemas, XML | Dataflow Gen2 (flatten/parse) or Notebook (schema-on-read) |
-| **Unstructured** | Logs, media, documents | Notebook (custom parsing) or Pipeline + Notebook |
-
-### Landing Targets
-
-Where data lands determines which ingestion tools are compatible:
-
-| Ingestion Method | Lakehouse | Warehouse | Eventhouse | SQL Database | CosmosDB |
-|------------------|-----------|-----------|------------|--------------|----------|
-| **Copy Job** | ✅ | ✅ | ❌ | ✅ | ❌ |
-| **Dataflow Gen2** | ✅ | ✅ | ❌ | ✅ | ❌ |
-| **Pipeline** | ✅ | ✅ | ✅ (via activities) | ✅ | ✅ (via activities) |
-| **Notebook** | ✅ | ✅ (via T-SQL) | ❌ | ✅ (via T-SQL) | ✅ (via SDK) |
-| **Eventstream** | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **Mirroring** | ✅ (output) | ❌ | ❌ | Source only | Source only |
-| **Shortcut** | ✅ (Files or Tables) | ❌ | ❌ | ❌ | ❌ |
-| **Fabric Link** | ✅ (Delta tables) | ❌ | ❌ | ❌ | ❌ |
-
-See [Storage Selection](storage-selection.md) for choosing the right landing target based on your use case.
-
-## Guiding Principles
-
-### Consider Team Skills
-
-Match tools to your team's capabilities:
-
-- **T-SQL team** → Pipeline + Copy Activity + Warehouse stored procs
-- **Python/Spark team** → Pipeline + Notebook (maximum flexibility)
-- **Business analysts** → Dataflow Gen2 (Power Query is familiar from Excel/Power BI)
-- **Mixed team** → Pipeline as orchestrator, with Dataflow Gen2 AND Notebook activities
-
-See [Skillset Selection](skillset-selection.md) for the full Versatility assessment.
-
-### Optimize and Monitor
-
-Build observability into your ingestion from day one:
-
-- **Measure** — Track ingestion duration, row counts, and data freshness per run
-- **Alert** — Use Activator or Pipeline failure notifications to catch issues early
-- **Diagnose** — Log source-to-destination lineage so you can trace data quality issues
-- **Baseline** — Establish normal run times before optimizing
 
 ## Anti-Patterns
 

@@ -16,21 +16,20 @@ pre-compute: [deploy-script-gen]
 
 # Fabric Deployment
 
-Deploy Fabric items following the Architecture Handoff's deployment waves, using `fabric-cicd` generated scripts.
-
 ## Instructions
 
 ### Step 1: Verify Sign-Off
 
-Confirm Phase 2b (User Sign-Off) is complete. Never deploy without approval.
+Confirm Phase 2b is complete. Never deploy without approval.
 
 ### Step 2: Load Context
 
-Read in this order:
 1. `_projects/[name]/prd/architecture-handoff.md` — items, waves, dependencies
-2. `diagrams/[task-flow].md` — skip to `## Deployment Order`
-3. `_projects/[name]/prd/test-plan.md` — awareness of what will be validated
-4. `_shared/learnings.md` — known gotchas before deploying
+2. Deployment order — `python -c "import sys; sys.path.insert(0, '_shared/lib'); from diagram_parser import get_deployment_items; print(get_deployment_items('[task-flow]'))"`
+3. `_projects/[name]/prd/test-plan.md` — what will be validated
+4. `_shared/learnings.md` — known gotchas
+
+> Do NOT read `diagrams/*.md` — those are human-only. Use `diagram_parser` or `deployment-order.json` via Python.
 
 ### Step 3: Deploy by Wave
 
@@ -92,7 +91,7 @@ manual_steps:
 
 - Never make architecture decisions — follow the handoff exactly
 - Never proceed to next wave if current wave has failures
-- Always generate Python deploy script for design-only mode (cross-platform)
+- Always generate Python deploy script for design-only mode
 - Implementation Notes and Configuration Rationale are MANDATORY
 
 ---
@@ -124,10 +123,6 @@ If `category: design` → set `outcome: escalated`, STOP. Cannot fix architectur
 Set `outcome: remediated` and advance pipeline to re-trigger QA validation.
 
 Max 3 remediation iterations.
-
-## Pipeline Handoff
-
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.
 
 Mode 1: After deployment → Phase 3 (Validate).
 Mode 2: After remediation → re-trigger validation.

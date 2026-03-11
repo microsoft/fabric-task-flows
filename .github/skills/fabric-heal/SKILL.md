@@ -15,21 +15,13 @@ description: >
 
 # Fabric Signal Mapper Healer
 
-Improve the signal mapper's keyword coverage through iterative problem generation and keyword patching. Invoked by `heal-orchestrator.py`.
-
 ## Mode 1: Generate Problem Statements
 
-**Trigger:** Orchestrator passes `--mode generate --batch-num N`.
+Orchestrator passes `--mode generate --batch-num N`. Write 25 novel problem statements to `problem-statements.md`.
 
-Write 25 novel problem statements to `problem-statements.md` (in this skill's folder).
+### Requirements
 
-### Requirements Per Problem
-
-1. **Realistic** — sounds like an actual enterprise user
-2. **Specific** — data volumes, team sizes, tool names, deadlines, compliance
-3. **Multi-signal** — touches 2-3 signal categories naturally
-4. **Domain-diverse** — industries underrepresented in existing keywords
-5. **Varying complexity** — simple to complex mix
+Realistic (enterprise user), specific (volumes/tools/deadlines), multi-signal (2-3 categories), domain-diverse, varying complexity.
 
 ### Output Format (parser-dependent)
 
@@ -49,23 +41,15 @@ Use 5-8 categories per batch, 3-5 problems per category.
 
 ## Mode 2: Analyze Gaps and Patch Keywords
 
-**Trigger:** Orchestrator passes `--mode heal` with benchmark results.
-
-### Input
-
-Coverage %, zero-candidate count, uncovered terms list.
-
-### Process
+Orchestrator passes `--mode heal` with benchmark results (coverage %, zero-candidate count, uncovered terms).
 
 1. Map uncovered terms to signal categories (1-11)
-2. Edit `.github/skills/fabric-discover/scripts/signal-mapper.py` keyword tuples via `edit` tool
-3. Log changes to `_shared/learnings.md` under "## Healing History"
+2. Edit `signal-mapper.py` keyword tuples (max 15 new per category per iteration)
+3. Log changes to `_shared/learnings.md`
 
 ### Constraints
 
-- Max 15 new keywords per category per iteration
-- Never remove existing keywords
-- Never modify the matching algorithm
+- Never remove existing keywords or modify the matching algorithm
 - Prefer specific terms over generic ones
 
 ## References

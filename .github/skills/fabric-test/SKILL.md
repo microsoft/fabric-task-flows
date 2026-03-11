@@ -1,101 +1,103 @@
 ---
 name: fabric-test
 description: >
-  The QA skill — creates test plans from acceptance criteria and validates
-  deployments against them. Use when user says "create test plan", "validate
-  deployment", "run validation", "map acceptance criteria", "check items",
-  "what should we test", or after architecture is finalized or deployment
-  is complete. Do NOT use for architecture design (use fabric-design) or
-  deployment (use fabric-deploy).
+  The QA skill — reviews architecture for testability, creates test plans from
+  acceptance criteria, and validates deployments. Use when user says "create
+  test plan", "validate deployment", "run validation", "review architecture",
+  "check items", "what should we test", or after architecture is finalized or
+  deployment is complete. Do NOT use for architecture design (use fabric-design)
+  or deployment (use fabric-deploy).
 pre-compute: [test-plan-prefill, validate-items]
 # author: task-flows-team
-# version: 2.0.0
+# version: 3.0.0
 # category: quality
-# tags: [fabric, testing, validation, acceptance-criteria, qa]
+# tags: [fabric, testing, validation, acceptance-criteria, qa, review]
 # pipeline-phases: [2a-test-plan, 3-validate]
 ---
 
 # Fabric Testing & Validation (QA Role)
 
-Covers the full QA lifecycle: write the test plan, then validate after deployment.
-
-## Mode 1: Test Plan (Phase 2a)
+## Mode 1: Architecture Review + Test Plan (Phase 2a)
 
 ### Step 1: Load Architecture
 
-Read `_projects/[name]/prd/architecture-handoff.md` (FINAL). Extract items, acceptance criteria, deployment waves.
+Read `_projects/[name]/prd/architecture-handoff.md` (FINAL). Extract items, ACs, waves.
 
-### Step 2: Load Validation Checklist
+### Step 2: Pre-fill Registry Data
 
-Read task flow data from `_shared/registry/validation-checklists.json` for task-flow-specific validation phases.
+```bash
+python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/[name]/prd/architecture-handoff.md
+```
 
-### Step 3: Map ACs to Test Methods
+Returns structured criteria mappings, validation phases, and test methods from all registries. Use this output for Steps 3–5.
 
-For each acceptance criterion:
-1. Determine test method (REST API check, manual UI check, or dependency check)
-2. Write verification command (REST API endpoint or manual step)
-3. Define expected result (max 20 words)
-4. Assign criticality (critical / high / medium)
-5. Map to validation phase (Foundation → Environment → Ingestion → Transformation → Visualization → ML)
+### Step 3: Architecture Review
 
-### Step 4: Identify Critical Verification Points
+Assess and flag concerns with severity (`red` = blocks deployment, `yellow` = warning):
 
-Define CVPs — checks that, if failed, block deployment.
+- **Testability:** AC specificity, coverage gaps, untestable criteria, edge cases
+- **Feasibility:** Wave ordering, per-item gotchas, missing prerequisites
 
-### Step 5: Document Edge Cases
+### Step 4: Map ACs to Test Methods
 
-- Empty lakehouse at deploy time
-- Environment publish delays
-- Connection timeout scenarios
+For each AC: determine test method (REST API / manual UI / dependency check), write verification command, define expected result (max 20 words), assign criticality, map to validation phase.
+
+### Step 5: Identify CVPs + Edge Cases
+
+CVPs = checks that, if failed, block deployment. Also document edge cases (empty lakehouse, environment publish delays, connection timeouts).
 
 ### Step 6: Produce Test Plan
 
 Write to `_projects/[name]/prd/test-plan.md` using schema `schemas/test-plan.md`.
 
+**Include `## Architecture Concerns` section** if any red or yellow issues found:
+
+```yaml
+concerns:
+  - id: C-01
+    severity: red | yellow
+    category: testability | feasibility
+    finding: "Description of concern (max 20 words)"
+    recommendation: "Suggested fix (max 20 words)"
+```
+
+Set `review_outcome` in frontmatter:
+- `approved` — No red concerns, safe to proceed
+- `concerns` — Has red concerns, user should review before sign-off
+
 ---
 
 ## Mode 2: Post-Deployment Validation (Phase 3)
 
-### Step 1: Load Context
+> **Deployment is deterministic.** If `fabric-cicd` succeeded, items exist. Phase 3 only validates manual configuration and runs smoke tests.
 
-1. `_projects/[name]/prd/test-plan.md` — acceptance criteria mapping
-2. `_projects/[name]/prd/deployment-handoff.md` — what was deployed
-3. `_shared/registry/validation-checklists.json` — task-flow-specific checklist
-4. `_projects/[name]/prd/phase-progress.md` — resume from partial
-5. `_shared/learnings.md` — known timing/propagation gotchas
+### Step 1: Generate Config Checklist
 
-### Step 2: Validate by Phase
-
-Run `validate-items.py` to verify deployed items via the Fabric REST API:
+Run `validate-items.py` to generate the manual configuration checklist:
 
 ```bash
 python .github/skills/fabric-test/scripts/validate-items.py _projects/[name]/prd/deployment-handoff.md
 ```
 
-Execute checks in order: Foundation → Environment → Ingestion → Transformation → Visualization → ML
+### Step 2: Verify Manual Configuration
 
-### Step 3: Categorize Failures
+For each item in `config_checklist`:
+1. Open item in Fabric Portal
+2. Complete the `action` step (e.g., "Create tables, configure security")
+3. Mark `confirmed: true`
 
-| Category | Routed To | Examples |
-|----------|-----------|---------|
-| deployment | engineer | Item missing, fab fails, wrong type |
-| configuration | engineer | Misconfigured setting |
-| transient | engineer | Timing, propagation delay (retry) |
-| design | architect | Wrong architecture (STOP — escalate) |
+### Step 3: Run Smoke Tests
+
+Verify data actually flows:
+- **Query test**: Run a simple query against the Semantic Model / Lakehouse
+- **Pipeline test**: Trigger a test run of the data pipeline
+- **Report test**: Open the Report and verify visuals render
 
 ### Step 4: Produce Validation Report
 
-Write to `_projects/[name]/prd/validation-report.md` using schema `schemas/validation-report.md`.
-
-Required prose: Validation Context (max 100 words), Future Considerations (max 100 words).
-
-### Step 5: Create Remediation Log (if issues)
-
-Write `_projects/[name]/prd/remediation-log.md` using schema `schemas/remediation-log.md`.
-
-### Step 6: Record Learnings
-
-Append operational learnings to `_shared/learnings.md`.
+Update `_projects/[name]/prd/validation-report.md`:
+- Set `status: passed` when all config steps confirmed and smoke tests pass
+- Set `status: failed` if any critical step cannot be completed
 
 ---
 
@@ -104,13 +106,8 @@ Append operational learnings to `_shared/learnings.md`.
 - Every AC must have a test method — no gaps
 - Test methods: max 20 words
 - Never modify Fabric items — validate only
-- Never skip phases in the validation checklist
 - Never invent ACs not in the Architecture Handoff
-- Validation Context and Future Considerations are MANDATORY
-
-## Pipeline Handoff
-
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.
+- Trust deployment success — don't re-verify item existence
 
 Mode 1: After test plan → Phase 2b (User Sign-Off).
 Mode 2: If PASSED → Phase 4 (Document). If PARTIAL/FAILED → remediation loop (max 3).

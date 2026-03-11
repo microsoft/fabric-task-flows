@@ -15,13 +15,11 @@ description: >
 
 # Fabric Documentation
 
-Synthesize all 5 pipeline handoffs into human-readable wiki documentation.
-
 ## Instructions
 
 ### Step 1: Collect Handoffs
 
-Read all 5 handoff documents (parse YAML fields directly, not prose):
+Parse YAML fields (not prose) from all 5 handoff documents:
 
 | Handoff | Source | File |
 |---------|--------|------|
@@ -62,7 +60,7 @@ The architect wrote initial ADR drafts during Phase 1a. Your job:
 5. Write any missing ADRs from the Architecture Handoff
 6. Include `006-cicd.md` only for multi-environment projects
 
-Use template from `references/adr-template.md`.
+Use template from `../fabric-design/references/adr-template.md`.
 
 ## Constraints
 
@@ -73,6 +71,4 @@ Use template from `references/adr-template.md`.
 
 ## Pipeline Handoff
 
-> **⚠️ ORCHESTRATION:** Use `run-pipeline.py advance -q && next` for phase transitions. Always use `-q` to suppress document echo — agents already have this context.
-
-After documentation is complete, the pipeline is finished. Update PROJECTS.md status to "Documented ✅".
+After documentation is complete, update PROJECTS.md status to "Documented ✅".

@@ -76,24 +76,6 @@ quick_decision: |
 
 > Choose the right Fabric storage type based on your query language, schema requirements, and workload patterns.
 
-## Quick Decision Guide
-
-```
-What's your PRIMARY query language?
-│
-├─► Spark/Python ──────────────────► LAKEHOUSE
-│
-├─► T-SQL (analytics) ─────────────► WAREHOUSE
-│
-├─► T-SQL (transactional) ─────────► SQL DATABASE
-│
-├─► KQL (time-series) ─────────────► EVENTHOUSE
-│
-├─► NoSQL / Document data ──────────► COSMOS DB
-│
-└─► PostgreSQL ────────────────────► POSTGRESQL
-```
-
 ## Comparison Table
 
 | Criteria | Lakehouse | Warehouse | Eventhouse | SQL Database | Cosmos DB | PostgreSQL |
@@ -107,66 +89,6 @@ What's your PRIMARY query language?
 | **Stored Procedures** | ❌ No | ✅ T-SQL procs | ❌ No | ✅ T-SQL procs | ❌ No (use UDFs instead) | ✅ PL/pgSQL |
 | **Real-Time Ingestion** | Via Eventstream | Limited | ✅ Native | Limited | Limited | Limited |
 | **Semantic Model** | ✅ Direct Lake mode | ✅ Direct Lake / Import / DirectQuery | ✅ DirectQuery | ✅ DirectQuery (via OneLake mirroring: Direct Lake) | ✅ Direct Lake (via OneLake mirror) | ✅ DirectQuery |
-
-## When to Choose Each
-
-### Choose LAKEHOUSE when:
-
-- ✅ Your team works primarily with **Spark, Python, or PySpark**
-- ✅ You need **schema flexibility** for iterative development
-- ✅ **Machine learning** and data science are primary use cases
-- ✅ You want **Delta Lake features** (time travel, ACID transactions on files)
-- ✅ Data volumes are large and **read-heavy**
-- ✅ You prefer **lower compute costs** over query optimization
-- ✅ You need to query **semi-structured data** (JSON, nested structures)
-
-### Choose WAREHOUSE when:
-
-- ✅ Your team is experienced with **T-SQL**
-- ✅ You need **stored procedures, views, and functions**
-- ✅ **BI reporting** is the primary consumption pattern
-- ✅ You require **strict schema enforcement** from the start
-- ✅ You need **read-write access** for data manipulation
-- ✅ **Query performance** is more important than storage cost
-- ✅ Business analysts are primary users (familiar with SQL Server)
-
-### Choose EVENTHOUSE when:
-
-- ✅ Data is **time-series** (IoT sensors, logs, telemetry, clickstreams)
-- ✅ You need **sub-second query latency** on recent data
-- ✅ **Real-time dashboards** are required
-- ✅ Data arrives via **streaming** (Eventstream, Event Hubs)
-- ✅ You're comfortable with **KQL (Kusto Query Language)**
-- ✅ **High-volume ingestion** (millions of events per second)
-- ✅ Queries focus on **time-windowed aggregations**
-
-### Choose SQL DATABASE when:
-
-- ✅ You need **OLTP transactional** capabilities
-- ✅ Applications will **write data back** to the database
-- ✅ You need **referential integrity** with foreign keys
-- ✅ Use case is **operational/transactional** (not just analytics)
-- ✅ You're building **translytical** patterns (operational + analytical)
-- ✅ Power BI reports need **writeback** functionality
-
-### Choose COSMOS DB when:
-
-- ✅ Data is **semi-structured or document-oriented** (JSON, nested objects)
-- ✅ Schema **evolves frequently** and you need schema-less flexibility
-- ✅ You need **AI capabilities** — vector search, full-text search, hybrid search with RRF
-- ✅ Application requires **limitless auto-scaling** with low latency
-- ✅ Use case is a **high-concurrency serving layer** (thousands of simultaneous users)
-- ✅ You're building **AI-powered apps** with RAG patterns and embeddings
-- ✅ Data model doesn't fit relational constraints (no foreign keys needed)
-- ✅ You want automatic **OneLake mirroring** for analytics without ETL
-
-### Choose POSTGRESQL when:
-
-- ✅ You need **open-source SQL** compatibility
-- ✅ Application already uses **PostgreSQL**
-- ✅ You need **geospatial queries** (PostGIS)
-- ✅ Team prefers **PostgreSQL ecosystem** tools
-- ✅ You want **flexible deployment** options
 
 ## Common Patterns
 

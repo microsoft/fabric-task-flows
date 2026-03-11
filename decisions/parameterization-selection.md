@@ -47,22 +47,6 @@ quick_decision: |
 
 > Choose the right approach for managing environment-specific configuration across Fabric deployment stages.
 
-## Quick Decision Guide
-
-```
-How many deployment environments?
-│
-├─► Single environment ──────────► ENVIRONMENT VARIABLES (or skip parameterization)
-│
-└─► Multiple environments (Dev/PPE/Prod)
-    │
-    ├─► Using Fabric Git integration? ──► VARIABLE LIBRARY
-    │
-    ├─► Using fabric-cicd library? ──────► parameter.yml
-    │
-    └─► Using deploy scripts? ─────────► ENVIRONMENT VARIABLES or VARIABLE LIBRARY
-```
-
 ## Comparison Table
 
 | Criteria | Variable Library | parameter.yml | Environment Variables |
@@ -77,30 +61,6 @@ How many deployment environments?
 | **Max Complexity** | 1,000 variables × 1,000 value sets | Unlimited (file-based) | Unlimited (env-based) |
 | **Learning Curve** | Low (portal UI) | Medium (YAML syntax + library) | Low (shell basics) |
 | **Secrets Handling** | ⚠️ Not for secrets — values visible | ⚠️ Not for secrets in YAML | ✅ Secrets stay in env/vault |
-
-## When to Choose Each
-
-### Choose VARIABLE LIBRARY when:
-
-- ✅ You're deploying to **multiple Fabric environments** (Dev, PPE, Prod)
-- ✅ Items need **runtime references** to stage-specific resources (e.g., Notebook → different Lakehouse per stage)
-- ✅ Your team uses **Fabric's built-in Git integration** for source control
-- ✅ You want **one-click stage switching** — activate a value set and all consumers reconfigure
-- ✅ You need **Item Reference** variables to dynamically bind Notebooks, Shortcuts, or User Data Functions
-
-### Choose parameter.yml when:
-
-- ✅ You're using the **`fabric-cicd` Python library** for automated deployment pipelines
-- ✅ Parameterization must happen **at deployment time** (substituting values in item definitions before pushing to Fabric)
-- ✅ You have **Azure DevOps or GitHub Actions** pipelines orchestrating deployments
-- ✅ You need to parameterize **item definitions** (not just runtime references)
-
-### Choose ENVIRONMENT VARIABLES when:
-
-- ✅ **Single environment** project — parameterization is minimal
-- ✅ You use **`fab` CLI scripts** and want to inject values at script execution time
-- ✅ Project is simple enough that a formal parameterization tool is overkill
-- ✅ You need to keep **secrets out of source control** (combine with Azure Key Vault or similar)
 
 ## Combining Approaches
 

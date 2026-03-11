@@ -5,39 +5,28 @@
 ## Overview
 
 ```
-@fabric-advisor ──► /fabric-design (DRAFT → Review → FINAL) ──► /fabric-test (Plan)
-                                                                │
-                                                           YOU (Sign-Off)
-                                                                │
-                                                           /fabric-deploy ──► /fabric-test (Validate) ──► /fabric-document
+@fabric-advisor ──► /fabric-design (FINAL) ──► /fabric-test (Review + Plan)
+                                                       │
+                                                  YOU (Sign-Off)
+                                                       │
+                                                  /fabric-deploy ──► /fabric-test (Validate) ──► /fabric-document
 ```
 
 ---
 
 ## Pipeline Runner (Required)
 
-> ⚠️ **All pipeline orchestration MUST go through `run-pipeline.py`.** Do not call `new-project.py` directly, manually chain agents via `AUTO-CHAIN`, or edit `pipeline-state.json` by hand. Bypassing the runner leaves pipeline state stale, skips pre-compute scripts, and breaks phase verification.
-
-Use the pipeline runner script to manage the full lifecycle. It scaffolds the project, tracks phase state, runs pre-compute scripts, and generates agent prompts — stopping only at Phase 2b for your approval.
+> ⚠️ **All pipeline orchestration MUST go through `run-pipeline.py`.** Do not call scripts directly, chain agents manually, or edit `pipeline-state.json` by hand.
 
 ```bash
-# Start a new pipeline
-python _shared/scripts/run-pipeline.py start "Your Project Name" --problem "describe your problem"
-
-# Check pipeline status
-python _shared/scripts/run-pipeline.py status --project your-project-name
-
-# Get the next agent prompt (after each phase completes)
-python _shared/scripts/run-pipeline.py next --project your-project-name
-
-# Mark current phase complete and advance
-python _shared/scripts/run-pipeline.py advance --project your-project-name
-
-# Reset a phase (for re-runs after fixes)
-python _shared/scripts/run-pipeline.py reset --project your-project-name --phase 1b-review
+python _shared/scripts/run-pipeline.py start "Project Name" --problem "description"
+python _shared/scripts/run-pipeline.py status --project project-name
+python _shared/scripts/run-pipeline.py next --project project-name
+python _shared/scripts/run-pipeline.py advance --project project-name -q
+python _shared/scripts/run-pipeline.py reset --project project-name --phase 1-design
 ```
 
-The runner creates a `pipeline-state.json` file in each project directory that tracks which phases are complete, which agent to invoke next, and whether the transition is automatic or requires human approval.
+The runner creates `pipeline-state.json` to track phase state, run pre-compute scripts, and generate agent prompts.
 
 ### State Ownership
 
@@ -106,34 +95,6 @@ When an agent loses shell/powershell access mid-session, the pipeline would norm
 
 ---
 
-## Step 0: Check Status
-
-Check `PROJECTS.md` for your project's current phase and next action. If your project already exists, the pipeline resumes from wherever it left off.
-
-To start a new project, mention `@fabric-advisor` in chat (the orchestrator) with a description of your problem.
-
----
-
-## New Project Setup
-
-Before invoking any agent, scaffold the project:
-
-```bash
-python _shared/scripts/new-project.py "Your Project Name"
-```
-
-This creates:
-- `_projects/[name]/prd/` — 7 template files for agent handoffs (discovery-brief, architecture-handoff, engineer-review, tester-review, test-plan, deployment-handoff, validation-report)
-- `_projects/[name]/docs/` — README, architecture, deployment-log, and 5 ADR templates
-- `_projects/[name]/deployments/` — empty, for deployment scripts
-- `_projects/[name]/STATUS.md` — phase tracking
-- `_projects/[name]/pipeline-state.json` — pipeline orchestration state (for `run-pipeline.py`)
-- Updates `PROJECTS.md` with a new row
-
-**Agents edit pre-existing files — they do not create directories or boilerplate.** Each template file contains section headers, YAML frontmatter, and HTML comments marking where the agent fills in content.
-
----
-
 ## Phase 0a: Discovery
 
 Mention `@fabric-advisor` and describe your problem — e.g., "We have IoT sensors streaming temperature data and need real-time alerts plus daily trend reports." The advisor asks clarifying questions, infers architectural signals (data velocity, volume, use cases), and produces a **Discovery Brief** with task flow candidates.
@@ -154,33 +115,9 @@ The architect receives the Discovery Brief and selects the best-fit task flow. I
 
 ## Phase 1b: Design Review
 
-The DRAFT is reviewed in parallel by two agents:
+The DRAFT is reviewed for deployment feasibility and testability by the `/fabric-design` skill. Reviews include a `review_outcome` field (`approved` | `revise`). If `revise`, the architect revises and the reviewer re-reviews (max 3 iterations — see Orchestration Rules #2a).
 
-- **Engineer** — checks deployment order, per-item gotchas, prerequisites, capacity, and parallel deployment potential
-- **Tester** — checks acceptance criteria specificity, test coverage gaps, pre-deployment blockers, edge cases, and validation feasibility
-
-> **Performance note:** The `/fabric-design` skill handles design, review, AND finalization in a single skill — no need to invoke separate agents.
-
-### Review Quality Gate (Iterative)
-
-Reviews include a `review_outcome` field (`approved` | `revise`). If either review has `review_outcome: revise` (red-severity findings), the architect revises the DRAFT and the reviewer re-reviews. This cycle repeats until both reviews show `approved` or the maximum of **3 iterations** is reached.
-
-```
-Architect (DRAFT) ──► Reviewer ──► review_outcome?
-                                      │
-                          ┌───────────┴───────────┐
-                          ▼                       ▼
-                    "approved"               "revise"
-                          │                       │
-                          ▼                       ▼
-                    Proceed to 1c      Architect revises DRAFT
-                                              │
-                                              ▼
-                                       Re-invoke Reviewer
-                                       (iteration 2, max 3)
-```
-
-**Produces:** Deployment Feasibility Review → `_projects/[name]/prd/engineer-review.md` + Testability Review → `_projects/[name]/prd/tester-review.md`
+**Produces:** `_projects/[name]/prd/engineer-review.md` + `_projects/[name]/prd/tester-review.md`
 
 ---
 
@@ -202,90 +139,13 @@ The tester receives the FINAL handoff and maps each acceptance criterion to a co
 
 ## Phase 2b: User Sign-Off
 
-> **This is the only step where you — not an agent — make the final call.** Everything before this point is preparation. Everything after it creates real Fabric items in your workspace.
+> **🛑 HUMAN GATE** — This is the only step where you make the final call before deployment begins.
 
-### Why This Matters
+Review the FINAL Architecture Handoff and Test Plan, then approve or request revisions. See **[Sign-Off Guide](sign-off-guide.md)** for the full review checklist, revision loop details, and CLI commands.
 
-The agents have done the analysis: the architect designed the architecture with input from the engineer and tester, and the tester produced a test plan with acceptance criteria. But before anything is deployed, you should review both documents to make sure they match your expectations.
-
-This is your chance to catch misunderstandings, adjust scope, or ask questions — **before** resources are created.
-
-### What You're Reviewing
-
-```
-┌─────────────────────────────────┐     ┌─────────────────────────────────┐
-│   FINAL Architecture Handoff    │     │          Test Plan              │
-│                                 │     │                                 │
-│  • Architecture diagram         │     │  • Acceptance criteria mapped   │
-│  • Task flow selected           │     │  • Critical verification points │
-│  • Decisions + rationale        │     │  • Edge cases identified        │
-│  • Items to deploy              │     │  • Pre-deployment blockers      │
-│  • Deployment order             │     │                                 │
-│  • Alternatives considered      │     │                                 │
-│                                 │     │                                 │
-│  _projects/[name]/prd/            │     │  _projects/[name]/prd/            │
-│  architecture-handoff.md        │     │  test-plan.md                   │
-└─────────────────────────────────┘     └─────────────────────────────────┘
-                         │                         │
-                         └────────┬────────────────┘
-                                  ▼
-                        ✅ Your Approval
-                                  │
-                                  ▼
-                         Phase 2c: Deploy
-```
-
-### Review Checklist
-
-Walk through these before giving the go-ahead:
-
-- **Review the auto-generated architecture diagram** — The pipeline runner automatically generates a validated ASCII diagram from the handoff's items/waves YAML via `.github/skills/fabric-design/scripts/diagram-gen.py`. This diagram is included in the sign-off prompt. It uses proper box-drawing characters with validated borders (no broken boxes). The diagram groups items by deployment wave so you can see what gets created in what order.
-- **Does the architecture diagram clearly show how data flows from your sources to your outputs?** — The diagram should use your actual item names and make the end-to-end pipeline easy to follow
-- **Does the task flow match your problem?** — Re-read the problem statement and make sure the selected pattern still feels right
-- **Are the items what you expected?** — Check the deployment list for anything surprising or missing
-- **Do the decisions make sense for your team?** — Storage, ingestion, processing, and visualization choices should align with your team's skills and preferences
-- **Are acceptance criteria clear enough?** — You'll validate against these after deployment, so make sure they describe success in terms you understand
-- **Any blockers to resolve first?** — The test plan may flag pre-deployment blockers (credentials, data sources, capacity) that need your action
-
-### When You're Ready
-
-- **Approve:** Say "approved" or "go ahead and deploy" to continue the pipeline.
-  ```bash
-  python _shared/scripts/run-pipeline.py advance --project my-project --approve
-  ```
-
-- **Request revisions:** If something doesn't look right, say "revise" with your feedback. The pipeline loops back to the architect (Phase 1c) to incorporate your changes, then regenerates the test plan and returns to sign-off.
-  ```bash
-  python _shared/scripts/run-pipeline.py advance --project my-project --revise --feedback "Change storage from Lakehouse to Warehouse for the Silver layer"
-  ```
-
-  The revision loop runs a maximum of **3 cycles**. After 3 revisions, you must either approve or reset the pipeline.
-
-```
-                         ✅ Your Approval ──────► Phase 2c: Deploy
-                                │
-                          ── OR ──
-                                │
-                         🔄 Request Revisions (max 3 cycles)
-                                │
-                                ▼
-                    ┌───────────────────────┐
-                    │  Phase 1c: Finalize   │◄── Your feedback saved to
-                    │  (Architect revises)  │    prd/sign-off-feedback.md
-                    └───────────┬───────────┘
-                                │
-                                ▼
-                    ┌───────────────────────┐
-                    │  Phase 2a: Test Plan  │
-                    │  (Tester regenerates) │
-                    └───────────┬───────────┘
-                                │
-                                ▼
-                    ┌───────────────────────┐
-                    │  Phase 2b: Sign-Off   │──► Review again
-                    │  (You re-review)      │
-                    └───────────────────────┘
-```
+- **Approve:** `python _shared/scripts/run-pipeline.py advance --project my-project --approve`
+- **Revise:** `python _shared/scripts/run-pipeline.py advance --project my-project --revise --feedback "..."`
+- Maximum 3 revision cycles before you must approve or abandon.
 
 ---
 
@@ -311,39 +171,11 @@ When the user selects **design-only** during architecture (instead of providing 
 
 ## Phase 3: Validate
 
-The tester runs through the task flow's validation checklist against the live deployment. It checks every item the engineer created, verifies acceptance criteria from the test plan, and flags anything that doesn't match expectations.
+The tester validates the live deployment against the test plan and validation checklists. Issues enter a validate-remediate loop (max 3 iterations — see Orchestration Rules #7a/#7b). Design issues are escalated.
 
-### Validate-Remediate Loop (Iterative)
+Issues are tracked in `_projects/[name]/prd/remediation-log.md`.
 
-When validation finds deployment or configuration issues, the pipeline enters a remediation loop instead of immediately proceeding to documentation:
-
-```
-Engineer (Deploy) ──► Tester (Validate) ──► validation status?
-                          ▲                       │
-                          │           ┌───────────┴───────────────┐
-                          │           ▼                           ▼
-                          │     "PASSED"                   "PARTIAL/FAILED"
-                          │           │                           │
-                          │           ▼                    categorize issues
-                          │     Proceed to                        │
-                          │     Phase 4                  ┌────────┴────────┐
-                          │                              ▼                ▼
-                          │                     deployment/config     design issues
-                          │                     issues                    │
-                          │                         │                     ▼
-                          │                         ▼               ESCALATE (stop)
-                          │                  Engineer (Remediate)
-                          │                         │
-                          └─────────────────────────┘
-                                              (max 3 iterations)
-```
-
-Issues are tracked in `_projects/[name]/prd/remediation-log.md`. The loop exits when:
-- ✅ All issues resolved → proceed to Phase 4 (Document)
-- 🛑 Design issues found → escalate to architect/user
-- 🛑 Max 3 remediation iterations reached → escalate to user
-
-**Produces:** Validation Report → `_projects/[name]/prd/validation-report.md` (PASSED / PARTIAL / FAILED) + Remediation Log → `_projects/[name]/prd/remediation-log.md` (if issues found)
+**Produces:** Validation Report → `_projects/[name]/prd/validation-report.md` (PASSED / PARTIAL / FAILED) + Remediation Log (if issues found)
 
 ---
 
@@ -407,25 +239,9 @@ Each agent reads the previous agent's output from the project folder. The orches
 | /fabric-design (finalize) | `prd/engineer-review.md` + `prd/tester-review.md` | `prd/architecture-handoff.md` (updated to FINAL) | Markdown + YAML data blocks |
 | /fabric-test (plan) | `prd/architecture-handoff.md` (FINAL) | `_projects/[name]/prd/test-plan.md` | YAML schema |
 | /fabric-deploy | `prd/architecture-handoff.md` + `prd/test-plan.md` | `_projects/[name]/prd/deployment-handoff.md` + `prd/phase-progress.md` | YAML schema |
-| /fabric-test (validate) | `prd/deployment-handoff.md` + `_shared/registry/validation-checklists.json` | `_projects/[name]/prd/validation-report.md` + `prd/remediation-log.md` | YAML schema |
+| /fabric-test (validate) | `prd/deployment-handoff.md` + validation checklists (via `validate-items.py`) | `_projects/[name]/prd/validation-report.md` + `prd/remediation-log.md` | YAML schema |
 | /fabric-deploy (remediate) | `prd/remediation-log.md` | `prd/remediation-log.md` (updated) + `prd/phase-progress.md` | YAML schema |
 | /fabric-document | All 5 documents in `prd/` | `_projects/[name]/docs/` | Markdown (wiki output) |
-
----
-
-## Quick Reference
-
-| Phase | What Happens | Produces |
-|-------|-------------|----------|
-| 0a — Discovery | Advisor analyzes your problem and infers architectural signals | Discovery Brief → `prd/discovery-brief.md` |
-| 1a — Design | Architect selects task flow and makes design decisions | DRAFT handoff → `prd/architecture-handoff.md` |
-| 1b — Review | Engineer + Tester review DRAFT in parallel (iterates until `approved` or max 3 cycles) | Reviews → `prd/engineer-review.md` + `prd/tester-review.md` |
-| 1c — Finalize | Architect incorporates review feedback | FINAL handoff → `prd/architecture-handoff.md` (updated) |
-| 2a — Test Plan | Tester maps acceptance criteria to validation checks | Test Plan → `prd/test-plan.md` |
-| **2b — Sign-Off** | **🛑 You review and approve** | **Your approval** |
-| 2c — Deploy | Engineer deploys items by dependency wave, tracks progress | Deployment handoff → `prd/deployment-handoff.md` + `prd/phase-progress.md` |
-| 3 — Validate | Tester validates deployment; routes issues for remediation if needed (max 3 cycles) | Validation Report → `prd/validation-report.md` + `prd/remediation-log.md` |
-| 4 — Document | Documenter synthesizes all handoffs into wiki + ADRs | Project docs → `docs/` |
 
 ---
 

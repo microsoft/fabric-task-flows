@@ -60,34 +60,6 @@ quick_decision: |
 
 > Choose the right method to transform and process data based on your interactivity needs, scheduling requirements, and team skills.
 
-## Quick Decision Tree
-
-```
-What's your PRIMARY use case?
-│
-├─► Interactive exploration / development
-│   │
-│   ├─► Python/Spark code ───────────────────► NOTEBOOK
-│   │
-│   ├─► KQL (time-series) ───────────────────► KQL QUERYSET
-│   │
-│   └─► Visual / no-code ────────────────────► DATAFLOW GEN2
-│
-└─► Production / scheduled processing
-    │
-    ├─► Spark/Python transformations
-    │   │
-    │   ├─► Need parameters, CI/CD ──────────► SPARK JOB DEFINITION
-    │   │
-    │   └─► Simple scheduled notebook ───────► NOTEBOOK (via Pipeline)
-    │
-    ├─► T-SQL transformations (Warehouse) ───► STORED PROCEDURES
-    │
-    ├─► KQL materialized views ──────────────► KQL QUERYSET (update policies)
-    │
-    └─► Power Query transformations ─────────► DATAFLOW GEN2
-```
-
 ## Comparison Table
 
 | Criteria | Notebook | Spark Job Def | Dataflow Gen2 | KQL Queryset | Stored Procs |
@@ -101,91 +73,6 @@ What's your PRIMARY use case?
 | **Debugging** | ✅ Interactive | ❌ Log-based | Limited | ✅ Interactive | ❌ Log-based |
 | **Best Scale** | Dev → Prod | Production | Small-Medium | Time-series | Medium-Large |
 
-## When to Choose Each
-
-### Choose NOTEBOOK when:
-
-- ✅ You need **interactive, cell-by-cell development**
-- ✅ **Exploratory analysis** before production code
-- ✅ **Machine learning** development and experimentation
-- ✅ Complex transformations requiring **debugging**
-- ✅ You want **visualizations** inline with code
-- ✅ **Ad-hoc analysis** that may become scheduled later
-
-**Example Use Cases:**
-- Medallion Bronze → Silver → Gold transformations
-- ML feature engineering and model training
-- Data quality analysis and profiling
-- Complex joins and aggregations with debugging
-
-**Production Pattern:**
-```
-Notebook (development) → Pipeline (scheduling) → Monitoring
-```
-
-### Choose SPARK JOB DEFINITION when:
-
-- ✅ Job is **production-ready** and tested
-- ✅ You need **formal parameterization** for different environments
-- ✅ **CI/CD pipelines** will deploy the job
-- ✅ No interactive debugging needed
-- ✅ **Scheduled execution** without Pipeline overhead
-- ✅ Reusable job across multiple schedules/triggers
-
-**Example Use Cases:**
-- Scheduled ETL jobs running on cron
-- Parameterized data processing (dev/test/prod)
-- CI/CD deployed Spark applications
-- Batch aggregation jobs
-
-**When to Promote Notebook → Spark Job Definition:**
-```
-Development Complete → Tests Pass → Remove Debug Code → Create Spark Job Def
-```
-
-### Choose DATAFLOW GEN2 when:
-
-- ✅ **Business users** will maintain transformations
-- ✅ Transformations are **Power Query compatible**
-- ✅ You want **visual, drag-and-drop** data prep
-- ✅ No Spark/Python skills available
-- ✅ Data volumes are **small to medium**
-- ✅ Quick ETL without environment setup
-
-**Example Use Cases:**
-- Business user data cleansing
-- Department-level data prep
-- Excel-style transformations (pivot, unpivot, merge)
-- Quick prototypes before notebook development
-
-### Choose KQL QUERYSET when:
-
-- ✅ Data is in **Eventhouse or KQL Database**
-- ✅ Processing **time-series data** (logs, IoT, telemetry)
-- ✅ Need **real-time aggregations** via update policies
-- ✅ Team knows **KQL (Kusto Query Language)**
-- ✅ Creating **materialized views** for dashboards
-
-**Example Use Cases:**
-- Real-time event aggregations
-- Log analysis and pattern detection
-- IoT sensor data processing
-- Time-windowed analytics
-
-### Choose STORED PROCEDURES when:
-
-- ✅ Data is in **Warehouse**
-- ✅ Team is experienced with **T-SQL**
-- ✅ Need **SQL-based transformations** with ACID
-- ✅ Traditional **data warehouse patterns** (SCD, merge, etc.)
-- ✅ Want to leverage **SQL Server skills**
-
-**Example Use Cases:**
-- Slowly Changing Dimensions (SCD Type 2)
-- MERGE operations for upserts
-- SQL-based aggregations to gold tables
-- Legacy DW pattern migration
-
 ## Processing Workflow Patterns
 
 ### Medallion Architecture Processing
@@ -195,27 +82,6 @@ Development Complete → Tests Pass → Remove Debug Code → Create Spark Job D
 | Bronze → Silver | Notebook OR Spark Job | Complex cleansing, deduplication |
 | Silver → Gold | Notebook OR Spark Job | Aggregations, business logic |
 | Gold maintenance | Stored Procedures (if Warehouse) | SQL-based updates |
-
-### Development to Production Path
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PROCESSING LIFECYCLE                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. EXPLORE         2. DEVELOP           3. PRODUCTION         │
-│  ───────────        ──────────           ────────────          │
-│  Notebook           Notebook             Spark Job Def         │
-│  (ad-hoc cells)     (structured code)    (parameterized)       │
-│                                          OR                     │
-│                                          Pipeline + Notebook    │
-│                                                                 │
-│  ► Quick iteration  ► Unit tests         ► Scheduled           │
-│  ► Visualizations   ► Error handling     ► Monitored           │
-│  ► Debug            ► Parameterization   ► CI/CD deployed      │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
 
 ### Combining Processing Methods
 

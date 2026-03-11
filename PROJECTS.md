@@ -37,6 +37,8 @@
 | grid-intelligence | TBD | Design | Discovery Brief produced; DRAFT architecture in progress | None | Design Review (Phase 1b) |
 | game-day-intelligence | medallion | Documented ✅ | Pipeline complete — 12 items, 5 ADRs, validation passed (1 ML Model manual) | None | Complete |
 | game-day-intelligence-v2 | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
+| gov-modernizer | medallion | Documented ✅ | Pipeline complete — 10 items, 5 ADRs, validation passed | D-1 SQL conn, D-2 capacity | Run deploy script → configure connections |
+| tool-intelligence | medallion | Documented ✅ | Pipeline complete — 11 items, 6 ADRs, validation passed (design-only) | D-1 SQL conn, D-2 flat file path, D-3 capacity | Run deploy script → configure connections |
 > Project rows are generated locally by agents. See `projects/` folder (gitignored) for per-project artifacts.
 
 ---
