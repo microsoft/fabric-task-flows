@@ -387,3 +387,22 @@ def build_item_notes_map() -> dict[str, str]:
             result[alias] = notes
 
     return result
+
+
+def build_skillset_map() -> dict[str, list[str]]:
+    """Return skillset classifications from the registry.
+
+    Maps type name variants → skillset list (e.g. ["LC"], ["CF"], ["LC", "CF"]).
+    """
+    registry = load_registry()
+    result: dict[str, list[str]] = {}
+
+    for canonical, data in registry.items():
+        skillset = data.get("skillset", [])
+        result[canonical] = skillset
+        result[data["fab_type"]] = skillset
+        result[data["display_name"]] = skillset
+        for alias in data.get("aliases", []):
+            result[alias] = skillset
+
+    return result

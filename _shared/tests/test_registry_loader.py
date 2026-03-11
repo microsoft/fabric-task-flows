@@ -20,6 +20,7 @@ from registry_loader import (
     build_deploy_method_map,
     build_test_method_map,
     build_item_notes_map,
+    build_skillset_map,
 )
 
 VALID_TASK_TYPES = {
@@ -287,3 +288,35 @@ def test_item_notes_map_excludes_empty():
     nm = build_item_notes_map()
     for key, val in nm.items():
         assert val, f"{key} has empty notes but should be excluded"
+
+
+# ── build_skillset_map ──────────────────────────────────────────────
+
+
+def test_build_skillset_map_returns_dict():
+    sm = build_skillset_map()
+    assert isinstance(sm, dict)
+    assert len(sm) > 0
+
+
+def test_skillset_map_values_are_lists():
+    sm = build_skillset_map()
+    for key, val in sm.items():
+        assert isinstance(val, list), f"{key} skillset is not a list: {val}"
+
+
+VALID_SKILLSETS = {"LC", "CF", "auto", "Portal"}
+
+
+def test_skillset_map_valid_tags():
+    sm = build_skillset_map()
+    for key, val in sm.items():
+        for tag in val:
+            assert tag in VALID_SKILLSETS, f"{key} has invalid skillset tag: {tag}"
+
+
+def test_skillset_map_known_items():
+    sm = build_skillset_map()
+    assert sm.get("Notebook") == ["CF"]
+    assert sm.get("Lakehouse") == ["LC"]
+    assert "LC" in sm.get("Data Pipeline", []) or "LC" in sm.get("DataPipeline", [])

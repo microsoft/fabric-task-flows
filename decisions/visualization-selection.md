@@ -1,58 +1,6 @@
 ---
 id: visualization-selection
 title: Visualization Type Selection
-description: Choose the right visualization type based on interactivity needs, distribution format, and refresh requirements
-triggers:
-  - "report vs real-time dashboard"
-  - "paginated report"
-  - "real-time dashboard"
-  - "real-time map"
-  - "location tracking"
-  - "scorecard vs report"
-  - "which visualization"
-  - "how to visualize data"
-options:
-  - id: report
-    label: Power BI Report
-    criteria:
-      interactivity: high (filters, slicers, drill-through)
-      distribution: web, mobile, embedded
-      refresh: scheduled or real-time
-      best_for: ["interactive analysis", "self-service BI", "exploration"]
-  - id: paginated-report
-    label: Paginated Report
-    criteria:
-      interactivity: parameters only
-      distribution: PDF, print, export
-      refresh: on-demand or scheduled
-      best_for: ["operational reports", "invoices", "regulated reports"]
-  - id: scorecard
-    label: Metrics Scorecard
-    criteria:
-      interactivity: check-ins, status updates
-      distribution: web, Teams
-      refresh: manual or connected
-      best_for: ["KPI tracking", "goal monitoring", "OKRs"]
-  - id: real-time-dashboard
-    label: Real-Time Dashboard
-    criteria:
-      interactivity: limited (focus on live data)
-      distribution: web
-      refresh: sub-second streaming
-      best_for: ["live monitoring", "IoT dashboards", "operations centers"]
-  - id: real-time-map
-    label: Real-Time Map
-    criteria:
-      interactivity: pan, zoom, layer toggle
-      distribution: web
-      refresh: sub-second streaming
-      best_for: ["location tracking", "geospatial monitoring", "fleet tracking"]
-quick_decision: |
-  Interactive exploration + filters → Power BI Report
-  Pixel-perfect / printable / multi-page → Paginated Report
-  Goal/KPI tracking + check-ins → Metrics Scorecard
-  Live streaming data (sub-second) → Real-Time Dashboard
-  Live geospatial/location data → Real-Time Map
 ---
 
 # Visualization Type Selection
@@ -66,7 +14,6 @@ quick_decision: |
 | Criteria | Report | Paginated | Scorecard | Real-Time Dashboard | Real-Time Map |
 |----------|--------|-----------|-----------|---------------------|---------------|
 | **Interactivity** | High | Parameters only | Check-ins | Limited | Pan/zoom/layers |
-| **Skillset** | Low-Code [LC] | Low-Code [LC] | Low-Code [LC] | Low-Code [LC] | Low-Code [LC] |
 | **Data Source** | Semantic Model | Direct or dataset | Manual/connected | Eventhouse stream | Eventhouse stream |
 | **Refresh** | Scheduled/DirectQuery | On-demand | Manual/auto | Sub-second | Sub-second |
 | **Export** | PBIX, PDF, PPT | PDF, Excel, Word | Limited | Screenshot | Screenshot |

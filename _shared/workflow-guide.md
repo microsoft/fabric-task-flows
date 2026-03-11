@@ -67,31 +67,15 @@ python _shared/scripts/run-pipeline.py advance --project my-project --reconcile
 
 ### Shell Unavailable Fallback
 
-When an agent loses shell/powershell access mid-session, the pipeline would normally halt because `run-pipeline.py advance` cannot be called. To prevent this, agents may enter **degraded mode** and edit `pipeline-state.json` directly using the file edit tool.
+When shell access is lost mid-session, agents may enter **degraded mode** — editing `pipeline-state.json` directly via file edit tool.
 
-**Activation criteria — ALL must be true:**
-1. Shell/powershell tool is confirmed unavailable (not just slow or erroring)
-2. The agent has already written its output file (e.g., `prd/architecture-handoff.md`)
-3. The output file passes the same content checks `run-pipeline.py` would apply (non-template, >200 bytes)
+**Activation:** Shell confirmed unavailable + output file written + passes content checks (non-template, >200 bytes).
 
-**Permitted edits — these mirror `run-pipeline.py advance` exactly:**
-1. Set current phase's `status` to `"complete"`
-2. Set next phase's `status` to `"in_progress"`
-3. Update `current_phase` to the next phase ID
-4. Extract `task_flow` from `prd/architecture-handoff.md` and set it (after Phase 1a only)
+**Permitted edits** (mirrors `advance` exactly): set current phase status→`"complete"`, next phase→`"in_progress"`, update `current_phase`. After Phase 1a: extract `task_flow` from handoff.
 
-**Prohibited — even in degraded mode:**
-- Skipping phases (must advance one at a time)
-- Bypassing the Phase 2b human gate (`"gate": "human"` transitions require user approval)
-- Modifying transition definitions, display_name, or problem_statement
-- Running without writing the output file first
+**Prohibited:** Skipping phases, bypassing human gate, modifying transition definitions.
 
-**Agent responsibilities in degraded mode:**
-1. Log in `STATUS.md`: `| [Phase] | [Date] | Degraded mode — shell unavailable, state edited directly |`
-2. Include in the next agent prompt: `⚠️ State was advanced in degraded mode. Run 'python _shared/scripts/run-pipeline.py reconcile --project [name]' when shell is available.`
-3. Skip pre-compute scripts gracefully — proceed with LLM reasoning alone
-
-**When shell returns:** Run `python _shared/scripts/run-pipeline.py reconcile --project [name]` to verify state consistency and heal any drift.
+**Recovery:** Log in STATUS.md, instruct next agent to run `reconcile --project [name]` when shell returns.
 
 ---
 

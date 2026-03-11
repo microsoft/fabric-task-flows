@@ -1,104 +1,6 @@
 ---
 id: ingestion-selection
 title: Ingestion Method Selection
-description: Choose the right data ingestion method based on the 4 V's — Volume, Velocity, Variety, and Versatility — plus transformation needs and orchestration requirements
-triggers:
-  - "copy job vs pipeline"
-  - "dataflow vs pipeline"
-  - "how to ingest data"
-  - "eventstream vs copy job"
-  - "batch vs streaming"
-  - "data ingestion"
-  - "4 V's"
-  - "data movement strategy"
-  - "volume velocity variety"
-  - "shortcut vs copy job"
-  - "ADLS Gen2"
-  - "S3 data"
-  - "existing data lake"
-  - "zero-copy"
-  - "data virtualization"
-  - "Dataverse"
-  - "Dynamics 365 data"
-  - "Fabric Link"
-  - "Link to Fabric"
-  - "Power Platform data"
-options:
-  - id: copy-job
-    label: Copy Job
-    criteria:
-      data_pattern: batch
-      transformation: none (copy as-is)
-      skillset: low-code
-      orchestration: standalone or pipeline
-      volume: small to large
-      best_for: ["simple data movement", "scheduled refresh", "one-to-one copy"]
-  - id: dataflow-gen2
-    label: Dataflow Gen2
-    criteria:
-      data_pattern: batch
-      transformation: Power Query (M)
-      skillset: low-code
-      orchestration: standalone or pipeline
-      volume: small to medium
-      best_for: ["visual transformations", "data cleansing", "business user ETL"]
-  - id: pipeline
-    label: Data Pipeline
-    criteria:
-      data_pattern: batch
-      transformation: orchestration (calls other items)
-      skillset: low-code and code-first
-      orchestration: full orchestration engine
-      volume: any
-      best_for: ["complex workflows", "conditional logic", "multi-step ETL"]
-  - id: eventstream
-    label: Eventstream
-    criteria:
-      data_pattern: real-time streaming
-      transformation: stream processing
-      skillset: low-code
-      orchestration: continuous
-      volume: any (streaming)
-      best_for: ["IoT", "logs", "real-time events", "Kafka"]
-  - id: mirroring
-    label: Mirroring
-    criteria:
-      data_pattern: continuous replication
-      transformation: none (replicate as-is)
-      skillset: low-code
-      orchestration: automatic
-      volume: any
-      best_for: ["database replication", "CDC", "operational data sync"]
-  - id: shortcut
-    label: OneLake Shortcut
-    criteria:
-      data_pattern: zero-copy virtualization
-      transformation: none (reference in place)
-      skillset: low-code
-      orchestration: none (always live)
-      volume: any
-      best_for: ["existing data lake", "ADLS Gen2", "S3", "GCS", "cross-workspace sharing"]
-  - id: fabric-link
-    label: Fabric Link (Dataverse)
-    criteria:
-      data_pattern: continuous sync
-      transformation: none (sync as-is to Delta)
-      skillset: low-code
-      orchestration: automatic
-      volume: any
-      best_for: ["Dataverse analytics", "Dynamics 365 reporting", "Power Platform data"]
-quick_decision: |
-  Real-time streaming → Eventstream
-  Database replication (CDC) → Mirroring
-  Dataverse / Dynamics 365 source → Fabric Link
-  Data already in ADLS/S3/GCS/OneLake → Shortcut
-  Sensor/IoT data (proprietary formats) → Eventstream (streaming) or Notebook (batch)
-  Small-medium + transforms needed → Dataflow Gen2
-  Small-medium + no transforms → Copy Job
-  Large + code-first team → Pipeline + Notebook
-  Large + orchestration needed → Pipeline (Copy activity)
-  Complex orchestration (any volume) → Pipeline
-  No connector exists + code-first → Notebook (standalone)
 ---
 
 # Ingestion Method Selection
@@ -109,16 +11,16 @@ quick_decision: |
 
 ## Reference Matrix
 
-| Tool | Volume | Velocity | Variety (Sources) | Versatility | Transformation | Scheduling | Complexity |
-|------|--------|----------|-------------------|-------------|----------------|------------|------------|
-| **Copy Job** | Small → Large | Batch | 100+ connectors (DBs, files, APIs) | Low-code [LC] | None | Built-in | Low |
-| **Dataflow Gen2** | Small → Medium | Batch | 150+ connectors (DBs, files, SaaS) | Low-code [LC] | Power Query (M) | Built-in | Low-Medium |
-| **Pipeline** | Any | Batch | Activities + connectors + Notebooks | Low-code + Code [LC/CF] | Orchestrates others | Advanced | Medium-High |
-| **Notebook** | Large → Very Large | Batch | Custom code (any source) | Code-first [CF] | Full code (Python/Spark) | Via Pipeline | High |
-| **Eventstream** | Any (streaming) | Real-time | Event Hubs, Kafka, custom apps, IoT | Low-code [LC] | Stream processing | Continuous | Medium |
-| **Mirroring** | Any | Continuous CDC | Azure SQL, Azure SQL MI, Cosmos DB, Snowflake, Databricks, SQL Server 2025, MySQL (preview), PostgreSQL (preview) | Low-code [LC] | None | Automatic | Low |
-| **Shortcut** | Any | Always live (zero-copy) | ADLS Gen2, S3, GCS, cross-workspace Fabric items | Low-code [LC] | None | N/A (always live) | Very Low |
-| **Fabric Link** | Any | Continuous sync | Dataverse (Dynamics 365, Power Platform) | Low-code [LC] | None | Automatic | Low |
+| Tool | Volume | Velocity | Variety (Sources) | Transformation | Scheduling | Complexity |
+|------|--------|----------|-------------------|----------------|------------|------------|
+| **Copy Job** | Small → Large | Batch | 100+ connectors (DBs, files, APIs) | None | Built-in | Low |
+| **Dataflow Gen2** | Small → Medium | Batch | 150+ connectors (DBs, files, SaaS) | Power Query (M) | Built-in | Low-Medium |
+| **Pipeline** | Any | Batch | Activities + connectors + Notebooks | Orchestrates others | Advanced | Medium-High |
+| **Notebook** | Large → Very Large | Batch | Custom code (any source) | Full code (Python/Spark) | Via Pipeline | High |
+| **Eventstream** | Any (streaming) | Real-time | Event Hubs, Kafka, custom apps, IoT | Stream processing | Continuous | Medium |
+| **Mirroring** | Any | Continuous CDC | Azure SQL, Azure SQL MI, Cosmos DB, Snowflake, Databricks, SQL Server 2025, MySQL (preview), PostgreSQL (preview) | None | Automatic | Low |
+| **Shortcut** | Any | Always live (zero-copy) | ADLS Gen2, S3, GCS, cross-workspace Fabric items | None | N/A (always live) | Very Low |
+| **Fabric Link** | Any | Continuous sync | Dataverse (Dynamics 365, Power Platform) | None | Automatic | Low |
 
 ## Combining Ingestion Methods
 

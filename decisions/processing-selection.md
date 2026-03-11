@@ -1,59 +1,6 @@
 ---
 id: processing-selection
 title: Processing Method Selection
-description: Choose the right data processing method based on interactivity needs, scheduling requirements, and team workflow
-triggers:
-  - "notebook vs spark job"
-  - "how to process data"
-  - "transformation method"
-  - "spark job definition"
-  - "dataflow vs notebook"
-  - "code vs low-code processing"
-options:
-  - id: notebook
-    label: Notebook
-    criteria:
-      mode: interactive development
-      skillset: code-first
-      scheduling: via pipeline or manual
-      best_for: ["exploration", "ad-hoc analysis", "ML development", "complex transformations"]
-  - id: spark-job-definition
-    label: Spark Job Definition
-    criteria:
-      mode: production scheduled
-      skillset: code-first
-      scheduling: built-in or pipeline
-      best_for: ["scheduled ETL", "production pipelines", "parameterized jobs"]
-  - id: dataflow-gen2
-    label: Dataflow Gen2
-    criteria:
-      mode: visual design
-      skillset: low-code
-      scheduling: built-in or pipeline
-      best_for: ["business user ETL", "Power Query transformations", "simple data prep"]
-  - id: kql-queryset
-    label: KQL Queryset
-    criteria:
-      mode: interactive or materialized
-      skillset: code-first (KQL)
-      scheduling: via update policies
-      best_for: ["time-series analysis", "real-time aggregations", "log analytics"]
-  - id: stored-procedures
-    label: Stored Procedures (Warehouse)
-    criteria:
-      mode: T-SQL scripts
-      skillset: code-first (SQL)
-      scheduling: via pipeline
-      best_for: ["SQL-based transformations", "Warehouse processing", "traditional DW patterns"]
-quick_decision: |
-  Interactive + Python/Spark → Notebook
-  Interactive + KQL → KQL Queryset
-  Interactive + visual/no-code → Dataflow Gen2
-  Production Spark + CI/CD → Spark Job Definition
-  Production Spark + simple schedule → Notebook (via Pipeline)
-  Production T-SQL → Stored Procedures
-  Production KQL → KQL Queryset (update policies)
-  Production Power Query → Dataflow Gen2
 ---
 
 # Processing Method Selection
@@ -65,7 +12,6 @@ quick_decision: |
 | Criteria | Notebook | Spark Job Def | Dataflow Gen2 | KQL Queryset | Stored Procs |
 |----------|----------|---------------|---------------|--------------|--------------|
 | **Mode** | Interactive | Scheduled | Visual | Interactive/Auto | Script |
-| **Skillset** | Code-First [CF] | Code-First [CF] | Low-Code [LC] | Code-First [CF] | Code-First [CF] |
 | **Language** | Python, Spark SQL, Scala | Python, Spark SQL, Scala | Power Query M | KQL | T-SQL |
 | **Scheduling** | Via Pipeline | Built-in + Pipeline | Built-in | Update Policies | Via Pipeline |
 | **Parameters** | Cell inputs | Formal parameters | Limited | Query params | Procedure args |

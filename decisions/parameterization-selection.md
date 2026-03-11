@@ -1,46 +1,6 @@
 ---
 id: parameterization-selection
 title: Parameterization Selection
-description: Choose the right parameterization approach for multi-environment Fabric deployments
-triggers:
-  - "variable library vs parameter.yml"
-  - "how to parameterize"
-  - "multi-environment configuration"
-  - "CI/CD variables"
-  - "deployment stages"
-options:
-  - id: variable-library
-    label: Variable Library
-    criteria:
-      tool: Fabric Portal / REST API / Git
-      approach: Fabric-native workspace item
-      value_types: ["String", "Integer", "Boolean", "Guid", "DateTime", "Item Reference"]
-      best_for: ["Fabric-native CI/CD", "item reference binding", "teams using Fabric Git"]
-      stage_management: Value sets — one active per workspace
-      git_integration: JSON definition syncs via Fabric Git
-  - id: parameter-yml
-    label: parameter.yml (fabric-cicd)
-    criteria:
-      tool: fabric-cicd Python library
-      approach: YAML file with per-environment overrides
-      value_types: ["workspace names", "connection strings", "capacity pools", "item references"]
-      best_for: ["automated pipelines", "Azure DevOps/GitHub Actions", "deployment-time substitution"]
-      stage_management: Separate YAML sections per environment
-      git_integration: YAML file in repo
-  - id: environment-variables
-    label: Environment Variables
-    criteria:
-      tool: Shell / Python scripts
-      approach: OS-level environment variables in deployment scripts
-      value_types: ["any string value"]
-      best_for: ["simple projects", "single environment", "deploy scripts"]
-      stage_management: Set vars before running script
-      git_integration: Variables not in git (secrets stay out of repo)
-quick_decision: |
-  Single environment → Environment Variables (or skip)
-  Multi-env + Fabric Git → Variable Library
-  Multi-env + fabric-cicd → parameter.yml
-  Multi-env + deploy scripts → Environment Variables or Variable Library
 ---
 
 # Parameterization Selection

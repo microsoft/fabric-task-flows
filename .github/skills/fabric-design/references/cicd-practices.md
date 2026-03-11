@@ -102,25 +102,11 @@ Three approaches for environment-specific configuration, from Fabric-native to c
 - Shortcuts point to different source Lakehouses per stage
 - User Data Functions connect to stage-specific data sources
 
-**When to use Variable Library:**
-- ✅ Multi-environment deployments where items need stage-specific configuration
-- ✅ Teams already using Fabric's built-in Git integration
-- ✅ Projects where Notebooks, Pipelines, and Shortcuts need dynamic item references
-- ✅ When you want parameterization without external tooling
-
-**When to use `parameter.yml` instead:**
-- When using the `fabric-cicd` Python library for automated deployment pipelines
-- When you need parameterization of item definitions at deployment time (not runtime)
-
-**When to use environment variables instead:**
-- Single-environment projects with simple `fab` CLI scripts
-- When Variable Library is overkill for the project's complexity
+> Parameterization choice is resolved by `decision-resolver.py`. Variable Library must be in **Wave 1** (before consuming items).
 
 **Limits:** Max 1,000 variables, 1,000 value sets, total cells < 10,000, item size < 1 MB.
 
-**Git integration:** Variable Library definitions are stored as JSON and sync via Fabric's built-in Git. Changes to variables are tracked in source control.
-
-**Deployment order:** Variable Library must be created and populated **before** consuming items (Notebooks, Pipelines, Shortcuts) are deployed. Place it in Wave 1 alongside foundation items.
+**Git integration:** Variable Library definitions sync as JSON via Fabric's built-in Git.
 
 ### parameter.yml (fabric-cicd)
 
