@@ -224,10 +224,11 @@ def find_uncovered_keywords(problems: list[dict]) -> list[str]:
 # Agent prompt generation
 # ---------------------------------------------------------------------------
 
-def generate_prompt(iteration: int) -> str:
+def generate_prompt(iteration: int, count: int = 25) -> str:
     """Generate Mode 1 prompt for /fabric-heal to create problem statements."""
     cat_idx = iteration % len(CATEGORY_ROTATION)
     categories = CATEGORY_ROTATION[cat_idx]
+    per_cat = count // len(categories)
 
     # Read current signal mapper keywords for context
     sm_content = SIGNAL_MAPPER_PATH.read_text(encoding="utf-8")
@@ -238,12 +239,12 @@ def generate_prompt(iteration: int) -> str:
 
 ## Iteration {iteration + 1}
 
-Generate 25 novel, fully-formed problem statements for stress-testing the signal mapper.
+Generate {count} novel, fully-formed problem statements for stress-testing the signal mapper.
 
 ### Target Categories for This Batch
 {', '.join(categories)}
 
-Use 5 problems per category. Each problem should be a realistic enterprise scenario
+Use {per_cat} problems per category. Each problem should be a realistic enterprise scenario
 with specific details: data volumes, team sizes, tool names, compliance requirements,
 deadlines, and business constraints.
 
@@ -260,7 +261,7 @@ Write directly to `.github/skills/fabric-heal/problem-statements.md` using the e
 ```
 # Problem Statements for Stress Testing
 
-> Auto-generated batch {iteration + 1} — 25 problems for self-healing loop.
+> Auto-generated batch {iteration + 1} — {count} problems for self-healing loop.
 
 ## Category Name
 
@@ -269,7 +270,7 @@ Write directly to `.github/skills/fabric-heal/problem-statements.md` using the e
 2. "Problem text..."
 ```
 
-Each problem must be numbered sequentially (1-25) and wrapped in double quotes.
+Each problem must be numbered sequentially (1-{count}) and wrapped in double quotes.
 """
 
 
@@ -304,12 +305,12 @@ def generate_heal_prompt(iteration: int, metrics: dict,
 # Fallback problem generation (--no-agent mode)
 # ---------------------------------------------------------------------------
 
-def generate_fallback_batch(batch_idx: int) -> list[dict]:
+def generate_fallback_batch(batch_idx: int, count: int = 25) -> list[dict]:
     """Generate problems from templates when agent is unavailable."""
     import random
     rng = random.Random(42 + batch_idx)
     problems = []
-    for i in range(25):
+    for i in range(count):
         tmpl_idx = i % len(_FALLBACK_TEMPLATES)
         cat, template = _FALLBACK_TEMPLATES[tmpl_idx]
         fills = {}
@@ -413,6 +414,8 @@ def main():
     )
     parser.add_argument("--iterations", type=int, default=10,
                         help="Number of heal iterations (default: 10)")
+    parser.add_argument("--problems", type=int, default=25,
+                        help="Problems per iteration (default: 25)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Measure only, don't patch keywords or log")
     parser.add_argument("--problems-only", action="store_true",
@@ -428,7 +431,8 @@ def main():
         shutil.copy2(PROBLEMS_PATH, BACKUP_PATH)
 
     print(f"\n{'═' * 70}")
-    print(f"  HEAL ORCHESTRATOR — {args.iterations} iterations")
+    print(f"  HEAL ORCHESTRATOR — {args.iterations} iterations × "
+          f"{args.problems} problems")
     if args.no_agent:
         print("  Mode: Template fallback (no agent)")
     else:
@@ -446,11 +450,11 @@ def main():
 
         # ── Step 1: Generate problems ──────────────────────────────────
         if args.no_agent:
-            batch = generate_fallback_batch(iteration)
+            batch = generate_fallback_batch(iteration, args.problems)
             write_problems_file(batch, iteration)
             print(f"  📝 Generated {len(batch)} problems (template fallback)")
         else:
-            prompt = generate_prompt(iteration)
+            prompt = generate_prompt(iteration, args.problems)
             print("\n  ┌─────────────────────────────────────────────┐")
             print("  │  AGENT PROMPT — /fabric-heal Mode 1         │")
             print("  │  Paste the prompt below to the agent,       │")
