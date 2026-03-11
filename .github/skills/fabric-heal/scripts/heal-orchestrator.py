@@ -124,6 +124,8 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
     ambiguous_count = 0
     total_candidates = 0
     category_coverage: dict[str, list[float]] = {}
+    tf_suggestion_counts: Counter = Counter()
+    tf_top_counts: Counter = Counter()
 
     for p in problems:
         cmd = [sys.executable, str(SIGNAL_MAPPER_PATH),
@@ -143,6 +145,14 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
                 total_candidates += len(candidates)
                 if not candidates:
                     zero_candidates += 1
+                else:
+                    tf_top_counts[candidates[0]["id"]] += 1
+                    seen: set[str] = set()
+                    for c in candidates:
+                        tid = c["id"]
+                        if tid not in seen:
+                            tf_suggestion_counts[tid] += 1
+                            seen.add(tid)
                 if any(c.get("id") in ("lambda", "event-medallion")
                        for c in candidates):
                     lambda_suggested += 1
@@ -168,7 +178,105 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
         "avg_candidates_per_problem": (total_candidates / len(problems)
                                        if problems else 0),
         "category_coverage": cat_avgs,
+        "tf_suggestion_counts": dict(tf_suggestion_counts),
+        "tf_top_counts": dict(tf_top_counts),
     }
+
+
+# ---------------------------------------------------------------------------
+# Distribution report
+# ---------------------------------------------------------------------------
+
+DEPLOYMENT_REGISTRY = REPO_ROOT / "_shared" / "registry" / "deployment-order.json"
+_BAR_CHAR = "\u2588"  # █
+
+
+def _load_item_details() -> dict[str, dict]:
+    """Load item/wave/storage details per task flow from deployment registry."""
+    details: dict[str, dict] = {}
+    try:
+        reg = json.loads(DEPLOYMENT_REGISTRY.read_text(encoding="utf-8"))
+        for tf_id, tf_data in reg.get("taskFlows", {}).items():
+            items = tf_data.get("items", [])
+            waves: set[str] = set()
+            item_types: list[str] = []
+            for item in items:
+                order = item.get("order", "")
+                waves.add(re.sub(r"[a-z]$", "", order))
+                item_types.append(item.get("itemType", "?"))
+            details[tf_id] = {
+                "items": len(items),
+                "waves": len(waves),
+                "storage": tf_data.get("primaryStorage", "N/A"),
+                "item_types": item_types,
+            }
+    except Exception:
+        pass
+    return details
+
+
+def print_distribution_report(
+    total_problems: int,
+    agg_suggestion: Counter,
+    agg_top: Counter,
+) -> None:
+    """Print the full task flow distribution report with item details."""
+    item_details = _load_item_details()
+
+    print(f"\n{'═' * 90}")
+    print("  TASK FLOW DISTRIBUTION REPORT")
+    print(f"{'═' * 90}")
+
+    # ── Suggestion rate ────────────────────────────────────────────────
+    print(f"\n  SUGGESTION RATE (appeared in candidates)  "
+          f"[{total_problems} problems]")
+    print(f"  {'Task Flow':<35} {'Count':>5} {'Rate':>7}  Distribution")
+    print(f"  {'-' * 35} {'-' * 5} {'-' * 7}  {'-' * 36}")
+    for tf, cnt in agg_suggestion.most_common():
+        pct = cnt / total_problems * 100 if total_problems else 0
+        bar = _BAR_CHAR * int(pct / 2)
+        print(f"  {tf:<35} {cnt:>5} {pct:>6.1f}%  {bar}")
+
+    # ── Top candidate ──────────────────────────────────────────────────
+    print(f"\n  TOP CANDIDATE (highest score per problem)  "
+          f"[{total_problems} problems]")
+    print(f"  {'Task Flow':<35} {'Count':>5} {'Rate':>7}  Distribution")
+    print(f"  {'-' * 35} {'-' * 5} {'-' * 7}  {'-' * 36}")
+    for tf, cnt in agg_top.most_common():
+        pct = cnt / total_problems * 100 if total_problems else 0
+        bar = _BAR_CHAR * int(pct / 2)
+        print(f"  {tf:<35} {cnt:>5} {pct:>6.1f}%  {bar}")
+
+    # ── Item details ───────────────────────────────────────────────────
+    suggested_flows = set(agg_suggestion.keys()) | set(agg_top.keys())
+    if item_details and suggested_flows:
+        print(f"\n  ITEM DETAILS (suggested task flows)")
+        print(f"  {'Task Flow':<35} {'Items':>5} {'Waves':>5}  "
+              f"Primary Storage")
+        print(f"  {'-' * 35} {'-' * 5} {'-' * 5}  {'-' * 36}")
+        for tf in sorted(suggested_flows):
+            d = item_details.get(tf)
+            if d:
+                print(f"  {tf:<35} {d['items']:>5} {d['waves']:>5}  "
+                      f"{d['storage']}")
+            else:
+                print(f"  {tf:<35}     ?     ?  (not in registry)")
+
+        # Item type frequency across all suggested flows
+        type_counts: Counter = Counter()
+        for tf in suggested_flows:
+            d = item_details.get(tf)
+            if d:
+                for it in d["item_types"]:
+                    type_counts[it] += 1
+        if type_counts:
+            print(f"\n  ITEM TYPE FREQUENCY (across suggested task flows)")
+            print(f"  {'Item Type':<35} {'Flows':>5}")
+            print(f"  {'-' * 35} {'-' * 5}")
+            for it, cnt in type_counts.most_common():
+                print(f"  {it:<35} {cnt:>5}")
+
+    print(f"\n{'═' * 90}")
 
 
 # ---------------------------------------------------------------------------
@@ -425,6 +533,8 @@ def main():
     args = parser.parse_args()
 
     all_results: list[dict] = []
+    agg_suggestion: Counter = Counter()
+    agg_top: Counter = Counter()
 
     # Back up original problem statements
     if PROBLEMS_PATH.exists():
@@ -477,6 +587,12 @@ def main():
         print(f"     Zero-cand:     {metrics['zero_candidates']}/{metrics['total_problems']}")
         print(f"     Lambda:        {metrics['lambda_suggested']}/{metrics['total_problems']}")
         print(f"     Ambiguous:     {metrics['ambiguous']}/{metrics['total_problems']}")
+
+        # Aggregate distribution across iterations
+        for tf, cnt in metrics["tf_suggestion_counts"].items():
+            agg_suggestion[tf] += cnt
+        for tf, cnt in metrics["tf_top_counts"].items():
+            agg_top[tf] += cnt
 
         if args.problems_only:
             result = {
@@ -577,14 +693,28 @@ def main():
         print(f"  Total zero-candidate problems: "
               f"{total_zeros}/{total_problems}")
 
+    # ── Distribution report ────────────────────────────────────────────
+    if all_results and agg_suggestion:
+        total_problems = sum(r["problems"] for r in all_results)
+        print_distribution_report(total_problems, agg_suggestion, agg_top)
+
     # Log to learnings.md
     if not args.dry_run:
         log_summary(all_results, args.dry_run)
         print("\n  ✅ Results logged to _shared/learnings.md")
 
-    # Save detailed results
+    # Save detailed results (include distribution data)
+    output = {
+        "iterations": all_results,
+        "distribution": {
+            "suggestion_counts": dict(agg_suggestion),
+            "top_counts": dict(agg_top),
+            "total_problems": sum(r["problems"] for r in all_results)
+                             if all_results else 0,
+        },
+    }
     with open(RESULTS_PATH, "w", encoding="utf-8") as f:
-        json.dump(all_results, f, indent=2)
+        json.dump(output, f, indent=2)
     print(f"  📁 Detailed results: {RESULTS_PATH}")
 
     # Restore original problem statements
