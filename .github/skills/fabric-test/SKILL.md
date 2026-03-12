@@ -103,6 +103,7 @@ Update `_projects/[name]/prd/validation-report.md`:
 
 ## Constraints
 
+- Do NOT read registry JSON files directly — use `test-plan-prefill.py` and `validate-items.py` (registry files total 170+ KB of raw JSON)
 - Every AC must have a test method — no gaps
 - Test methods: max 20 words
 - Never modify Fabric items — validate only

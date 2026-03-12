@@ -47,6 +47,14 @@ DEFAULT_THRESHOLD_KB = 15
 DEFAULT_THRESHOLD_CHARS = 15_000
 DEFAULT_TOP_N = 10
 
+# Per-category thresholds for context-sensitive warnings
+CATEGORY_CHAR_THRESHOLDS: dict[str, int] = {
+    "project-docs": 20_000,
+    "registry-data": 15_000,
+    "diagrams": 15_000,
+    "workflow-guide": 15_000,
+}
+
 # ── Data model ───────────────────────────────────────────────────────────────
 
 
@@ -266,6 +274,28 @@ def print_threshold_warnings(
     print()
 
 
+def print_context_bloat_warnings(
+    all_files: list[FileMetrics],
+) -> None:
+    """Print warnings for files that exceed per-category context thresholds."""
+    flagged = [
+        f
+        for f in all_files
+        if f.category in CATEGORY_CHAR_THRESHOLDS
+        and f.chars >= CATEGORY_CHAR_THRESHOLDS[f.category]
+    ]
+    if not flagged:
+        return
+    flagged.sort(key=lambda f: f.chars, reverse=True)
+    print(f"🧠 {len(flagged)} file(s) exceed context-bloat thresholds (per-category):")
+    print()
+    for f in flagged:
+        thresh = CATEGORY_CHAR_THRESHOLDS[f.category]
+        print(f"  {f.path}")
+        print(f"    → {f.chars:,} chars (limit: {thresh:,})  [{f.category}]")
+    print()
+
+
 def print_full_report(
     all_files: list[FileMetrics],
     top_n: int,
@@ -299,6 +329,7 @@ def print_full_report(
     # Threshold warnings
     print("=" * 60)
     print_threshold_warnings(all_files, kb_thresh, char_thresh)
+    print_context_bloat_warnings(all_files)
 
 
 def to_json(all_files: list[FileMetrics]) -> str:
@@ -384,6 +415,7 @@ def main(argv: list[str] | None = None) -> None:
             by_ext.setdefault(ext, []).append(f)
         print_summary(by_ext)
         print_threshold_warnings(all_files, args.threshold_kb, args.threshold_chars)
+        print_context_bloat_warnings(all_files)
         return
 
     print_full_report(

@@ -110,90 +110,17 @@ Three approaches for environment-specific configuration, from Fabric-native to c
 
 ### parameter.yml (fabric-cicd)
 
-The `parameter.yml` file sits at the root of your repository directory and handles environment-specific value replacement.
+The `parameter.yml` file sits at the root of your repository directory and handles environment-specific value replacement. It supports three replacement modes:
 
-#### File Location
+- **`find_replace`** — String/regex replacement in text-based files (Notebooks, etc.)
+- **`key_value_replace`** — JSONPath replacement in JSON/YAML files (Pipelines, Platform files)
+- **`spark_pool`** — Spark pool attachment mapping per environment
 
-```
-/repository-directory/
-    /item-name.ItemType/
-        ...
-    /another-item.Notebook/
-        ...
-    /parameter.yml           ← here
-```
+**Dynamic variables available:** `$workspace.id`, `$items.Type.Name.id`, `$items.Type.Name.sqlendpoint`, `$ENV:var_name` (requires feature flag).
 
-#### find_replace (String/Regex Replacement)
+**Feature flags:** `enable_lakehouse_unpublish`, `enable_shortcut_publish`, `enable_environment_variable_replacement`, `disable_workspace_folder_publish` — enabled via `append_feature_flag()`.
 
-For replacing values in text-based files (Notebooks, etc.):
-
-```yaml
-find_replace:
-    # Replace a Lakehouse GUID across environments
-    - find_value: "123e4567-e89b-12d3-a456-426614174000"
-      replace_value:
-          PPE: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-          PROD: "9b2e5f4c-8d3a-4f1b-9c3e-2d5b6e4a7f8c"
-      item_type: "Notebook"
-
-    # Use dynamic variables (resolve at deploy time)
-    - find_value: "8f5c0cec-a8ea-48cd-9da4-871dc2642f4c"
-      replace_value:
-          PPE: "$workspace.id"
-          PROD: "$workspace.id"
-
-    # Reference deployed item attributes
-    - find_value: "old-lakehouse-guid"
-      replace_value:
-          PPE: "$items.Lakehouse.my-lakehouse.id"
-          PROD: "$items.Lakehouse.my-lakehouse.id"
-```
-
-**Dynamic variables:**
-- `$workspace.id` — resolves to the target workspace ID
-- `$items.Type.Name.id` — resolves to the deployed item's ID
-- `$items.Type.Name.sqlendpoint` — resolves to the item's SQL endpoint
-- `$ENV:var_name` — resolves from environment variables (requires `enable_environment_variable_replacement` feature flag)
-
-#### key_value_replace (JSONPath Replacement)
-
-For replacing values in JSON/YAML files (Pipelines, Platform files):
-
-```yaml
-key_value_replace:
-    - find_key: $.properties.activities[?(@.name=="Load_Data")].typeProperties.source.datasetSettings.externalReferences.connection
-      replace_value:
-          PPE: "ppe-connection-guid"
-          PROD: "prod-connection-guid"
-      item_type: "DataPipeline"
-```
-
-#### spark_pool (Environment Pool Mapping)
-
-For parameterizing custom Spark pool attachments:
-
-```yaml
-spark_pool:
-    - instance_pool_id: "dev-pool-guid"
-      replace_value:
-          PPE:
-              type: "Capacity"
-              name: "CapacityPool_Medium"
-          PROD:
-              type: "Capacity"
-              name: "CapacityPool_Large"
-      item_name: "my-environment"
-```
-
-#### Feature Flags
-
-```python
-from fabric_cicd import append_feature_flag
-append_feature_flag("enable_lakehouse_unpublish")     # allow Lakehouse deletion
-append_feature_flag("enable_shortcut_publish")         # deploy shortcuts with Lakehouse
-append_feature_flag("enable_environment_variable_replacement")  # enable $ENV: vars
-append_feature_flag("disable_workspace_folder_publish")  # skip workspace subfolder deploy
-```
+> Full syntax examples and usage patterns: see [fabric-cicd docs](https://microsoft.github.io/fabric-cicd/0.1.23/).
 
 ---
 

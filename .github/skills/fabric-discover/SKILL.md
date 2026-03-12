@@ -92,6 +92,7 @@ Write to `_projects/[name]/prd/discovery-brief.md`:
 
 ## Constraints
 
+- Do NOT read `signal-categories.json` directly — use `signal-mapper.py` (69 KB of raw JSON wastes context)
 - Discovery Brief: max 60 lines
 - Signal table cells: max 15 words
 - Architectural Judgment Calls: max 20 words each

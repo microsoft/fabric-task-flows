@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "version": "1.0.0",
-  "description": "Canonical deployment order registry for all Fabric task flows",
+  "description": "Canonical deployment order registry for all Fabric task flows. ⚠️ AGENTS: Do NOT read this file directly — use diagram_parser.get_deployment_items() instead.",
   "taskFlows": {
     "app-backend": {
       "primaryStorage": "SQL Database / Cosmos DB",

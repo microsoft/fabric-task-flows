@@ -1,6 +1,6 @@
 {
   "$schema": "validation-checklists-schema.json",
-  "description": "Post-deployment validation data for all task flows. Contains manual steps, phases, and detailed checklist items.",
+  "description": "Post-deployment validation data for all task flows. Contains manual steps, phases, and detailed checklist items. ⚠️ AGENTS: Do NOT read this file directly — use validate-items.py instead.",
   "shared": {
     "ai_governance_checklist": [
       "Data Agent created (if using)",

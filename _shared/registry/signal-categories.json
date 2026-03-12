@@ -1,7 +1,7 @@
 {
   "schema": "Fabric Task Flows Signal Categories",
   "version": "2026-03-10",
-  "description": "Signal categories for discovery-phase keyword matching. Patched by /fabric-heal skill. All scripts MUST load from this file.",
+  "description": "Signal categories for discovery-phase keyword matching. Patched by /fabric-heal skill. All scripts MUST load from this file. ⚠️ AGENTS: Do NOT read this file directly — use signal-mapper.py instead.",
   "categories": [
     {
       "id": 1,

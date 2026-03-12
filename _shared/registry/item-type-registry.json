@@ -2,7 +2,7 @@
   "$schema": "Fabric Task Flows Item Type Registry",
   "$version": "2026-03-08",
   "$cli_version": "0.1.10",
-  "$description": "Single source of truth for all Fabric item type metadata including skillset (LC=Low-Code, CF=Code-First). All scripts MUST import from this file — do NOT maintain separate item type dictionaries. See CONTRIBUTING.md.",
+  "$description": "Single source of truth for all Fabric item type metadata including skillset (LC=Low-Code, CF=Code-First). All scripts MUST import from this file — do NOT maintain separate item type dictionaries. ⚠️ AGENTS: Do NOT read this file directly — use registry_loader.build_*() instead. See CONTRIBUTING.md.",
   "types": {
     "Lakehouse": {
       "fab_type": "Lakehouse",

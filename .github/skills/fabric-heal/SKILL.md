@@ -49,6 +49,7 @@ Orchestrator passes `--mode heal` with benchmark results (coverage %, zero-candi
 
 ### Constraints
 
+- Do NOT read `signal-categories.json` directly — use `signal-mapper.py` (69 KB of raw JSON wastes context)
 - Never remove existing keywords or modify the matching algorithm
 - Clean up generated files: delete `problem-statements-batch*.md` after each loop completes
 - Prefer specific terms over generic ones
