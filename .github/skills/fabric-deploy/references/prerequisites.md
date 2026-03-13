@@ -76,34 +76,9 @@ When using custom Spark pools with Environment items:
 
 ## CI/CD Pipelines
 
-For automated CI/CD pipelines using `fabric-cicd`:
-
-```bash
-# Install fabric-cicd (v0.1.23, Public Preview)
-pip install fabric-cicd
-
-# Verify installation
-python -c "import fabric_cicd; print('fabric-cicd installed')"
-```
-
-Basic usage:
-
-```python
-from fabric_cicd import FabricWorkspace, publish_all_items
-
-workspace = FabricWorkspace(
-    workspace_id="your-workspace-id",
-    environment="PPE",
-    repository_directory="./workspace",
-    item_type_in_scope=["Notebook", "DataPipeline", "Environment"],
-)
-
-publish_all_items(workspace)
-```
-
-Full documentation: https://microsoft.github.io/fabric-cicd/0.1.23/
-
 See `fabric-design/references/cicd-practices.md` for parameterization, per-item considerations, and release pipeline examples.
+
+Full `fabric-cicd` documentation: https://microsoft.github.io/fabric-cicd/
 
 ## Design-Only Mode
 

@@ -17,7 +17,7 @@ items:
     type: ""                   # Fabric item type — e.g., "Eventhouse"
     wave: 1                    # wave number
     status: deployed           # deployed | failed | skipped
-    command: ""                # fab command used (full command string)
+    command: ""                # deployment command used (full command string)
     notes: ""                  # only if noteworthy (≤15 words) — omit if clean deploy
 
 waves:

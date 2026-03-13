@@ -5,7 +5,7 @@
 This is a **documentation-driven** knowledge base with supporting Python scripts and tests. The repo provides pre-defined Microsoft Fabric architectures via one orchestrator agent (`@fabric-advisor`) that delegates to 6 composable skills:
 
 ```
-Phase 0 — Discover:   @fabric-advisor + /fabric-discover skill
+Phase 0 — Discover:   @fabric-advisor (handles discovery directly)
                         │ automatic
 Phase 1 — Design:     /fabric-design skill (produces FINAL architecture)
                         │ automatic
@@ -73,6 +73,17 @@ Skills are composable, auto-activating instruction packs that do the actual work
 | `/fabric-heal` | Standalone | Never modifies matching algorithm |
 
 Skills exchange structured **handoff documents**. See each skill's `SKILL.md` for instructions and `_shared/workflow-guide.md` for the full pipeline.
+
+## Parallel Execution Principle
+
+> **⚠️ MUST parallelize independent work.** When multiple files, tool calls, or sub-tasks have no data dependency on each other, agents MUST execute them in a single parallel batch — never sequentially. This applies to:
+>
+> - **File writes** — e.g., ADRs 001-005, wiki docs, deployment scripts
+> - **File reads** — e.g., reading discovery brief + deployment order + decision guides
+> - **Tool calls** — e.g., running signal mapper + reading templates simultaneously
+> - **Validation checks** — e.g., verifying multiple deployed items at once
+>
+> **Rule of thumb:** If task B does not depend on the _output_ of task A, they MUST run in parallel. Sequential execution of independent work wastes tokens and time.
 
 ## Key Conventions
 
