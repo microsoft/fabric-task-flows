@@ -31,19 +31,27 @@ def print_banner():
     print()
 
 
-def get_auth_headers():
+def get_credential():
     try:
         from azure.identity import DefaultAzureCredential, InteractiveBrowserCredential
-        import requests
     except ImportError:
         print("  -- azure-identity not installed. Run: pip install azure-identity")
         sys.exit(1)
     scope = "https://api.fabric.microsoft.com/.default"
     try:
-        token = DefaultAzureCredential().get_token(scope).token
+        cred = DefaultAzureCredential()
+        cred.get_token(scope)
+        return cred
     except Exception:
         print("  -- Default credentials not available. Opening browser for sign-in...")
-        token = InteractiveBrowserCredential().get_token(scope).token
+        return InteractiveBrowserCredential()
+
+
+def get_auth_headers(credential=None):
+    import requests
+    if credential is None:
+        credential = get_credential()
+    token = credential.get_token("https://api.fabric.microsoft.com/.default").token
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 
@@ -102,7 +110,7 @@ def ensure_capacity(ws_id, headers):
         sys.exit(1)
 
 
-def deploy_to_workspace(config_path, ws_id, environment=None):
+def deploy_to_workspace(config_path, ws_id, environment=None, credential=None):
     from fabric_cicd import deploy_with_config
     with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
@@ -113,6 +121,8 @@ def deploy_to_workspace(config_path, ws_id, environment=None):
     kwargs = {"config_file_path": config_path}
     if environment:
         kwargs["environment"] = environment
+    if credential:
+        kwargs["token_credential"] = credential
 
     # Retry deploy up to 3 times — fabric-cicd skips already-published items on re-run
     import time
@@ -287,7 +297,8 @@ def main():
             choice = input("  ? Select mode (1 or 2): ").strip()
         args.mode = "single" if choice == "1" else "multi"
 
-    headers = get_auth_headers()
+    credential = get_credential()
+    headers = get_auth_headers(credential)
 
     if args.mode == "single":
         print()
@@ -303,7 +314,7 @@ def main():
         print()
         print("  -- DEPLOYING --")
         try:
-            deploy_to_workspace(args.config, ws_id)
+            deploy_to_workspace(args.config, ws_id, credential=credential)
             populate_variable_library(ws_id, headers)
             print()
             print("  Deployment complete!")
@@ -330,7 +341,7 @@ def main():
         for env in envs:
             print(f"  Deploying to {env.upper()}...")
             try:
-                deploy_to_workspace(args.config, ws_ids[env], environment=env)
+                deploy_to_workspace(args.config, ws_ids[env], environment=env, credential=credential)
                 populate_variable_library(ws_ids[env], headers)
                 print(f"  {env.upper()} complete!")
             except Exception as e:
