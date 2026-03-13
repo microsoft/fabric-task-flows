@@ -214,7 +214,7 @@ acceptance_criteria:
 def engineer_review(project: str) -> str:
     return f"""```yaml
 # Engineer Review — /fabric-deploy Mode 0
-# Schema: .github/skills/fabric-design/schemas/engineer-review.md
+# Schema: _shared/schemas/engineer-review.md
 project: {project}
 task_flow: TBD
 review_date: {today()}
@@ -247,7 +247,7 @@ no_change: []
 def tester_review(project: str) -> str:
     return f"""```yaml
 # Tester Review — /fabric-test Mode 0
-# Schema: .github/skills/fabric-design/schemas/tester-review.md
+# Schema: _shared/schemas/tester-review.md
 project: {project}
 task_flow: TBD
 review_date: {today()}
@@ -590,8 +590,8 @@ def pipeline_state(project: str) -> str:
         "transitions": [
             {"from": "0a-discovery", "to": "1-design",     "auto": True},
             {"from": "1-design",     "to": "2a-test-plan", "auto": True},
-            {"from": "2a-test-plan", "to": "2b-sign-off",  "auto": False, "gate": "human"},
-            {"from": "2b-sign-off",  "to": "2c-deploy",    "auto": True},
+            {"from": "2a-test-plan", "to": "2b-sign-off",  "auto": True},
+            {"from": "2b-sign-off",  "to": "2c-deploy",    "auto": False, "gate": "human"},
             {"from": "2b-sign-off",  "to": "1-design",     "auto": False, "gate": "revision", "max_cycles": 3},
             {"from": "2c-deploy",    "to": "3-validate",   "auto": True},
             {"from": "3-validate",   "to": "4-document",   "auto": True}

@@ -296,16 +296,16 @@ def resolve_skillset(signals: dict) -> Decision:
     if _any_of(tc, "mixed", "hybrid", "both"):
         return _match("skillset-selection",
                       "Mixed team (engineers + analysts) → Hybrid [LC/CF]", "Hybrid [LC/CF]")
-    if _any_of(sk, "python", "spark", "pyspark", "scala", "kql", "code") or \
+    if _any_of(sk, "power query", "business", "analyst", "low-code", "no-code", "citizen"):
+        return _match("skillset-selection",
+                      "Business Analysts + Power Query → Low-Code [LC]", "Low-Code [LC]")
+    if _any_of(sk, "python", "spark", "pyspark", "scala", "kql", "code-first") or \
        (_any_of(sk, "sql") and _any_of(tc, "engineer")):
-        if _any_of(sk, "visual", "low-code", "prefer visual"):
+        if _any_of(sk, "visual", "prefer visual"):
             return _match("skillset-selection",
                           "Engineers + prefer visual tools → Low-Code [LC]", "Low-Code [LC]")
         return _match("skillset-selection",
                       "Engineers + Python/Spark/SQL → Code-First [CF]", "Code-First [CF]")
-    if _any_of(sk, "power query", "business", "analyst", "low-code", "no-code", "citizen"):
-        return _match("skillset-selection",
-                      "Business Analysts + Power Query → Low-Code [LC]", "Low-Code [LC]")
     if _any_of(tc, "engineer", "developer"):
         return _match("skillset-selection",
                       "Engineers + Python/Spark/SQL → Code-First [CF]", "Code-First [CF]")

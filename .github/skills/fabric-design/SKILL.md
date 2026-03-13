@@ -31,7 +31,7 @@ If no Discovery Brief exists, ask:
 
 ### Step 2: Select Task Flow
 
-Choose from 11 task flows + general:
+Select a primary task flow from 11 options + general. For complex requirements spanning multiple patterns, you may compose a **hybrid architecture** using a base task flow plus overlays or elements from complementary flows.
 
 | ID | Best For |
 |----|----------|
@@ -47,6 +47,12 @@ Choose from 11 task flows + general:
 | app-backend | APIs, Data Agents, embedded analytics |
 | conversational-analytics | Natural language queries via Data Agents |
 
+**Hybrid architecture guidance:**
+- **When to compose:** Discovery Brief has 3+ signal categories, or requirements clearly span batch + real-time + ML/AI patterns that no single task flow covers.
+- **Base + overlay:** `conversational-analytics` and `semantic-governance` are **overlays** — they layer onto any base task flow (e.g., `medallion` + `conversational-analytics`). Always select a base flow first, then add overlays.
+- **Cross-flow composition:** When requirements genuinely need elements from multiple base flows (e.g., `medallion` storage layers + `app-backend` API serving), use `general` as the flexible foundation and pull specific item patterns from relevant flows. Document the rationale in ADR 001.
+- **Default to single flow:** If a single task flow covers 80%+ of requirements, prefer it. Hybrid adds complexity — justify it in "Alternatives Considered."
+
 ### Step 3: Resolve Architectural Decisions
 
 Run `decision-resolver.py` to resolve all 7 decisions programmatically from Discovery Brief signals:
@@ -59,7 +65,22 @@ Returns structured output: `choice`, `confidence`, `rule_matched`, and `guide` r
 
 - **High confidence** → accept the choice, present with rationale
 - **Ambiguous** → read the referenced `guide` file's comparison table to resolve, then present trade-offs to user
-- **Unresolved** → ask user for clarifying input
+- **Unresolved** → the brief's free-text signals couldn't be parsed. Construct explicit signals from the brief and re-run with `--signals`:
+
+```bash
+python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{
+  "skillset": "low-code",
+  "velocity": "real-time",
+  "volume": "low",
+  "use_case": "iot_telemetry",
+  "query_language": "kql",
+  "environment_count": 1
+}' --format yaml
+```
+
+> **Signal keys accepted by the resolver:** `skillset`, `velocity`, `volume`, `query_language`, `use_case`, `environment_count`, `deployment_tool`, `interactivity`, `data_pattern`, `mode`, `team_composition`, `api_needs`. Map values from the Discovery Brief's 4 V's and inferred signals into these keys.
+
+> **⚠️ LAZY-LOAD decision guides.** Do NOT read all 9 decision guides upfront — they total 31K chars. Read a guide ONLY when `decision-resolver.py` returns `confidence: ambiguous` for that specific decision. For `high` confidence results, accept the choice without reading the guide. Typical projects need 0-2 guide reads, not 9.
 
 > **⚠️ Do NOT read decision guide files directly.** Use `decision-resolver.py` — it encodes the same rules as `quick_decision` YAML frontmatter. Only read a guide body for ambiguous cases needing comparison tables.
 
@@ -85,12 +106,16 @@ Write to `_projects/[name]/prd/architecture-handoff.md`:
 
 ### Step 5: Write ADRs 001-005
 
-Write sequentially with read-back (use `references/adr-template.md`):
-1. `001-task-flow.md` — Task flow selection rationale
-2. `002-storage.md` — Storage decision (read 001 first)
-3. `003-ingestion.md` — Ingestion decision (read 001+002)
-4. `004-processing.md` — Processing decision (read 001-003)
-5. `005-visualization.md` — Visualization decision (read 001-004)
+> **⚠️ PARALLEL WRITES REQUIRED — but READ first.**
+
+The pipeline runner has already scaffolded template files at `docs/decisions/001-005.md`. **Read ONE template** (e.g., `001-task-flow.md`) to see the exact heading and section format, then replace the full content of all 5 files in one parallel batch using the `edit` tool. Match the existing heading format exactly for your `old_str` — do NOT guess the template content.
+
+Files to edit:
+1. `001-task-flow.md` — Task flow selection rationale (include hybrid composition justification if applicable)
+2. `002-storage.md` — Storage layer decision
+3. `003-ingestion.md` — Ingestion approach decision
+4. `004-processing.md` — Processing/transformation decision
+5. `005-visualization.md` — Visualization decision
 
 ---
 
