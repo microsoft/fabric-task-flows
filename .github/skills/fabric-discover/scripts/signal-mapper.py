@@ -381,14 +381,10 @@ def map_signals(text: str) -> dict:
     input_word_starts = {m.start() for m in re.finditer(r"\b\w+\b", text)}
     covered = len(matched_word_positions & input_word_starts)
 
-    # Count inference hits for coverage boost
-    inference_hits = sum(
-        1 for cid, r in results.items()
-        for m in r.matches if m.start == -1
-    )
-    # Each inference hit counts as covering 4 "virtual words"
-    effective_covered = covered + (inference_hits * 4)
-    keyword_coverage = round(min(effective_covered / total_words, 1.0), 2)
+    # Keyword coverage uses only direct keyword matches.
+    # Inference hits are structural pattern matches (not keyword-based),
+    # so they must NOT inflate keyword_coverage.
+    keyword_coverage = round(min(covered / total_words, 1.0), 2)
 
     return {
         "signals": signals,
