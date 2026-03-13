@@ -69,3 +69,18 @@
 ## Healing History
 
 > Detailed signal mapper healing cycle data (Cycles 4–7) has been archived to `_shared/analysis/signal-mapper-healing-history.md`. Summary: 273 keywords, 230 inference rules, ~56% coverage, 0 zero-candidates on well-formed problems.
+
+### Heal Orchestrator Run: 2026-03-13 19:47 UTC (3 iterations, 30 problems)
+
+### Agent-Driven Heal Loop (10 problems × 3 iterations)
+
+| Iteration | Domains | Baseline | After Patch | Δ |
+|-----------|---------|----------|-------------|------|
+| 1 | Supply Chain, Fintech, EdTech, PropTech, CleanTech, Defense, Smart Cities | 38.1% | 50.3% | +12.2% |
+| 2 | Aviation, Pharma, Education, Real Estate, Hospitality, Biotech, Gaming | 27.3% | 56.9% | +29.6% |
+| 3 | Insurance, Retail, Government, Logistics, Mining | 29.7% | 64.8% | +35.1% |
+
+- **Total keywords added:** ~110 across 9 signal categories
+- **Coverage trend (post-patch):** 50.3% → 56.9% → 64.8% ↑
+- **Zero-candidate problems:** 0/30 across all iterations
+- Key gap categories: Real-time/Streaming (signal 1), Batch/Scheduled (signal 2), Advanced Analytics (signal 3), ML (signal 4)
