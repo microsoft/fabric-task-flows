@@ -104,6 +104,7 @@ def resolve_storage(signals: dict) -> Decision:
     ql = _norm(signals.get("query_language"))
     sk = _norm(signals.get("skillset"))
     uc = _norm(signals.get("use_case"))
+    vel = _norm(signals.get("velocity"))
 
     if _any_of(ql, "spark") or _any_of(sk, "spark", "pyspark"):
         return _match("storage-selection", "Spark/Python → Lakehouse", "Lakehouse")
@@ -111,6 +112,8 @@ def resolve_storage(signals: dict) -> Decision:
         return _match("storage-selection", "Spark/Python → Lakehouse", "Lakehouse")
     if _any_of(ql, "kql", "kusto") or _any_of(uc, "time-series", "timeseries", "iot", "telemetry", "logs"):
         return _match("storage-selection", "KQL time-series → Eventhouse", "Eventhouse")
+    if _any_of(vel, "real-time", "realtime", "streaming", "stream"):
+        return _match("storage-selection", "Real-time streaming → Eventhouse", "Eventhouse")
     if _any_of(ql, "t-sql", "tsql", "sql"):
         if _any_of(uc, "transactional", "oltp", "operational", "writeback", "app"):
             return _match("storage-selection", "T-SQL transactional → SQL Database", "SQL Database")
@@ -258,7 +261,10 @@ def resolve_visualization(signals: dict) -> Decision:
     if _any_of(uc, "geospatial", "location", "fleet", "map", "gps"):
         return _match("visualization-selection",
                       "Live geospatial/location data → Real-Time Map", "Real-Time Map")
-    if _any_of(vel, "stream", "real-time", "realtime", "sub-second"):
+    # App/API-backend projects typically don't need Fabric visualization —
+    # don't let velocity push them into Real-Time Dashboard
+    is_app_backend = _any_of(uc, "app", "api", "backend", "integration")
+    if _any_of(vel, "stream", "real-time", "realtime", "sub-second") and not is_app_backend:
         return _match("visualization-selection",
                       "Live streaming data (sub-second) → Real-Time Dashboard",
                       "Real-Time Dashboard")

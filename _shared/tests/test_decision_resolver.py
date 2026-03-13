@@ -785,6 +785,31 @@ def test_extract_brief_real_file():
     assert result["decisions"]["skillset"]["confidence"] == "high"
 
 
+def test_storage_realtime_velocity_resolves_eventhouse():
+    """Real-time velocity should resolve storage to Eventhouse."""
+    result = resolve_storage({"velocity": "real-time"})
+    assert result.choice == "Eventhouse"
+    assert result.confidence == "high"
+
+
+def test_storage_velocity_does_not_override_explicit_query_language():
+    """Explicit query_language=spark should win over velocity=real-time."""
+    result = resolve_storage({"velocity": "real-time", "query_language": "spark"})
+    assert result.choice == "Lakehouse"
+
+
+def test_viz_skips_dashboard_for_app_backend():
+    """App-backend use_case with real-time velocity should NOT suggest dashboard."""
+    result = resolve_visualization({"velocity": "real-time", "use_case": "app"})
+    assert result.choice is None, f"Expected skip, got {result.choice}"
+
+
+def test_viz_still_suggests_dashboard_for_non_app_realtime():
+    """Real-time velocity without app use_case should still suggest Real-Time Dashboard."""
+    result = resolve_visualization({"velocity": "real-time", "use_case": "analytics"})
+    assert result.choice == "Real-Time Dashboard"
+
+
 # ── Helper to create test discovery briefs ───────────────────────────────
 
 def _write_brief(signals=None, vs=None):
