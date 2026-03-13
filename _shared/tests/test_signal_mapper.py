@@ -704,3 +704,125 @@ class TestInferenceEngine:
         assert len(inferred) > 0, (
             f"Expected inference in verbose output, got: {details}"
         )
+
+
+# ── Negation detection ──────────────────────────────────────────────────
+
+
+class TestNegationDetection:
+    """Tests for _is_negated() and its integration into map_signals()."""
+
+    def test_negated_keyword_suppressed(self):
+        """Keywords preceded by 'NOT' in the same sentence are suppressed."""
+        result = sm.map_signals("We do NOT need dashboards. We want streaming.")
+        signal_names = [s["signal"] for s in result["signals"]]
+        kw_lists = {
+            s["signal"]: s["source_keywords"] for s in result["signals"]
+        }
+        # "dashboard" should not appear as a keyword source
+        batch_kws = kw_lists.get("Batch / Scheduled", [])
+        assert "dashboard" not in batch_kws, (
+            f"Negated keyword 'dashboard' should be suppressed, got: {batch_kws}"
+        )
+
+    def test_negated_keyword_dont_suppressed(self):
+        """Contraction 'don't' triggers negation."""
+        result = sm.map_signals("We don't want dashboards or any bar charts.")
+        signal_names = [s["signal"] for s in result["signals"]]
+        kw_lists = {
+            s["signal"]: s["source_keywords"] for s in result["signals"]
+        }
+        batch_kws = kw_lists.get("Batch / Scheduled", [])
+        assert "dashboard" not in batch_kws
+
+    def test_negation_does_not_cross_sentence_boundary(self):
+        """Negation in sentence 1 must NOT suppress keywords in sentence 2."""
+        result = sm.map_signals(
+            "We do NOT need dashboards. We want real-time sensor streaming."
+        )
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Real-time / Streaming" in signal_names, (
+            f"real-time should not be negated across sentence boundary, got: {signal_names}"
+        )
+        rt = next(s for s in result["signals"] if s["signal"] == "Real-time / Streaming")
+        assert "real-time" in rt["source_keywords"]
+
+    def test_no_negation_positive_context(self):
+        """Keywords in purely positive context are not suppressed."""
+        result = sm.map_signals("We need real-time streaming dashboards.")
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Real-time / Streaming" in signal_names
+
+    def test_negation_various_forms(self):
+        """Multiple negation forms all suppress keywords."""
+        forms = [
+            "We do not need dashboards.",
+            "We don't want dashboards.",
+            "No dashboards required.",
+            "We never use dashboards.",
+            "Without dashboards.",
+            "We are not looking for dashboards.",
+        ]
+        for text in forms:
+            result = sm.map_signals(text)
+            kw_lists = {
+                s["signal"]: s["source_keywords"] for s in result["signals"]
+            }
+            batch_kws = kw_lists.get("Batch / Scheduled", [])
+            assert "dashboard" not in batch_kws, (
+                f"Negation form should suppress 'dashboard': {text!r}"
+            )
+
+    def test_affirmation_override_cancels_negation(self):
+        """'but also' between negation and keyword cancels the negation."""
+        result = sm.map_signals(
+            "We don't want batch processing, but also need real-time streaming."
+        )
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Real-time / Streaming" in signal_names
+
+    def test_verbose_marks_negated(self):
+        """Verbose output marks negated matches with negated: True."""
+        text = "We do NOT need dashboards."
+        details = sm._verbose_matches(text)
+        negated = [d for d in details if d.get("negated")]
+        assert any(d["keyword"] == "dashboard" for d in negated), (
+            f"Expected negated dashboard in verbose, got: {details}"
+        )
+
+    def test_is_negated_helper_directly(self):
+        """_is_negated returns True when negation cue precedes keyword."""
+        text = "We do NOT need dashboards or charts"
+        # "dashboards" starts at position 15
+        pos = text.index("dashboards")
+        assert sm._is_negated(text, pos) is True
+
+    def test_is_negated_false_for_positive(self):
+        """_is_negated returns False for non-negated context."""
+        text = "We love dashboards and charts"
+        pos = text.index("dashboards")
+        assert sm._is_negated(text, pos) is False
+
+    def test_tractor_health_problem_no_dashboard_keyword(self):
+        """The exact tractor-health problem statement should not match
+        'dashboard' as a keyword — the user explicitly said no dashboards."""
+        problem = (
+            "We have 250 acres with 2 tractors running continuously. "
+            "We need proactive maintenance insights from tractor sensor data "
+            "streamed in real-time to iPads. We are in a rural area with weak "
+            "internet connectivity, so the solution must handle intermittent or "
+            "low-bandwidth conditions. We do NOT need dashboards or charts. "
+            "We want direct API integrations to connect tractor telemetry to "
+            "our existing ag platform."
+        )
+        result = sm.map_signals(problem)
+        # Real-time should still fire (different sentence)
+        signal_names = [s["signal"] for s in result["signals"]]
+        assert "Real-time / Streaming" in signal_names
+        # Dashboard must not appear as a keyword match
+        all_kws = []
+        for s in result["signals"]:
+            all_kws.extend(s["source_keywords"])
+        assert "dashboard" not in all_kws, (
+            f"'dashboard' was negated but still matched: {all_kws}"
+        )

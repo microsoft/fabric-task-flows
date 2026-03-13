@@ -188,6 +188,84 @@ KEYWORD_PATTERNS: list[KeywordPattern] = _build_patterns()
 
 
 # ---------------------------------------------------------------------------
+# Negation detection — suppress keywords that appear in negated context
+# ---------------------------------------------------------------------------
+
+# Window (in characters) before a keyword match to scan for negation cues.
+_NEGATION_WINDOW = 60
+
+# Patterns that negate a following keyword.  Each regex is tested against the
+# text window *immediately preceding* the keyword match.  Order doesn't matter
+# — any hit means the keyword is negated.
+_NEGATION_CUES: list[re.Pattern[str]] = [
+    re.compile(p, re.IGNORECASE)
+    for p in (
+        r"\bno\b",
+        r"\bnot\b",
+        r"\bnor\b",
+        r"\bnever\b",
+        r"\bdon['\u2019]?t\b",
+        r"\bdo\s+not\b",
+        r"\bdoes\s+not\b",
+        r"\bdoesn['\u2019]?t\b",
+        r"\bwon['\u2019]?t\b",
+        r"\bwithout\b",
+        r"\bno\s+need\s+for\b",
+        r"\bnot\s+looking\s+for\b",
+        r"\bnot\s+interested\s+in\b",
+        r"\bdon['\u2019]?t\s+(?:need|want|require|use)\b",
+        r"\bdo\s+not\s+(?:need|want|require|use)\b",
+        r"\bnot\s+(?:need|want|require|requir\w+|use|using)\b",
+        r"\beliminate\b",
+        r"\bexclude\b",
+        r"\bavoid\b",
+        r"\bskip\b",
+        r"\bno\s+(?:need|interest|requirement|desire)\b",
+    )
+]
+
+# Affirmation patterns that *cancel* a preceding negation when they appear
+# between the negation cue and the keyword — e.g. "not just dashboards, but
+# also real-time alerts" should NOT suppress "real-time".
+_AFFIRMATION_OVERRIDES: list[re.Pattern[str]] = [
+    re.compile(p, re.IGNORECASE)
+    for p in (
+        r"\bbut\s+also\b",
+        r"\bbut\s+rather\b",
+        r"\binstead\b",
+        r"\bhowever\b",
+    )
+]
+
+
+def _is_negated(text: str, match_start: int) -> bool:
+    """Return True if the keyword at *match_start* is preceded by a negation cue
+    within the look-back window **and** the same sentence, with no affirmation
+    override in between."""
+    window_start = max(0, match_start - _NEGATION_WINDOW)
+    window = text[window_start:match_start]
+
+    # Restrict to the current sentence — negation doesn't cross sentence
+    # boundaries (e.g. "We do NOT need dashboards. We want real-time..." should
+    # NOT negate "real-time").
+    for sep in (".  ", ". ", "! ", "? ", ";\n", ".\n"):
+        last_boundary = window.rfind(sep)
+        if last_boundary != -1:
+            window = window[last_boundary + len(sep):]
+
+    for cue in _NEGATION_CUES:
+        m = cue.search(window)
+        if m:
+            # Check whether an affirmation override sits between the negation
+            # cue and the keyword, which would cancel the negation.
+            between = window[m.end():]
+            if any(aff.search(between) for aff in _AFFIRMATION_OVERRIDES):
+                continue
+            return True
+    return False
+
+
+# ---------------------------------------------------------------------------
 # Compiled inference patterns — detect architectural intent from NL phrases
 # ---------------------------------------------------------------------------
 
@@ -283,6 +361,8 @@ def map_signals(text: str) -> dict:
 
     matched_spans: list[tuple[int, int]] = []
 
+    negated_spans: list[tuple[int, int]] = []
+
     for kp in KEYWORD_PATTERNS:
         for m in kp.pattern.finditer(text):
             overlap = any(
@@ -290,6 +370,9 @@ def map_signals(text: str) -> dict:
                 for existing_start, existing_end in matched_spans
             )
             if not overlap:
+                if _is_negated(text, m.start()):
+                    negated_spans.append((m.start(), m.end()))
+                    continue
                 matched_spans.append((m.start(), m.end()))
                 results[kp.category_id].matches.append(
                     KeywordMatch(keyword=kp.keyword, start=m.start(), end=m.end())
@@ -410,6 +493,16 @@ def _verbose_matches(text: str) -> list[dict]:
                 for es, ee in matched_spans
             )
             if not overlap:
+                if _is_negated(text, m.start()):
+                    cat = next(c for c in CATEGORIES if c.id == kp.category_id)
+                    details.append({
+                        "keyword": kp.keyword,
+                        "category": cat.name,
+                        "position": f"{m.start()}-{m.end()}",
+                        "context": text[max(0, m.start() - 20):m.end() + 20].strip(),
+                        "negated": True,
+                    })
+                    continue
                 matched_spans.append((m.start(), m.end()))
                 cat = next(c for c in CATEGORIES if c.id == kp.category_id)
                 details.append({
