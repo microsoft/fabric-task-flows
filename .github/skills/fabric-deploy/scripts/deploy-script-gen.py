@@ -639,13 +639,18 @@ BASE_URL = "https://api.fabric.microsoft.com/v1"
 
 def get_auth_headers():
     try:
-        from azure.identity import DefaultAzureCredential
+        from azure.identity import DefaultAzureCredential, InteractiveBrowserCredential
         import requests
-        token = DefaultAzureCredential().get_token("https://api.fabric.microsoft.com/.default").token
-        return {{"Authorization": f"Bearer {{token}}", "Content-Type": "application/json"}}
     except ImportError:
         print("  -- azure-identity not installed. Run: pip install azure-identity")
         sys.exit(1)
+    scope = "https://api.fabric.microsoft.com/.default"
+    try:
+        token = DefaultAzureCredential().get_token(scope).token
+    except Exception:
+        print("  -- Default credentials not available. Opening browser for sign-in...")
+        token = InteractiveBrowserCredential().get_token(scope).token
+    return {{"Authorization": f"Bearer {{token}}", "Content-Type": "application/json"}}
 
 
 def ensure_workspace(name, headers, description=""):
