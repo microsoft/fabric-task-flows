@@ -427,8 +427,38 @@ RESOLVERS: dict[str, tuple[str, type]] = {
 }
 
 
+def _enrich_query_language(signals: dict, storage_choice: str | None) -> None:
+    """Inject query_language from the item-type registry when storage is known.
+
+    Only enriches if query_language is not already set in signals and the
+    storage item exists in the registry with a query_language field.
+    """
+    if not storage_choice or signals.get("query_language"):
+        return
+    try:
+        import pathlib
+        registry_path = (
+            pathlib.Path(__file__).resolve().parents[4]
+            / "_shared" / "registry" / "item-type-registry.json"
+        )
+        with open(registry_path, encoding="utf-8") as f:
+            registry = json.load(f)
+        item = registry.get("types", {}).get(storage_choice, {})
+        langs = item.get("query_language")
+        if langs and isinstance(langs, list) and langs:
+            signals["query_language"] = langs[0]
+            _log(f"  ↳ enriched query_language={langs[0]} from {storage_choice}")
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass  # Registry unavailable — proceed without enrichment
+
+
 def resolve_all(signals: dict) -> dict:
     """Resolve all 7 architectural decisions from signal inputs.
+
+    Storage is resolved first. If the chosen storage item has a known
+    ``query_language`` in the item-type registry and the caller did not
+    supply one, the primary language is injected into signals so that
+    downstream decisions (especially processing) can benefit.
 
     Args:
         signals: Dict with keys like skillset, velocity, volume, query_language,
@@ -439,12 +469,19 @@ def resolve_all(signals: dict) -> dict:
         Dict with 'decisions', 'ambiguous', and 'unresolved' keys.
     """
     VERBOSE_LOG.clear()
+    signals = dict(signals)  # shallow copy — don't mutate caller's dict
     decisions: dict[str, dict] = {}
     ambiguous: list[str] = []
     unresolved: list[str] = []
 
+    # --- Phase 1: resolve storage first for enrichment --------------------
+    storage_guide, storage_resolver = RESOLVERS["storage"]
+    storage_result = storage_resolver(signals)
+    _enrich_query_language(signals, storage_result.choice)
+
+    # --- Phase 2: resolve all (storage result already cached) -------------
     for key, (_guide_id, resolver) in RESOLVERS.items():
-        result = resolver(signals)
+        result = storage_result if key == "storage" else resolver(signals)
         entry: dict = {
             "choice": result.choice,
             "confidence": result.confidence,

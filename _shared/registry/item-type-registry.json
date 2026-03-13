@@ -29,6 +29,13 @@
       "availability": "ga",
       "skillset": [
         "LC"
+      ],
+      "query_language": [
+        "spark",
+        "python",
+        "r",
+        "scala",
+        "sql-readonly"
       ]
     },
     "Warehouse": {
@@ -56,6 +63,9 @@
       "availability": "ga",
       "skillset": [
         "LC"
+      ],
+      "query_language": [
+        "t-sql"
       ]
     },
     "Eventhouse": {
@@ -87,6 +97,9 @@
       "availability": "ga",
       "skillset": [
         "LC"
+      ],
+      "query_language": [
+        "kql"
       ]
     },
     "KQLDatabase": {
@@ -117,6 +130,9 @@
       "availability": "ga",
       "skillset": [
         "LC"
+      ],
+      "query_language": [
+        "kql"
       ]
     },
     "SQLDatabase": {
@@ -147,6 +163,9 @@
       "availability": "ga",
       "skillset": [
         "LC"
+      ],
+      "query_language": [
+        "t-sql"
       ]
     },
     "SQLEndpoint": {
@@ -169,6 +188,9 @@
       "availability": "ga",
       "skillset": [
         "auto"
+      ],
+      "query_language": [
+        "t-sql"
       ]
     },
     "Datamart": {
@@ -189,6 +211,9 @@
       "availability": "ga",
       "skillset": [
         "LC"
+      ],
+      "query_language": [
+        "t-sql"
       ]
     },
     "MirroredWarehouse": {
@@ -1022,6 +1047,9 @@
       "availability": "ga",
       "skillset": [
         "LC"
+      ],
+      "query_language": [
+        "nosql"
       ]
     },
     "Dataflow": {

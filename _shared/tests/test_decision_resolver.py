@@ -838,3 +838,28 @@ def _write_brief(signals=None, vs=None):
     f.writelines(lines)
     f.close()
     return f.name
+
+
+# ── Storage → query_language enrichment tests ────────────────────────────
+
+
+def test_enrichment_eventhouse_cascades_to_kql_queryset():
+    """Eventhouse storage should enrich query_language=kql → processing=KQL Queryset."""
+    result = resolve_all({"velocity": "real-time", "skillset": "low-code"})
+    assert result["decisions"]["storage"]["choice"] == "Eventhouse"
+    assert "KQL Queryset" in result["decisions"]["processing"]["choice"]
+
+
+def test_enrichment_lakehouse_cascades_to_notebook():
+    """Lakehouse storage should enrich query_language=spark → processing=Notebook."""
+    result = resolve_all({"skillset": "python"})
+    assert result["decisions"]["storage"]["choice"] == "Lakehouse"
+    assert result["decisions"]["processing"]["choice"] == "Notebook"
+
+
+def test_enrichment_does_not_override_explicit_query_language():
+    """Explicit query_language in signals must NOT be overridden by storage lookup."""
+    result = resolve_all({"velocity": "real-time", "query_language": "t-sql"})
+    # query_language=t-sql wins for processing even though velocity→Eventhouse
+    proc = result["decisions"]["processing"]["choice"]
+    assert "KQL" not in (proc or ""), f"Expected t-sql processing, got {proc}"
