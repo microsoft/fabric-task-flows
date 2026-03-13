@@ -118,46 +118,4 @@
 Legend: [LC] = Low-Code/UI   [CF] = Code-First   [LC/CF] = Both supported
 ```
 
-## Gold Layer Decision
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                         MEDALLION LAYER PURPOSES                                │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│  BRONZE (Raw)                                                                   │
-│  ══════════════                                                                 │
-│  • Raw data as-is from source                                                   │
-│  • Append-only, immutable                                                       │
-│  • Full history preserved                                                       │
-│  • Schema: source schema (may vary)                                             │
-│                                                                                 │
-│  SILVER (Cleansed)                                                              │
-│  ══════════════════                                                             │
-│  • Validated, deduplicated                                                      │
-│  • Standardized schemas                                                         │
-│  • Business keys applied                                                        │
-│  • Conformed dimensions                                                         │
-│                                                                                 │
-│  GOLD (Business-Ready) - CHOOSE: Lakehouse OR Warehouse                        │
-│  ════════════════════════════════════════════════════════                       │
-│  • Aggregated, enriched                                                         │
-│  • Business-level entities                                                      │
-│  • Optimized for consumption                                                    │
-│  • Ready for BI and ML                                                          │
-│                                                                                 │
-│  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │ GOLD LAYER DECISION GUIDE:                                              │    │
-│  │                                                                         │    │
-│  │ Choose LAKEHOUSE Gold when:          Choose WAREHOUSE Gold when:        │    │
-│  │ • Spark/Python-based consumption     • T-SQL is primary query language  │    │
-│  │ • Machine learning workloads         • Traditional BI reporting         │    │
-│  │ • Need Delta Lake features           • Need stored procedures/views     │    │
-│  │ • Read-heavy analytical queries      • Read/Write transactional access  │    │
-│  │ • Schema flexibility required        • Strict schema enforcement        │    │
-│  │ • Data science team primary users    • Business analysts primary users  │    │
-│  │ • Cost optimization priority         • Query performance priority       │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+> **Gold Layer Decision:** See [Storage Selection](../decisions/storage-selection.md#gold-layer-decision) for Lakehouse vs Warehouse comparison.

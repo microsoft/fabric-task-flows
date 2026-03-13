@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Pre-fill architecture handoff YAML blocks from deployment-diagram data.
+Scaffolds an architecture handoff document from registry data.
 
-Reads the Deployment Order table from diagrams/{task-flow}.md, parses item
-rows (box-drawing format), and emits a partial architecture-handoff.md with
+Loads deployment order from ``_shared/registry/deployment-order.json`` via
+``diagram_parser.get_deployment_items()``, maps items to Fabric types from the
+item-type registry, and generates a structured handoff markdown document with
 items_to_deploy, deployment_waves, and stub acceptance criteria.
 
 Usage:
