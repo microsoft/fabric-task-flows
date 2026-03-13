@@ -635,7 +635,7 @@ def _extract_signals_from_brief(path: str) -> dict:
                     for row in rows:
                         if len(row) < 3:
                             continue
-                        signal_name = row[0].strip().lower()
+                        signal_name = row[0].replace("*", "").strip().lower()
                         confidence = _extract_confidence(row[2]) if len(row) > 2 else "low"
                         # Skip low-confidence signals
                         if confidence == "low":
@@ -665,8 +665,8 @@ def _extract_signals_from_brief(path: str) -> dict:
                     for row in rows:
                         if len(row) < 3:
                             continue
-                        v_name = row[0].strip().lower()
-                        v_value = row[1].strip().lower()
+                        v_name = row[0].replace("*", "").strip().lower()
+                        v_value = row[1].replace("*", "").strip().lower()
                         confidence = _extract_confidence(row[2]) if len(row) > 2 else "low"
                         if confidence == "low":
                             continue

@@ -691,6 +691,30 @@ def test_extract_brief_4vs_volume_large():
     assert result["volume"] == "large"
 
 
+def test_extract_brief_4vs_bold_markers_stripped():
+    """Bold markdown in V names (e.g. **Volume**) must not block key matching."""
+    brief = _write_brief(vs=[
+        ("**Volume**", "GBs — small dataset", "**High**", "user confirmed"),
+        ("**Velocity**", "Real-time streaming", "**High**", "user confirmed"),
+        ("**Versatility**", "Low-code team", "**High**", "user confirmed"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result.get("volume") == "small", f"volume not extracted: {result}"
+    assert result.get("velocity") == "real-time", f"velocity not extracted: {result}"
+    assert result.get("skillset") == "low-code", f"skillset not extracted: {result}"
+
+
+def test_extract_brief_signal_bold_markers_stripped():
+    """Bold markdown in signal names must not block pattern matching."""
+    brief = _write_brief(signals=[
+        ("**Real-time / Streaming**", "Event analytics", "**High**", "telemetry"),
+        ("**Data Quality / Layered**", "Layered analytics", "**High**", "integrate"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result.get("velocity") == "real-time", f"velocity not extracted: {result}"
+    assert result.get("data_pattern") == "layered", f"data_pattern not extracted: {result}"
+
+
 def test_extract_brief_4vs_versatility_sql():
     brief = _write_brief(vs=[
         ("Versatility", "Code-first (SQL)", "**High**", "user confirmed"),

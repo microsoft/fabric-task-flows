@@ -45,10 +45,15 @@ def discovery_brief(project: str) -> str:
 
 ### Inferred Signals
 
+<!-- Valid signal names (must match for decision-resolver.py):
+     Batch / Scheduled, Real-time / Streaming, Both / Mixed (Lambda),
+     Machine Learning, Sensitive Data, Transactional,
+     Unstructured / Semi-Structured, Data Quality / Layered,
+     Application Backend, Document / NoSQL / AI-Ready, Semantic Governance -->
+
 | Signal | Value | Confidence | Source |
 |--------|-------|------------|--------|
-| Data Velocity | | | |
-| Use Case | | | |
+| <!-- use signal names from list above --> | | | |
 
 ### Suggested Task Flow Candidates
 
