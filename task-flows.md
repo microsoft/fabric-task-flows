@@ -2,7 +2,7 @@
 
 Microsoft Fabric task flows - pre-defined architectures for common data scenarios.
 
-> **Agents:** Diagrams in `diagrams/` are for human visualization only. Use `diagram_parser.get_deployment_items()` for programmatic deployment order access.
+> **Agents:** Diagrams in `diagrams/` are for human visualization only. Use `deployment_loader.get_deployment_items()` for programmatic deployment order access.
 
 ## Quick Reference
 

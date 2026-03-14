@@ -34,3 +34,18 @@ def slugify_phase(name: str) -> str:
     'phase-1-foundation'
     """
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+
+def escape_for_python_string(s: str) -> str:
+    """Escape a string for safe embedding in Python string literals.
+
+    Handles backslashes, quotes, and newlines to prevent template
+    injection when generating Python code via f-strings.
+    """
+    return (
+        s.replace('\\', '\\\\')
+        .replace('"', '\\"')
+        .replace("'", "\\'")
+        .replace('\n', '\\n')
+        .replace('\r', '\\r')
+    )

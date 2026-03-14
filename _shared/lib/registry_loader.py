@@ -389,3 +389,55 @@ def build_skillset_map() -> dict[str, list[str]]:
         return data.get("skillset", [])
 
     return _build_variant_map(_value)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Registry validation
+# ─────────────────────────────────────────────────────────────────────────────
+
+def validate_registry() -> list[str]:
+    """Check the registry for structural issues.
+
+    Returns a list of error messages (empty if valid).  Useful for CI
+    checks and maintenance scripts.
+    """
+    errors: list[str] = []
+    registry = load_registry()
+
+    _REQUIRED_FIELDS = {"fab_type", "display_name", "phase", "phase_order", "task_type", "aliases"}
+    _VALID_PHASES = {
+        "Environment", "Foundation", "IQ", "Ingestion",
+        "ML", "Monitoring", "Transformation", "Visualization", "TBD",
+    }
+    _VALID_TASK_TYPES = {
+        "get data", "mirror data", "store data", "prepare data",
+        "analyze and train data", "track data", "visualize",
+        "distribute data", "develop", "govern data", "TBD", "",
+    }
+
+    for name, data in registry.items():
+        # Check required fields
+        missing = _REQUIRED_FIELDS - set(data.keys())
+        if missing:
+            errors.append(f"{name}: missing fields {sorted(missing)}")
+
+        # Check phase validity
+        phase = data.get("phase", "")
+        if phase and phase not in _VALID_PHASES:
+            errors.append(f"{name}: invalid phase '{phase}'")
+
+        # Check task_type validity
+        task_type = data.get("task_type", "")
+        if task_type and task_type not in _VALID_TASK_TYPES:
+            errors.append(f"{name}: invalid task_type '{task_type}'")
+
+        # Check aliases are lowercase
+        for alias in data.get("aliases", []):
+            if alias != alias.lower():
+                errors.append(f"{name}: alias '{alias}' is not lowercase")
+
+        # Check fab_type is present and non-empty
+        if not data.get("fab_type"):
+            errors.append(f"{name}: empty or missing fab_type")
+
+    return errors

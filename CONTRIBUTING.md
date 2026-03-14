@@ -52,7 +52,7 @@ Pipeline utilities live in `_shared/scripts/`. Shared library modules live in `_
 | `registry_loader.py` | `_shared/lib/` | Shared module — all scripts import item type metadata from here |
 | `yaml_utils.py` | `_shared/lib/` | Shared module — YAML extraction and parsing (consolidated from 6 scripts) |
 | `text_utils.py` | `_shared/lib/` | Shared module — slugify and text utilities |
-| `diagram_parser.py` | `_shared/lib/` | Shared module — deployment order registry loader |
+| `deployment_loader.py` | `_shared/lib/` | Shared module — deployment order registry loader |
 
 **Registries:** All canonical registry files live in `_shared/registry/`:
 - `_shared/registry/item-type-registry.json` — Single source of truth for item type metadata including skillset (LC/CF)

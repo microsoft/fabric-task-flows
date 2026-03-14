@@ -4,7 +4,7 @@
 
 For deterministic deployment ordering, load the JSON registry:
 ```python
-from diagram_parser import get_deployment_items
+from deployment_loader import get_deployment_items
 items = get_deployment_items("medallion")  # Returns list of deployment items
 ```
 

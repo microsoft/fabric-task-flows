@@ -31,9 +31,9 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+_SKILL_DIR = Path(__file__).resolve().parent.parent
 
-_SHARED_DIR = REPO_ROOT.parent.parent.parent / "_shared" / "lib"
+_SHARED_DIR = _SKILL_DIR.parent.parent.parent / "_shared" / "lib"
 if str(_SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(_SHARED_DIR))
 
@@ -43,7 +43,7 @@ if str(_SHARED_DIR) not in sys.path:
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
 from registry_loader import build_task_type_map
 from yaml_utils import extract_yaml_blocks
-from diagram_parser import get_deployment_items
+from deployment_loader import get_deployment_items
 
 ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()
 
@@ -144,7 +144,7 @@ def _extract_yaml_blocks(markdown: str) -> list[str]:
 def _parse_handoff_items(handoff_path: str) -> list[HandoffItem]:
     path = Path(handoff_path)
     if not path.is_absolute():
-        path = REPO_ROOT / path
+        path = _SKILL_DIR / path
     text = path.read_text(encoding="utf-8")
     blocks = _extract_yaml_blocks(text)
 

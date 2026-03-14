@@ -21,6 +21,7 @@ from registry_loader import (
     build_test_method_map,
     build_item_notes_map,
     build_skillset_map,
+    validate_registry,
 )
 
 VALID_TASK_TYPES = {
@@ -320,3 +321,12 @@ def test_skillset_map_known_items():
     assert sm.get("Notebook") == ["CF"]
     assert sm.get("Lakehouse") == ["LC"]
     assert "LC" in sm.get("Data Pipeline", []) or "LC" in sm.get("DataPipeline", [])
+
+
+# ── validate_registry ─────────────────────────────────────────────────────
+
+
+def test_validate_registry_returns_no_errors():
+    """The live registry should pass all validation checks."""
+    errors = validate_registry()
+    assert errors == [], f"Registry validation errors:\n" + "\n".join(errors)

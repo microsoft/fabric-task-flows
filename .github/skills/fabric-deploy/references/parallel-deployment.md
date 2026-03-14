@@ -4,7 +4,7 @@ Fabric item deployments can be significantly accelerated by deploying independen
 
 ## Dependency-Wave Analysis
 
-The canonical deployment order is accessible via `diagram_parser.get_deployment_items(task_flow)`. Do NOT read `_shared/registry/deployment-order.json` directly — use the Python tool. Each item includes `dependsOn` and `requiredFor` fields. To parallelize:
+The canonical deployment order is accessible via `deployment_loader.get_deployment_items(task_flow)`. Do NOT read `_shared/registry/deployment-order.json` directly — use the Python tool. Each item includes `dependsOn` and `requiredFor` fields. To parallelize:
 
 1. **Identify foundation items** — items with no dependencies (depth 0)
 2. **Walk the graph** — for each remaining item, its depth = max(dependency depths) + 1
@@ -59,11 +59,11 @@ Some operations must remain sequential:
 
 ## Applying to Any Task Flow
 
-1. Load deployment items: `from diagram_parser import get_deployment_items; items = get_deployment_items("[task-flow]")`
+1. Load deployment items: `from deployment_loader import get_deployment_items; items = get_deployment_items("[task-flow]")`
 2. Read the `dependsOn` field for each item
 3. Group items by dependency depth
 4. Generate waves using the bash template above
 
-> **⚠️ Do NOT read `diagrams/[task-flow].md` for deployment order.** Diagram files are for human visualization only. Use `diagram_parser.get_deployment_items()` for programmatic access.
+> **⚠️ Do NOT read `diagrams/[task-flow].md` for deployment order.** Diagram files are for human visualization only. Use `deployment_loader.get_deployment_items()` for programmatic access.
 
 The engineer agent should perform this analysis automatically when generating deployment scripts.

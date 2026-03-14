@@ -136,9 +136,9 @@ Key directories:
 | `.github/agents/` | Orchestrator agent (`@fabric-advisor`) |
 | `.github/skills/` | 6 composable skills (discover, design, test, deploy, document, heal) |
 | `decisions/` | 7 decision guides with YAML frontmatter |
-| `diagrams/` | 13 deployment diagrams (human reference — use `diagram_parser` for programmatic access) |
+| `diagrams/` | 13 deployment diagrams (human reference — use `deployment_loader` for programmatic access) |
 | `_shared/registry/` | Canonical JSON data (use Python tools, not raw reads) |
-| `_shared/lib/` | Shared Python modules (`registry_loader`, `diagram_parser`, etc.) |
+| `_shared/lib/` | Shared Python modules (`registry_loader`, `deployment_loader`, etc.) |
 | `_shared/scripts/` | Pipeline utilities (`run-pipeline.py`, `new-project.py`, `file-audit.py`) |
 | `_projects/` | Per-project documentation (gitignored) |
 

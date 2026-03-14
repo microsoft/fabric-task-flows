@@ -25,11 +25,11 @@ Confirm Phase 2b is complete. Never deploy without approval.
 ### Step 2: Load Context
 
 1. `_projects/[name]/prd/architecture-handoff.md` — items, waves, dependencies
-2. Deployment order — `python -c "import sys; sys.path.insert(0, '_shared/lib'); from diagram_parser import get_deployment_items; print(get_deployment_items('[task-flow]'))"`
+2. Deployment order — `python -c "import sys; sys.path.insert(0, '_shared/lib'); from deployment_loader import get_deployment_items; print(get_deployment_items('[task-flow]'))"`
 3. `_projects/[name]/prd/test-plan.md` — what will be validated
 4. `_shared/learnings.md` — known gotchas
 
-> Do NOT read `diagrams/*.md` or registry JSON files — those are human-only. Use `diagram_parser.get_deployment_items()` via Python.
+> Do NOT read `diagrams/*.md` or registry JSON files — those are human-only. Use `deployment_loader.get_deployment_items()` via Python.
 
 ### Step 3: Deploy by Wave
 
@@ -89,7 +89,7 @@ manual_steps:
 
 ## Constraints
 
-- Do NOT read registry JSON files directly — use `deploy-script-gen.py`, `diagram_parser`, and `registry_loader` Python tools (registry files total 170+ KB of raw JSON)
+- Do NOT read registry JSON files directly — use `deploy-script-gen.py`, `deployment_loader`, and `registry_loader` Python tools (registry files total 170+ KB of raw JSON)
 - Never make architecture decisions — follow the handoff exactly
 - Never proceed to next wave if current wave has failures
 - Always generate Python deploy script for design-only mode

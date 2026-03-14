@@ -3,7 +3,7 @@
 Scaffolds an architecture handoff document from registry data.
 
 Loads deployment order from ``_shared/registry/deployment-order.json`` via
-``diagram_parser.get_deployment_items()``, maps items to Fabric types from the
+``deployment_loader.get_deployment_items()``, maps items to Fabric types from the
 item-type registry, and generates a structured handoff markdown document with
 items_to_deploy, deployment_waves, and stub acceptance criteria.
 
@@ -34,7 +34,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
 from registry_loader import build_fab_type_map, load_registry
-from diagram_parser import get_deployment_items
+from deployment_loader import get_deployment_items
 
 FAB_TYPE_MAP: dict[str, str] = build_fab_type_map()
 PORTAL_ONLY_TYPES: set[str] = {

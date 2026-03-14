@@ -125,3 +125,24 @@ def test_slugify_phase_consecutive_separators():
 
 def test_slugify_phase_numbers():
     assert slugify_phase("Step 2b - Transform") == "step-2b-transform"
+
+
+# ── escape_for_python_string ─────────────────────────────────────────────
+
+from lib.text_utils import escape_for_python_string
+
+
+def test_escape_for_python_string_basic():
+    assert escape_for_python_string('hello') == 'hello'
+
+
+def test_escape_for_python_string_quotes():
+    assert escape_for_python_string('say "hi"') == 'say \\"hi\\"'
+
+
+def test_escape_for_python_string_backslash():
+    assert escape_for_python_string('path\\to\\file') == 'path\\\\to\\\\file'
+
+
+def test_escape_for_python_string_newline():
+    assert escape_for_python_string('line1\nline2') == 'line1\\nline2'
