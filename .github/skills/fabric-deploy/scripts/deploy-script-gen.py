@@ -971,6 +971,303 @@ def generate(handoff_path: str, project: str) -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Extracted helpers (called from main)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _gen_item_definitions(
+    cicd_type: str, item: Item, data: HandoffData,
+    safe_name: str, description: str, folder: str,
+) -> dict[str, str]:
+    """Return ``{relative_path: content}`` for an item's definition files."""
+    if cicd_type == "Environment":
+        return {
+            "Setting/Sparkcompute.yml": (
+                "instancePool: \"\"\ntargetPlatform: spark\nruntimeVersion: \"1.3\"\nautomaticLog:\n  enabled: true\n"
+            ),
+        }
+
+    if cicd_type == "VariableLibrary":
+        variables = {
+            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
+            "variables": [
+                {"name": "workspace_id", "type": "String", "value": "", "note": "Workspace ID — set at deploy time"},
+            ]
+        }
+        settings = {
+            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
+            "valueSetsOrder": []
+        }
+        return {
+            "variables.json": json.dumps(variables, indent=2),
+            "settings.json": json.dumps(settings, indent=2),
+        }
+
+    if cicd_type == "Notebook":
+        nb_content = (
+            "# Fabric notebook source\n\n"
+            "# METADATA ********************\n\n"
+            "# META {\n"
+            '# META   "kernel_info": {\n'
+            '# META     "name": "synapse_pyspark"\n'
+            "# META   }\n"
+            "# META }\n\n"
+            "# CELL ********************\n\n"
+            f"# {safe_name} — {description}\n"
+            f'print("{safe_name} initialized")\n\n'
+            "# METADATA ********************\n\n"
+            "# META {\n"
+            '# META   "language": "python",\n'
+            '# META   "language_group": "synapse_pyspark"\n'
+            "# META }\n"
+        )
+        return {"notebook-content.py": nb_content}
+
+    if cicd_type == "SemanticModel":
+        pbism = json.dumps({"version": "4.0", "settings": {}}, indent=2)
+        tmdl = (
+            "model Model\n"
+            "\tculture: en-US\n"
+            "\tdefaultPowerBIDataSourceVersion: powerBI_V3\n"
+            "\tsourceQueryCulture: en-US\n"
+        )
+        return {
+            "definition.pbism": pbism,
+            "definition/model.tmdl": tmdl,
+        }
+
+    if cicd_type == "Report":
+        items_by_id = {i.id: i for i in data.items}
+        sm_path = None
+        for dep_id in (item.depends_on or []):
+            dep = items_by_id.get(dep_id)
+            if dep and _cicd_type(dep.type) == "SemanticModel":
+                dep_safe = _cli_safe_name(dep.name)
+                dep_folder = _get_folder_for_item(dep.type) or ""
+                if folder and dep_folder:
+                    sm_path = f"../../{dep_folder}/{dep_safe}.SemanticModel"
+                elif dep_folder:
+                    sm_path = f"../{dep_folder}/{dep_safe}.SemanticModel"
+                else:
+                    sm_path = f"../{dep_safe}.SemanticModel"
+                break
+
+        pbir = {"version": "4.0", "datasetReference": {}}
+        if sm_path:
+            pbir["datasetReference"]["byPath"] = {"path": sm_path}
+        else:
+            pbir["datasetReference"]["byPath"] = {"path": ""}
+        report_json = {
+            "config": json.dumps({
+                "version": "5.59",
+                "themeCollection": {"baseTheme": {"name": "CY24SU10", "version": "5.61", "type": 2}},
+                "activeSectionIndex": 0,
+                "settings": {"useNewFilterPaneExperience": True, "allowChangeFilterTypes": True}
+            }),
+            "layoutOptimization": 0,
+            "sections": [{
+                "config": "{}",
+                "displayName": "Page 1",
+                "displayOption": 1,
+                "filters": "[]",
+                "height": 720.0,
+                "name": "ReportSection",
+                "visualContainers": [],
+                "width": 1280.0
+            }]
+        }
+        return {
+            "definition.pbir": json.dumps(pbir, indent=2),
+            "report.json": json.dumps(report_json, indent=2),
+        }
+
+    if cicd_type == "DataPipeline":
+        return {"pipeline-content.json": json.dumps({"properties": {"activities": []}}, indent=2)}
+
+    if cicd_type == "CopyJob":
+        copyjob = {"properties": {"jobMode": "Batch", "source": {"type": "LakehouseTable"}, "destination": {"type": "LakehouseTable"}, "policy": {"timeout": "0.12:00:00"}}, "activities": []}
+        return {"copyjob-content.json": json.dumps(copyjob, indent=2)}
+
+    if cicd_type == "Eventstream":
+        return {
+            "eventstream.json": json.dumps({"compatibilityLevel": "1.0", "sources": [], "destinations": []}, indent=2),
+            "eventstreamProperties.json": json.dumps({"retentionTimeInDays": 1, "eventThroughputLevel": "Low"}, indent=2),
+        }
+
+    if cicd_type == "KQLQueryset":
+        queryset = {"queryset": {"version": "1.0.0", "dataSources": [], "tabs": []}}
+        return {"RealTimeQueryset.json": json.dumps(queryset, indent=2)}
+
+    if cicd_type == "Eventhouse":
+        return {"EventhouseProperties.json": "{}"}
+
+    if cicd_type == "KQLDashboard":
+        return {}
+
+    if cicd_type == "Reflex":
+        return {"ReflexEntities.json": "[]"}
+
+    if cicd_type == "Dataflow":
+        return {"mashup.pq": 'section Section1;\n\nshared Table = let\n    Source = ""\nin\n    Source;\n'}
+
+    if cicd_type == "GraphQLApi":
+        return {"graphql-definition.json": json.dumps({"datasources": []}, indent=2)}
+
+    if cicd_type == "SparkJobDefinition":
+        return {"SparkJobDefinitionV1.json": json.dumps({
+            "executableFile": None, "defaultLakehouseArtifactId": "", "mainClass": ""
+        }, indent=2)}
+
+    if cicd_type == "SQLDatabase":
+        sqlproj = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<Project DefaultTargets="Build">\n'
+            '  <Sdk Name="Microsoft.Build.Sql" Version="1.0.0-rc1" />\n'
+            '  <PropertyGroup>\n'
+            f'    <Name>{safe_name}</Name>\n'
+            '    <ProjectGuid>{00000000-0000-0000-0000-000000000000}</ProjectGuid>\n'
+            '    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlDbFabricDatabaseSchemaProvider</DSP>\n'
+            '    <ModelCollation>1033, CI</ModelCollation>\n'
+            '  </PropertyGroup>\n'
+            '  <Target Name="BeforeBuild">\n'
+            '    <Delete Files="$(BaseIntermediateOutputPath)\\project.assets.json" />\n'
+            '  </Target>\n'
+            '</Project>\n'
+        )
+        return {f"{safe_name}.sqlproj": sqlproj}
+
+    if cicd_type == "UserDataFunction":
+        return {
+            "function_app.py": 'from fabric_user_data_functions import udf\n\n@udf.function()\ndef hello():\n    return "Hello"\n',
+            "definition.json": json.dumps({"connections": [], "libraries": []}, indent=2),
+            ".resources/functions.json": json.dumps({"functions": []}, indent=2),
+        }
+
+    if cicd_type == "MirroredDatabase":
+        mirroring = {"properties": {"source": {"type": "GenericMirror", "typeProperties": None}, "target": {"type": "MountedRelationalDatabase", "typeProperties": {"format": "Delta", "defaultSchema": "dbo"}}}}
+        return {"mirroring.json": json.dumps(mirroring, indent=2)}
+
+    if cicd_type == "ApacheAirflowJob":
+        airflow = {"properties": {"type": "Airflow", "typeProperties": {"airflowProperties": {"airflowVersion": "2.10.5", "pythonVersion": "3.12", "airflowEnvironment": "FabricAirflowJob-1.0.0", "airflowRequirements": [], "enableAADIntegration": True, "enableTriggerers": False, "airflowConfigurationOverrides": {}, "environmentVariables": {}, "packageProviderPath": "plugins"}, "computeProperties": {"computePool": "StarterPool", "computeSize": "Small", "enableAutoscale": False, "enableAvailabilityZones": False, "extraNodes": 0}}}}
+        dag_content = 'from datetime import datetime\nfrom airflow import DAG\nfrom airflow.operators.bash import BashOperator\n\ndefault_args = {"owner": "airflow", "depends_on_past": False, "start_date": datetime(2023, 5, 1)}\n\nwith DAG("dag1", default_args=default_args, schedule_interval=None, catchup=False) as dag:\n    hello = BashOperator(task_id="hello", bash_command=\'echo "Hello"\')\n    hello\n'
+        return {
+            "apacheairflowjob-content.json": json.dumps(airflow, indent=2),
+            "dags/dag1.py": dag_content,
+        }
+
+    return {}
+
+
+def _inject_variable_library(slug: str, project: str, ws_dir: Path) -> None:
+    """Write an auto-injected Variable Library when the handoff omits one."""
+    vl_name = _cli_safe_name(f"{slug}_variable_library")
+    vl_dir = ws_dir / "Configuration" / f"{vl_name}.VariableLibrary"
+    vl_dir.mkdir(parents=True, exist_ok=True)
+    vl_platform = _gen_platform_file(
+        "VariableLibrary", vl_name,
+        f"Variable Library for {project} — CI/CD stage configuration"
+    )
+    (vl_dir / ".platform").write_text(vl_platform, encoding="utf-8")
+    variables = {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
+        "variables": [
+            {"name": "workspace_id", "type": "String", "value": "", "note": "Workspace ID — populated at deploy time"},
+        ]
+    }
+    (vl_dir / "variables.json").write_text(json.dumps(variables, indent=2), encoding="utf-8")
+    settings = {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
+        "valueSetsOrder": []
+    }
+    (vl_dir / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
+
+
+def _gen_parameter_yml(data: HandoffData, project: str) -> str:
+    """Generate the full text content of parameter.yml."""
+    param_lines = [
+        f"# Parameter file for {project}",
+        f"# Task flow: {data.task_flow}",
+        "# Ref: https://microsoft.github.io/fabric-cicd/latest/how_to/parameterization/",
+        "",
+        "find_replace:",
+    ]
+
+    for item in data.items:
+        if not item.name:
+            continue
+        safe_name = _cli_safe_name(item.name)
+        cicd_type = _cicd_type(item.type)
+        if not cicd_type:
+            continue
+
+        if cicd_type in ("Notebook",):
+            param_lines += [
+                f"  # {safe_name} — default lakehouse workspace ID",
+                '  - find_value: "00000000-0000-0000-0000-000000000000"',
+                "    replace_value:",
+                '      dev: "$workspace.id"',
+                '      ppe: "$workspace.id"',
+                '      prod: "$workspace.id"',
+                f'    item_name: "{safe_name}"',
+                "",
+            ]
+
+    # Generateitem-specific replacements for items that reference other items
+    for item in data.items:
+        if not item.name or not item.depends_on:
+            continue
+        safe_name = _cli_safe_name(item.name)
+        cicd_type = _cicd_type(item.type)
+        if not cicd_type:
+            continue
+
+        items_by_id = {i.id: i for i in data.items}
+        for dep_id in item.depends_on:
+            dep = items_by_id.get(dep_id)
+            if not dep or not dep.name:
+                continue
+            dep_safe = _cli_safe_name(dep.name)
+            dep_cicd = _cicd_type(dep.type)
+            if not dep_cicd:
+                continue
+
+            param_lines += [
+                f"  # {safe_name} → {dep_safe} reference",
+                f'  - find_value: "placeholder-{dep_safe}-id"',
+                "    replace_value:",
+                f'      dev: "$items.{dep_cicd}.{dep_safe}.id"',
+                f'      ppe: "$items.{dep_cicd}.{dep_safe}.id"',
+                f'      prod: "$items.{dep_cicd}.{dep_safe}.id"',
+                f'    item_name: "{safe_name}"',
+                "",
+            ]
+
+    return "\n".join(param_lines) + "\n"
+
+
+def _gen_descriptions_json(data: HandoffData, project: str) -> str:
+    """Generate the descriptions JSON content."""
+    ws_desc = f"{project} — {data.task_flow} architecture"
+    if data.summary:
+        ws_desc += f". {data.summary}"
+    desc_data = {
+        "project": project,
+        "task_flow": data.task_flow,
+        "workspace_description": ws_desc,
+        "items": {}
+    }
+    for item in data.items:
+        if not item.name:
+            continue
+        safe_name = _cli_safe_name(item.name)
+        desc_data["items"][safe_name] = {
+            "type": item.type,
+            "description": item.purpose or f"{item.type} for {project}",
+            "folder": _get_folder_for_item(item.type) or "root",
+        }
+    return json.dumps(desc_data, indent=2, ensure_ascii=False)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CLI
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1003,13 +1300,10 @@ def main() -> None:
     ws_dir = out / "workspace"
     ws_dir.mkdir(exist_ok=True)
 
-    # Hard rule: every project MUST have a Variable Library for CI/CD stage flexibility.
-    # Auto-inject if the architect didn't include one in the handoff.
     has_vl = any(
         _cicd_type(item.type) == "VariableLibrary"
         for item in data.items if item.name
     )
-    vl_name = _cli_safe_name(f"{slug}_variable_library")
 
     for item in data.items:
         if not item.name:
@@ -1032,290 +1326,25 @@ def main() -> None:
         (item_dir / ".platform").write_text(platform_content, encoding="utf-8")
 
         # Generate required definition files per item type
-        if cicd_type == "Environment":
-            setting_dir = item_dir / "Setting"
-            setting_dir.mkdir(exist_ok=True)
-            (setting_dir / "Sparkcompute.yml").write_text(
-                "instancePool: \"\"\ntargetPlatform: spark\nruntimeVersion: \"1.3\"\nautomaticLog:\n  enabled: true\n",
-                encoding="utf-8"
-            )
-
-        elif cicd_type == "VariableLibrary":
-            variables = {
-                "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
-                "variables": [
-                    {"name": "workspace_id", "type": "String", "value": "", "note": "Workspace ID — set at deploy time"},
-                ]
-            }
-            (item_dir / "variables.json").write_text(json.dumps(variables, indent=2), encoding="utf-8")
-            settings = {
-                "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
-                "valueSetsOrder": []
-            }
-            (item_dir / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
-
-        elif cicd_type == "Notebook":
-            nb_content = (
-                "# Fabric notebook source\n\n"
-                "# METADATA ********************\n\n"
-                "# META {\n"
-                '# META   "kernel_info": {\n'
-                '# META     "name": "synapse_pyspark"\n'
-                "# META   }\n"
-                "# META }\n\n"
-                "# CELL ********************\n\n"
-                f"# {safe_name} — {description}\n"
-                f'print("{safe_name} initialized")\n\n'
-                "# METADATA ********************\n\n"
-                "# META {\n"
-                '# META   "language": "python",\n'
-                '# META   "language_group": "synapse_pyspark"\n'
-                "# META }\n"
-            )
-            (item_dir / "notebook-content.py").write_text(nb_content, encoding="utf-8")
-
-        elif cicd_type == "SemanticModel":
-            # definition.pbism + definition/model.tmdl required
-            (item_dir / "definition.pbism").write_text(
-                json.dumps({"version": "4.0", "settings": {}}, indent=2),
-                encoding="utf-8"
-            )
-            def_dir = item_dir / "definition"
-            def_dir.mkdir(exist_ok=True)
-            (def_dir / "model.tmdl").write_text(
-                "model Model\n"
-                "\tculture: en-US\n"
-                "\tdefaultPowerBIDataSourceVersion: powerBI_V3\n"
-                "\tsourceQueryCulture: en-US\n",
-                encoding="utf-8"
-            )
-
-        elif cicd_type == "Report":
-            # definition.pbir + report.json required
-            # Find the SemanticModel dependency for byPath reference
-            items_by_id = {i.id: i for i in data.items}
-            sm_path = None
-            for dep_id in (item.depends_on or []):
-                dep = items_by_id.get(dep_id)
-                if dep and _cicd_type(dep.type) == "SemanticModel":
-                    dep_safe = _cli_safe_name(dep.name)
-                    dep_folder = _get_folder_for_item(dep.type) or ""
-                    # Build relative path from Report dir to SemanticModel dir
-                    if folder and dep_folder:
-                        sm_path = f"../../{dep_folder}/{dep_safe}.SemanticModel"
-                    elif dep_folder:
-                        sm_path = f"../{dep_folder}/{dep_safe}.SemanticModel"
-                    else:
-                        sm_path = f"../{dep_safe}.SemanticModel"
-                    break
-
-            pbir = {"version": "4.0", "datasetReference": {}}
-            if sm_path:
-                pbir["datasetReference"]["byPath"] = {"path": sm_path}
-            else:
-                pbir["datasetReference"]["byPath"] = {"path": ""}
-            (item_dir / "definition.pbir").write_text(json.dumps(pbir, indent=2), encoding="utf-8")
-            report_json = {
-                "config": json.dumps({
-                    "version": "5.59",
-                    "themeCollection": {"baseTheme": {"name": "CY24SU10", "version": "5.61", "type": 2}},
-                    "activeSectionIndex": 0,
-                    "settings": {"useNewFilterPaneExperience": True, "allowChangeFilterTypes": True}
-                }),
-                "layoutOptimization": 0,
-                "sections": [{
-                    "config": "{}",
-                    "displayName": "Page 1",
-                    "displayOption": 1,
-                    "filters": "[]",
-                    "height": 720.0,
-                    "name": "ReportSection",
-                    "visualContainers": [],
-                    "width": 1280.0
-                }]
-            }
-            (item_dir / "report.json").write_text(json.dumps(report_json, indent=2), encoding="utf-8")
-
-        elif cicd_type == "DataPipeline":
-            pipeline_content = {"properties": {"activities": []}}
-            (item_dir / "pipeline-content.json").write_text(json.dumps(pipeline_content, indent=2), encoding="utf-8")
-
-        elif cicd_type == "CopyJob":
-            # From sample: Hello Copy Job.CopyJob
-            copyjob = {"properties": {"jobMode": "Batch", "source": {"type": "LakehouseTable"}, "destination": {"type": "LakehouseTable"}, "policy": {"timeout": "0.12:00:00"}}, "activities": []}
-            (item_dir / "copyjob-content.json").write_text(json.dumps(copyjob, indent=2), encoding="utf-8")
-
-        elif cicd_type == "Eventstream":
-            # VERIFIED from sample: SampleEventstream.Eventstream
-            (item_dir / "eventstream.json").write_text(json.dumps({"compatibilityLevel": "1.0", "sources": [], "destinations": []}, indent=2), encoding="utf-8")
-            (item_dir / "eventstreamProperties.json").write_text(json.dumps({"retentionTimeInDays": 1, "eventThroughputLevel": "Low"}, indent=2), encoding="utf-8")
-
-        elif cicd_type == "KQLQueryset":
-            # VERIFIED from sample: SampleKQLQueryset.KQLQueryset
-            queryset = {"queryset": {"version": "1.0.0", "dataSources": [], "tabs": []}}
-            (item_dir / "RealTimeQueryset.json").write_text(json.dumps(queryset, indent=2), encoding="utf-8")
-
-        elif cicd_type == "Eventhouse":
-            # VERIFIED from sample: SampleEventhouse.Eventhouse — just empty object
-            (item_dir / "EventhouseProperties.json").write_text("{}", encoding="utf-8")
-
-        elif cicd_type == "KQLDashboard":
-            # KQLDashboard: create without definition supported — no content file needed
-            # Content file causes 'NoneType' errors; shell creation is sufficient
-            pass
-
-        elif cicd_type == "Reflex":
-            # VERIFIED from sample: SampleDataActivator.Reflex — empty array
-            (item_dir / "ReflexEntities.json").write_text("[]", encoding="utf-8")
-
-        elif cicd_type == "Dataflow":
-            (item_dir / "mashup.pq").write_text('section Section1;\n\nshared Table = let\n    Source = ""\nin\n    Source;\n', encoding="utf-8")
-
-        elif cicd_type == "GraphQLApi":
-            # From sample: Sample.GraphQLApi
-            (item_dir / "graphql-definition.json").write_text(json.dumps({"datasources": []}, indent=2), encoding="utf-8")
-
-        elif cicd_type == "SparkJobDefinition":
-            (item_dir / "SparkJobDefinitionV1.json").write_text(json.dumps({
-                "executableFile": None, "defaultLakehouseArtifactId": "", "mainClass": ""
-            }, indent=2), encoding="utf-8")
-
-        elif cicd_type == "SQLDatabase":
-            # From sample: Hello db.SQLDatabase
-            sqlproj = (
-                '<?xml version="1.0" encoding="utf-8"?>\n'
-                '<Project DefaultTargets="Build">\n'
-                '  <Sdk Name="Microsoft.Build.Sql" Version="1.0.0-rc1" />\n'
-                '  <PropertyGroup>\n'
-                f'    <Name>{safe_name}</Name>\n'
-                '    <ProjectGuid>{00000000-0000-0000-0000-000000000000}</ProjectGuid>\n'
-                '    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlDbFabricDatabaseSchemaProvider</DSP>\n'
-                '    <ModelCollation>1033, CI</ModelCollation>\n'
-                '  </PropertyGroup>\n'
-                '  <Target Name="BeforeBuild">\n'
-                '    <Delete Files="$(BaseIntermediateOutputPath)\\project.assets.json" />\n'
-                '  </Target>\n'
-                '</Project>\n'
-            )
-            (item_dir / f"{safe_name}.sqlproj").write_text(sqlproj, encoding="utf-8")
-
-        elif cicd_type == "UserDataFunction":
-            (item_dir / "function_app.py").write_text(
-                'from fabric_user_data_functions import udf\n\n@udf.function()\ndef hello():\n    return "Hello"\n',
-                encoding="utf-8"
-            )
-            (item_dir / "definition.json").write_text(json.dumps({"connections": [], "libraries": []}, indent=2), encoding="utf-8")
-            res_dir = item_dir / ".resources"
-            res_dir.mkdir(exist_ok=True)
-            (res_dir / "functions.json").write_text(json.dumps({"functions": []}, indent=2), encoding="utf-8")
-
-        elif cicd_type == "MirroredDatabase":
-            # From sample: MirroredDatabase_1.MirroredDatabase
-            mirroring = {"properties": {"source": {"type": "GenericMirror", "typeProperties": None}, "target": {"type": "MountedRelationalDatabase", "typeProperties": {"format": "Delta", "defaultSchema": "dbo"}}}}
-            (item_dir / "mirroring.json").write_text(json.dumps(mirroring, indent=2), encoding="utf-8")
-
-        elif cicd_type == "ApacheAirflowJob":
-            # From sample: sample apache airflow job.ApacheAirflowJob
-            airflow = {"properties": {"type": "Airflow", "typeProperties": {"airflowProperties": {"airflowVersion": "2.10.5", "pythonVersion": "3.12", "airflowEnvironment": "FabricAirflowJob-1.0.0", "airflowRequirements": [], "enableAADIntegration": True, "enableTriggerers": False, "airflowConfigurationOverrides": {}, "environmentVariables": {}, "packageProviderPath": "plugins"}, "computeProperties": {"computePool": "StarterPool", "computeSize": "Small", "enableAutoscale": False, "enableAvailabilityZones": False, "extraNodes": 0}}}}
-            (item_dir / "apacheairflowjob-content.json").write_text(json.dumps(airflow, indent=2), encoding="utf-8")
-            dags_dir = item_dir / "dags"
-            dags_dir.mkdir(exist_ok=True)
-            dag_content = 'from datetime import datetime\nfrom airflow import DAG\nfrom airflow.operators.bash import BashOperator\n\ndefault_args = {"owner": "airflow", "depends_on_past": False, "start_date": datetime(2023, 5, 1)}\n\nwith DAG("dag1", default_args=default_args, schedule_interval=None, catchup=False) as dag:\n    hello = BashOperator(task_id="hello", bash_command=\'echo "Hello"\')\n    hello\n'
-            (dags_dir / "dag1.py").write_text(dag_content, encoding="utf-8")
+        definitions = _gen_item_definitions(cicd_type, item, data, safe_name, description, folder)
+        for filename, content in definitions.items():
+            filepath = item_dir / filename
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+            filepath.write_text(content, encoding="utf-8")
 
     # Auto-inject Variable Library if not already present
     if not has_vl:
-        vl_dir = ws_dir / "Configuration" / f"{vl_name}.VariableLibrary"
-        vl_dir.mkdir(parents=True, exist_ok=True)
-        vl_platform = _gen_platform_file(
-            "VariableLibrary", vl_name,
-            f"Variable Library for {args.project} — CI/CD stage configuration"
-        )
-        (vl_dir / ".platform").write_text(vl_platform, encoding="utf-8")
-        variables = {
-            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
-            "variables": [
-                {"name": "workspace_id", "type": "String", "value": "", "note": "Workspace ID — populated at deploy time"},
-            ]
-        }
-        (vl_dir / "variables.json").write_text(json.dumps(variables, indent=2), encoding="utf-8")
-        settings = {
-            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
-            "valueSetsOrder": []
-        }
-        (vl_dir / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
+        _inject_variable_library(slug, args.project, ws_dir)
 
     item_count = len([i for i in data.items if i.name]) + (0 if has_vl else 1)
     print(f"✅ {ws_dir}/ ({item_count} items)")
 
-    # Generate parameter.yml inside workspace directory with actual item references
-    param_lines = [
-        f"# Parameter file for {args.project}",
-        f"# Task flow: {data.task_flow}",
-        "# Ref: https://microsoft.github.io/fabric-cicd/latest/how_to/parameterization/",
-        "",
-        "find_replace:",
-    ]
-
-    # Generate find_replace entries for cross-item references
-    # Uses $items.Type.Name.id for dynamic resolution per environment
-    for item in data.items:
-        if not item.name:
-            continue
-        safe_name = _cli_safe_name(item.name)
-        cicd_type = _cicd_type(item.type)
-        if not cicd_type:
-            continue
-
-        # Workspace ID replacement — Notebooks reference lakehouse/environment workspace IDs
-        if cicd_type in ("Notebook",):
-            param_lines += [
-                f"  # {safe_name} — default lakehouse workspace ID",
-                '  - find_value: "00000000-0000-0000-0000-000000000000"',
-                "    replace_value:",
-                '      dev: "$workspace.id"',
-                '      ppe: "$workspace.id"',
-                '      prod: "$workspace.id"',
-                f'    item_name: "{safe_name}"',
-                "",
-            ]
-
-    # Generateitem-specific replacements for items that reference other items
-    for item in data.items:
-        if not item.name or not item.depends_on:
-            continue
-        safe_name = _cli_safe_name(item.name)
-        cicd_type = _cicd_type(item.type)
-        if not cicd_type:
-            continue
-
-        # Find dependencies and create replacement rules
-        items_by_id = {i.id: i for i in data.items}
-        for dep_id in item.depends_on:
-            dep = items_by_id.get(dep_id)
-            if not dep or not dep.name:
-                continue
-            dep_safe = _cli_safe_name(dep.name)
-            dep_cicd = _cicd_type(dep.type)
-            if not dep_cicd:
-                continue
-
-            param_lines += [
-                f"  # {safe_name} → {dep_safe} reference",
-                f'  - find_value: "placeholder-{dep_safe}-id"',
-                "    replace_value:",
-                f'      dev: "$items.{dep_cicd}.{dep_safe}.id"',
-                f'      ppe: "$items.{dep_cicd}.{dep_safe}.id"',
-                f'      prod: "$items.{dep_cicd}.{dep_safe}.id"',
-                f'    item_name: "{safe_name}"',
-                "",
-            ]
-
-    param_content = "\n".join(param_lines) + "\n"
+    # 2. Generate parameter.yml
+    param_content = _gen_parameter_yml(data, args.project)
     param_path = ws_dir / "parameter.yml"
     param_path.write_text(param_content, encoding="utf-8")
 
-    # 2. Generate config.yml
+    # 3. Generate config.yml
     ws_desc = f"{args.project} — {data.task_flow} architecture"
     if data.summary:
         ws_desc += f". {data.summary}"
@@ -1332,23 +1361,8 @@ def main() -> None:
     print(f"✅ {deploy_path}")
 
     # 4. Generate descriptions JSON
-    desc_data = {
-        "project": args.project,
-        "task_flow": data.task_flow,
-        "workspace_description": ws_desc,
-        "items": {}
-    }
-    for item in data.items:
-        if not item.name:
-            continue
-        safe_name = _cli_safe_name(item.name)
-        desc_data["items"][safe_name] = {
-            "type": item.type,
-            "description": item.purpose or f"{item.type} for {args.project}",
-            "folder": _get_folder_for_item(item.type) or "root",
-        }
     desc_path = out / f"descriptions-{slug}.json"
-    desc_path.write_text(json.dumps(desc_data, indent=2, ensure_ascii=False), encoding="utf-8")
+    desc_path.write_text(_gen_descriptions_json(data, args.project), encoding="utf-8")
     print(f"✅ {desc_path}")
 
     # 5. Generate task flow JSON template
