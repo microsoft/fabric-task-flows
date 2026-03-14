@@ -13,6 +13,53 @@
     "kafka": "Kafka wire protocol — SASL/Entra authentication",
     "rest": "Fabric REST API / HTTP endpoint — Entra tokens; items with only rest have no dedicated data plane protocol"
   },
+  "$skillset": {
+    "LC": "Low-Code — UI/drag-and-drop creation, no programming required",
+    "CF": "Code-First — requires programming (Python, SQL, KQL, etc.)",
+    "Portal": "Portal-only — created exclusively through the Fabric portal UI",
+    "auto": "Auto-provisioned — created automatically by the platform as a dependency"
+  },
+  "$availability": {
+    "general availability": "GA — fully supported, SLA-backed, production-ready",
+    "public preview": "Public Preview — available to all tenants, no SLA, may have breaking changes"
+  },
+  "$phase": {
+    "Foundation": "Storage and compute foundations — deployed first (wave 1-2)",
+    "Environment": "Runtime environments and configuration — deployed early (wave 2-3)",
+    "Ingestion": "Data movement and acquisition — depends on storage foundations",
+    "Transformation": "Data processing and enrichment — depends on ingestion layer",
+    "Visualization": "Reporting, dashboards, and semantic models — depends on transformed data",
+    "ML": "Machine learning experiments and models — depends on prepared data",
+    "Monitoring": "Alerting and real-time triggers — depends on data pipelines",
+    "IQ": "Intelligence and AI agents — overlay on existing data assets"
+  },
+  "$task_type": {
+    "store data": "Persists data at rest (Lakehouse, Warehouse, Eventhouse, SQL Database)",
+    "get data": "Moves data from source to destination (CopyJob, Pipeline, Eventstream)",
+    "mirror data": "Replicates external data into Fabric (MirroredDatabase, MirroredWarehouse)",
+    "prepare data": "Transforms and enriches data (Notebook, SparkJobDefinition, Dataflow)",
+    "analyze and train data": "ML experimentation and model training (MLExperiment, MLModel)",
+    "track data": "Monitors data quality and triggers (Reflex, AnomalyDetector)",
+    "visualize": "Presents data to users (Report, Dashboard, KQLDashboard)",
+    "distribute data": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction)",
+    "develop": "Development tooling and runtime config (Environment, VariableLibrary)",
+    "govern data": "Metadata, ontology, and AI governance (Ontology, DataAgent)"
+  },
+  "$cicd_strategy": {
+    "content": "Item definition + content files deployed via fabric-cicd (full version control)",
+    "platform_only": "Only .platform metadata deployed — item is a shell with no versionable content",
+    "unsupported": "Not currently supported by fabric-cicd — portal-only creation"
+  },
+  "$query_language": {
+    "t-sql": "Transact-SQL — Warehouse, SQL Database, SQL Endpoint",
+    "sql-readonly": "SQL read-only access via SQL analytics endpoint (Lakehouse)",
+    "kql": "Kusto Query Language — Eventhouse, KQL Database",
+    "spark": "Apache Spark (PySpark, Spark SQL) — Lakehouse, Notebook",
+    "python": "Python scripting — Notebook, Spark environments",
+    "r": "R scripting — Notebook, Spark environments",
+    "scala": "Scala — Notebook, Spark environments",
+    "nosql": "NoSQL API — Cosmos DB Database"
+  },
   "types": {
     "Lakehouse": {
       "api_path": "lakehouses",
