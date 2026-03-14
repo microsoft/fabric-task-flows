@@ -13,7 +13,21 @@ Usage (from any script that already has ``_shared/lib`` on sys.path)::
 
 from __future__ import annotations
 
+import io
+import sys
 from pathlib import Path
+
+# ── Force UTF-8 stdout/stderr on Windows ────────────────────────────
+# Prevents UnicodeEncodeError from emoji and box-drawing characters.
+# Runs once at import time — every script imports paths.py.
+if sys.platform == "win32":
+    for _stream_name in ("stdout", "stderr"):
+        _stream = getattr(sys, _stream_name, None)
+        if _stream and hasattr(_stream, "reconfigure"):
+            try:
+                _stream.reconfigure(encoding="utf-8", errors="replace")
+            except (AttributeError, io.UnsupportedOperation):
+                pass
 
 _HERE = Path(__file__).resolve().parent          # _shared/lib/
 _SHARED = _HERE.parent                           # _shared/
