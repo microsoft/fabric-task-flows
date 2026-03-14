@@ -75,7 +75,7 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
 
     for p in problems:
         cmd = [sys.executable, str(SIGNAL_MAPPER_PATH),
-               "--text", p["text"], "--format", "json"]
+               "--text", p["text"], "--format", "json", "--intake"]
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
         try:
@@ -83,17 +83,25 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
                                timeout=30, encoding="utf-8", env=env)
             if r.returncode == 0 and r.stdout.strip():
                 data = json.loads(r.stdout)
+                signals = data.get("signals_detected", [])
+                candidates = data.get("task_flow_candidates", [])
                 cov = data.get("keyword_coverage", 0)
+                if not cov and signals:
+                    conf_scores = {"high": 1.0, "medium": 0.5, "low": 0.2}
+                    cov = sum(conf_scores.get(s.get("confidence", "low"), 0.1) for s in signals) / max(len(signals), 1)
                 coverage_scores.append(cov)
                 category_coverage.setdefault(p["category"], []).append(cov)
 
-                candidates = data.get("task_flow_candidates", [])
                 total_candidates += len(candidates)
-                if not candidates:
+                if not candidates and not signals:
                     zero_candidates += 1
                 if any(c.get("id") in ("lambda", "event-medallion")
                        for c in candidates):
                     lambda_suggested += 1
+                if any("lambda" in s.get("signal", "").lower() or
+                       "streaming" in s.get("signal", "").lower()
+                       for s in signals):
+                    lambda_suggested += 1 if not candidates else 0
                 if data.get("ambiguous"):
                     ambiguous_count += 1
             else:
