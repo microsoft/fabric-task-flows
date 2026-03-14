@@ -6,11 +6,17 @@
 
 Pre-defined architectures for [Microsoft Fabric](https://learn.microsoft.com/fabric/) — powered by one AI orchestrator agent and six composable skills.
 
-Describe your data problem, and `@fabric-advisor` walks you through discovery, architecture design, testing, deployment, and documentation — with a single human approval gate. Everything else is automated.
+Describe your data problem, and `@fabric-advisor` walks you through discovery, architecture design, testing, deployment, and documentation — with a single human approval gate.
 
 ```
 Discover → Design (DRAFT → Review → FINAL) → Test Plan → ★ You Approve → Deploy → Validate → Document
 ```
+
+## Item Type Registry
+
+The **[Item Type Registry](_shared/registry/item-type-registry.json)** is the single source of truth for all Fabric item types — 25+ items with metadata including skillset tags (Code-First / Low-Code), API paths, CI/CD deployment strategies, and wave ordering.
+
+This registry drives everything in the project: task flow diagrams, deployment scripts, validation checks, and decision resolution. **Contributions and corrections are especially welcome here** — missing item types, incorrect API paths, new Fabric capabilities.
 
 ## Quick Start
 
@@ -20,73 +26,16 @@ Discover → Design (DRAFT → Review → FINAL) → Test Plan → ★ You Appro
 python _shared/scripts/run-pipeline.py start "My Project" --problem "describe your data problem"
 ```
 
-The pipeline runner generates agent prompts — paste each into Copilot chat. Use `advance` and `next` to progress through phases. The only human gate is architecture + test plan sign-off (Phase 2b, via `--approve`).
+The pipeline runner generates agent prompts — paste each into Copilot chat. Use `advance` and `next` to progress through phases. See [`_shared/workflow-guide.md`](_shared/workflow-guide.md) for the full pipeline reference.
 
-> See [`_shared/workflow-guide.md`](_shared/workflow-guide.md) for the full pipeline reference.
+## What's Inside
 
-## Task Flows
-
-13 pre-defined architectures covering common Fabric patterns:
-
-| Task Flow | Pattern | Best For |
-|-----------|---------|----------|
-| `basic-data-analytics` | Batch | Simple analytics — Warehouse → Semantic Model → Report |
-| `medallion` | Batch | Progressive data quality (Bronze → Silver → Gold) |
-| `lambda` | Hybrid | Combined batch + real-time paths |
-| `event-analytics` | Streaming | Real-time IoT / logs with Eventhouse |
-| `event-medallion` | Streaming | Streaming with medallion layers |
-| `data-analytics-sql-endpoint` | Batch | Lakehouse with SQL analytics endpoint |
-| `basic-machine-learning-models` | Batch | ML training, experiment tracking, prediction |
-| `sensitive-data-insights` | Batch | RLS / OLS / CLS for compliant processing |
-| `translytical` | Transactional | Operational BI with SQL Database writeback |
-| `app-backend` | API | Application APIs via SQL Database / Cosmos DB |
-| `conversational-analytics` | AI | Self-service analytics via Data Agents |
-| `semantic-governance` | Governance | Enterprise vocabulary and knowledge graph |
-| `general` | All | Comprehensive reference architecture |
-
-Each task flow includes a deployment diagram (`diagrams/`), item inventory, and dependency-ordered wave plan. See [`task-flows.md`](task-flows.md) for full decision tables and diagram links.
-
-## Decision Guides
-
-Seven structured guides to help choose the right Fabric components:
-
-| Guide | Question It Answers |
-|-------|-------------------|
-| [Storage](decisions/storage-selection.md) | Lakehouse, Warehouse, Eventhouse, SQL Database, or Cosmos DB? |
-| [Ingestion](decisions/ingestion-selection.md) | Copy Job, Dataflow Gen2, Pipeline, Eventstream, or Mirroring? |
-| [Processing](decisions/processing-selection.md) | Notebook, Spark Job Definition, Dataflow Gen2, or KQL? |
-| [Visualization](decisions/visualization-selection.md) | Report, Dashboard, Real-Time Dashboard, or Data Agent? |
-| [Skillset](decisions/skillset-selection.md) | Code-First or Low-Code team? |
-| [Parameterization](decisions/parameterization-selection.md) | Variable Library, parameter.yml, or Environment Variables? |
-| [API](decisions/api-selection.md) | GraphQL API, User Data Functions, or Direct Connection? |
-
-Each guide includes YAML frontmatter, a quick-decision tree, comparison tables, and "Choose when" guidance.
-
-## Skills
-
-One orchestrator (`@fabric-advisor`) delegates to six composable skills that activate automatically via [GitHub Copilot agent mode](https://docs.github.com/copilot/using-github-copilot/using-copilot-coding-agent):
-
-| Skill | Phase | Purpose |
-|-------|-------|---------|
-| `/fabric-discover` | Discovery | Infer signals from problem statements, suggest task flows |
-| `/fabric-design` | Design | DRAFT → Review → FINAL architecture with ADRs |
-| `/fabric-test` | Test & Validate | Create test plans, validate post-deployment |
-| `/fabric-deploy` | Deploy | Wave-based deployment via [`fabric-cicd`](https://pypi.org/project/fabric-cicd/) |
-| `/fabric-document` | Document | Wiki and ADR synthesis from pipeline handoffs |
-| `/fabric-heal` | Maintenance | Self-healing signal mapper with keyword patching |
-
-Skills are composable instruction packs in `.github/skills/`, each with trigger phrases, bundled references, and deterministic pre-compute scripts.
-
-## Item Type Registry
-
-The **[Item Type Registry](_shared/registry/item-type-registry.json)** is the single source of truth for all Fabric item types used across the project — 25+ item types with metadata including:
-
-- **Skillset tags** — Code-First `[CF]` vs Low-Code `[LC]`
-- **API paths and aliases** — for programmatic access and CLI tooling
-- **CI/CD strategy** — deployment file patterns and `fabric-cicd` compatibility
-- **Phase ordering** — canonical deployment wave positions
-
-This registry drives task flow diagrams, deployment scripts, and validation checks. **Contributions and corrections are welcome** — if you spot a missing item type, an incorrect API path, or a new Fabric capability, this is the best place to start.
+| Resource | Description |
+|----------|-------------|
+| [**13 Task Flows**](task-flows.md) | Pre-defined architectures — batch, streaming, hybrid, ML, API, governance |
+| [**7 Decision Guides**](decisions/_index.md) | Storage, ingestion, processing, visualization, skillset, parameterization, API |
+| [**Deployment Diagrams**](diagrams/_index.md) | Dependency-ordered wave plans for each task flow |
+| [**6 Skills**](.github/skills/) | Composable agents — discover, design, test, deploy, document, heal |
 
 ## Repository Structure
 
@@ -94,21 +43,17 @@ This registry drives task flow diagrams, deployment scripts, and validation chec
 .github/agents/         → Orchestrator agent (@fabric-advisor)
 .github/skills/         → 6 composable skills with pre-compute scripts
 decisions/              → 7 decision guides (YAML frontmatter + decision trees)
-diagrams/               → 13 deployment diagrams (ASCII, dependency-ordered)
+diagrams/               → 13 deployment diagrams (dependency-ordered)
 _shared/registry/       → Canonical JSON registries (item types, deployment order, skills)
 _shared/lib/            → Shared Python modules
-_shared/scripts/        → Pipeline CLI tools (run-pipeline, new-project, fleet-runner)
+_shared/scripts/        → Pipeline CLI (run-pipeline, new-project, fleet-runner)
 _shared/tests/          → Test suite
 _projects/              → Per-project workspaces (gitignored)
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full directory tree, conventions, and how to add task flows, decision guides, or skills.
-
 ## Contributing
 
-We welcome contributions! Whether it's correcting item type metadata, adding a new task flow, improving decision guides, or fixing bugs in scripts — see [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-
-The **Item Type Registry** (`_shared/registry/item-type-registry.json`) is an especially good entry point for first contributions.
+We welcome contributions — especially to the **[Item Type Registry](_shared/registry/item-type-registry.json)**. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding task flows, decision guides, skills, and more.
 
 ## License
 
