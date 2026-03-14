@@ -39,7 +39,7 @@ SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scr
 SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-heal/
 PROBLEMS_PATH = SKILL_DIR / "problem-statements.md"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
-RESULTS_PATH = REPO_ROOT / "_projects" / "_heal-loop-results.json"
+RESULTS_PATH = SKILL_DIR / "scripts" / "_heal-loop-results.json"
 BACKUP_PATH = SKILL_DIR / "problem-statements.md.bak"
 
 # Category rotation for agent prompts — loaded from shared config
