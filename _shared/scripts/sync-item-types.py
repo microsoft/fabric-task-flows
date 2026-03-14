@@ -137,14 +137,13 @@ def update_registry(registry: dict, cli_types: dict[str, str],
             "api_path": api_path,
             "display_name": fab_type,
             "phase": "TBD",
-            "phase_order": 0,
             "task_type": "TBD",
             "aliases": [fab_type.lower()],
             "rest_api": {
                 "creatable": False,
                 "definition": False
             },
-            "availability": "preview",
+            "availability": "public preview",
             "notes": "Auto-added by sync-item-types.py — needs manual metadata review"
         }
         reg_types[fab_type] = stub

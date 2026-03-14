@@ -8,8 +8,7 @@
     "display_name": "Human-readable name shown in Fabric portal",
     "aliases": "Alternative names for matching and search (array, always present)",
     "availability": "Release status: 'general availability' or 'public preview'",
-    "phase": "Deployment wave category — see $phase legend",
-    "phase_order": "Numeric sort key for deployment ordering (1=first deployed)",
+    "phase": "Deployment wave category — order derived from $phase legend key position",
     "task_type": "What the item does — see $task_type legend",
     "skillset": "Who uses it — see $skillset legend (array of LC/CF/Portal/auto)",
     "query_language": "Supported query/scripting languages — see $query_language legend (array, empty if N/A)",
@@ -92,7 +91,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "LC"
@@ -135,7 +133,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "LC"
@@ -173,7 +170,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "LC"
@@ -213,7 +209,6 @@
       ],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "LC"
@@ -249,7 +244,6 @@
       ],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "LC"
@@ -291,7 +285,6 @@
       ],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "auto"
@@ -322,7 +315,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "LC"
@@ -354,7 +346,6 @@
       ],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "mirror data",
       "skillset": [
         "LC"
@@ -387,7 +378,6 @@
       ],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "mirror data",
       "skillset": [
         "LC"
@@ -426,7 +416,6 @@
       ],
       "availability": "general availability",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "get data",
       "skillset": [
         "LC",
@@ -458,7 +447,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Environment",
-      "phase_order": 2,
       "task_type": "develop",
       "skillset": [
         "CF"
@@ -491,7 +479,6 @@
       ],
       "availability": "general availability",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "get data",
       "skillset": [
         "LC"
@@ -530,7 +517,6 @@
       ],
       "availability": "general availability",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "get data",
       "skillset": [
         "LC",
@@ -566,7 +552,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "get data",
       "skillset": [
         "LC"
@@ -603,7 +588,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Transformation",
-      "phase_order": 4,
       "task_type": "prepare data",
       "skillset": [
         "CF"
@@ -641,7 +625,6 @@
       ],
       "availability": "general availability",
       "phase": "Transformation",
-      "phase_order": 4,
       "task_type": "prepare data",
       "skillset": [
         "CF"
@@ -678,7 +661,6 @@
       ],
       "availability": "general availability",
       "phase": "Transformation",
-      "phase_order": 4,
       "task_type": "prepare data",
       "skillset": [
         "CF"
@@ -714,7 +696,6 @@
       ],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "visualize",
       "skillset": [
         "LC",
@@ -751,7 +732,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "visualize",
       "skillset": [
         "LC"
@@ -788,7 +768,6 @@
       ],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "visualize",
       "skillset": [
         "LC"
@@ -816,7 +795,6 @@
       "aliases": [],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "visualize",
       "skillset": [
         "LC"
@@ -848,7 +826,6 @@
       ],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "track data",
       "skillset": [
         "LC"
@@ -885,7 +862,6 @@
       ],
       "availability": "general availability",
       "phase": "ML",
-      "phase_order": 6,
       "task_type": "analyze and train data",
       "skillset": [
         "CF"
@@ -919,7 +895,6 @@
       ],
       "availability": "general availability",
       "phase": "ML",
-      "phase_order": 6,
       "task_type": "analyze and train data",
       "skillset": [
         "CF"
@@ -951,7 +926,6 @@
       ],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "track data",
       "skillset": [
         "LC"
@@ -985,7 +959,6 @@
       ],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "distribute data",
       "skillset": [
         "LC"
@@ -1019,7 +992,6 @@
       ],
       "availability": "general availability",
       "phase": "Environment",
-      "phase_order": 1,
       "task_type": "govern data",
       "skillset": [
         "LC"
@@ -1051,7 +1023,6 @@
       "aliases": [],
       "availability": "public preview",
       "phase": "IQ",
-      "phase_order": 7,
       "task_type": "govern data",
       "skillset": [
         "LC"
@@ -1081,7 +1052,6 @@
       ],
       "availability": "general availability",
       "phase": "IQ",
-      "phase_order": 7,
       "task_type": "govern data",
       "skillset": [
         "LC"
@@ -1117,7 +1087,6 @@
       ],
       "availability": "general availability",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "get data",
       "skillset": [
         "CF"
@@ -1155,7 +1124,6 @@
       ],
       "availability": "general availability",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "mirror data",
       "skillset": [
         "LC"
@@ -1186,7 +1154,6 @@
       ],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "govern data",
       "skillset": [
         "LC"
@@ -1217,7 +1184,6 @@
       ],
       "availability": "general availability",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "mirror data",
       "skillset": [
         "LC"
@@ -1249,7 +1215,6 @@
       ],
       "availability": "general availability",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "LC"
@@ -1287,7 +1252,6 @@
       ],
       "availability": "general availability",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "get data",
       "skillset": [
         "LC"
@@ -1323,7 +1287,6 @@
       ],
       "availability": "general availability",
       "phase": "Transformation",
-      "phase_order": 4,
       "task_type": "distribute data",
       "skillset": [
         "CF"
@@ -1361,7 +1324,6 @@
       ],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "track data",
       "skillset": [
         "LC"
@@ -1392,7 +1354,6 @@
       ],
       "availability": "general availability",
       "phase": "Visualization",
-      "phase_order": 5,
       "task_type": "govern data",
       "skillset": [
         "Portal"
@@ -1422,7 +1383,6 @@
       ],
       "availability": "public preview",
       "phase": "ML",
-      "phase_order": 6,
       "task_type": "analyze and train data",
       "skillset": [
         "LC"
@@ -1452,7 +1412,6 @@
       ],
       "availability": "public preview",
       "phase": "Transformation",
-      "phase_order": 4,
       "task_type": "prepare data",
       "skillset": [
         "LC"
@@ -1482,7 +1441,6 @@
       ],
       "availability": "public preview",
       "phase": "Transformation",
-      "phase_order": 4,
       "task_type": "prepare data",
       "skillset": [
         "LC"
@@ -1512,7 +1470,6 @@
       ],
       "availability": "public preview",
       "phase": "Ingestion",
-      "phase_order": 3,
       "task_type": "get data",
       "skillset": [
         "LC"
@@ -1542,7 +1499,6 @@
       ],
       "availability": "public preview",
       "phase": "IQ",
-      "phase_order": 7,
       "task_type": "govern data",
       "skillset": [
         "LC"
@@ -1573,7 +1529,6 @@
       ],
       "availability": "public preview",
       "phase": "Monitoring",
-      "phase_order": 5,
       "task_type": "visualize",
       "skillset": [
         "LC"
@@ -1603,7 +1558,6 @@
       ],
       "availability": "public preview",
       "phase": "Foundation",
-      "phase_order": 1,
       "task_type": "store data",
       "skillset": [
         "LC"

@@ -92,6 +92,15 @@ def load_registry() -> dict[str, dict]:
                     }
                     if "api_name" in item:
                         item["rest_api"]["api_name"] = item.pop("api_name")
+            # Derive phase_order from $phase legend position (v1.0.0)
+            if "phase_order" not in item:
+                phase_legend = data.get("$phase", {})
+                phase_keys = list(phase_legend.keys())
+                phase_name = item.get("phase", "")
+                if phase_name in phase_keys:
+                    item["phase_order"] = phase_keys.index(phase_name) + 1
+                else:
+                    item["phase_order"] = 99
         _cache = types
     return _cache
 
@@ -466,7 +475,7 @@ def validate_registry() -> list[str]:
     errors: list[str] = []
     registry = load_registry()
 
-    _REQUIRED_FIELDS = {"fab_type", "display_name", "phase", "phase_order", "task_type", "aliases"}
+    _REQUIRED_FIELDS = {"fab_type", "display_name", "phase", "task_type", "aliases"}
     _VALID_PHASES = {
         "Environment", "Foundation", "IQ", "Ingestion",
         "ML", "Monitoring", "Transformation", "Visualization", "TBD",
