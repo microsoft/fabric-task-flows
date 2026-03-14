@@ -8,11 +8,6 @@ description: >
   fabric-deploy), testing (use fabric-test), or discovery (use
   fabric-discover).
 pre-compute: [decision-resolver, handoff-scaffolder]
-# author: task-flows-team
-# version: 3.0.0
-# category: architecture
-# tags: [fabric, task-flow, architecture-design, decisions]
-# pipeline-phases: [1-design]
 ---
 
 # Fabric Architecture Design (Architect Role)
@@ -22,8 +17,6 @@ pre-compute: [decision-resolver, handoff-scaffolder]
 ### Step 1: Load Discovery Brief
 
 Read `_projects/[name]/prd/discovery-brief.md` for inferred signals, 4V's, and task flow candidates.
-
-If no Discovery Brief exists, ask for project name, problem statement, team skillset, and workspace strategy.
 
 ### Step 2: Select Task Flow
 
@@ -48,13 +41,76 @@ If multi-environment and Variable Library chosen: add it as a **Wave 1 item**.
 
 ### Step 4: Produce FINAL Architecture Handoff
 
-Write to `_projects/[name]/prd/architecture-handoff.md` using the scaffolded template structure. Include YAML frontmatter with `task_flow`.
+Write to `_projects/[name]/prd/architecture-handoff.md`.
+
+> **⚡ Fast-forward mode:** When advancing from discovery, the pipeline may auto-generate the complete handoff (items, waves, ACs, decisions, diagram, ADRs) and fast-forward directly to sign-off. In this case, the agent reviews the pre-generated content rather than writing from scratch.
+
+If the handoff file is **already populated** (has YAML frontmatter with real `task_flow`, filled items/waves/ACs):
+- **Review** the pre-generated content for accuracy
+- **Enhance** with project-specific rationale, trade-offs, and deployment strategy
+- **Verify** the architecture diagram is present and correct
+
+If the handoff file is **still a template** (contains `task_flow: TBD` or `items: []`):
+- Write the complete handoff from scratch using the scaffolded template structure
+- Include YAML frontmatter with `task_flow`
 
 ### Step 5: Write ADRs
 
+> **⚡ Fast-forward mode:** ADR files may be auto-populated by the pipeline from decision-resolver output. If they contain real decisions (not just template placeholders), review and enhance rather than rewrite.
+
 Edit template files `docs/decisions/001-005.md` in parallel (task-flow, storage, ingestion, processing, visualization).
 
----
+The scaffolded templates share an identical body structure. The title line for each file is:
+
+| File | Title Line |
+|------|-----------|
+| `001-task-flow.md` | `# ADR-001: Task Flow Selection` |
+| `002-storage.md` | `# ADR-002: Storage Layer Selection` |
+| `003-ingestion.md` | `# ADR-003: Ingestion Approach` |
+| `004-processing.md` | `# ADR-004: Processing Selection` |
+| `005-visualization.md` | `# ADR-005: Visualization Selection` |
+
+The template body after the title is identical for all 5 files:
+
+```
+## Status
+
+Accepted
+
+**Date:** <!-- /fabric-document: date -->
+**Deciders:** fabric-architect agent + user confirmation
+
+## Context
+
+<!-- /fabric-document: problem, constraints, requirements -->
+
+## Decision
+
+<!-- /fabric-document: what was chosen -->
+
+## Alternatives Considered
+
+| Option | Pros | Cons | Why Rejected |
+|--------|------|------|--------------|
+| | | | |
+
+## Consequences
+
+### Benefits
+<!-- /fabric-document: what this enables -->
+
+### Costs
+<!-- /fabric-document: what this limits -->
+
+### Mitigations
+<!-- /fabric-document: how costs are addressed -->
+
+## References
+
+- Decision guide: <!-- /fabric-document: link to decisions/*.md -->
+```
+
+Replace each file's **entire content** in a single edit — the `old_str` is the full file content above (with the appropriate title line). Write all 5 ADRs in parallel.
 
 ## Constraints
 
@@ -68,3 +124,6 @@ After producing the output file, advance:
 ```bash
 python _shared/scripts/run-pipeline.py advance --project <project-name> -q
 ```
+
+If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
+Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.

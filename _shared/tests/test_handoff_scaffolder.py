@@ -284,17 +284,17 @@ class TestEmitItemsYaml:
         items = [DeployItem(item_name="lh", item_type="Lakehouse",
                             fab_type="Lakehouse", wave=1, purpose="store")]
         yaml = _emit_items_yaml(items)
-        assert yaml.startswith("items_to_deploy:")
+        assert yaml.startswith("items:")
 
     def test_item_fields_present(self):
         items = [DeployItem(item_name="lh", item_type="Lakehouse",
                             fab_type="Lakehouse", wave=1,
                             dependencies=["dep1"], purpose="store")]
         yaml = _emit_items_yaml(items)
-        assert "item_name: lh" in yaml
-        assert "item_type: Lakehouse" in yaml
-        assert "dependencies: [dep1]" in yaml
-        assert "purpose: store" in yaml
+        assert 'name: "lh"' in yaml
+        assert 'type: "Lakehouse"' in yaml
+        assert "depends_on: [dep1]" in yaml
+        assert 'purpose: "store"' in yaml
 
     def test_alternative_note_included(self):
         items = [DeployItem(item_name="wh", item_type="Warehouse",
@@ -315,16 +315,15 @@ class TestEmitWavesYaml:
     def test_contains_waves_key(self):
         waves = [Wave(wave_number=1, items=["a"], parallel_capable=False)]
         yaml = _emit_waves_yaml(waves)
-        assert yaml.startswith("deployment_waves:")
+        assert yaml.startswith("waves:")
 
     def test_wave_fields_present(self):
         waves = [Wave(wave_number=1, items=["a", "b"],
                       dependencies=["dep"], parallel_capable=True)]
         yaml = _emit_waves_yaml(waves)
-        assert "wave_number: 1" in yaml
+        assert "id: 1" in yaml
         assert "items: [a, b]" in yaml
-        assert "dependencies: [dep]" in yaml
-        assert "parallel_capable: true" in yaml
+        assert "parallel: true" in yaml
 
 
 class TestEmitAcYaml:
@@ -340,8 +339,8 @@ class TestEmitAcYaml:
             DeployItem(item_name="b", item_type="B", fab_type="B", wave=2),
         ]
         yaml = _emit_ac_yaml(items, "test")
-        assert "ac_id: AC-1" in yaml
-        assert "ac_id: AC-2" in yaml
+        assert "id: AC-1" in yaml
+        assert "id: AC-2" in yaml
 
     def test_ac_references_item_name(self):
         items = [DeployItem(item_name="my-lh", item_type="Lakehouse",
@@ -368,7 +367,7 @@ class TestScaffold:
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_contains_header(self, _mock):
         md = scaffold("mock-flow", "Test Project")
-        assert "# Architecture Handoff (Scaffolded)" in md
+        assert "# Architecture Handoff" in md
 
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_contains_project_name(self, _mock):
@@ -378,13 +377,13 @@ class TestScaffold:
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_contains_task_flow(self, _mock):
         md = scaffold("mock-flow", "Test Project")
-        assert "**Task Flow:** mock-flow" in md
+        assert "**Task flow:** mock-flow" in md
 
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_contains_yaml_blocks(self, _mock):
         md = scaffold("mock-flow", "Test Project")
-        assert "items_to_deploy:" in md
-        assert "deployment_waves:" in md
+        assert "items:" in md
+        assert "waves:" in md
         assert "acceptance_criteria:" in md
 
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
@@ -398,15 +397,15 @@ class TestScaffold:
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_wave_ordering_correct(self, _mock):
         md = scaffold("mock-flow", "Test Project")
-        wave1_pos = md.index("wave_number: 1")
-        wave2_pos = md.index("wave_number: 2")
-        wave3_pos = md.index("wave_number: 3")
+        wave1_pos = md.index("id: 1")
+        wave2_pos = md.index("id: 2")
+        wave3_pos = md.index("id: 3")
         assert wave1_pos < wave2_pos < wave3_pos
 
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_contains_scaffold_warning(self, _mock):
         md = scaffold("mock-flow", "Test Project")
-        assert "pre-filled scaffold" in md
+        assert "DRAFT" in md
 
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_unknown_task_flow_raises(self, _mock):
@@ -419,7 +418,7 @@ class TestScaffold:
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_single_item_flow(self, _mock):
         md = scaffold("single-item", "Test Project")
-        assert "items_to_deploy:" in md
+        assert "items:" in md
         assert "lakehouse" in md
         assert "AC-1" in md
         # Only one item → one AC

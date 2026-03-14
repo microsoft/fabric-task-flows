@@ -6,11 +6,6 @@ description: >
   "heal signal mapper", "improve keyword coverage", "generate problem
   statements", "run healing loop", "patch signal mapper", or asks about
   "signal mapper gaps". Do NOT use for project architecture or deployment.
-# author: task-flows-team
-# version: 1.0.0
-# category: maintenance
-# tags: [fabric, self-healing, signal-mapper, keywords]
-# pipeline-phase: standalone
 ---
 
 # Fabric Signal Mapper Healer

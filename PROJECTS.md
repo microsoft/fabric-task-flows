@@ -8,6 +8,7 @@
 | shop-floor-analytics | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
 | smart-factory-hub | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
 | agops | event-medallion | Documented ✅ | 15 items deployed, 5 manual steps pending | None | Operational handoff |
+| match-day-pulse | TBD | Discovery | Scaffolded — awaiting Discovery Brief | None | Discovery (Phase 0a) |
 > Project rows are generated locally by agents. See `_projects/` folder (gitignored) for per-project artifacts.
 
 ## Phase Legend

@@ -34,6 +34,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -45,6 +46,19 @@ from banner import print_banner
 
 SKILLS_DIR = REPO_ROOT / ".github" / "skills"
 VERSION = "1.0.0"
+
+
+def _term_width() -> int:
+    """Return terminal width, defaulting to 100 for non-interactive environments."""
+    return shutil.get_terminal_size(fallback=(100, 24)).columns
+
+
+def _separator(label: str = "") -> str:
+    """Build a full-width separator line with optional centered label."""
+    w = _term_width()
+    if label:
+        return f"\n{'─' * w}\n  {label}\n{'─' * w}\n"
+    return f"{'─' * w}"
 
 # ---------------------------------------------------------------------------
 # Load from skills registry (single source of truth)
@@ -180,6 +194,9 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"2. Read diagrams/_index.md to find the matching diagram\n"
             f"3. Select the best-fit task flow and walk through decisions\n"
             f"4. Write the FINAL Architecture Handoff to {pp}/prd/architecture-handoff.md\n"
+            f"   - The file may be pre-filled with items/waves/ACs from the handoff-scaffolder\n"
+            f"   - If pre-filled: ADD diagram, decision rationale, alternatives, trade-offs, deployment strategy\n"
+            f"   - If not pre-filled: write the complete handoff from scratch\n"
             f"   - Include `task-flow: <id>` in the YAML frontmatter so the pipeline runner can extract it\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
@@ -192,7 +209,10 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"2. Review the architecture for testability and deployment feasibility\n"
             f"3. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
             f"4. Map each acceptance criterion to a concrete validation check\n"
-            f"5. Write the Test Plan to {pp}/prd/test-plan.md\n\n"
+            f"5. Write the Test Plan to {pp}/prd/test-plan.md\n"
+            f"   - The file may be pre-filled with criteria mapping from the test-plan-prefill script\n"
+            f"   - If pre-filled: ADD edge cases, expected results, and critical verification steps\n"
+            f"   - If not pre-filled: write the complete test plan from scratch\n\n"
             f"Do NOT present a sign-off summary or wait for user approval — the pipeline auto-advances to Phase 2b (Sign-Off) where the user reviews both the architecture handoff and test plan.\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
@@ -265,17 +285,18 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
 
 def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
     """Run deterministic pre-compute scripts for a phase. Returns output lines."""
-    pp = _project_path(project)
-    handoff_path = str(REPO_ROOT / pp / "prd" / "architecture-handoff.md")
+    handoff_path = str(REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md")
+    discovery_path = str(REPO_ROOT / "_projects" / project / "prd" / "discovery-brief.md")
+    test_plan_path = str(REPO_ROOT / "_projects" / project / "prd" / "test-plan.md")
     _task_flow = state.get("task_flow")
     outputs: list[str] = []
 
     if phase == "0a-discovery" and state.get("problem_statement"):
         # Run signal mapper
         cmd = [sys.executable, str(SKILLS_DIR / "fabric-discover" / "scripts" / "signal-mapper.py"),
-               "--text", state["problem_statement"], "--format", "json"]
+               "--project", project, "--text", state["problem_statement"], "--format", "json"]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
             if result.returncode == 0:
                 outputs.append(f"Signal mapper output:\n{result.stdout}")
             else:
@@ -283,18 +304,437 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
         except Exception as e:
             outputs.append(f"Signal mapper skipped: {e}")
 
+    elif phase == "1-design" and os.path.exists(discovery_path):
+        # Run decision-resolver against discovery brief
+        resolver_cmd = [sys.executable,
+                        str(SKILLS_DIR / "fabric-design" / "scripts" / "decision-resolver.py"),
+                        "--discovery-brief", discovery_path, "--format", "yaml"]
+        try:
+            result = subprocess.run(resolver_cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
+            if result.returncode == 0:
+                outputs.append(f"Decision resolver output:\n{result.stdout}")
+        except Exception as e:
+            outputs.append(f"Decision resolver skipped: {e}")
+
+        # Run handoff-scaffolder and write output directly into the handoff file
+        top_tf = _extract_top_task_flow(discovery_path)
+        if top_tf:
+            scaffolder_cmd = [sys.executable,
+                              str(SKILLS_DIR / "fabric-design" / "scripts" / "handoff-scaffolder.py"),
+                              "--task-flow", top_tf, "--project", project,
+                              "--output", handoff_path]
+            try:
+                result = subprocess.run(scaffolder_cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
+                if result.returncode == 0:
+                    outputs.append(
+                        f"📋 Handoff pre-filled from '{top_tf}' scaffolder → {os.path.basename(handoff_path)}\n"
+                        f"   The agent should ENHANCE (add diagram, rationale, trade-offs) rather than rewrite."
+                    )
+                else:
+                    outputs.append(f"Handoff scaffolder warning: {result.stderr.strip()}")
+            except Exception as e:
+                outputs.append(f"Handoff scaffolder skipped: {e}")
+
     elif phase == "2a-test-plan" and os.path.exists(handoff_path):
-        # Run test plan prefill
+        # Run test plan prefill and write output directly into the test-plan file
         cmd = [sys.executable, str(SKILLS_DIR / "fabric-test" / "scripts" / "test-plan-prefill.py"),
                "--handoff", handoff_path]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            if result.returncode == 0:
-                outputs.append(f"Test plan prefill output:\n{result.stdout}")
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
+            if result.returncode == 0 and result.stdout.strip():
+                # Write prefill output directly into test-plan.md
+                Path(test_plan_path).write_text(
+                    f"```yaml\n{result.stdout.strip()}\n```\n", encoding="utf-8"
+                )
+                outputs.append(
+                    f"📋 Test plan pre-filled from architecture handoff → {os.path.basename(test_plan_path)}\n"
+                    f"   The agent should ENHANCE (add edge cases, expected results) rather than rewrite."
+                )
         except Exception as e:
             outputs.append(f"Test plan prefill skipped: {e}")
 
     return outputs
+
+
+def _extract_top_task_flow(discovery_path: str) -> str | None:
+    """Extract the highest-confidence task flow candidate from a discovery brief."""
+    try:
+        content = Path(discovery_path).read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+
+    # Look for the "Suggested Task Flow Candidates" table
+    in_table = False
+    best_candidate = None
+    for line in content.split("\n"):
+        if "Suggested Task Flow Candidates" in line:
+            in_table = True
+            continue
+        if in_table and line.strip().startswith("|") and "---" not in line and "Candidate" not in line:
+            cells = [c.strip() for c in line.split("|") if c.strip()]
+            if len(cells) >= 3:
+                candidate = cells[0]
+                confidence = cells[-1].lower()
+                if confidence == "high":
+                    return candidate
+                if best_candidate is None:
+                    best_candidate = candidate
+        elif in_table and line.strip() and not line.strip().startswith("|"):
+            break
+
+    return best_candidate
+
+
+# ---------------------------------------------------------------------------
+# Fast-forward: deterministic file generation (zero agent turns)
+# ---------------------------------------------------------------------------
+
+# ADR title mapping — must match new-project.py's file creation
+_ADR_TITLES: dict[str, tuple[str, str]] = {
+    "001": ("001", "Task Flow Selection"),
+    "002": ("002", "Storage Layer Selection"),
+    "003": ("003", "Ingestion Approach"),
+    "004": ("004", "Processing Selection"),
+    "005": ("005", "Visualization Selection"),
+}
+
+# Maps decision-resolver keys to ADR numbers
+_DECISION_TO_ADR: dict[str, str] = {
+    "storage": "002",
+    "ingestion": "003",
+    "processing": "004",
+    "visualization": "005",
+}
+
+
+def _generate_adrs(project: str, decisions: dict, task_flow: str) -> list[str]:
+    """Auto-populate ADR files from decision-resolver output.
+
+    Writes real content into docs/decisions/001-005.md based on the
+    decision-resolver's choices, rules, and candidates.
+
+    Returns a list of status messages.
+    """
+    project_dir = REPO_ROOT / "_projects" / project
+    docs_dir = project_dir / "docs" / "decisions"
+    if not docs_dir.exists():
+        return ["⚠️ docs/decisions/ directory not found"]
+
+    d = decisions.get("decisions", {})
+    report: list[str] = []
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # ADR-001: Task Flow Selection
+    adr_001 = docs_dir / "001-task-flow.md"
+    adr_001.write_text(f"""# ADR-001: Task Flow Selection
+
+## Status
+
+Accepted
+
+**Date:** {today}
+**Deciders:** fabric-architect agent + user confirmation
+
+## Context
+
+The project requires a data architecture pattern that aligns with the detected
+signals (data velocity, volume, variety) and team skillset. The decision-resolver
+analyzed the discovery brief and recommended a task flow based on signal matching.
+
+## Decision
+
+**{task_flow}** was selected as the task flow.
+
+This pattern was chosen because it best matches the project's data velocity,
+storage requirements, and processing needs as identified during discovery.
+
+## Alternatives Considered
+
+| Option | Pros | Cons | Why Rejected |
+|--------|------|------|--------------|
+| (see discovery brief candidates) | | | Task flow selection is signal-driven |
+
+## Consequences
+
+### Benefits
+- Architecture aligns with detected data patterns
+- Deployment order is well-defined for this task flow
+- Proven pattern with established best practices
+
+### Costs
+- Commits to a specific architectural pattern early
+- May require revision if requirements change significantly
+
+### Mitigations
+- Sign-off gate allows human review before deployment
+- Pipeline supports revision cycles (up to 3)
+
+## References
+
+- Decision guide: decisions/_index.md
+- Discovery brief: prd/discovery-brief.md
+""", encoding="utf-8")
+    report.append("  📄 docs/decisions/001-task-flow.md")
+
+    # ADR-002 through 005: from decision-resolver output
+    for dec_key, adr_num in _DECISION_TO_ADR.items():
+        entry = d.get(dec_key, {})
+        if not isinstance(entry, dict):
+            continue
+
+        title = _ADR_TITLES[adr_num][1]
+        choice = entry.get("choice") or "Not determined"
+        rule = entry.get("rule_matched") or "No specific rule matched"
+        guide = entry.get("guide") or f"decisions/{dec_key}-selection.md"
+        confidence = entry.get("confidence") or "unknown"
+        note = entry.get("note") or ""
+        candidates = entry.get("candidates", [])
+
+        # Build alternatives table
+        alt_rows = []
+        if isinstance(candidates, list):
+            for cand in candidates:
+                if str(cand) != str(choice):
+                    alt_rows.append(f"| {cand} | Available option | | Not selected by decision rules |")
+        if not alt_rows:
+            alt_rows.append("| (no alternatives recorded) | | | |")
+
+        adr_path = docs_dir / f"{adr_num}-{dec_key}.md"
+        # Map adr_num to correct filename
+        filename_map = {
+            "002": "002-storage.md",
+            "003": "003-ingestion.md",
+            "004": "004-processing.md",
+            "005": "005-visualization.md",
+        }
+        adr_path = docs_dir / filename_map[adr_num]
+
+        adr_content = f"""# ADR-{adr_num}: {title}
+
+## Status
+
+Accepted
+
+**Date:** {today}
+**Deciders:** fabric-architect agent + user confirmation
+
+## Context
+
+The project requires a {dec_key} strategy. The decision-resolver evaluated
+project signals (velocity, volume, skillset, query language) and applied
+rule-based matching to select the best option.
+
+Rule matched: {rule}
+Confidence: {confidence}
+{f"Note: {note}" if note else ""}
+
+## Decision
+
+**{choice}** was selected for {dec_key}.
+
+{f"Rule: {rule}" if rule else ""}
+
+## Alternatives Considered
+
+| Option | Pros | Cons | Why Rejected |
+|--------|------|------|--------------|
+{chr(10).join(alt_rows)}
+
+## Consequences
+
+### Benefits
+- {choice} aligns with project signals and team capabilities
+- Decision is consistent with the overall {task_flow} architecture
+
+### Costs
+- Commits to {choice} as the {dec_key} approach
+
+### Mitigations
+- Architecture can be revised during sign-off review
+- Alternative options remain available if requirements change
+
+## References
+
+- Decision guide: {guide}
+"""
+        adr_path.write_text(adr_content, encoding="utf-8")
+        report.append(f"  📄 docs/decisions/{filename_map[adr_num]}")
+
+    return report
+
+
+def _generate_complete_handoff(project: str) -> tuple[bool, list[str]]:
+    """Generate a complete architecture-handoff.md deterministically.
+
+    Runs decision-resolver + handoff-scaffolder + diagram-gen in sequence,
+    producing a fully populated handoff file. Returns (success, messages).
+    """
+    discovery_path = str(REPO_ROOT / "_projects" / project / "prd" / "discovery-brief.md")
+    handoff_path = str(REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md")
+    report: list[str] = []
+
+    if not os.path.exists(discovery_path):
+        return False, ["Discovery brief not found — cannot generate handoff"]
+
+    # Step 1: Extract top task flow from discovery brief
+    top_tf = _extract_top_task_flow(discovery_path)
+    if not top_tf:
+        return False, ["No task flow candidate found in discovery brief"]
+    report.append(f"  📋 Task flow: {top_tf}")
+
+    # Step 2: Run decision-resolver
+    decisions_output = None
+    resolver_cmd = [sys.executable,
+                    str(SKILLS_DIR / "fabric-design" / "scripts" / "decision-resolver.py"),
+                    "--discovery-brief", discovery_path, "--format", "json"]
+    try:
+        result = subprocess.run(resolver_cmd, capture_output=True, text=True,
+                                encoding="utf-8", timeout=30)
+        if result.returncode == 0 and result.stdout.strip():
+            import json as _json
+            decisions_output = _json.loads(result.stdout)
+            report.append(f"  📋 Decisions resolved ({len(decisions_output.get('decisions', {}))} decisions)")
+        else:
+            report.append(f"  ⚠️ Decision resolver returned exit {result.returncode}")
+    except Exception as e:
+        report.append(f"  ⚠️ Decision resolver failed: {e}")
+
+    # Step 3: Run handoff-scaffolder (now produces template-aligned output)
+    scaffolder_cmd = [sys.executable,
+                      str(SKILLS_DIR / "fabric-design" / "scripts" / "handoff-scaffolder.py"),
+                      "--task-flow", top_tf, "--project", project,
+                      "--output", handoff_path]
+    # Pass decisions if available
+    decisions_file = None
+    if decisions_output:
+        decisions_file = REPO_ROOT / "_projects" / project / "prd" / ".decisions-cache.json"
+        decisions_file.write_text(json.dumps(decisions_output, ensure_ascii=False), encoding="utf-8")
+    try:
+        result = subprocess.run(scaffolder_cmd, capture_output=True, text=True,
+                                encoding="utf-8", timeout=30)
+        if result.returncode == 0:
+            report.append(f"  📋 Handoff scaffolded → architecture-handoff.md")
+        else:
+            report.append(f"  ⚠️ Scaffolder failed: {result.stderr.strip()}")
+            return False, report
+    except Exception as e:
+        report.append(f"  ⚠️ Scaffolder failed: {e}")
+        return False, report
+    finally:
+        if decisions_file and decisions_file.exists():
+            decisions_file.unlink(missing_ok=True)
+
+    # Step 4: Run diagram-gen against the scaffolded handoff
+    if os.path.exists(handoff_path):
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        diagram_cmd = [sys.executable,
+                       str(SKILLS_DIR / "fabric-design" / "scripts" / "diagram-gen.py"),
+                       "--handoff", handoff_path]
+        try:
+            result = subprocess.run(diagram_cmd, capture_output=True, text=True,
+                                    encoding="utf-8", timeout=30, env=env)
+            if result.returncode == 0 and result.stdout.strip():
+                # Insert diagram into the handoff
+                handoff_content = Path(handoff_path).read_text(encoding="utf-8")
+                diagram_placeholder = "```\n<!-- Replace this block with your ASCII diagram -->\n```"
+                if diagram_placeholder in handoff_content:
+                    handoff_content = handoff_content.replace(
+                        diagram_placeholder,
+                        f"```\n{result.stdout.strip()}\n```"
+                    )
+                    Path(handoff_path).write_text(handoff_content, encoding="utf-8")
+                    report.append(f"  📋 Architecture diagram generated and inserted")
+                else:
+                    report.append(f"  ⚠️ Diagram placeholder not found in handoff")
+            else:
+                report.append(f"  ⚠️ Diagram generation failed (exit {result.returncode})")
+        except Exception as e:
+            report.append(f"  ⚠️ Diagram generation failed: {e}")
+
+    # Step 5: Generate ADRs
+    if decisions_output:
+        adr_report = _generate_adrs(project, decisions_output, top_tf)
+        report.extend(adr_report)
+
+    return True, report
+
+
+def _generate_test_plan(project: str) -> list[str]:
+    """Generate test-plan.md from the architecture handoff. Returns status messages."""
+    handoff_path = str(REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md")
+    test_plan_path = str(REPO_ROOT / "_projects" / project / "prd" / "test-plan.md")
+    report: list[str] = []
+
+    if not os.path.exists(handoff_path):
+        return ["⚠️ Architecture handoff not found — cannot generate test plan"]
+
+    cmd = [sys.executable, str(SKILLS_DIR / "fabric-test" / "scripts" / "test-plan-prefill.py"),
+           "--handoff", handoff_path]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
+        if result.returncode == 0 and result.stdout.strip():
+            Path(test_plan_path).write_text(
+                f"```yaml\n{result.stdout.strip()}\n```\n", encoding="utf-8"
+            )
+            report.append(f"  📋 Test plan generated → test-plan.md")
+        else:
+            report.append(f"  ⚠️ Test plan prefill returned empty output")
+    except Exception as e:
+        report.append(f"  ⚠️ Test plan prefill failed: {e}")
+
+    return report
+
+
+def _fast_forward_to_signoff(project: str) -> tuple[bool, list[str]]:
+    """Auto-generate all files from discovery through sign-off.
+
+    Called when advancing from 0a-discovery. Generates the complete
+    architecture handoff, ADRs, and test plan, then marks design and
+    test-plan phases complete, landing on 2b-sign-off.
+
+    Returns (success, messages).
+    """
+    report: list[str] = []
+    report.append("⚡ Fast-forward: generating all files deterministically...")
+
+    # Generate complete handoff (includes decisions, items, waves, diagram, ADRs)
+    ok, handoff_report = _generate_complete_handoff(project)
+    report.extend(handoff_report)
+
+    if not ok:
+        report.append("⚠️ Fast-forward failed at handoff generation — falling back to normal advance")
+        return False, report
+
+    # Generate architecture summary
+    _generate_architecture_summary(project)
+    report.append("  📋 Architecture summary generated")
+
+    # Generate test plan
+    tp_report = _generate_test_plan(project)
+    report.extend(tp_report)
+
+    # Mark phases complete and update state
+    state = _load_state(project)
+
+    # Extract task_flow from the generated handoff
+    tf = _extract_task_flow(project)
+    if tf:
+        state["task_flow"] = tf
+        report.append(f"  📋 Task flow extracted: {tf}")
+
+    # Mark 1-design complete
+    state["phases"]["1-design"]["status"] = "complete"
+    # Mark 2a-test-plan complete
+    state["phases"]["2a-test-plan"]["status"] = "complete"
+    # Land on 2b-sign-off
+    state["current_phase"] = "2b-sign-off"
+    state["phases"]["2b-sign-off"]["status"] = "in_progress"
+
+    _save_state(project, state)
+
+    report.append("⚡ Fast-forward complete — landed on Phase 2b (Sign-Off)")
+    return True, report
 
 
 # ---------------------------------------------------------------------------
@@ -338,8 +778,7 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
 
     # Generate architecture diagram for sign-off phase
     if phase == "2b-sign-off" and "{{DIAGRAM_PLACEHOLDER}}" in prompt:
-        pp = _project_path(project)
-        handoff_path = str(REPO_ROOT / pp / "prd" / "architecture-handoff.md")
+        handoff_path = str(REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md")
         if os.path.exists(handoff_path):
             try:
                 env = os.environ.copy()
@@ -568,6 +1007,17 @@ def advance(project: str, approved: bool = False, revise: bool = False,
 
     state["phases"][current]["status"] = "complete"
 
+    # Fast-forward: when leaving discovery, auto-generate all files to sign-off
+    if current == "0a-discovery":
+        _save_state(project, state)
+        ok, ff_report = _fast_forward_to_signoff(project)
+        for line in ff_report:
+            print(line)
+        if ok:
+            return _load_state(project)
+        # Fall through to normal advance if fast-forward failed
+        state = _load_state(project)
+
     # Extract task_flow after architecture phase
     if current == "1-design" and not state.get("task_flow"):
         tf = _extract_task_flow(project)
@@ -753,9 +1203,7 @@ def _print_phase_output(project: str, completed_phase: str) -> None:
             continue
 
         label = rel_path.upper().replace("/", " › ")
-        print(f"\n{'─' * 68}")
-        print(f"  {label}")
-        print(f"{'─' * 68}\n")
+        print(_separator(label))
         print(content.rstrip())
         print()
 
@@ -792,9 +1240,7 @@ def _print_signoff_diagram(project: str) -> None:
                 code_lines.append(line)
 
     if diagram_text and diagram_text.strip():
-        print(f"\n{'─' * 68}")
-        print("  ARCHITECTURE DIAGRAM")
-        print(f"{'─' * 68}\n")
+        print(_separator("ARCHITECTURE DIAGRAM"))
         print(diagram_text)
         print()
 
@@ -842,6 +1288,13 @@ def main() -> None:
     recon_p = sub.add_parser("reconcile", help="Rebuild state from file evidence (heals drift)")
     recon_p.add_argument("--project", required=True, help="Project folder name")
 
+    # batch — single command from problem statement to sign-off
+    batch_p = sub.add_parser("batch", help="Start pipeline and fast-forward to sign-off (single command)")
+    batch_p.add_argument("name", help="Project display name")
+    batch_p.add_argument("--problem", required=True, help="Problem statement text")
+    batch_p.add_argument("--through", default="2b-sign-off",
+                         help="Phase to fast-forward through (default: 2b-sign-off)")
+
     args = parser.parse_args()
 
     if args.command == "start":
@@ -853,9 +1306,9 @@ def main() -> None:
         print(f"  Phase: {phase}")
         if is_gate:
             print("  ⚠️  This phase is a human gate — review deliverables before advancing")
-        print(f"\n{'─' * 68}")
+        print(f"\n{'─' * _term_width()}")
         print("  AGENT PROMPT (copy to Copilot CLI):")
-        print(f"{'─' * 68}\n")
+        print(f"{'─' * _term_width()}\n")
         print(prompt)
 
     elif args.command == "next":
@@ -866,9 +1319,9 @@ def main() -> None:
         print(f"\n  Next agent: {agent or '(human gate)'}")
         print(f"  Phase: {phase}")
         print(f"  Auto-chain: {'🛑 No (human gate — use --approve)' if is_gate else '🟢 Yes'}")
-        print(f"\n{'─' * 68}")
+        print(f"\n{'─' * _term_width()}")
         print("  AGENT PROMPT:")
-        print(f"{'─' * 68}\n")
+        print(f"{'─' * _term_width()}\n")
         print(prompt)
 
     elif args.command == "status":
@@ -895,14 +1348,19 @@ def main() -> None:
         if not args.quiet and state["current_phase"] != prev_phase:
             _print_phase_output(args.project, prev_phase)
 
-        # Show architecture diagram when entering sign-off phase
-        if not args.quiet and state["current_phase"] == "2b-sign-off":
+        # Show architecture diagram when entering sign-off phase (always — never suppressed by -q)
+        if state["current_phase"] == "2b-sign-off":
             _print_signoff_diagram(args.project)
 
         prompt, agent, phase, is_gate = get_next_prompt(args.project)
         if agent:
             chain_label = "🛑 HUMAN GATE — use --approve" if is_gate else "🟢 AUTO-CHAIN"
             print(f"  {chain_label} → {agent or '(user)'} ({phase})")
+            if not is_gate and prompt:
+                print(f"\n{'─' * _term_width()}")
+                print("  AGENT PROMPT (auto-chained):")
+                print(f"{'─' * _term_width()}\n")
+                print(prompt)
 
     elif args.command == "reconcile":
         state, recon_report = reconcile(args.project)
@@ -916,6 +1374,38 @@ def main() -> None:
         state = reset_phase(args.project, args.phase)
         _print_status(state)
         print(f"  Reset to {args.phase}. Run 'next' for the agent prompt.")
+
+    elif args.command == "batch":
+        import time as _time
+        t0 = _time.monotonic()
+
+        print_banner()
+        print(f"⚡ BATCH MODE: {args.name} → {args.through}")
+        print()
+
+        # Step 1: Scaffold
+        state = start_pipeline(args.name, args.problem)
+        project = state["project"]
+        print(f"  ✅ Project scaffolded: {project}")
+
+        # Step 2: Get discovery prompt (includes signal mapper precompute)
+        prompt, agent, phase, is_gate = get_next_prompt(project)
+        print(f"  ✅ Signal mapper executed")
+        print(f"  📋 Discovery phase requires agent (signal interpretation + user confirmation)")
+        print()
+
+        elapsed = _time.monotonic() - t0
+        print(f"  ⏱️  Scaffold + precompute completed in {elapsed:.1f}s")
+        print()
+
+        # Print the discovery prompt so the agent can proceed
+        print(_separator("DISCOVERY AGENT PROMPT"))
+        print(prompt)
+        print()
+        print(_separator(""))
+        print(f"  After the agent writes the discovery brief, run:")
+        print(f"    python _shared/scripts/run-pipeline.py advance --project {project} -q")
+        print(f"  This will auto-generate ALL files and fast-forward to sign-off.")
 
 
 if __name__ == "__main__":

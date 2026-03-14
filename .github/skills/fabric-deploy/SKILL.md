@@ -7,11 +7,6 @@ description: >
   "remediate", or after user sign-off is complete. Do NOT use for design
   (use fabric-design) or testing (use fabric-test).
 pre-compute: [deploy-script-gen]
-# author: task-flows-team
-# version: 2.0.0
-# category: deployment
-# tags: [fabric, deployment, fabric-cicd, waves, remediation]
-# pipeline-phases: [2c-deploy, 3-validate]
 ---
 
 # Fabric Deployment
@@ -25,11 +20,10 @@ Confirm Phase 2b is complete. Never deploy without approval.
 ### Step 2: Load Context
 
 1. `_projects/[name]/prd/architecture-handoff.md` — items, waves, dependencies
-2. Deployment order — `python -c "import sys; sys.path.insert(0, '_shared/lib'); from deployment_loader import get_deployment_items; print(get_deployment_items('[task-flow]'))"`
-3. `_projects/[name]/prd/test-plan.md` — what will be validated
-4. `_shared/learnings.md` — known gotchas
+2. `_projects/[name]/prd/test-plan.md` — what will be validated
+3. `_shared/learnings.md` — known gotchas
 
-> Do NOT read `diagrams/*.md` or registry JSON files — those are human-only. Use `deployment_loader.get_deployment_items()` via Python.
+Use `deployment_loader.get_deployment_items()` for deployment order — do NOT read registry JSON files directly.
 
 ### Step 3: Deploy by Wave
 
@@ -43,21 +37,7 @@ For each wave (sequential across waves, parallel within):
 4. **Update phase-progress.md** — set items to `completed` or `failed`
 5. **Handle failures:** If any item fails, stop wave, document in deployment handoff
 
-### Step 3b: Deploy Variable Library (if parameterization = variable-library)
-
-Variable Libraries cannot be created with `fabric-cicd`. Use the Fabric REST API:
-
-1. **Create Variable Library:**
-   ```
-   POST https://api.fabric.microsoft.com/v1/workspaces/{workspaceId}/variableLibraries
-   Body: { "displayName": "{project}-config", "description": "Stage-specific configuration" }
-   ```
-2. **Define variables** for item references (Lakehouse IDs, connection strings, environment names)
-3. **Create value sets** per deployment stage (Dev, PPE, Prod) with stage-specific values
-4. **Set active value set** for the current workspace's stage
-5. Deploy Variable Library in **Wave 1** — it must exist before consuming items (Notebooks, Pipelines)
-
-In design-only mode, the deploy script generator includes REST API calls for Variable Library creation alongside `fabric-cicd` item deployment.
+> Variable Libraries and REST API items are handled by `deploy-script-gen.py` — no manual REST calls needed.
 
 ### Step 4: Handle Manual Steps
 
@@ -95,8 +75,6 @@ manual_steps:
 - Always generate Python deploy script for design-only mode
 - Implementation Notes and Configuration Rationale are MANDATORY
 
----
-
 ## Mode 2: Remediation (Phase 3+)
 
 Fix deployment and configuration issues identified during validation.
@@ -131,3 +109,6 @@ After producing the output file, advance:
 ```bash
 python _shared/scripts/run-pipeline.py advance --project <project-name> -q
 ```
+
+If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
+Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.

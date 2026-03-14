@@ -582,6 +582,7 @@ def pipeline_state(project: str) -> str:
         "project": project,
         "task_flow": None,
         "current_phase": "0a-discovery",
+        "problem_statement": None,
         "sign_off_revisions": 0,
         "phases": {
             "0a-discovery":  {"status": "pending", "agent": "fabric-advisor",    "output": "prd/discovery-brief.md"},

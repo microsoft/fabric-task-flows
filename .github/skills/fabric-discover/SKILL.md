@@ -1,43 +1,25 @@
 ---
 name: fabric-discover
 description: >
-  Infers architectural signals from enterprise data problem statements and
-  produces a Discovery Brief. Use when user describes a data problem, mentions
-  "IoT sensors", "batch ETL", "real-time analytics", "data warehouse",
-  "compliance", "dashboard", "streaming", "we need analytics", or asks
-  "what task flow fits my needs", "help me figure out our data architecture",
-  or "analyze my problem statement". Do NOT use for architecture design
-  decisions (use fabric-design), deployment (use fabric-deploy), or
-  validation (use fabric-test).
+  Collects intake (project name + problem statement), scaffolds the project,
+  infers architectural signals, and produces a Discovery Brief. Use when user
+  describes a data problem, mentions "IoT sensors", "batch ETL", "real-time
+  analytics", "data warehouse", "compliance", "dashboard", "streaming",
+  "we need analytics", or asks "what task flow fits my needs". Do NOT use
+  for architecture design (use fabric-design), deployment (use fabric-deploy),
+  or validation (use fabric-test).
 pre-compute: [signal-mapper]
-# author: task-flows-team
-# version: 1.0.0
-# category: discovery
-# tags: [fabric, signal-mapping, discovery, problem-analysis]
-# pipeline-phase: 0a-discovery
 ---
 
 # Fabric Discovery
-
-## Guardrails: Project Scaffolding is a Hard Gate
-
-**This skill depends on project scaffolding via `run-pipeline.py start`.**
-
-- ❌ Do NOT run `signal-mapper.py` without `--project` pointing to a valid scaffolded project
-- ❌ Do NOT bypass the `start` command — the user MUST provide a project name first
-- ✅ `signal-mapper.py` enforces this at the code level and will exit with an error if no valid project exists
-- ✅ Use `--intake` flag only for standalone signal exploration outside the pipeline
-
-If signal-mapper.py fails with "Project not found", scaffold the project first:
-```bash
-python _shared/scripts/run-pipeline.py start "Your Project Name" --problem "Your problem statement"
-```
 
 ## Instructions
 
 ### Step 1: Collect Intake
 
-Ask the user for:
+If the problem statement and project name are **already provided in the agent prompt** (e.g., from a pipeline re-run or auto-chain), use them directly — do NOT re-ask the user.
+
+Otherwise, ask the user for:
 - **Project name** — Ask for a short, creative, and descriptive name. You MAY suggest examples (e.g., "Farm Fleet", "Energy Analytics"), but you MUST NOT proceed until the user explicitly provides or confirms a name. Never infer, synthesize, or assume a project name from context.
 - **Problem statement** — "What problems does your project need to solve?"
 
@@ -48,14 +30,9 @@ Once you have both, run:
 python _shared/scripts/run-pipeline.py start "Project Name" --problem "problem statement text"
 ```
 
-This scaffolds the project and pre-computes signal mapping.
-
 ### Step 3: Review Signal Mapper Output
 
-Review the signal mapping output from the `start` command, or run:
-```bash
-python .github/skills/fabric-discover/scripts/signal-mapper.py --project <project-name> --text "<problem>" --format json
-```
+Review the signal mapping output from the `start` command.
 
 ### Step 4: Assess 4 V's Gaps
 
@@ -109,3 +86,6 @@ After producing the output file, advance:
 ```bash
 python _shared/scripts/run-pipeline.py advance --project <project-name> -q
 ```
+
+If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
+Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.

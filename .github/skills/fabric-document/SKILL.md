@@ -6,11 +6,6 @@ description: >
   "create documentation", "write ADRs", "produce wiki", "document the
   project", or after validation passes. Do NOT use for deployment (use
   fabric-deploy) or architecture design (use fabric-design).
-# author: task-flows-team
-# version: 1.0.0
-# category: documentation
-# tags: [fabric, documentation, adr, wiki]
-# pipeline-phase: 4-document
 ---
 
 # Fabric Documentation
@@ -46,3 +41,6 @@ python _shared/scripts/run-pipeline.py advance --project <project-name> -q
 ```
 
 This updates `PROJECTS.md` status to "Documented ✅".
+
+If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
+Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.

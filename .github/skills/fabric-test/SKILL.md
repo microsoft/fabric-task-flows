@@ -8,24 +8,21 @@ description: >
   deployment is complete. Do NOT use for architecture design (use fabric-design)
   or deployment (use fabric-deploy).
 pre-compute: [test-plan-prefill, validate-items]
-# author: task-flows-team
-# version: 3.0.0
-# category: quality
-# tags: [fabric, testing, validation, acceptance-criteria, qa, review]
-# pipeline-phases: [2a-test-plan, 3-validate]
 ---
 
 # Fabric Testing & Validation (QA Role)
 
 ## Mode 1: Architecture Review + Test Plan (Phase 2a)
 
-> **Output is lightweight.** Write a concise YAML test plan per the schema in `schemas/test-plan.md`. Do NOT present a sign-off summary — the pipeline auto-advances to Phase 2b where the user reviews both the architecture handoff and test plan.
-
 ### Step 1: Load Architecture
 
 Read `_projects/[name]/prd/architecture-handoff.md`. Extract items, ACs, waves.
 
 ### Step 2: Pre-fill Registry Data
+
+> **⚡ Fast-forward mode:** The test plan at `_projects/[name]/prd/test-plan.md` may already be pre-filled with criteria mapping from the pipeline's auto-generation. If it contains real AC mappings, enhance rather than rewrite.
+
+If the test plan is **not yet pre-filled**, run:
 
 ```bash
 python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/[name]/prd/architecture-handoff.md
@@ -38,8 +35,6 @@ python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projec
 3. Write to `_projects/[name]/prd/test-plan.md`
 
 Set `review_outcome`: `approved` (no red) or `concerns` (has red).
-
----
 
 ## Mode 2: Post-Deployment Validation (Phase 3)
 
@@ -55,8 +50,6 @@ python .github/skills/fabric-test/scripts/validate-items.py _projects/[name]/prd
 2. Run smoke tests (query, pipeline trigger, report render)
 3. Update `_projects/[name]/prd/validation-report.md` with `status: passed | failed`
 
----
-
 ## Constraints
 
 - Never invent ACs not in the Architecture Handoff
@@ -70,3 +63,6 @@ python _shared/scripts/run-pipeline.py advance --project <project-name> -q
 ```
 
 Phase 2a triggers human gate (sign-off). Phase 3 routes to Document or Remediation based on validation result.
+
+If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
+Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.

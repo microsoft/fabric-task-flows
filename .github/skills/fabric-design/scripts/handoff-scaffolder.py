@@ -4,8 +4,8 @@ Scaffolds an architecture handoff document from registry data.
 
 Loads deployment order from ``_shared/registry/deployment-order.json`` via
 ``deployment_loader.get_deployment_items()``, maps items to Fabric types from the
-item-type registry, and generates a structured handoff markdown document with
-items_to_deploy, deployment_waves, and stub acceptance criteria.
+item-type registry, and generates a template-aligned architecture handoff document
+with YAML frontmatter, items, waves, and acceptance criteria.
 
 Usage:
     python .github/skills/fabric-design/scripts/handoff-scaffolder.py --task-flow medallion --project "My Project"
@@ -281,26 +281,32 @@ def _yaml_list(items: list[str]) -> str:
 
 
 def _emit_items_yaml(deploy_items: list[DeployItem]) -> str:
-    lines = ["items_to_deploy:"]
-    for di in deploy_items:
-        lines.append(f"  - item_name: {di.item_name}")
-        lines.append(f"    item_type: {di.item_type}")
-        lines.append(f"    dependencies: {_yaml_list(di.dependencies)}")
-        lines.append(f"    purpose: {di.purpose}")
+    lines = ["items:"]
+    for i, di in enumerate(deploy_items, start=1):
+        lines.append(f"  - id: {i}")
+        lines.append(f"    name: \"{di.item_name}\"")
+        lines.append(f"    type: \"{di.item_type}\"")
+        lines.append(f"    skillset: \"{di.fab_type}\"")
+        lines.append(f"    depends_on: {_yaml_list(di.dependencies)}")
+        lines.append(f"    purpose: \"{di.purpose}\"")
         if di.is_alternative and di.alternative_note:
             lines.append(f"    note: \"{di.alternative_note}\"")
         if di.portal_only:
-            lines.append("    note: portal-only — verify manually")
+            lines.append("    note: \"portal-only — verify manually\"")
     return "\n".join(lines)
 
 
 def _emit_waves_yaml(waves: list[Wave]) -> str:
-    lines = ["deployment_waves:"]
+    lines = ["waves:"]
     for w in waves:
-        lines.append(f"  - wave_number: {w.wave_number}")
+        wave_name = f"Wave {w.wave_number}"
+        blocked_by = [w.wave_number - 1] if w.wave_number > 1 else []
+        lines.append(f"  - id: {w.wave_number}")
+        lines.append(f"    name: \"{wave_name}\"")
         lines.append(f"    items: {_yaml_list(w.items)}")
-        lines.append(f"    dependencies: {_yaml_list(w.dependencies)}")
-        lines.append(f"    parallel_capable: {'true' if w.parallel_capable else 'false'}")
+        if blocked_by:
+            lines.append(f"    blocked_by: {_yaml_list([str(b) for b in blocked_by])}")
+        lines.append(f"    parallel: {'true' if w.parallel_capable else 'false'}")
     return "\n".join(lines)
 
 
@@ -309,10 +315,81 @@ def _emit_ac_yaml(deploy_items: list[DeployItem], task_flow: str) -> str:
     for i, di in enumerate(deploy_items, start=1):
         ac_id = f"AC-{i}"
         portal_suffix = " (portal-only — verify manually)" if di.portal_only else ""
-        lines.append(f"  - ac_id: {ac_id}")
+        lines.append(f"  - id: {ac_id}")
+        lines.append(f"    type: structural")
         lines.append(f"    criterion: \"{di.item_name} exists and is accessible{portal_suffix}\"")
-        lines.append(f"    verification_method: \"REST API GET /workspaces/{{id}}/items?type={di.fab_type} | verify {di.item_name}\"")
+        lines.append(f"    verify: \"REST API GET /workspaces/{{id}}/items?type={di.fab_type} | verify {di.item_name}\"")
+        lines.append(f"    target: \"{di.item_name}\"")
     return "\n".join(lines)
+
+
+# ── Decision table helpers ────────────────────────────────────────────────
+
+def _build_decisions_table(decisions: dict | None) -> list[str]:
+    """Build Decisions table rows from decision-resolver output."""
+    if not decisions or "decisions" not in decisions:
+        return [
+            "| Storage | | |",
+            "| Ingestion | | |",
+            "| Processing | | |",
+            "| Visualization | | |",
+            "| Semantic Model Query Mode | | |",
+        ]
+
+    d = decisions["decisions"]
+    rows: list[str] = []
+    decision_labels = {
+        "storage": "Storage",
+        "ingestion": "Ingestion",
+        "processing": "Processing",
+        "visualization": "Visualization",
+        "parameterization": "Parameterization",
+        "skillset": "Skillset",
+        "api": "API",
+    }
+
+    for key, label in decision_labels.items():
+        entry = d.get(key, {})
+        if isinstance(entry, dict):
+            choice = entry.get("choice", "")
+            rule = entry.get("rule_matched", "")
+            if choice and choice != "None":
+                rows.append(f"| {label} | {choice} | {rule or ''} |")
+
+    if not any("Semantic Model" in r for r in rows):
+        rows.append("| Semantic Model Query Mode | | |")
+
+    return rows if rows else ["| Storage | | |"]
+
+
+def _build_alternatives_table(decisions: dict | None) -> list[str]:
+    """Build Alternatives table rows from decision-resolver output."""
+    if not decisions or "decisions" not in decisions:
+        return ["| 1 | | | |"]
+
+    rows: list[str] = []
+    counter = 1
+    d = decisions["decisions"]
+    decision_labels = {
+        "storage": "Storage",
+        "ingestion": "Ingestion",
+        "processing": "Processing",
+        "visualization": "Visualization",
+        "parameterization": "Parameterization",
+    }
+
+    for key, label in decision_labels.items():
+        entry = d.get(key, {})
+        if isinstance(entry, dict):
+            candidates = entry.get("candidates", [])
+            choice = entry.get("choice", "")
+            if isinstance(candidates, list):
+                for cand in candidates:
+                    if cand != choice:
+                        rows.append(f"| {counter} | {label} | {cand} | Not selected by decision rules |")
+                        counter += 1
+
+    return rows if rows else ["| 1 | | | |"]
 
 
 # ── Public API ────────────────────────────────────────────────────────────
@@ -338,38 +415,126 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
+    manual_steps = sum(1 for di in deploy_items if di.portal_only)
+
+    decisions_table = _build_decisions_table(decisions)
+    alternatives_table = _build_alternatives_table(decisions)
+
+    items_yaml = _emit_items_yaml(deploy_items)
+    waves_yaml = _emit_waves_yaml(waves)
+    ac_yaml = _emit_ac_yaml(deploy_items, task_flow)
+
     parts: list[str] = [
-        "# Architecture Handoff (Scaffolded)",
+        "---",
+        f"project: {project}",
+        f"task_flow: {task_flow}",
+        "phase: draft",
+        "status: draft",
+        f"created: {today}",
+        f"last_updated: {today}",
+        "design_review:",
+        "  engineer: pending",
+        "  tester: pending",
+        f"items: {len(deploy_items)}",
+        f"acceptance_criteria: {len(deploy_items)}",
+        f"manual_steps: {manual_steps}",
+        f"deployment_waves: {len(waves)}",
+        "blockers:",
+        "  critical: []",
+        "  medium: []",
+        "next_phase: design-review",
+        "---",
+        "",
+        f"# Architecture Handoff — {project}",
         "",
         f"**Project:** {project}",
-        f"**Task Flow:** {task_flow}",
-        f"**Generated:** {today}",
+        f"**Task flow:** {task_flow}",
+        f"**Date:** {today}",
+        "**Status:** DRAFT — Awaiting design review by /fabric-deploy and /fabric-test.",
         "",
-        "> ⚠️ This is a pre-filled scaffold. The architect must review and add:",
-        "> - Decision rationale and alternatives considered",
-        "> - Trade-offs analysis",
-        "> - Deployment strategy prose",
-        "> - Refined acceptance criteria",
+        "---",
         "",
-        "## Items to Deploy",
+        "### Problem Reference",
+        "> See: prd/discovery-brief.md",
+        "> Summary: <!-- /fabric-design: ≤20 word summary -->",
         "",
-        "```yaml",
-        _emit_items_yaml(deploy_items),
+        "---",
+        "",
+        "## Architecture Diagram",
+        "",
+        "```",
+        "<!-- Replace this block with your ASCII diagram -->",
         "```",
         "",
-        "## Deployment Waves",
+        "---",
         "",
-        "```yaml",
-        _emit_waves_yaml(waves),
-        "```",
+        "## Decisions",
         "",
-        "## Acceptance Criteria (Stubs)",
-        "",
-        "```yaml",
-        _emit_ac_yaml(deploy_items, task_flow),
-        "```",
-        "",
+        "| Decision | Choice | Rationale |",
+        "|----------|--------|-----------|",
     ]
+
+    parts.extend(decisions_table)
+
+    parts.extend([
+        "",
+        "### Items to Deploy",
+        "",
+        "```yaml",
+        items_yaml,
+        "```",
+        "",
+        "### Deployment Order",
+        "",
+        "```yaml",
+        waves_yaml,
+        "```",
+        "",
+        "### Acceptance Criteria",
+        "",
+        "```yaml",
+        ac_yaml,
+        "```",
+        "",
+        "## Alternatives Considered",
+        "",
+        "| # | Decision | Option Rejected | Why Rejected |",
+        "|---|----------|-----------------|--------------|",
+    ])
+
+    parts.extend(alternatives_table)
+
+    parts.extend([
+        "",
+        "## Trade-offs",
+        "",
+        "| # | Trade-off | Benefit | Cost | Mitigation |",
+        "|---|-----------|---------|------|------------|",
+        "| 1 | | | | |",
+        "",
+        "## Deployment Strategy",
+        "",
+        "| Decision | Choice | Rationale |",
+        "|----------|--------|-----------|",
+        "| Workspace Approach | | |",
+        "| Environments | | |",
+        "| CI/CD Tool | | |",
+        "| Parameterization | | |",
+        "| Branching Model | | |",
+        "",
+        "## References",
+        "",
+        f"- Project folder: projects/{project}/",
+        f"- Diagram: diagrams/{task_flow}.md",
+        "- Validation: _shared/registry/validation-checklists.json",
+        "",
+        "## Design Review",
+        "",
+        "| Reviewer | Feedback Summary | Incorporated? | What Changed |",
+        "|----------|-----------------|---------------|--------------|",
+        "| /fabric-deploy | <!-- pending --> | | |",
+        "| /fabric-test | <!-- pending --> | | |",
+    ])
 
     return "\n".join(parts)
 
