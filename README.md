@@ -1,29 +1,23 @@
-# Task Flows for Microsoft Fabric
+# Task flows for Microsoft Fabric
 
 [![CI](https://github.com/microsoft/fabric-task-flows/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/fabric-task-flows/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Pre-defined architectures for [Microsoft Fabric](https://learn.microsoft.com/fabric/) — powered by one AI orchestrator agent and composable skills.
+Pre-defined architectures for [Microsoft Fabric](https://learn.microsoft.com/fabric/) — powered by an AI agent that guides you step by step.
 
-Describe your data problem, and `@fabric-advisor` walks you through discovery, architecture design, and deployment script generation — with a single human approval gate.
+Microsoft Fabric is powerful — but knowing which services to combine and how to wire them together takes time. `@fabric-advisor` asks the right questions about your business problem, picks the architecture, and hands you a fully deployable script. Zero to deployed in the cloud in minutes.
 
 ```
-Discover → Design (DRAFT → Review → FINAL) → ★ You Approve → Deploy Script
+Describe Problem → Pick Architecture → ★ You Approve → Deploy
 ```
-
-## Item Type Registry
-
-The **[Item Type Registry](_shared/registry/item-type-registry.json)** is the single source of truth for all Fabric item types — 25+ items with metadata including skillset tags (Code-First / Low-Code), API paths, CI/CD deployment strategies, and wave ordering.
-
-This registry drives everything in the project: task flow diagrams, deployment scripts, and decision resolution. **Contributions and corrections are especially welcome here** — missing item types, incorrect API paths, new Fabric capabilities.
 
 ## Quick Start
 
 **Prerequisites:** Python 3.11+, [GitHub Copilot](https://github.com/features/copilot) with agent mode
 
 ```bash
-python _shared/scripts/run-pipeline.py start "My Project" --problem "describe your data problem"
+python _shared/scripts/run-pipeline.py start "My Project" --problem "describe your business problem"
 ```
 
 The pipeline runner generates agent prompts — paste each into Copilot chat. Use `advance` and `next` to progress through phases. See [`_shared/workflow-guide.md`](_shared/workflow-guide.md) for the full pipeline reference.
@@ -32,7 +26,7 @@ The pipeline runner generates agent prompts — paste each into Copilot chat. Us
 
 | Resource | Description |
 |----------|-------------|
-| [**13 Task Flows**](task-flows.md) | Pre-defined architectures — batch, streaming, hybrid, ML, API, governance |
+| [**13 Task flows**](task-flows.md) | Pre-defined architectures — batch, streaming, hybrid, ML, API, governance |
 | [**7 Decision Guides**](decisions/_index.md) | Storage, ingestion, processing, visualization, skillset, parameterization, API |
 | [**Deployment Diagrams**](diagrams/_index.md) | Dependency-ordered wave plans for each task flow |
 
@@ -40,10 +34,10 @@ The pipeline runner generates agent prompts — paste each into Copilot chat. Us
 
 | Skill | Purpose | Status |
 |-------|---------|--------|
-| `/fabric-discover` | Infer signals from problem statements, suggest task flows | ✅ Available |
-| `/fabric-design` | DRAFT → Review → FINAL architecture with ADRs | ✅ Available |
+| `/fabric-discover` | Understand your problem, recommend an architecture | ✅ Available |
+| `/fabric-design` | Design your architecture with decision records | ✅ Available |
 | `/fabric-deploy` | Generate deployment scripts via [`fabric-cicd`](https://pypi.org/project/fabric-cicd/) | ✅ Available |
-| `/fabric-heal` | Self-healing signal mapper with keyword patching | ✅ Available |
+| `/fabric-heal` | Improve pattern matching over time | ✅ Available |
 | `/fabric-test` | Test plans and post-deployment validation | 🔜 Next release |
 | `/fabric-document` | Wiki and ADR synthesis from pipeline handoffs | 🔜 Next release |
 
@@ -60,6 +54,10 @@ _shared/scripts/        → Pipeline CLI (run-pipeline, new-project, fleet-runne
 _shared/tests/          → Test suite
 _projects/              → Per-project workspaces (gitignored)
 ```
+
+## Item Type Registry
+
+The **[Item Type Registry](_shared/registry/item-type-registry.json)** is the single source of truth for all Fabric item types — 25+ items with metadata including API paths, CI/CD deployment strategies, and wave ordering. This registry drives task flow diagrams, deployment scripts, and decision resolution.
 
 ## Contributing
 
