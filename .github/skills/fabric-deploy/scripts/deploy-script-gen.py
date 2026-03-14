@@ -620,7 +620,6 @@ Uses fabric-cicd (pip install fabric-cicd) for deployment.
 import argparse
 import os
 import sys
-import yaml
 
 BASE_URL = "https://api.fabric.microsoft.com/v1"
 
@@ -708,6 +707,7 @@ def ensure_capacity(ws_id, headers):
 
 
 def deploy_to_workspace(config_path, ws_id, environment=None, credential=None):
+    import yaml
     from fabric_cicd import deploy_with_config
     with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
