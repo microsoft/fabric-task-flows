@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install test dependencies
-        run: pip install "pytest<9" "pytest-cov<7" "coverage<7.13"
+        run: pip install "pytest==8.3.5" "pytest-cov<7"
 
       - name: Run tests
         env:
