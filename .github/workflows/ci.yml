@@ -23,9 +23,7 @@ jobs:
       - name: Run tests
         env:
           PYTHONPATH: _shared
-          COLUMNS: "120"
-          TERM: dumb
-        run: python -m pytest _shared/tests/ -p no:terminal --tb=short --cov=lib --cov-report=term-missing
+        run: python -m pytest _shared/tests/ --tb=short -q
 
       - name: Lint with ruff
         run: pip install ruff && ruff check _shared/
