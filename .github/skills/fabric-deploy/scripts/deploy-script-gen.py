@@ -189,15 +189,33 @@ def _parse_items_block(yaml_text: str) -> list[Item]:
 
 
 def _dict_to_item(d: dict[str, str]) -> Item:
-    """Convert a parsed dict to an Item dataclass."""
+    """Convert a parsed dict to an Item dataclass.
+
+    Handles depends_on as integer IDs, string names, or a mix of both.
+    String names are kept as-is and resolved later by _resolve_string_deps().
+    """
     name = d.get("name", d.get("item_name", ""))
     item_type = d.get("type", d.get("item_type", ""))
     deps_raw = d.get("dependencies", d.get("depends_on", "[]"))
     if isinstance(deps_raw, list):
-        deps = [int(x) for x in deps_raw]
+        deps = []
+        for x in deps_raw:
+            try:
+                deps.append(int(x))
+            except (ValueError, TypeError):
+                deps.append(str(x))
     elif isinstance(deps_raw, str) and deps_raw.startswith("["):
         inner = deps_raw[1:-1].strip()
-        deps = [int(x.strip().strip('"').strip("'")) for x in inner.split(",") if x.strip()] if inner else []
+        deps = []
+        if inner:
+            for x in inner.split(","):
+                val = x.strip().strip('"').strip("'")
+                if not val:
+                    continue
+                try:
+                    deps.append(int(val))
+                except ValueError:
+                    deps.append(val)
     else:
         deps = []
     return Item(
@@ -208,6 +226,34 @@ def _dict_to_item(d: dict[str, str]) -> Item:
         depends_on=deps,
         purpose=d.get("purpose", ""),
     )
+
+
+def _resolve_string_deps(items: list[Item]) -> None:
+    """Resolve string dependency names to integer IDs in-place.
+
+    After all items are parsed, any depends_on entries that are strings
+    (e.g. "Lakehouse Bronze") are matched against item names/types and
+    replaced with the corresponding item ID.
+    """
+    name_to_id: dict[str, int] = {}
+    for item in items:
+        name_to_id[item.name.lower()] = item.id
+        name_to_id[item.type.lower()] = item.id
+        # Support "Type Name" patterns like "Lakehouse Bronze"
+        composite = f"{item.type} {item.name}".lower()
+        name_to_id[composite] = item.id
+    for item in items:
+        resolved = []
+        for dep in item.depends_on:
+            if isinstance(dep, int):
+                resolved.append(dep)
+            elif isinstance(dep, str):
+                key = dep.lower().strip()
+                if key in name_to_id:
+                    resolved.append(name_to_id[key])
+                else:
+                    resolved.append(dep)
+        item.depends_on = resolved
 
 
 def _parse_waves_block(yaml_text: str) -> list[Wave]:
@@ -273,8 +319,15 @@ def _dict_to_wave(d: dict[str, str]) -> Wave:
 
 
 def parse_handoff(path: str) -> HandoffData:
-    """Parse an architecture-handoff.md and extract structured data."""
-    content = Path(path).read_text(encoding="utf-8")
+    """Parse an architecture-handoff.md or architecture-summary.json and extract structured data."""
+    p = Path(path)
+    content = p.read_text(encoding="utf-8")
+
+    # JSON format (architecture-summary.json)
+    if p.suffix == ".json":
+        return _parse_json_handoff(content, path)
+
+    # Markdown format (architecture-handoff.md)
     task_flow = _extract_task_flow(content)
 
     # Extract problem summary from handoff
@@ -295,12 +348,57 @@ def parse_handoff(path: str) -> HandoffData:
         elif stripped.startswith("waves:") or stripped.startswith("deployment_waves:"):
             waves = _parse_waves_block(stripped)
 
+    if items:
+        _resolve_string_deps(items)
+
     if not items:
         print(f"⚠ No items found in {path}", file=sys.stderr)
     if not waves:
         print(f"⚠ No waves found in {path}", file=sys.stderr)
 
     return HandoffData(task_flow=task_flow, items=items, waves=waves, summary=summary)
+
+
+def _parse_json_handoff(content: str, path: str) -> HandoffData:
+    """Parse architecture-summary.json format into HandoffData."""
+    data = json.loads(content)
+    task_flow = data.get("task_flow", "unknown")
+
+    items: list[Item] = []
+    for item_data in data.get("items", []):
+        deps_raw = item_data.get("depends_on", [])
+        deps = []
+        for d in deps_raw:
+            try:
+                deps.append(int(d))
+            except (ValueError, TypeError):
+                deps.append(str(d))
+        items.append(Item(
+            id=int(item_data.get("id", 0)),
+            name=str(item_data.get("name", "")),
+            type=str(item_data.get("type", "")),
+            skillset=str(item_data.get("skillset", "")),
+            depends_on=deps,
+            purpose=str(item_data.get("purpose", "")),
+        ))
+
+    waves: list[Wave] = []
+    for wave_data in data.get("waves", []):
+        waves.append(Wave(
+            id=int(wave_data.get("id", 0)),
+            items=wave_data.get("items", []),
+            blocked_by=wave_data.get("blocked_by", []),
+        ))
+
+    if items:
+        _resolve_string_deps(items)
+
+    if not items:
+        print(f"⚠ No items found in {path}", file=sys.stderr)
+    if not waves:
+        print(f"⚠ No waves found in {path}", file=sys.stderr)
+
+    return HandoffData(task_flow=task_flow, items=items, waves=waves)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -601,6 +699,8 @@ def _gen_deploy_script(project: str, data: HandoffData) -> str:
     slug = _slugify(project)
     safe_project = escape_for_python_string(project)
     safe_task_flow = escape_for_python_string(data.task_flow)
+    item_count = len(data.items)
+    wave_count = len(data.waves)
     ws_desc_line = f"{safe_project} — {safe_task_flow} architecture"
     if data.summary:
         ws_desc_line += f". {data.summary}"
@@ -914,7 +1014,19 @@ def main():
             deploy_to_workspace(args.config, ws_id, credential=credential)
             populate_variable_library(ws_id, headers)
             print()
-            print("  Deployment complete!")
+            print("  " + "=" * 56)
+            print("  DEPLOYMENT SUMMARY")
+            print("  " + "=" * 56)
+            print(f"  Project:    {safe_project}")
+            print(f"  Task Flow:  {safe_task_flow}")
+            print(f"  Items:      {item_count} across {wave_count} waves")
+            print(f"  Workspace:  {{ws_name}}")
+            print(f"  Portal:     https://app.fabric.microsoft.com/groups/{{ws_id}}")
+            print()
+            print("  Next Steps:")
+            print(f"  - Review items in Fabric portal")
+            print(f"  - Run: python run-pipeline.py advance --project {slug}")
+            print("  " + "=" * 56)
         except Exception as e:
             print(f"  Deployment failed: {{e}}")
             sys.exit(1)
@@ -945,7 +1057,20 @@ def main():
                 print(f"  {{env.upper()}} failed: {{e}}")
                 sys.exit(1)
         print()
-        print("  All environments deployed!")
+        print("  " + "=" * 56)
+        print("  DEPLOYMENT SUMMARY")
+        print("  " + "=" * 56)
+        print(f"  Project:      {safe_project}")
+        print(f"  Task Flow:    {safe_task_flow}")
+        print(f"  Items:        {item_count} across {wave_count} waves")
+        print(f"  Environments: dev, ppe, prod")
+        for env in envs:
+            print(f"    {{env.upper()}}: https://app.fabric.microsoft.com/groups/{{ws_ids[env]}}")
+        print()
+        print("  Next Steps:")
+        print(f"  - Review items in Fabric portal")
+        print(f"  - Run: python run-pipeline.py advance --project {slug}")
+        print("  " + "=" * 56)
 
 
 if __name__ == "__main__":
