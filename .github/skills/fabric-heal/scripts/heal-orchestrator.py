@@ -32,7 +32,9 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+from paths import REPO_ROOT
+
 SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts" / "signal-mapper.py"
 SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-heal/
 PROBLEMS_PATH = SKILL_DIR / "problem-statements.md"
@@ -40,19 +42,11 @@ LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
 RESULTS_PATH = REPO_ROOT / "_projects" / "_heal-loop-results.json"
 BACKUP_PATH = SKILL_DIR / "problem-statements.md.bak"
 
-# Category rotation for agent prompts — diverse industries across iterations
-CATEGORY_ROTATION: list[list[str]] = [
-    ["Telecom", "Insurance", "Agriculture", "Legal", "Nonprofit"],
-    ["Aviation", "Maritime", "Pharmaceuticals", "Education", "Real Estate"],
-    ["Gaming", "Ad Tech", "Biotech", "Hospitality", "Public Safety"],
-    ["Supply Chain", "Fintech", "EdTech", "PropTech", "CleanTech"],
-    ["Defense", "Space / Satellite", "Automotive", "Food & Beverage", "Fashion / Retail"],
-    ["Mining", "Utilities", "Construction", "Sports Analytics", "Media / Entertainment"],
-    ["Government", "Healthcare", "Cybersecurity", "Logistics", "Renewable Energy"],
-    ["Banking", "Telecommunications", "Transportation", "Water Management", "Waste Management"],
-    ["E-Commerce", "Social Media", "Music / Audio", "Veterinary", "Forestry"],
-    ["Oil & Gas", "Chemicals", "Semiconductors", "Robotics", "Smart Cities"],
-]
+# Category rotation for agent prompts — loaded from shared config
+_SCRIPT_CONFIG_PATH = REPO_ROOT / "_shared" / "registry" / "script-config.json"
+with open(_SCRIPT_CONFIG_PATH, encoding="utf-8") as _f:
+    _script_config = json.load(_f)
+CATEGORY_ROTATION: list[list[str]] = _script_config["category_rotation"]["values"]
 
 # Fallback templates for --no-agent mode (preserved from heal-loop.py)
 _FALLBACK_TEMPLATES = [

@@ -39,12 +39,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "_shared" / "lib"))
+from paths import REPO_ROOT
+from banner import print_banner
+
 SKILLS_DIR = REPO_ROOT / ".github" / "skills"
 VERSION = "1.0.0"
-
-sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
-from banner import print_banner
 
 # ---------------------------------------------------------------------------
 # Load from skills registry (single source of truth)

@@ -23,6 +23,7 @@ import json
 import re
 import sys
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 
 SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
@@ -41,7 +42,7 @@ sys.path.insert(0, str(_SHARED_DIR))
 from registry_loader import build_fab_commands, build_display_names, load_registry
 from banner import BANNER_ART
 from yaml_utils import extract_yaml_blocks, parse_yaml_value, split_list, parse_inline_mapping
-from text_utils import slugify
+from text_utils import slugify, escape_for_python_string
 
 # REST API creation support map: lowercase alias → True/False
 FAB_COMMANDS: dict[str, bool] = build_fab_commands()
@@ -586,9 +587,9 @@ def _build_deploy_banner_func(project: str, task_flow: str) -> str:
     parts.append('    print(divider)')
     parts.append('    print("  T A S K   F L O W S")')
     if project:
-        parts.append(f'    print("  Project:   {project}")')
+        parts.append(f'    print("  Project:   {escape_for_python_string(project)}")')
     if task_flow:
-        parts.append(f'    print("  Task Flow: {task_flow}")')
+        parts.append(f'    print("  Task Flow: {escape_for_python_string(task_flow)}")')
     parts.append('    print(divider)')
     parts.append('    print()')
 
@@ -598,7 +599,9 @@ def _build_deploy_banner_func(project: str, task_flow: str) -> str:
 def _gen_deploy_script(project: str, data: HandoffData) -> str:
     """Generate a thin deploy.py that uses fabric-cicd."""
     slug = _slugify(project)
-    ws_desc_line = f"{project} — {data.task_flow} architecture"
+    safe_project = escape_for_python_string(project)
+    safe_task_flow = escape_for_python_string(data.task_flow)
+    ws_desc_line = f"{safe_project} — {safe_task_flow} architecture"
     if data.summary:
         ws_desc_line += f". {data.summary}"
 
@@ -608,8 +611,8 @@ def _gen_deploy_script(project: str, data: HandoffData) -> str:
     return f"""#!/usr/bin/env python3
 \"""
 Fabric Task Flows - Deploy Script
-Project:   {project}
-Task Flow: {data.task_flow}
+Project:   {safe_project}
+Task Flow: {safe_task_flow}
 
 Uses fabric-cicd (pip install fabric-cicd) for deployment.
 \"""
@@ -818,7 +821,7 @@ def populate_variable_library(ws_id, headers):
     # Operational metadata (String type — not item references)
     variables.append({{"name": "Workspace_ID", "type": "String", "value": ws_id, "note": "Current workspace GUID"}})
     variables.append({{"name": "Workspace_URL", "type": "String", "value": f"https://app.fabric.microsoft.com/groups/{{ws_id}}", "note": "Fabric Portal URL"}})
-    variables.append({{"name": "Project_Name", "type": "String", "value": "{project}", "note": "Project name"}})
+    variables.append({{"name": "Project_Name", "type": "String", "value": "{safe_project}", "note": "Project name"}})
     variables.append({{"name": "Environment_Name", "type": "String", "value": "dev", "note": "Current deployment stage"}})
     variables.append({{"name": "Deploy_Timestamp", "type": "String", "value": datetime.now(timezone.utc).isoformat(), "note": "Deployment timestamp"}})
 
@@ -862,7 +865,7 @@ def populate_variable_library(ws_id, headers):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Deploy {project}")
+    parser = argparse.ArgumentParser(description="Deploy {safe_project}")
     parser.add_argument("--workspace-id", default=os.getenv("FABRIC_WORKSPACE_ID", ""))
     parser.add_argument("--workspace", default=os.getenv("FABRIC_WORKSPACE_NAME", ""))
     parser.add_argument("--mode", choices=["single", "multi"], default=os.getenv("FABRIC_DEPLOY_MODE", ""))
@@ -989,6 +992,12 @@ def main() -> None:
 
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
+
+    # Check for existing manifest (idempotency warning)
+    manifest_path = out / "_deploy_manifest.json"
+    if manifest_path.exists():
+        old = json.loads(manifest_path.read_text(encoding="utf-8"))
+        print(f"⚠ Re-generating artifacts (previous run: {old.get('generated_at', 'unknown')})", file=sys.stderr)
 
     # 1. Generate workspace directory with item folders and .platform files
     ws_dir = out / "workspace"
@@ -1359,6 +1368,29 @@ def main() -> None:
                 print(f"✅ {tf_path}")
     except Exception as e:
         print(f"⚠️  Task flow template generation skipped: {e}", file=sys.stderr)
+
+    # 6. Write deployment manifest for idempotency tracking
+    artifacts = []
+    for platform_file in ws_dir.rglob(".platform"):
+        artifacts.append({
+            "path": str(platform_file.parent.relative_to(out)),
+            "type": "platform",
+        })
+    artifacts.append({"path": str(param_path.relative_to(out)), "type": "config"})
+    artifacts.append({"path": str(config_path.relative_to(out)), "type": "config"})
+    artifacts.append({"path": str(deploy_path.relative_to(out)), "type": "deploy_script"})
+    artifacts.append({"path": str(desc_path.relative_to(out)), "type": "config"})
+    tf_path = out / f"taskflow-{slug}.json"
+    if tf_path.exists():
+        artifacts.append({"path": str(tf_path.relative_to(out)), "type": "config"})
+    manifest = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "project": args.project,
+        "artifacts": artifacts,
+    }
+    manifest_path = out / "_deploy_manifest.json"
+    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    print(f"✅ {manifest_path}")
 
 
 if __name__ == "__main__":

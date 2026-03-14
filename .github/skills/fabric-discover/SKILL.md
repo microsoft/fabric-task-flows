@@ -35,16 +35,29 @@ python _shared/scripts/run-pipeline.py start "Your Project Name" --problem "Your
 
 ## Instructions
 
-> **Input from orchestrator:** Project name and problem statement are passed via `run-pipeline.py start`. Do NOT re-ask for these.
+### Step 1: Collect Intake
 
-### Step 1: Review Signal Mapper Output
+Ask the user for:
+- **Project name** — Ask for a short, creative, and descriptive name. You MAY suggest examples (e.g., "Farm Fleet", "Energy Analytics"), but you MUST NOT proceed until the user explicitly provides or confirms a name. Never infer, synthesize, or assume a project name from context.
+- **Problem statement** — "What problems does your project need to solve?"
 
-The pipeline runner pre-computed signal mapping. Review the output in the prompt or run:
+### Step 2: Scaffold the Project
+
+Once you have both, run:
+```bash
+python _shared/scripts/run-pipeline.py start "Project Name" --problem "problem statement text"
+```
+
+This scaffolds the project and pre-computes signal mapping.
+
+### Step 3: Review Signal Mapper Output
+
+Review the signal mapping output from the `start` command, or run:
 ```bash
 python .github/skills/fabric-discover/scripts/signal-mapper.py --project <project-name> --text "<problem>" --format json
 ```
 
-### Step 2: Assess 4 V's Gaps
+### Step 4: Assess 4 V's Gaps
 
 Only ask about gaps NOT already in the problem statement:
 
@@ -55,11 +68,11 @@ Only ask about gaps NOT already in the problem statement:
 | Variety | Sources: DBs, files, APIs, streaming |
 | Versatility | Low-code / code-first / mixed |
 
-### Step 3: Confirm with User
+### Step 5: Confirm with User
 
 Present inferred signals and 4V's assessment. Get confirmation or corrections.
 
-### Step 4: Produce Discovery Brief
+### Step 6: Produce Discovery Brief
 
 Write to `_projects/[name]/prd/discovery-brief.md`:
 

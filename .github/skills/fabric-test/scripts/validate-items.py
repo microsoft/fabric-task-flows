@@ -26,12 +26,11 @@ from pathlib import Path
 # Load registries
 # ---------------------------------------------------------------------------
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
-REGISTRY_DIR = REPO_ROOT / "_shared" / "registry"
-
-
-sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+from paths import REPO_ROOT
 from registry_loader import load_registry
+
+REGISTRY_DIR = REPO_ROOT / "_shared" / "registry"
 
 
 def _load_item_registry() -> dict:

@@ -42,45 +42,16 @@ def _find_block(blocks: list[dict], key: str):
 
 
 # ---------------------------------------------------------------------------
-# Item type → architectural layer mapping
+# Item type → architectural layer mapping (loaded from shared config)
 # ---------------------------------------------------------------------------
 
-LAYER_MAP: dict[str, str] = {
-    # Storage
-    "Lakehouse":            "STORAGE",
-    "Warehouse":            "STORAGE",
-    "Eventhouse":           "STORAGE",
-    "SQL Database":         "STORAGE",
-    "KQL Database":         "STORAGE",
-    "Cosmos DB":            "STORAGE",
-    # Ingestion
-    "Pipeline":             "INGESTION",
-    "Dataflow Gen2":        "INGESTION",
-    "Eventstream":          "INGESTION",
-    "Copy Job":             "INGESTION",
-    # Processing
-    "Notebook":             "PROCESSING",
-    "KQL Queryset":         "PROCESSING",
-    "Spark Job Definition": "PROCESSING",
-    "Stored Procedure":     "PROCESSING",
-    # Serving
-    "Semantic Model":       "SERVING",
-    "Real-Time Dashboard":  "SERVING",
-    "Report":               "SERVING",
-    "Paginated Report":     "SERVING",
-    "Dashboard":            "SERVING",
-    "Metrics Scorecard":    "SERVING",
-    # Compute / Environment
-    "Environment":          "COMPUTE",
-    # AI / ML
-    "Experiment":           "AI_ML",
-    "ML Model":             "AI_ML",
-    # Alerting
-    "Activator":            "ALERTING",
-    # API
-    "GraphQL API":          "SERVING",
-    "User Data Functions":  "SERVING",
-}
+import json as _json
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+_SCRIPT_CONFIG_PATH = _REPO_ROOT / "_shared" / "registry" / "script-config.json"
+with open(_SCRIPT_CONFIG_PATH, encoding="utf-8") as _f:
+    _script_config = _json.load(_f)
+LAYER_MAP: dict[str, str] = _script_config["layer_map"]["values"]
 
 LAYER_ORDER = ["INGESTION", "STORAGE", "COMPUTE", "PROCESSING", "SERVING", "AI_ML", "ALERTING"]
 LAYER_LABELS = {

@@ -1,0 +1,65 @@
+{
+  "description": "Configuration values for task-flows scripts. Externalized from Python code to enable updates without code changes.",
+  "task_type_order": {
+    "description": "Ordering of Fabric task types in generated task flows",
+    "values": {
+      "develop": 0,
+      "govern data": 1,
+      "get data": 2,
+      "mirror data": 3,
+      "store data": 4,
+      "prepare data": 5,
+      "analyze and train data": 6,
+      "track data": 7,
+      "visualize": 8,
+      "distribute data": 9,
+      "general": 10
+    }
+  },
+  "category_rotation": {
+    "description": "Industry categories rotated through during heal cycles",
+    "values": [
+      ["Telecom", "Insurance", "Agriculture", "Legal", "Nonprofit"],
+      ["Aviation", "Maritime", "Pharmaceuticals", "Education", "Real Estate"],
+      ["Gaming", "Ad Tech", "Biotech", "Hospitality", "Public Safety"],
+      ["Supply Chain", "Fintech", "EdTech", "PropTech", "CleanTech"],
+      ["Defense", "Space / Satellite", "Automotive", "Food & Beverage", "Fashion / Retail"],
+      ["Mining", "Utilities", "Construction", "Sports Analytics", "Media / Entertainment"],
+      ["Government", "Healthcare", "Cybersecurity", "Logistics", "Renewable Energy"],
+      ["Banking", "Telecommunications", "Transportation", "Water Management", "Waste Management"],
+      ["E-Commerce", "Social Media", "Music / Audio", "Veterinary", "Forestry"],
+      ["Oil & Gas", "Chemicals", "Semiconductors", "Robotics", "Smart Cities"]
+    ]
+  },
+  "layer_map": {
+    "description": "Maps item display names to architectural layers for diagram generation",
+    "values": {
+      "Lakehouse": "STORAGE",
+      "Warehouse": "STORAGE",
+      "Eventhouse": "STORAGE",
+      "SQL Database": "STORAGE",
+      "KQL Database": "STORAGE",
+      "Cosmos DB": "STORAGE",
+      "Pipeline": "INGESTION",
+      "Dataflow Gen2": "INGESTION",
+      "Eventstream": "INGESTION",
+      "Copy Job": "INGESTION",
+      "Notebook": "PROCESSING",
+      "KQL Queryset": "PROCESSING",
+      "Spark Job Definition": "PROCESSING",
+      "Stored Procedure": "PROCESSING",
+      "Semantic Model": "SERVING",
+      "Real-Time Dashboard": "SERVING",
+      "Report": "SERVING",
+      "Paginated Report": "SERVING",
+      "Dashboard": "SERVING",
+      "Metrics Scorecard": "SERVING",
+      "Environment": "COMPUTE",
+      "Experiment": "AI_ML",
+      "ML Model": "AI_ML",
+      "Activator": "ALERTING",
+      "GraphQL API": "SERVING",
+      "User Data Functions": "SERVING"
+    }
+  }
+}

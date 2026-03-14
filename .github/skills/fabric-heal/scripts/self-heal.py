@@ -28,7 +28,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+from paths import REPO_ROOT
+
 SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts" / "signal-mapper.py"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
 DEFAULT_PROBLEMS = Path(__file__).resolve().parent.parent / "problem-statements.md"

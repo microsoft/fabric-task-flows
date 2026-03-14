@@ -66,21 +66,13 @@ SCAFFOLD_TASK_NAMES: dict[str, str] = {
     "general": "General",
 }
 
-# ── Canonical task-type ordering (for deterministic edge generation) ──────
+# ── Canonical task-type ordering (loaded from shared config) ──────────────
 
-TASK_TYPE_ORDER: dict[str, int] = {
-    "develop": 0,
-    "govern data": 1,
-    "get data": 2,
-    "mirror data": 3,
-    "store data": 4,
-    "prepare data": 5,
-    "analyze and train data": 6,
-    "track data": 7,
-    "visualize": 8,
-    "distribute data": 9,
-    "general": 10,
-}
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+_SCRIPT_CONFIG_PATH = _REPO_ROOT / "_shared" / "registry" / "script-config.json"
+with open(_SCRIPT_CONFIG_PATH, encoding="utf-8") as _f:
+    _script_cfg = json.load(_f)
+TASK_TYPE_ORDER: dict[str, int] = _script_cfg["task_type_order"]["values"]
 
 # ── Data classes ──────────────────────────────────────────────────────────
 

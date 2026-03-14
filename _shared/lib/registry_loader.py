@@ -17,8 +17,9 @@ import sys
 from pathlib import Path
 from typing import Any, Callable
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-REGISTRY_PATH = REPO_ROOT / "_shared" / "registry" / "item-type-registry.json"
+from paths import REPO_ROOT, REGISTRY_DIR
+
+REGISTRY_PATH = REGISTRY_DIR / "item-type-registry.json"
 
 _cache: dict | None = None
 _full_cache: dict | None = None

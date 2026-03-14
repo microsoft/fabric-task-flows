@@ -26,13 +26,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
-
 # ── Item-type → fab type mapping (for AC verification stubs) ──────────────
 
 # Item type mappings — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
-sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+from paths import REPO_ROOT
 from registry_loader import build_fab_type_map, load_registry
 from deployment_loader import get_deployment_items
 

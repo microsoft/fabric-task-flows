@@ -23,10 +23,9 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
-
 # Load shared utilities — never read registry JSON directly.
-sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+from paths import REPO_ROOT
 from yaml_utils import extract_yaml_blocks, parse_yaml_value
 from registry_loader import build_task_type_map
 

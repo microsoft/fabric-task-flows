@@ -29,7 +29,9 @@ import json
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "_shared" / "lib"))
+from paths import REPO_ROOT
+
 REGISTRY_PATH = REPO_ROOT / "_shared" / "registry" / "item-type-registry.json"
 
 

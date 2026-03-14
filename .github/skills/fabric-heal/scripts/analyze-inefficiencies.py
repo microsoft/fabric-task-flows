@@ -27,7 +27,9 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+from paths import REPO_ROOT
+
 SCRIPTS_DIR = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts"
 PROJECTS_DIR = REPO_ROOT / "_projects"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
