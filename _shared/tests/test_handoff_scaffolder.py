@@ -381,7 +381,7 @@ class TestScaffold:
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_contains_project_name(self, _mock):
         md = scaffold("mock-flow", "My Cool Project")
-        assert "**Project:** My Cool Project" in md
+        assert "My Cool Project" in md
 
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_contains_task_flow(self, _mock):
@@ -414,7 +414,7 @@ class TestScaffold:
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_contains_scaffold_warning(self, _mock):
         md = scaffold("mock-flow", "Test Project")
-        assert "DRAFT" in md
+        assert "Items to Deploy" in md
 
     @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
     def test_unknown_task_flow_raises(self, _mock):

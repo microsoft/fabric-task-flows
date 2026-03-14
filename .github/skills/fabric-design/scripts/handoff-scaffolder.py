@@ -662,82 +662,63 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
         "---",
         f"project: {project}",
         f"task_flow: {task_flow}",
-        "phase: draft",
-        "status: draft",
         f"created: {today}",
-        f"last_updated: {today}",
-        "design_review:",
-        "  engineer: pending",
-        "  tester: pending",
         f"items: {len(deploy_items)}",
-        f"acceptance_criteria: {len(deploy_items)}",
-        f"manual_steps: {manual_steps}",
         f"deployment_waves: {len(waves)}",
-        "blockers:",
-        "  critical: []",
-        "  medium: []",
-        "next_phase: design-review",
         "---",
         "",
         f"# Architecture Handoff — {project}",
         "",
-        f"**Project:** {project}",
-        f"**Task flow:** {task_flow}",
-        f"**Date:** {today}",
-        "**Status:** DRAFT — Awaiting design review by /fabric-deploy and /fabric-test.",
+        f"**Task flow:** {task_flow}  ",
+        f"**Date:** {today}  ",
+        f"**Items:** {len(deploy_items)} across {len(waves)} waves",
         "",
-        "---",
-        "",
-        "### Problem Reference",
-        "> See: docs/discovery-brief.md",
-        "> Summary: <!-- /fabric-design: ≤20 word summary -->",
-        "",
-        "---",
-        "",
-        "## Architecture Diagram",
-        "",
-        "```",
-        "<!-- Replace this block with your ASCII diagram -->",
-        "```",
-        "",
-        "---",
-        "",
-        "## Decisions",
-        "",
-        "| Decision | Choice | Rationale |",
-        "|----------|--------|-----------|",
     ]
 
-    parts.extend(decisions_table)
+    # Decisions — only if we have resolved decisions
+    if decisions and "decisions" in decisions:
+        parts.extend([
+            "## Decisions",
+            "",
+            "| Decision | Choice | Rationale |",
+            "|----------|--------|-----------|",
+        ])
+        parts.extend(decisions_table)
+        parts.append("")
 
+    # Items — always present (core value)
     parts.extend([
-        "",
-        "### Items to Deploy",
+        "## Items to Deploy",
         "",
         "```yaml",
         items_yaml,
         "```",
         "",
-        "### Deployment Order",
+        "## Deployment Order",
         "",
         "```yaml",
         waves_yaml,
         "```",
         "",
-        "### Acceptance Criteria",
+        "## Acceptance Criteria",
         "",
         "```yaml",
         ac_yaml,
         "```",
-        "",
-        "## Alternatives Considered",
-        "",
-        "| # | Decision | Option Rejected | Why Rejected |",
-        "|---|----------|-----------------|--------------|",
     ])
 
-    parts.extend(alternatives_table)
+    # Alternatives — only if we have resolved decisions
+    if decisions and "decisions" in decisions:
+        parts.extend([
+            "",
+            "## Alternatives Considered",
+            "",
+            "| # | Decision | Option Rejected | Why Rejected |",
+            "|---|----------|-----------------|--------------|",
+        ])
+        parts.extend(alternatives_table)
 
+    # Trade-offs — always present (auto-generated from registry)
     parts.extend([
         "",
         "## Trade-offs",
@@ -745,9 +726,9 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
         "| # | Trade-off | Benefit | Cost | Mitigation |",
         "|---|-----------|---------|------|------------|",
     ])
-
     parts.extend(tradeoffs_table)
 
+    # Deployment strategy — always present (auto-generated)
     parts.extend([
         "",
         "## Deployment Strategy",
@@ -755,21 +736,11 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
         "| Decision | Choice | Rationale |",
         "|----------|--------|-----------|",
     ])
-
     parts.extend(deployment_strategy)
 
     parts.extend([
         "",
-        f"- Project folder: projects/{project}/",
         f"- Diagram: diagrams/{task_flow}.md",
-        "- Validation: _shared/registry/validation-checklists.json",
-        "",
-        "## Design Review",
-        "",
-        "| Reviewer | Feedback Summary | Incorporated? | What Changed |",
-        "|----------|-----------------|---------------|--------------|",
-        "| /fabric-deploy | <!-- pending --> | | |",
-        "| /fabric-test | <!-- pending --> | | |",
     ])
 
     return "\n".join(parts)

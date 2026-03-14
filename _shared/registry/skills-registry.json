@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "Fabric Task Flows Skills Registry",
   "$version": "2026-03-13",
   "$description": "Single source of truth for skill metadata. run-pipeline.py reads this for phase routing.",
