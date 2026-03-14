@@ -424,7 +424,7 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
 
     # Create directory tree
     dirs = [
-        os.path.join(project_dir, "docs", "decisions"),
+        os.path.join(project_dir, "docs"),
         os.path.join(project_dir, "deploy"),
     ]
     for d in dirs:
@@ -432,19 +432,11 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
         print(f"  📁 {os.path.relpath(d, repo_root)}")
 
     # Create template files — only for current-sprint phases
-    # Future-phase files (test, validate, document) are created when their phase runs
+    # Future-phase files (test, validate, document, ADRs) created when their phase runs
     files = {
-        # Agent handoff files (merged into docs/)
         "docs/discovery-brief.md": discovery_brief(project),
         "docs/architecture-handoff.md": architecture_handoff(project),
-        # Pipeline state (orchestration tracking)
         "pipeline-state.json": pipeline_state(project),
-        # ADRs (filled during design phase)
-        "docs/decisions/001-task-flow.md": adr_template("001", "Task Flow Selection"),
-        "docs/decisions/002-storage.md": adr_template("002", "Storage Layer Selection"),
-        "docs/decisions/003-ingestion.md": adr_template("003", "Ingestion Approach"),
-        "docs/decisions/004-processing.md": adr_template("004", "Processing Selection"),
-        "docs/decisions/005-visualization.md": adr_template("005", "Visualization Selection"),
     }
 
     for rel_path, content in files.items():

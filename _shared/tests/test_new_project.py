@@ -171,7 +171,6 @@ class TestScaffold:
         project_dir = tmp_path / "_projects" / "test-scaffold"
         assert project_dir.is_dir()
         assert (project_dir / "docs").is_dir()
-        assert (project_dir / "docs" / "decisions").is_dir()
         assert (project_dir / "deploy").is_dir()
 
     def test_creates_template_files(self, tmp_path):
@@ -182,11 +181,6 @@ class TestScaffold:
             "docs/discovery-brief.md",
             "docs/architecture-handoff.md",
             "pipeline-state.json",
-            "docs/decisions/001-task-flow.md",
-            "docs/decisions/002-storage.md",
-            "docs/decisions/003-ingestion.md",
-            "docs/decisions/004-processing.md",
-            "docs/decisions/005-visualization.md",
         ]
         for rel in expected_files:
             assert (proj / rel).exists(), f"Missing: {rel}"

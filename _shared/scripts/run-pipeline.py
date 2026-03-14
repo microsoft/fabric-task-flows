@@ -1186,6 +1186,7 @@ def _print_status(state: dict) -> None:
             wave_count = max(int(w) for w in waves)
 
     # Count ADRs
+    # Count ADRs (if decisions dir exists from future release)
     adr_dir = project_dir / "docs" / "decisions"
     adr_count = len(list(adr_dir.glob("*.md"))) if adr_dir.exists() else 0
 
