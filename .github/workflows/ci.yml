@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install test dependencies
-        run: pip install pytest pytest-cov
+        run: pip install "pytest<9" pytest-cov
 
       - name: Run tests
         env:
