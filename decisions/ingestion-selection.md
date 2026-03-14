@@ -5,8 +5,6 @@ title: Ingestion Method Selection
 
 # Ingestion Method Selection
 
-> Choose the right method to get data into Microsoft Fabric. Start with the **4 V's assessment** to understand your data profile, then use the reference matrix and tool guide to pick the right tool.
->
 > **Agents:** Use `decision-resolver.py` — do NOT read this file unless resolver returns ambiguous.
 
 ## Reference Matrix
@@ -53,7 +51,7 @@ title: Ingestion Method Selection
 
 ## Related Decisions
 
-- [Storage Selection](storage-selection.md) — Choose landing target (Variety dimension)
-- [Processing Selection](processing-selection.md) — Transform data after ingestion
-- [Skillset Selection](skillset-selection.md) — Code-First vs Low-Code (Versatility dimension)
-- [Visualization Selection](visualization-selection.md) — How to present ingested data
+- [Storage Selection](storage-selection.md)
+- [Processing Selection](processing-selection.md)
+- [Skillset Selection](skillset-selection.md)
+- [Visualization Selection](visualization-selection.md)

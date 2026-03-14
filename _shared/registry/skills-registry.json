@@ -1,0 +1,50 @@
+{
+  "$schema": "Fabric Task Flows Skills Registry",
+  "$version": "2026-03-13",
+  "$description": "Single source of truth for skill metadata. run-pipeline.py reads this for phase routing.",
+  "phases": {
+    "0a-discovery": {
+      "skill": "fabric-discover",
+      "output": ["prd/discovery-brief.md"],
+      "constraint": "Never decides task flow"
+    },
+    "1-design": {
+      "skill": "fabric-design",
+      "output": ["prd/architecture-handoff.md", "docs/decisions/001-task-flow.md", "docs/decisions/002-storage.md", "docs/decisions/003-ingestion.md", "docs/decisions/004-processing.md", "docs/decisions/005-visualization.md"],
+      "constraint": "Never deploys; may compose hybrid architectures"
+    },
+    "2a-test-plan": {
+      "skill": "fabric-test",
+      "mode": 1,
+      "output": ["prd/test-plan.md"],
+      "constraint": "Never invents ACs"
+    },
+    "2b-sign-off": {
+      "skill": null,
+      "gate": "human",
+      "output": []
+    },
+    "2c-deploy": {
+      "skill": "fabric-deploy",
+      "output": ["prd/deployment-handoff.md"],
+      "constraint": "Never makes architecture decisions"
+    },
+    "3-validate": {
+      "skill": "fabric-test",
+      "mode": 2,
+      "output": ["prd/validation-report.md"],
+      "constraint": "Never invents ACs"
+    },
+    "4-document": {
+      "skill": "fabric-document",
+      "output": ["docs/README.md"],
+      "constraint": "Documents only"
+    }
+  },
+  "phase_order": ["0a-discovery", "1-design", "2a-test-plan", "2b-sign-off", "2c-deploy", "3-validate", "4-document"],
+  "standalone_skills": {
+    "fabric-heal": {
+      "constraint": "Never modifies matching algorithm"
+    }
+  }
+}

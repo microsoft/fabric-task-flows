@@ -46,27 +46,38 @@ VERSION = "1.0.0"
 sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
 from banner import print_banner
 
-# Phase ordering (linear)
-PHASE_ORDER = [
-    "0a-discovery",
-    "1-design",
-    "2a-test-plan",
-    "2b-sign-off",
-    "2c-deploy",
-    "3-validate",
-    "4-document",
-]
+# ---------------------------------------------------------------------------
+# Load from skills registry (single source of truth)
+# ---------------------------------------------------------------------------
 
-# Skill mapping — each phase delegates to a skill (except human gate)
-PHASE_SKILLS = {
-    "0a-discovery":  "fabric-discover",
-    "1-design":      "fabric-design",
-    "2a-test-plan":  "fabric-test",        # QA reviews architecture + creates test plan
-    "2b-sign-off":   None,                 # human gate
-    "2c-deploy":     "fabric-deploy",
-    "3-validate":    "fabric-test",        # QA validates after deployment
-    "4-document":    "fabric-document",
-}
+def _load_skills_registry() -> dict:
+    registry_path = REPO_ROOT / "_shared" / "registry" / "skills-registry.json"
+    with open(registry_path, encoding="utf-8") as f:
+        return json.load(f)
+
+_REGISTRY = None
+
+def _get_registry() -> dict:
+    global _REGISTRY
+    if _REGISTRY is None:
+        _REGISTRY = _load_skills_registry()
+    return _REGISTRY
+
+def _phase_order() -> list[str]:
+    return _get_registry()["phase_order"]
+
+def _phase_skill(phase: str) -> str | None:
+    return _get_registry()["phases"].get(phase, {}).get("skill")
+
+def _phase_mode(phase: str) -> int | None:
+    return _get_registry()["phases"].get(phase, {}).get("mode")
+
+def _phase_output_files(phase: str) -> list[str]:
+    return _get_registry()["phases"].get(phase, {}).get("output", [])
+
+def _phase_is_gate(phase: str) -> bool:
+    return _get_registry()["phases"].get(phase, {}).get("gate") == "human"
+
 
 # Pre-compute scripts to run before each agent phase
 PHASE_PRECOMPUTE: dict[str, list[list[str]]] = {
@@ -87,18 +98,6 @@ PHASE_PRECOMPUTE: dict[str, list[list[str]]] = {
         # deploy-script-gen produces the deploy script
         # ["python", ".github/skills/fabric-deploy/scripts/deploy-script-gen.py", "--handoff", handoff_path, ...]
     ],
-}
-
-
-# Expected output files per phase (for verification guards)
-PHASE_OUTPUT_FILES: dict[str, list[str]] = {
-    "0a-discovery":  ["prd/discovery-brief.md"],
-    "1-design":      ["prd/architecture-handoff.md", "docs/decisions/001-task-flow.md"],
-    "2a-test-plan":  ["prd/test-plan.md"],
-    "2b-sign-off":   [],  # human gate — no file output
-    "2c-deploy":     ["prd/deployment-handoff.md", "prd/phase-progress.md"],
-    "3-validate":    ["prd/validation-report.md"],
-    "4-document":    ["docs/README.md"],
 }
 
 # Minimum file size (bytes) to consider "has content" vs still a template
@@ -128,9 +127,10 @@ def _save_state(project: str, state: dict) -> None:
 
 
 def _next_phase(current: str) -> str | None:
-    idx = PHASE_ORDER.index(current)
-    if idx + 1 < len(PHASE_ORDER):
-        return PHASE_ORDER[idx + 1]
+    order = _phase_order()
+    idx = order.index(current)
+    if idx + 1 < len(order):
+        return order[idx + 1]
     return None
 
 
@@ -192,8 +192,8 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"2. Review the architecture for testability and deployment feasibility\n"
             f"3. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
             f"4. Map each acceptance criterion to a concrete validation check\n"
-            f"5. Write the Test Plan (with Architecture Concerns section if issues found) to {pp}/prd/test-plan.md\n"
-            f"6. 🛑 HUMAN GATE: Present a consolidated sign-off summary and WAIT for user approval. This is the ONLY stop in the pipeline.\n\n"
+            f"5. Write the Test Plan to {pp}/prd/test-plan.md\n\n"
+            f"Do NOT present a sign-off summary or wait for user approval — the pipeline auto-advances to Phase 2b (Sign-Off) where the user reviews both the architecture handoff and test plan.\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
@@ -327,9 +327,9 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
     else:
         phase = current
 
-    agent = PHASE_SKILLS.get(phase)
+    agent = _phase_skill(phase)
     prompt = _prompt_for_phase(phase, project, state)
-    is_gate = not _is_auto(state, phase)
+    is_gate = _phase_is_gate(phase) or not _is_auto(state, phase)
 
     # Include precompute output if available
     precompute_output = _run_precompute(phase, project, state)
@@ -353,7 +353,8 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
                 else:
                     prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
                                             "(Diagram generation failed — review handoff directly)")
-            except Exception:
+            except Exception as e:
+                print(f"⚠ diagram generation failed: {e}", file=sys.stderr)
                 prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
                                         "(Diagram generation unavailable — review handoff directly)")
         else:
@@ -445,8 +446,8 @@ def _generate_architecture_summary(project: str) -> None:
                             "type": ac.get("type"),
                             "target": ac.get("target"),
                         })
-    except Exception:
-        pass  # Fall back to empty — summary is a convenience, not a blocker
+    except Exception as e:
+        print(f"⚠ handoff summary parse failed: {e}", file=sys.stderr)
 
     summary = {
         "project": project,
@@ -475,7 +476,7 @@ def _verify_output(phase: str, project: str) -> tuple[bool, str]:
        Template detection: files containing 'task_flow: TBD' or 'items: []'
        are considered unfilled templates.
     """
-    expected = PHASE_OUTPUT_FILES.get(phase, [])
+    expected = _phase_output_files(phase)
     if not expected:
         return True, "No output files required"
 
@@ -590,8 +591,9 @@ def advance(project: str, approved: bool = False, revise: bool = False,
 def reset_phase(project: str, phase: str) -> dict:
     """Reset a phase and all subsequent phases to pending."""
     state = _load_state(project)
-    idx = PHASE_ORDER.index(phase)
-    for p in PHASE_ORDER[idx:]:
+    order = _phase_order()
+    idx = order.index(phase)
+    for p in order[idx:]:
         state["phases"][p]["status"] = "pending"
     state["current_phase"] = phase
     _save_state(project, state)
@@ -601,7 +603,7 @@ def reset_phase(project: str, phase: str) -> dict:
 def reconcile(project: str) -> dict:
     """Rebuild pipeline state from file evidence. Heals drift from degraded-mode edits.
 
-    Scans prd/ output files against PHASE_OUTPUT_FILES to determine which phases
+    Scans prd/ output files against registry to determine which phases
     are actually complete. Extracts task_flow if missing. Idempotent — safe to
     run multiple times.
 
@@ -611,8 +613,8 @@ def reconcile(project: str) -> dict:
     report: list[str] = []
 
     # Scan each phase's expected output files
-    for phase_id in PHASE_ORDER:
-        expected = PHASE_OUTPUT_FILES.get(phase_id, [])
+    for phase_id in _phase_order():
+        expected = _phase_output_files(phase_id)
         if not expected:
             # Phases with no output files (e.g., 2b-sign-off) can't be reconciled from files
             continue
@@ -635,7 +637,7 @@ def reconcile(project: str) -> dict:
 
     # Determine correct current_phase from phase statuses
     last_complete = None
-    for phase_id in PHASE_ORDER:
+    for phase_id in _phase_order():
         if state["phases"][phase_id]["status"] == "complete":
             last_complete = phase_id
         else:
@@ -657,8 +659,32 @@ def reconcile(project: str) -> dict:
     return state, report
 
 
+_PLACEHOLDER_NAMES: frozenset[str] = frozenset(
+    {"tbd", "placeholder", "project", "test", "unnamed", "untitled", "new",
+     "demo", "sample", "example", "temp", "tmp", "n/a", "none"}
+)
+
+
 def start_pipeline(display_name: str, problem: str | None = None) -> dict:
-    """Scaffold a new project and initialize the pipeline."""
+    """Scaffold a new project and initialize the pipeline.
+
+    Validates that *display_name* is a real, user-confirmed project name.
+    Raises ``ValueError`` for empty or placeholder names — the orchestrator
+    must collect an explicit name from the user before calling this function.
+    """
+    stripped = (display_name or "").strip()
+    if not stripped:
+        raise ValueError(
+            "Project name is required and cannot be empty. "
+            "Ask the user to provide a short, descriptive project name "
+            "(e.g., 'Farm Fleet', 'Energy Analytics')."
+        )
+    if stripped.lower() in _PLACEHOLDER_NAMES:
+        raise ValueError(
+            f"Project name '{stripped}' looks like a placeholder. "
+            "Ask the user to provide a specific, descriptive project name "
+            "(e.g., 'Shop Floor Monitor', 'Machine Health')."
+        )
     import importlib.util
     spec = importlib.util.spec_from_file_location("new_project", str(REPO_ROOT / "_shared" / "scripts" / "new-project.py"))
     np = importlib.util.module_from_spec(spec)
@@ -697,12 +723,12 @@ def _print_status(state: dict) -> None:
     print(f"  Current Phase: {state['current_phase']}")
     print()
 
-    for phase_id in PHASE_ORDER:
+    for phase_id in _phase_order():
         phase = state["phases"][phase_id]
         status = phase["status"]
-        agent = PHASE_SKILLS.get(phase_id, "—")
+        agent = _phase_skill(phase_id) or "(user)"
         is_current = "→" if phase_id == state["current_phase"] else " "
-        gate = " 🛑" if phase.get("gate") == "human" else ""
+        gate = " 🛑" if _phase_is_gate(phase_id) else ""
 
         icon = {"pending": "⬜", "in_progress": "🔄", "complete": "✅"}.get(status, "❓")
         print(f"  {is_current} {icon} {phase_id:<16} {agent or '(user)':<20} {status}{gate}")
@@ -712,7 +738,7 @@ def _print_status(state: dict) -> None:
 
 def _print_phase_output(project: str, completed_phase: str) -> None:
     """Print the output file(s) produced by a completed phase."""
-    expected = PHASE_OUTPUT_FILES.get(completed_phase, [])
+    expected = _phase_output_files(completed_phase)
     if not expected:
         return
 
@@ -810,7 +836,7 @@ def main() -> None:
     # reset
     reset_p = sub.add_parser("reset", help="Reset a phase")
     reset_p.add_argument("--project", required=True, help="Project folder name")
-    reset_p.add_argument("--phase", required=True, choices=PHASE_ORDER, help="Phase to reset to")
+    reset_p.add_argument("--phase", required=True, choices=_phase_order(), help="Phase to reset to")
 
     # reconcile
     recon_p = sub.add_parser("reconcile", help="Rebuild state from file evidence (heals drift)")

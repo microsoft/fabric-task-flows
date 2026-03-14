@@ -5,7 +5,7 @@ title: API Layer Selection
 
 # API Layer Selection
 
-> Choose how to expose Microsoft Fabric data to external applications, services, and frontends.
+> Match API approach to read/write patterns and custom logic needs.
 
 ## Comparison Table
 
@@ -25,19 +25,8 @@ title: API Layer Selection
 
 ## Combining Approaches
 
-The most powerful pattern combines GraphQL for reads and User Data Functions for writes:
-
-```
-┌─────────────┐      ┌─────────────┐
-│  Frontend   │─────►│ GraphQL API │──► SQL Database (reads)
-│  (React,    │      └─────────────┘
-│   Mobile)   │
-│             │      ┌─────────────┐
-│             │─────►│ User Data   │──► SQL Database (writes)
-│             │      │ Functions   │──► External APIs
-└─────────────┘      └─────────────┘
-```
-
-- **GraphQL** handles all read queries with selective field selection and relationship traversal
-- **User Data Functions** handle writes, validation, and side effects via REST endpoints
-- Both use Microsoft Entra ID for authentication
+| Pattern | Read Layer | Write Layer | Auth |
+|---------|-----------|-------------|------|
+| **GraphQL + UDF** | GraphQL API (selective reads) | User Data Functions (validation, side effects) | Entra ID |
+| **GraphQL only** | GraphQL API | GraphQL mutations + stored procs | Entra ID |
+| **Direct** | Application SQL | Application SQL DML | SQL / Entra ID |

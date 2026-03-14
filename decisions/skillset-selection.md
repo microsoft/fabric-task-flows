@@ -5,11 +5,7 @@ title: Skillset Selection (Code-First vs Low-Code)
 
 # Skillset Selection: Code-First vs Low-Code
 
-> Understanding the [CF] and [LC] tags used throughout task flows to choose the right tools for your team's skills and requirements.
-
 ## Tag Reference
-
-Throughout the task flow documentation, you'll see these tags:
 
 | Tag | Meaning | Target Persona |
 |-----|---------|----------------|

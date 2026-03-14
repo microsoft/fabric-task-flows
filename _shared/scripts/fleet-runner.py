@@ -90,8 +90,8 @@ def run_signal_mapper(problem_text: str) -> dict | None:
                            timeout=30, encoding="utf-8", env=env)
         if r.returncode == 0 and r.stdout.strip():
             return json.loads(r.stdout)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠ signal mapper failed: {e}", file=sys.stderr)
     return None
 
 

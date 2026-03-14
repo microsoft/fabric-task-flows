@@ -5,7 +5,7 @@ title: Storage Type Selection
 
 # Storage Type Selection
 
-> Choose the right Fabric storage type based on your query language, schema requirements, and workload patterns.
+> Match storage type to query language, schema, and workload patterns.
 
 ## Comparison Table
 
@@ -33,20 +33,13 @@ title: Storage Type Selection
 
 ### Gold Layer Decision
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    GOLD LAYER DECISION                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Choose LAKEHOUSE Gold when:    Choose WAREHOUSE Gold when:     │
-│  • Spark/Python consumption     • T-SQL is primary language     │
-│  • ML workloads on Gold data    • BI reporting focus            │
-│  • Need Delta Lake features     • Need stored procedures        │
-│  • Read-only SQL is sufficient  • Need read/write T-SQL         │
-│  • Cost optimization priority   • Query performance priority    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Choose LAKEHOUSE Gold | Choose WAREHOUSE Gold |
+|----------------------|----------------------|
+| Spark/Python consumption | T-SQL is primary language |
+| ML workloads on Gold data | BI reporting focus |
+| Need Delta Lake features | Need stored procedures |
+| Read-only SQL is sufficient | Need read/write T-SQL |
+| Cost optimization priority | Query performance priority |
 
 ### Lambda Architecture (Batch + Real-Time)
 
@@ -82,6 +75,6 @@ title: Storage Type Selection
 
 ## Related Decisions
 
-- [Ingestion Selection](ingestion-selection.md) - How to get data into your chosen storage
-- [Processing Selection](processing-selection.md) - How to transform data
-- [Skillset Selection](skillset-selection.md) - Code-First vs Low-Code capabilities
+- [Ingestion Selection](ingestion-selection.md)
+- [Processing Selection](processing-selection.md)
+- [Skillset Selection](skillset-selection.md)

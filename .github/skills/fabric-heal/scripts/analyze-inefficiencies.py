@@ -128,8 +128,8 @@ def analyze_prescans(projects: list[Path]) -> list[str]:
                     f["_project"] = proj_dir.name
                 all_findings.extend(data.get("findings", []))
                 projects_analyzed += 1
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"⚠ review-prescan failed for {proj_dir.name}: {e}", file=sys.stderr)
 
     if not all_findings:
         return [f"No prescans possible ({projects_analyzed} projects analyzed)"]
@@ -207,8 +207,8 @@ def mine_project_artifacts(projects: list[Path]) -> list[str]:
                 tf = state.get("task_flow")
                 if tf and tf != "TBD":
                     task_flow_counter[tf] += 1
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"⚠ pipeline-state parse failed for {proj_dir.name}: {e}", file=sys.stderr)
 
         # Analyze handoff for blockers
         handoff = proj_dir / "prd" / "architecture-handoff.md"
@@ -265,8 +265,8 @@ def mine_project_artifacts(projects: list[Path]) -> list[str]:
                                 if isinstance(p, dict) and p.get("status") == "complete")
                 if completed == 0:
                     stale_projects.append(proj_dir.name)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"⚠ stale-project check failed for {proj_dir.name}: {e}", file=sys.stderr)
 
     # Compile findings
     if phase_reached:
@@ -372,8 +372,8 @@ def run_multi_problem_stress_test(problems: list[dict], passes: int) -> list[str
                 if r.returncode == 0 and r.stdout.strip():
                     data = json.loads(r.stdout)
                     results.append(data)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"⚠ signal-mapper determinism run failed for P{pid}: {e}", file=sys.stderr)
             total_runs += 1
 
         if not results:

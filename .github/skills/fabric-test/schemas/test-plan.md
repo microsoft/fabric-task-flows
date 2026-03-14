@@ -16,7 +16,7 @@ test_plan_date: ""             # YYYY-MM-DD
 criteria_mapping:
   - ac_id: AC-1                # ID from architecture handoff
     type: structural           # structural | data-flow
-    phase: ""                  # e.g., "Foundation" — from validation-checklists.json
+    phase: ""                  # e.g., "Foundation" — from test-plan-prefill.py output
     test_method: ""            # how to verify (≤20 words — e.g., fabric-cicd or REST API call)
 
 # Items/configs that MUST work for the project to succeed

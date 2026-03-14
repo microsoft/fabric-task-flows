@@ -18,15 +18,7 @@
 
 > ⚠️ **All pipeline orchestration MUST go through `run-pipeline.py`.** Do not call scripts directly, chain agents manually, or edit `pipeline-state.json` by hand.
 
-```bash
-python _shared/scripts/run-pipeline.py start "Project Name" --problem "description"
-python _shared/scripts/run-pipeline.py status --project project-name
-python _shared/scripts/run-pipeline.py next --project project-name
-python _shared/scripts/run-pipeline.py advance --project project-name -q
-python _shared/scripts/run-pipeline.py reset --project project-name --phase 1-design
-```
-
-The runner creates `pipeline-state.json` to track phase state, run pre-compute scripts, and generate agent prompts.
+See `@fabric-advisor` agent instructions for pipeline runner commands (`start`, `status`, `next`, `advance`, `reset`).
 
 ### State Ownership
 
@@ -81,17 +73,19 @@ When shell access is lost mid-session, agents may enter **degraded mode** — ed
 
 ## Phase Summary
 
-| Phase | Skill | Produces | Key Detail |
-|-------|-------|----------|------------|
-| 0a Discovery | @fabric-advisor | `prd/discovery-brief.md` | Infers signals, suggests task flow candidates |
-| 1a Design | /fabric-design | DRAFT `prd/architecture-handoff.md` + ADRs `docs/decisions/001-005` | ADRs written during design (not deferred to Phase 4) |
-| 1b Review | /fabric-design | `prd/engineer-review.md` + `prd/tester-review.md` | `review_outcome: approved \| revise` (max 3 iterations) |
-| 1c Finalize | /fabric-design | FINAL `prd/architecture-handoff.md` | Incorporates review feedback; updates ADRs if decisions changed |
-| 2a Test Plan | /fabric-test | `prd/test-plan.md` | Maps each AC to validation check |
-| 2b Sign-Off | **🛑 USER** | — | `advance --approve` or `--revise --feedback "..."` (max 3 cycles). See [Sign-Off Guide](sign-off-guide.md) |
-| 2c Deploy | /fabric-deploy | `prd/deployment-handoff.md` | Wave-ordered deployment. **Design-only mode:** generates deploy scripts instead |
-| 3 Validate | /fabric-test | `prd/validation-report.md` + `prd/remediation-log.md` | Validate→remediate loop (max 3). Design issues escalate |
-| 4 Document | /fabric-document | `docs/` (README, ADRs, wiki) | Synthesizes all handoffs |
+See `@fabric-advisor` agent instructions for the phase-to-skill mapping. Key outputs per phase:
+
+| Phase | Produces | Key Detail |
+|-------|----------|------------|
+| 0a Discovery | `prd/discovery-brief.md` | Infers signals, suggests task flow candidates |
+| 1a Design | DRAFT `prd/architecture-handoff.md` + ADRs `docs/decisions/001-005` | ADRs written during design (not deferred to Phase 4) |
+| 1b Review | `prd/engineer-review.md` + `prd/tester-review.md` | `review_outcome: approved \| revise` (max 3 iterations) |
+| 1c Finalize | FINAL `prd/architecture-handoff.md` | Incorporates review feedback; updates ADRs if decisions changed |
+| 2a Test Plan | `prd/test-plan.md` | Maps each AC to validation check |
+| 2b Sign-Off | — | `advance --approve` or `--revise --feedback "..."` (max 3 cycles). See [Sign-Off Guide](sign-off-guide.md) |
+| 2c Deploy | `prd/deployment-handoff.md` | Wave-ordered deployment. **Design-only mode:** generates deploy scripts instead |
+| 3 Validate | `prd/validation-report.md` + `prd/remediation-log.md` | Validate→remediate loop (max 3). Design issues escalate |
+| 4 Document | `docs/` (README, ADRs, wiki) | Synthesizes all handoffs |
 
 ---
 
@@ -99,22 +93,7 @@ When shell access is lost mid-session, agents may enter **degraded mode** — ed
 
 > **These rules govern automatic phase transitions.** The orchestrating agent (or human operator) MUST follow these rules — do NOT stop and ask the user between phases unless the rule says `🛑 HUMAN GATE`.
 
-### ⚠️ For LLM Orchestrators (Copilot CLI, GitHub Copilot Chat, etc.)
-
-**You are the orchestrator.** When `@fabric-advisor` completes a phase, `run-pipeline.py` automatically generates the prompt for the next skill. Do NOT:
-- Say "Want me to continue?"
-- Say "Should I proceed to the next phase?"
-- Present a summary and wait for user input
-- Ask any variation of "ready to move on?"
-
-The answer to all of these is always YES. Use `run-pipeline.py advance && next` to progress. **The ONLY exception is Phase 2b Sign-Off** — that requires `--approve`.
-
-**Pattern to follow:**
-1. Agent A completes → writes output to `prd/` files
-2. Run `python _shared/scripts/run-pipeline.py advance --project [name]` (verifies output, advances state)
-3. Run `python _shared/scripts/run-pipeline.py next --project [name]` (generates next agent prompt)
-4. Paste prompt into chat → agent B completes → repeat
-5. At Phase 2b: runner blocks — requires `advance --approve` after user reviews
+All phase transitions are automatic via `run-pipeline.py advance && next` — the only exception is Phase 2b Sign-Off which requires `--approve`.
 
 | # | From Phase | To Phase | Trigger | Gate |
 |---|-----------|----------|---------|------|
@@ -164,12 +143,12 @@ Agents produce handoffs in two formats:
 
 ### Schema Files
 
-All YAML schemas live in each skill's `schemas/` subdirectory:
+YAML schemas live in each skill's `schemas/` subdirectory, except review schemas which live in `_shared/schemas/`:
 
-| Schema | Agent | Mode | Output File |
-|--------|-------|------|-------------|
-| `engineer-review.md` | /fabric-design | Review | `prd/engineer-review.md` |
-| `tester-review.md` | /fabric-design | Review | `prd/tester-review.md` |
+| Schema | Location | Agent | Mode | Output File |
+|--------|----------|-------|------|-------------|
+| `engineer-review.md` | `_shared/schemas/` | /fabric-design | Review | `prd/engineer-review.md` |
+| `tester-review.md` | `_shared/schemas/` | /fabric-design | Review | `prd/tester-review.md` |
 | `test-plan.md` | /fabric-test | Test Plan | `prd/test-plan.md` |
 | `deployment-handoff.md` | /fabric-deploy | Deploy | `prd/deployment-handoff.md` |
 | `validation-report.md` | /fabric-test | Validate | `prd/validation-report.md` |
@@ -182,6 +161,6 @@ All agents follow these constraints:
 
 - **YAML field values: max 15 words** (test methods: max 20 words)
 - **No re-stating prior documents** — reference items by name, ACs by ID
-- **Architecture Handoff: max 200 lines** — uses YAML data blocks for items, ACs, waves
+- **Architecture Handoff: max 220 lines** — uses YAML data blocks for items, ACs, waves
 - **Prose sections have explicit word limits** — documented in each schema file
 - **The documenter is the prose agent** — it reads structured YAML and produces human-readable wiki documentation

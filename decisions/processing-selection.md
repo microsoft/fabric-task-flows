@@ -5,7 +5,7 @@ title: Processing Method Selection
 
 # Processing Method Selection
 
-> Choose the right method to transform and process data based on your interactivity needs, scheduling requirements, and team skills.
+> Match processing method to interactivity needs, scheduling, and team skills.
 
 ## Comparison Table
 
@@ -59,6 +59,6 @@ title: Processing Method Selection
 
 ## Related Decisions
 
-- [Storage Selection](storage-selection.md) - Where to store processed data
-- [Ingestion Selection](ingestion-selection.md) - How data arrives before processing
-- [Skillset Selection](skillset-selection.md) - Code-First vs Low-Code capabilities
+- [Storage Selection](storage-selection.md)
+- [Ingestion Selection](ingestion-selection.md)
+- [Skillset Selection](skillset-selection.md)

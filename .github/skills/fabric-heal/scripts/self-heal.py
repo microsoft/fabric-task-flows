@@ -97,7 +97,8 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
             else:
                 coverage_scores.append(0)
                 zero_candidates += 1
-        except Exception:
+        except Exception as e:
+            print(f"⚠ signal-mapper benchmark failed for '{p.get('id', '?')}': {e}", file=sys.stderr)
             coverage_scores.append(0)
             zero_candidates += 1
 

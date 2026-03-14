@@ -21,10 +21,12 @@ from __future__ import annotations
 import json
 import re
 import sys
-import yaml
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+
+sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
+from yaml_utils import extract_frontmatter
 
 # Canonical task flow IDs — single source of truth
 TASK_FLOW_SOURCE = REPO_ROOT / "task-flows.md"
@@ -103,8 +105,7 @@ def extract_yaml_frontmatter(md_path: Path) -> dict | None:
     content = md_path.read_text(encoding="utf-8")
     if not content.startswith("---"):
         return None
-    end = content.index("---", 3)
-    return yaml.safe_load(content[3:end])
+    return extract_frontmatter(content) or None
 
 
 def extract_ingestion_comparison_columns(md_path: Path) -> set[str]:

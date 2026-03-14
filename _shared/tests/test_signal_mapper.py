@@ -340,10 +340,10 @@ def test_generate_intake_project_name():
 
 
 def test_generate_intake_default_project():
-    """Default project name is 'Unknown'."""
+    """Default project name is '(no project name provided)'."""
     result = sm.map_signals("batch ETL")
     intake = sm.generate_intake(result)
-    assert intake["project"] == "Unknown"
+    assert intake["project"] == "(no project name provided)"
 
 
 def test_generate_intake_uncovered_dimensions():
@@ -826,3 +826,39 @@ class TestNegationDetection:
         assert "dashboard" not in all_kws, (
             f"'dashboard' was negated but still matched: {all_kws}"
         )
+
+
+# ── Project-name guardrail tests ─────────────────────────────────────────
+
+
+class TestProjectNameGuardrails:
+    """Verify signal-mapper.py enforces the project-name hard gate."""
+
+    def test_validate_project_context_intake_mode_skips_check(self):
+        """--intake mode should not require a project."""
+        # Should not raise or sys.exit
+        sm._validate_project_context(None, intake=True)
+
+    def test_validate_project_context_discovery_no_project_exits(self):
+        """Discovery mode without --project should sys.exit(1)."""
+        import pytest
+        with pytest.raises(SystemExit) as exc_info:
+            sm._validate_project_context(None, intake=False)
+        assert exc_info.value.code == 1
+
+    def test_validate_project_context_nonexistent_project_exits(self):
+        """Discovery mode with a project that doesn't exist should sys.exit(1)."""
+        import pytest
+        with pytest.raises(SystemExit) as exc_info:
+            sm._validate_project_context("this-project-does-not-exist-xyz", intake=False)
+        assert exc_info.value.code == 1
+
+    def test_validate_project_context_existing_project_passes(self, tmp_path, monkeypatch):
+        """Discovery mode with a valid scaffolded project should pass."""
+        # Create a fake repo root with _projects/<name>/
+        projects_dir = tmp_path / "_projects" / "my-project"
+        projects_dir.mkdir(parents=True)
+        # Monkey-patch _resolve_repo_root to return our tmp dir
+        monkeypatch.setattr(sm, "_resolve_repo_root", lambda: tmp_path)
+        # Should not raise
+        sm._validate_project_context("my-project", intake=False)

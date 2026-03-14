@@ -68,7 +68,7 @@
 
 ## Healing History
 
-> Detailed signal mapper healing cycle data (Cycles 4–7) has been archived to `_shared/analysis/signal-mapper-healing-history.md`. Summary: 273 keywords, 230 inference rules, ~56% coverage, 0 zero-candidates on well-formed problems.
+> Detailed signal mapper healing cycle data (Cycles 4–7) has been consolidated into the tables below. Summary: 273 keywords, 230 inference rules, ~56% coverage, 0 zero-candidates on well-formed problems.
 
 ### Heal Orchestrator Run: 2026-03-13 19:47 UTC (3 iterations, 30 problems)
 

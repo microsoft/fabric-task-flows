@@ -43,20 +43,6 @@ export FABRIC_WORKSPACE_NAME="<workspace-name>"
 export FABRIC_CAPACITY_NAME="<capacity-display-name>"
 ```
 
-## Workspace Setup
-
-Workspaces are created automatically by the generated deploy scripts via the Fabric REST API. The strategy is chosen during architecture:
-
-### Single Workspace (per environment)
-
-The deploy script creates one workspace per environment (e.g., `my-project-ppe`, `my-project-prod`) with an interactive picker.
-
-### Multi-Workspace (per category × environment)
-
-Items are separated into workspace categories (e.g., storage, engineering, presentation), each with PPE and PROD instances.
-
-Use consistent naming: `{project}-{category}-{environment}`. See `cicd-practices.md` for workspace strategy guidance.
-
 ## Connection Setup
 
 For multi-environment deployments, pre-create connections before deploying items:
@@ -66,17 +52,9 @@ For multi-environment deployments, pre-create connections before deploying items
 3. Share connections with a **security group** that includes all developers and deployment service principals
 4. Record connection GUIDs for use in `parameter.yml` or deployment scripts
 
-## Capacity Pools
-
-When using custom Spark pools with Environment items:
-
-1. Create capacity pools with **consistent names** across environments (e.g., `CapacityPool_Medium`, `CapacityPool_Large`)
-2. Attach Environment items to **capacity pools** (not workspace pools) — workspace pool references create unresolvable GUIDs in source control
-3. Parameterize pool references in `parameter.yml` for cross-environment promotion
-
 ## CI/CD Pipelines
 
-See `fabric-design/references/cicd-practices.md` for parameterization, per-item considerations, and release pipeline examples.
+See `cicd-reference.md` for parameterization, per-item considerations, and release pipeline examples.
 
 Full `fabric-cicd` documentation: https://microsoft.github.io/fabric-cicd/
 

@@ -34,6 +34,12 @@ REGISTRY_PATH = REPO_ROOT / "_shared" / "registry" / "item-type-registry.json"
 
 
 def _load_registry() -> dict:
+    """Load the full registry JSON (with top-level keys like 'types').
+
+    Note: This script needs the full JSON structure (not just types) for
+    round-trip read → modify → save, so we read the file directly instead
+    of using registry_loader which returns only the 'types' dict.
+    """
     with open(REGISTRY_PATH, encoding="utf-8") as f:
         return json.load(f)
 

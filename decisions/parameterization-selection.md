@@ -5,8 +5,6 @@ title: Parameterization Selection
 
 # Parameterization Selection
 
-> Choose the right approach for managing environment-specific configuration across Fabric deployment stages.
-
 ## Comparison Table
 
 | Criteria | Variable Library | parameter.yml | Environment Variables |
@@ -24,8 +22,8 @@ title: Parameterization Selection
 
 ## Combining Approaches
 
-Approaches are not mutually exclusive:
-
-- **Variable Library + Environment Variables:** Use Variable Library for Fabric item references and value sets; use env vars for secrets (connection strings, API keys) that should not be stored in Fabric
-- **Variable Library + parameter.yml:** Use Variable Library for runtime references; use parameter.yml for deployment-time substitutions in the fabric-cicd pipeline
-- **Environment Variables + parameter.yml:** Common pattern — env vars hold secrets, parameter.yml holds non-secret configuration
+| Combination | Use Case |
+|-------------|----------|
+| **Variable Library + Env Vars** | Library for item references/value sets; env vars for secrets |
+| **Variable Library + parameter.yml** | Library for runtime refs; YAML for deploy-time substitutions |
+| **Env Vars + parameter.yml** | Env vars for secrets; YAML for non-secret config |

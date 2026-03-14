@@ -37,15 +37,7 @@ _SHARED_DIR = REPO_ROOT.parent.parent.parent / "_shared" / "lib"
 if str(_SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(_SHARED_DIR))
 
-# ── Valid Fabric task types ───────────────────────────────────────────────────
-
-VALID_TASK_TYPES = {
-    "get data", "mirror data", "store data", "prepare data",
-    "analyze and train data", "track data", "visualize",
-    "distribute data", "develop", "govern data", "general",
-}
-
-# ── Item type → Fabric task type mapping ──────────────────────────────────────────
+# ── Item type → Fabric task type mapping ──────────────────────────────────────
 
 # Task type mapping — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
@@ -54,6 +46,9 @@ from yaml_utils import extract_yaml_blocks
 from diagram_parser import get_deployment_items
 
 ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()
+
+# Valid Fabric task types — derived from registry values (not hardcoded).
+VALID_TASK_TYPES: set[str] = set(ITEM_TO_TASK_TYPE.values()) | {"general"}
 
 # ── Scaffold-mode generic task names ──────────────────────────────────────
 

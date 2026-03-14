@@ -19,18 +19,26 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
-# Reuse the lightweight YAML parser from review-prescan
-import importlib
-import pathlib
-_scripts_dir = str(pathlib.Path(__file__).parent)
-if _scripts_dir not in sys.path:
-    sys.path.insert(0, _scripts_dir)
-_review_prescan = importlib.import_module("review-prescan")
-_parse_yaml = _review_prescan._parse_yaml
-_extract_yaml_blocks = _review_prescan._extract_yaml_blocks
-_find_block = _review_prescan._find_block
-_extract_frontmatter = _review_prescan._extract_frontmatter
+# Use shared YAML utilities — never import via another script's wrappers.
+_shared_lib = str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib")
+if _shared_lib not in sys.path:
+    sys.path.insert(0, _shared_lib)
+from yaml_utils import (
+    extract_and_parse_yaml_blocks as _extract_yaml_blocks_raw,
+    extract_frontmatter as _extract_frontmatter,
+    find_block as _find_block_raw,
+)
+
+
+def _extract_yaml_blocks(content: str) -> list[dict]:
+    return _extract_yaml_blocks_raw(content)
+
+
+def _find_block(blocks: list[dict], key: str):
+    block = _find_block_raw(blocks, key)
+    return block[key] if block is not None else None
 
 
 # ---------------------------------------------------------------------------

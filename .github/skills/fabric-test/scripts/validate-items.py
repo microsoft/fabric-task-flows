@@ -30,13 +30,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 REGISTRY_DIR = REPO_ROOT / "_shared" / "registry"
 
 
+sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
+from registry_loader import load_registry
+
+
 def _load_item_registry() -> dict:
     """Load item type registry for manual step identification."""
-    path = REGISTRY_DIR / "item-type-registry.json"
-    if not path.exists():
-        return {}
-    with open(path, encoding="utf-8") as f:
-        return json.load(f).get("item_types", {})
+    return load_registry()
 
 
 def _load_validation_checklists() -> dict:

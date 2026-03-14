@@ -36,9 +36,9 @@ ASSETS_DIR = SKILL_DIR / "assets"
 # Item type mappings — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
 _SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"
-_REGISTRY_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "registry"
+
 sys.path.insert(0, str(_SHARED_DIR))
-from registry_loader import build_fab_commands, build_display_names
+from registry_loader import build_fab_commands, build_display_names, load_registry
 from banner import BANNER_ART
 from yaml_utils import extract_yaml_blocks, parse_yaml_value, split_list, parse_inline_mapping
 from text_utils import slugify
@@ -46,7 +46,7 @@ from text_utils import slugify
 # REST API creation support map: lowercase alias → True/False
 FAB_COMMANDS: dict[str, bool] = build_fab_commands()
 DISPLAY_NAMES: dict[str, str] = build_display_names()
-REGISTRY: dict = json.loads((_REGISTRY_DIR / "item-type-registry.json").read_text(encoding="utf-8"))
+REGISTRY_TYPES: dict = load_registry()
 
 # Task-flow-specific prompts
 TASK_FLOW_PROMPTS: dict[str, list[tuple[str, str, str, str, bool]]] = {
@@ -388,7 +388,7 @@ PHASE_FOLDER_NAMES: dict[str, str] = {
 def _get_item_phase(item_type: str) -> str:
     """Get the deployment phase for an item type from the registry."""
     key = _type_key(item_type)
-    for type_name, type_info in REGISTRY.get("types", {}).items():
+    for type_name, type_info in REGISTRY_TYPES.items():
         reg_key = _type_key(type_name)
         if reg_key == key:
             return type_info.get("phase", "Other")
@@ -482,27 +482,14 @@ def _tree_connector(idx: int, total: int) -> str:
 
 import uuid as _uuid
 
-# fabric-cicd supported item types and our type name mappings
-_FABRIC_CICD_TYPES: set[str] = set()  # populated lazily from registry
-_TYPE_REMAP: dict[str, str] = {}     # populated lazily from registry
-_SETS_LOADED = False
-
-
-def _ensure_registry_sets() -> None:
-    """Load _FABRIC_CICD_TYPES and _TYPE_REMAP from the registry on first use."""
-    global _FABRIC_CICD_TYPES, _TYPE_REMAP, _SETS_LOADED
-    if _SETS_LOADED:
-        return
-    from registry_loader import build_cicd_type_set, build_type_remap
-    _FABRIC_CICD_TYPES = build_cicd_type_set()
-    _TYPE_REMAP = build_type_remap()
-    _SETS_LOADED = True
+from registry_loader import build_cicd_type_set, build_type_remap
+_FABRIC_CICD_TYPES: set[str] = build_cicd_type_set()
+_TYPE_REMAP: dict[str, str] = build_type_remap()
 
 
 def _cicd_type(item_type: str) -> str:
     """Resolve item type to fabric-cicd compatible name. Returns empty string if unsupported."""
-    _ensure_registry_sets()
-    fab_type = _resolve_fab_type(item_type)
+    fab_type= _resolve_fab_type(item_type)
     fab_type = _TYPE_REMAP.get(fab_type, fab_type)
     return fab_type if fab_type in _FABRIC_CICD_TYPES else ""
 
@@ -649,6 +636,7 @@ def get_credential():
         cred.get_token(scope)
         return cred
     except Exception:
+        # Intentional: DefaultAzureCredential may not be available; fall back to browser login.
         print("  -- Default credentials not available. Opening browser for sign-in...")
         return InteractiveBrowserCredential()
 
@@ -753,7 +741,7 @@ def populate_variable_library(ws_id, headers):
     # Uses ItemReference type (workspaceId + itemId in one variable) — no separate _WSID vars needed.
     import requests, base64
     import json as _json
-    from datetime import datetime
+    from datetime import datetime, timezone
     print()
     print("  -- POPULATING VARIABLE LIBRARY --")
 
@@ -832,7 +820,7 @@ def populate_variable_library(ws_id, headers):
     variables.append({{"name": "Workspace_URL", "type": "String", "value": f"https://app.fabric.microsoft.com/groups/{{ws_id}}", "note": "Fabric Portal URL"}})
     variables.append({{"name": "Project_Name", "type": "String", "value": "{project}", "note": "Project name"}})
     variables.append({{"name": "Environment_Name", "type": "String", "value": "dev", "note": "Current deployment stage"}})
-    variables.append({{"name": "Deploy_Timestamp", "type": "String", "value": datetime.utcnow().isoformat() + "Z", "note": "Deployment timestamp"}})
+    variables.append({{"name": "Deploy_Timestamp", "type": "String", "value": datetime.now(timezone.utc).isoformat(), "note": "Deployment timestamp"}})
 
     # Build and push definition
     var_json = _json.dumps({{

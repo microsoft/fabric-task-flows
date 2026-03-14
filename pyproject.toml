@@ -11,3 +11,8 @@ requires-python = ">=3.11"
 [tool.pytest.ini_options]
 testpaths = ["_shared/tests"]
 pythonpath = ["_shared"]
+markers = [
+    "unit: Unit tests with no file I/O",
+    "integration: Tests involving file I/O or multiple modules",
+    "slow: Tests that take >1 second",
+]

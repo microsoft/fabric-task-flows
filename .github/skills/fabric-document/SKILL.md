@@ -19,56 +19,30 @@ description: >
 
 ### Step 1: Collect Handoffs
 
-Parse YAML fields (not prose) from all 5 handoff documents:
-
-| Handoff | Source | File |
-|---------|--------|------|
-| Discovery Brief | @fabric-advisor | `prd/discovery-brief.md` |
-| Architecture Handoff | /fabric-design | `prd/architecture-handoff.md` |
-| Test Plan | /fabric-test | `prd/test-plan.md` |
-| Deployment Handoff | /fabric-deploy | `prd/deployment-handoff.md` |
-| Validation Report | /fabric-test | `prd/validation-report.md` |
+Parse YAML fields from all handoff documents in `_projects/[name]/prd/`.
 
 ### Step 2: Generate Wiki Pages
 
 Write to `_projects/[name]/docs/`:
+- **README.md** — Stakeholder-friendly overview
+- **architecture.md** — Architecture narrative with data flow
+- **deployment-log.md** — Deployment consolidation
 
-1. **README.md** — Stakeholder-friendly overview
-   - Problem statement (from Discovery Brief)
-   - Architecture summary (from Architecture Handoff)
-   - Deployment status (from Deployment Handoff)
-   - Validation results (from Validation Report)
-
-2. **architecture.md** — Architecture narrative
-   - Data flow diagram
-   - Item descriptions with rationale
-   - Design trade-offs
-
-3. **deployment-log.md** — Deployment consolidation
-   - Wave-by-wave summary
-   - Manual steps (completed vs pending)
-   - Configuration rationale
-   - Known issues and mitigations
+Use templates from `references/documentation-templates.md`.
 
 ### Step 3: Polish ADRs
 
-The architect wrote initial ADR drafts during Phase 1a. Your job:
-1. Review Context, Decision, Alternatives, Consequences sections
-2. Polish language for non-technical stakeholders
-3. Add cross-links between ADRs and decision guides (`decisions/` directory)
-4. Ensure "Alternatives Considered" is complete
-5. Write any missing ADRs from the Architecture Handoff
-6. Include `006-cicd.md` only for multi-environment projects
-
-Use template from `../fabric-design/references/adr-template.md`.
+Review and polish the architect's ADR drafts (`docs/decisions/001-005.md`) in parallel. Add `006-cicd.md` for multi-environment projects.
 
 ## Constraints
 
-- Never re-state handoff content — use markdown links and YAML field references
-- Use `references/documentation-templates.md` for wiki structure
-- Never deploy or modify Fabric items
-- Documents only — no architecture decisions
+- Documents only — no architecture decisions or deployments
 
-## Pipeline Handoff
+## Handoff
 
-After documentation is complete, update PROJECTS.md status to "Documented ✅".
+After producing the output files:
+```bash
+python _shared/scripts/run-pipeline.py advance --project <project-name> -q
+```
+
+This updates `PROJECTS.md` status to "Documented ✅".

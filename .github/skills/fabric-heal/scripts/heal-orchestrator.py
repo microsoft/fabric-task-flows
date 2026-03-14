@@ -161,7 +161,8 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
             else:
                 coverage_scores.append(0)
                 zero_candidates += 1
-        except Exception:
+        except Exception as e:
+            print(f"⚠ signal-mapper benchmark failed for '{p.get('id', '?')}': {e}", file=sys.stderr)
             coverage_scores.append(0)
             zero_candidates += 1
 
@@ -210,8 +211,8 @@ def _load_item_details() -> dict[str, dict]:
                 "storage": tf_data.get("primaryStorage", "N/A"),
                 "item_types": item_types,
             }
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠ deployment-registry load failed: {e}", file=sys.stderr)
     return details
 
 

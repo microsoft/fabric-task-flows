@@ -23,110 +23,48 @@ pre-compute: [decision-resolver, handoff-scaffolder]
 
 Read `_projects/[name]/prd/discovery-brief.md` for inferred signals, 4V's, and task flow candidates.
 
-If no Discovery Brief exists, ask:
-1. Project name
-2. Problem statement (volume, velocity, variety, versatility)
-3. Team skillset (SQL only / Python+SQL / no-code / mixed)
-4. Workspace strategy (single / multi-environment)
+If no Discovery Brief exists, ask for project name, problem statement, team skillset, and workspace strategy.
 
 ### Step 2: Select Task Flow
 
-Select a primary task flow from 11 options + general. For complex requirements spanning multiple patterns, you may compose a **hybrid architecture** using a base task flow plus overlays or elements from complementary flows.
-
-| ID | Best For |
-|----|----------|
-| basic-data-analytics | Simple batch analytics + reports |
-| medallion | Data quality with bronze/silver/gold layers |
-| lambda | Batch + real-time combined |
-| event-analytics | Real-time streaming focus |
-| event-medallion | Streaming + medallion layers |
-| sensitive-data-insights | PII masking, compliance |
-| basic-machine-learning-models | ML training, feature engineering |
-| data-analytics-sql-endpoint | SQL analytics on unstructured data |
-| translytical | Operational writeback, CRUD |
-| app-backend | APIs, Data Agents, embedded analytics |
-| conversational-analytics | Natural language queries via Data Agents |
-
-**Hybrid architecture guidance:**
-- **When to compose:** Discovery Brief has 3+ signal categories, or requirements clearly span batch + real-time + ML/AI patterns that no single task flow covers.
-- **Base + overlay:** `conversational-analytics` and `semantic-governance` are **overlays** — they layer onto any base task flow (e.g., `medallion` + `conversational-analytics`). Always select a base flow first, then add overlays.
-- **Cross-flow composition:** When requirements genuinely need elements from multiple base flows (e.g., `medallion` storage layers + `app-backend` API serving), use `general` as the flexible foundation and pull specific item patterns from relevant flows. Document the rationale in ADR 001.
-- **Default to single flow:** If a single task flow covers 80%+ of requirements, prefer it. Hybrid adds complexity — justify it in "Alternatives Considered."
+Reference `task-flows.md` for the 11 options + general. For complex multi-pattern requirements, compose a **hybrid** using a base flow + overlays (document rationale in ADR 001).
 
 ### Step 3: Resolve Architectural Decisions
-
-Run `decision-resolver.py` to resolve all 7 decisions programmatically from Discovery Brief signals:
 
 ```bash
 python .github/skills/fabric-design/scripts/decision-resolver.py --discovery-brief _projects/[name]/prd/discovery-brief.md --format yaml
 ```
 
-Returns structured output: `choice`, `confidence`, `rule_matched`, and `guide` reference for each decision (storage, ingestion, processing, visualization, skillset, parameterization, api).
+- **High confidence** → accept the choice
+- **Ambiguous** → read the referenced guide to resolve, present trade-offs to user
 
-- **High confidence** → accept the choice, present with rationale
-- **Ambiguous** → read the referenced `guide` file's comparison table to resolve, then present trade-offs to user
-- **Unresolved** → the brief's free-text signals couldn't be parsed. Construct explicit signals from the brief and re-run with `--signals`:
-
-```bash
-python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{
-  "skillset": "low-code",
-  "velocity": "real-time",
-  "volume": "low",
-  "use_case": "iot_telemetry",
-  "query_language": "kql",
-  "environment_count": 1
-}' --format yaml
-```
-
-> **Signal keys accepted by the resolver:** `skillset`, `velocity`, `volume`, `query_language`, `use_case`, `environment_count`, `deployment_tool`, `interactivity`, `data_pattern`, `mode`, `team_composition`, `api_needs`. Map values from the Discovery Brief's 4 V's and inferred signals into these keys.
-
-> **⚠️ LAZY-LOAD decision guides.** Do NOT read all 9 decision guides upfront — they total 31K chars. Read a guide ONLY when `decision-resolver.py` returns `confidence: ambiguous` for that specific decision. For `high` confidence results, accept the choice without reading the guide. Typical projects need 0-2 guide reads, not 9.
-
-> **⚠️ Do NOT read decision guide files directly.** Use `decision-resolver.py` — it encodes the same rules as `quick_decision` YAML frontmatter. Only read a guide body for ambiguous cases needing comparison tables.
+Run `decision-resolver.py --help` for signal keys and fallback options.
 
 > **Visualization terminology:** "dashboard" → **Report** (batch) or **Real-Time Dashboard** (streaming/Eventhouse).
 
 ### Step 3b: Parameterization (Multi-Environment Only)
 
-If multi-environment: the resolver output includes a `parameterization` decision. If Variable Library is chosen, add it as a **Wave 1 item** — it must exist before consuming items. Define variables for Lakehouse IDs, connection strings, environment names. Create value sets per stage.
-
-Single environment → default to Environment Variables, skip this step.
+If multi-environment and Variable Library chosen: add it as a **Wave 1 item**.
 
 ### Step 4: Produce FINAL Architecture Handoff
 
-Write to `_projects/[name]/prd/architecture-handoff.md`:
+Write to `_projects/[name]/prd/architecture-handoff.md` using the scaffolded template structure. Include YAML frontmatter with `task_flow`.
 
-- **YAML frontmatter:** phase: FINAL, task_flow, deployment_mode
-- **Architecture diagram:** ASCII data flow with actual item names
-- **Decisions table:** Decision | Outcome | Rationale | Alternatives | Trade-offs
-- **Items (YAML):** id, name, type, dependencies — include Variable Library if multi-env
-- **Deployment Waves (YAML):** wave number, items, parallel eligibility — Variable Library in Wave 1
-- **Acceptance Criteria (YAML):** AC-ID, criterion, type, verification method
-- **Alternatives Considered** and **Trade-offs** sections
+### Step 5: Write ADRs
 
-### Step 5: Write ADRs 001-005
-
-> **⚠️ PARALLEL WRITES REQUIRED — but READ first.**
-
-The pipeline runner has already scaffolded template files at `docs/decisions/001-005.md`. **Read ONE template** (e.g., `001-task-flow.md`) to see the exact heading and section format, then replace the full content of all 5 files in one parallel batch using the `edit` tool. Match the existing heading format exactly for your `old_str` — do NOT guess the template content.
-
-Files to edit:
-1. `001-task-flow.md` — Task flow selection rationale (include hybrid composition justification if applicable)
-2. `002-storage.md` — Storage layer decision
-3. `003-ingestion.md` — Ingestion approach decision
-4. `004-processing.md` — Processing/transformation decision
-5. `005-visualization.md` — Visualization decision
+Edit template files `docs/decisions/001-005.md` in parallel (task-flow, storage, ingestion, processing, visualization).
 
 ---
 
 ## Constraints
 
 - Architecture Handoff: max 220 lines
-- YAML fields: max 15 words
 - Never deploy or create Fabric items
 - Never skip "Alternatives Considered" or "Trade-offs"
-- Produce FINAL directly — the Tester reviews at Phase 2a
 
-## Pipeline Handoff
+## Handoff
 
-After design → Phase 2a (Test Plan + Review by QA).
+After producing the output file, advance:
+```bash
+python _shared/scripts/run-pipeline.py advance --project <project-name> -q
+```

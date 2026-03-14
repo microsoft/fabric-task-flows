@@ -2,7 +2,6 @@
 
 import importlib.util
 import sys
-import tempfile
 from pathlib import Path
 
 SHARED_DIR = Path(__file__).resolve().parent.parent
@@ -32,14 +31,11 @@ _has_cycle = mod._has_cycle
 # Helper to write a temporary handoff file and run prescan
 # ---------------------------------------------------------------------------
 
-def _write_handoff(content: str) -> str:
+def _write_handoff(tmp_path: Path, content: str) -> str:
     """Write content to a temp file and return the path."""
-    f = tempfile.NamedTemporaryFile(
-        mode="w", suffix=".md", delete=False, encoding="utf-8"
-    )
-    f.write(content)
-    f.close()
-    return f.name
+    p = tmp_path / "handoff.md"
+    p.write_text(content, encoding="utf-8")
+    return str(p)
 
 
 # ---------------------------------------------------------------------------
@@ -106,10 +102,9 @@ acceptance_criteria:
 # ── prescan integration: full pipeline ────────────────────────────────────
 
 
-def test_prescan_returns_required_keys():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_returns_required_keys(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
 
     required = {
         "project", "task_flow", "review_date", "architecture_version",
@@ -122,34 +117,30 @@ def test_prescan_returns_required_keys():
     )
 
 
-def test_prescan_scan_type_is_automated():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_scan_type_is_automated(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
     assert result["scan_type"] == "automated"
 
 
-def test_prescan_extracts_project_and_taskflow():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_extracts_project_and_taskflow(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
     assert result["project"] == "test-project"
     assert result["task_flow"] == "medallion"
 
 
-def test_prescan_findings_have_ids():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_findings_have_ids(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
     for f in result["findings"]:
         assert "id" in f
         assert f["id"].startswith("F-")
 
 
-def test_prescan_findings_have_required_fields():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_findings_have_required_fields(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
     for f in result["findings"]:
         assert "area" in f
         assert "severity" in f
@@ -158,17 +149,15 @@ def test_prescan_findings_have_required_fields():
         assert "suggestion" in f
 
 
-def test_prescan_assessment_is_valid():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_assessment_is_valid(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
     assert result["assessment"] in ("ready", "needs-changes")
 
 
-def test_prescan_wave_optimization_structure():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_wave_optimization_structure(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
     wo = result["wave_optimization"]
     assert "current_waves" in wo
     assert "proposed_waves" in wo
@@ -179,7 +168,7 @@ def test_prescan_wave_optimization_structure():
 # ── prescan: fallback to markdown headers ─────────────────────────────────
 
 
-def test_prescan_falls_back_to_markdown_headers():
+def test_prescan_falls_back_to_markdown_headers(tmp_path):
     content = """\
 # Architecture Handoff
 
@@ -194,9 +183,8 @@ def test_prescan_falls_back_to_markdown_headers():
 └─────┘
 ```
 """
-    path = _write_handoff(content)
+    path = _write_handoff(tmp_path, content)
     result = prescan(path)
-    Path(path).unlink()
     assert result["project"] == "header-project"
     assert result["task_flow"] == "lambda"
 
@@ -204,7 +192,7 @@ def test_prescan_falls_back_to_markdown_headers():
 # ── prescan: missing blocks produce warnings ──────────────────────────────
 
 
-def test_prescan_warns_on_missing_blocks():
+def test_prescan_warns_on_missing_blocks(tmp_path):
     content = """\
 ---
 project: empty
@@ -220,9 +208,8 @@ task_flow: test
 └─────┘
 ```
 """
-    path = _write_handoff(content)
+    path = _write_handoff(tmp_path, content)
     result = prescan(path)
-    Path(path).unlink()
     warning_texts = [f["finding"] for f in result["findings"]
                      if f["area"] == "Parse warning"]
     assert any("items" in w.lower() for w in warning_texts)
@@ -525,20 +512,18 @@ def test_truncate_custom_limit():
 # ── item counting / categorization (via prescan) ─────────────────────────
 
 
-def test_prescan_item_deployment_matrix():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_item_deployment_matrix(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
     matrix = result["item_deployment_matrix"]
     assert isinstance(matrix, list)
     types_found = {e["type"] for e in matrix}
     assert "Lakehouse" in types_found or "Report" in types_found
 
 
-def test_prescan_must_fix_and_should_fix_are_lists():
-    path = _write_handoff(MINIMAL_HANDOFF)
+def test_prescan_must_fix_and_should_fix_are_lists(tmp_path):
+    path = _write_handoff(tmp_path, MINIMAL_HANDOFF)
     result = prescan(path)
-    Path(path).unlink()
     assert isinstance(result["must_fix"], list)
     assert isinstance(result["should_fix"], list)
     assert isinstance(result["no_change"], list)
@@ -547,7 +532,7 @@ def test_prescan_must_fix_and_should_fix_are_lists():
 # ── item normalization ───────────────────────────────────────────────────
 
 
-def test_prescan_normalizes_item_name_and_type():
+def test_prescan_normalizes_item_name_and_type(tmp_path):
     content = """\
 ---
 project: norm-test
@@ -574,14 +559,13 @@ waves:
     items: [myitem]
 ```
 """
-    path = _write_handoff(content)
+    path = _write_handoff(tmp_path, content)
     result = prescan(path)
-    Path(path).unlink()
     matrix = result["item_deployment_matrix"]
     assert any(e["item"] == "myitem" for e in matrix)
 
 
-def test_prescan_handles_string_items():
+def test_prescan_handles_string_items(tmp_path):
     content = """\
 ---
 project: str-test
@@ -607,8 +591,7 @@ waves:
     items: [my-string]
 ```
 """
-    path = _write_handoff(content)
+    path = _write_handoff(tmp_path, content)
     result = prescan(path)
-    Path(path).unlink()
     # String items are normalized to dicts with a name key
     assert result["project"] == "str-test"

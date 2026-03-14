@@ -29,7 +29,7 @@ Confirm Phase 2b is complete. Never deploy without approval.
 3. `_projects/[name]/prd/test-plan.md` — what will be validated
 4. `_shared/learnings.md` — known gotchas
 
-> Do NOT read `diagrams/*.md` — those are human-only. Use `diagram_parser` or `deployment-order.json` via Python.
+> Do NOT read `diagrams/*.md` or registry JSON files — those are human-only. Use `diagram_parser.get_deployment_items()` via Python.
 
 ### Step 3: Deploy by Wave
 
@@ -89,6 +89,7 @@ manual_steps:
 
 ## Constraints
 
+- Do NOT read registry JSON files directly — use `deploy-script-gen.py`, `diagram_parser`, and `registry_loader` Python tools (registry files total 170+ KB of raw JSON)
 - Never make architecture decisions — follow the handoff exactly
 - Never proceed to next wave if current wave has failures
 - Always generate Python deploy script for design-only mode
@@ -124,5 +125,9 @@ Set `outcome: remediated` and advance pipeline to re-trigger QA validation.
 
 Max 3 remediation iterations.
 
-Mode 1: After deployment → Phase 3 (Validate).
-Mode 2: After remediation → re-trigger validation.
+## Handoff
+
+After producing the output file, advance:
+```bash
+python _shared/scripts/run-pipeline.py advance --project <project-name> -q
+```

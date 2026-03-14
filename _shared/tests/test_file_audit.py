@@ -40,7 +40,7 @@ class TestCategorizePath:
 
     def test_skill_references(self):
         assert (
-            categorize_path(".github/skills/fabric-design/references/cicd-practices.md")
+            categorize_path(".github/skills/fabric-deploy/references/cicd-reference.md")
             == "skill-references"
         )
 

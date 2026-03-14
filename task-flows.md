@@ -2,6 +2,8 @@
 
 Microsoft Fabric task flows - pre-defined architectures for common data scenarios.
 
+> **Agents:** Diagrams in `diagrams/` are for human visualization only. Use `diagram_parser.get_deployment_items()` for programmatic deployment order access.
+
 ## Quick Reference
 
 > Agents: scan this table to identify the right task flow. Only read the detailed section below when you need the full decision table and diagram links.
@@ -38,8 +40,6 @@ Follow these steps to obtain your batch data, store it in a warehouse, process t
 | Visualization Type | Report, Paginated Report, Scorecard | [Visualization Selection](decisions/visualization-selection.md) |
 | Skillset Approach | Low-Code vs Code-First | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [basic-data-analytics](diagrams/basic-data-analytics.md)
-
 ---
 
 ## Basic Machine Learning Models
@@ -54,8 +54,6 @@ Develop and train models based on prepared data and test model accuracy to make 
 | Processing Method | Notebook (primary for ML) | [Processing Selection](decisions/processing-selection.md) |
 | Skillset Approach | Low-Code vs Code-First | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [basic-machine-learning-models](diagrams/basic-machine-learning-models.md)
-
 ---
 
 ## Data Analytics SQL Endpoint
@@ -68,8 +66,6 @@ Extract your insights and track metrics from unstructured, semi-structured, and 
 |----------|---------|-------|
 | Processing Method | Notebook, Spark Job Definition | [Processing Selection](decisions/processing-selection.md) |
 | Visualization Type | Report, Paginated Report, Scorecard | [Visualization Selection](decisions/visualization-selection.md) |
-
-**Diagrams:** [data-analytics-sql-endpoint](diagrams/data-analytics-sql-endpoint.md)
 
 ---
 
@@ -85,8 +81,6 @@ Seamlessly integrate both real-time and time-based data into a unified system. I
 | Ingestion Method | Eventstream (streaming), Copy Job, Dataflow Gen2, Pipeline (batch) | [Ingestion Selection](decisions/ingestion-selection.md) |
 | Visualization Type | Real-Time Dashboard (primary), Report | [Visualization Selection](decisions/visualization-selection.md) |
 
-**Diagrams:** [event-analytics](diagrams/event-analytics.md)
-
 ---
 
 ## Event Medallion
@@ -99,8 +93,6 @@ Organize your batch and real-time data into the Bronze, Silver, and Gold layers 
 |----------|---------|-------|
 | Ingestion Method | Eventstream (streaming), Copy Job, Pipeline (batch) | [Ingestion Selection](decisions/ingestion-selection.md) |
 | Visualization Type | Real-Time Dashboard (live), Report (historical) | [Visualization Selection](decisions/visualization-selection.md) |
-
-**Diagrams:** [event-medallion](diagrams/event-medallion.md)
 
 ---
 
@@ -118,8 +110,6 @@ This task flow guides you through the completion of high-level data processing t
 | Visualization Type | Report vs Dashboard vs Paginated vs Scorecard vs Real-Time Dashboard | [Visualization Selection](decisions/visualization-selection.md) |
 | Team Skillset | Code-First [CF] vs Low-Code [LC] | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [general](diagrams/general.md)
-
 ---
 
 ## Lambda
@@ -133,8 +123,6 @@ Analyze your batch and real-time data in a single system efficiently and effecti
 | Storage Solution | Lakehouse (batch), Warehouse (serving), Eventhouse (real-time) | [Storage Selection](decisions/storage-selection.md) |
 | Ingestion Method | Copy Job, Pipeline (batch), Eventstream (streaming) | [Ingestion Selection](decisions/ingestion-selection.md) |
 | Processing Method | Notebook, Spark Job Definition, KQL Queryset | [Processing Selection](decisions/processing-selection.md) |
-
-**Diagrams:** [lambda](diagrams/lambda.md)
 
 ---
 
@@ -151,8 +139,6 @@ Organize data in a lakehouse or warehouse while progressively improving its stru
 | Processing Method | Notebook vs Spark Job Definition | [Processing Selection](decisions/processing-selection.md) |
 | Team Skillset | Code-First [CF] vs Low-Code [LC] | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [medallion](diagrams/medallion.md)
-
 ---
 
 ## Sensitive Data Insights
@@ -167,8 +153,6 @@ Keep your data more secure by applying security features and access controls to 
 | Ingestion Method | Copy Job, Dataflow Gen2, Pipeline (with encryption) | [Ingestion Selection](decisions/ingestion-selection.md) |
 | Processing Method | Notebook, Spark Job Definition (with data masking) | [Processing Selection](decisions/processing-selection.md) |
 
-**Diagrams:** [sensitive-data-insights](diagrams/sensitive-data-insights.md)
-
 ---
 
 ## Translytical
@@ -180,8 +164,6 @@ Create Fabric User data functions and other items to store data, update records,
 | Decision | Options | Guide |
 |----------|---------|-------|
 | Storage Solution | SQL Database (OLTP-capable with read/write transactions) | [Storage Selection](decisions/storage-selection.md) |
-
-**Diagrams:** [translytical](diagrams/translytical.md)
 
 ---
 
@@ -199,8 +181,6 @@ Create a transactional database, expose it through a GraphQL API, add serverless
 | Visualization Type | Report, Data Agent | [Visualization Selection](decisions/visualization-selection.md) |
 | Skillset Approach | Code-First (primary for this flow) | [Skillset Selection](decisions/skillset-selection.md) |
 
-**Diagrams:** [app-backend](diagrams/app-backend.md)
-
 ---
 
 ## Conversational Analytics
@@ -216,8 +196,6 @@ Build on top of existing data pipelines by adding a semantic model and an AI-pow
 | Agent Configuration | Data scope, access controls, greeting prompts | (Portal configuration) |
 | Governance Layer | Ontology for business vocabulary (optional) | (Portal configuration) |
 | Skillset Approach | Low-Code (primary — agent + semantic model are UI-driven) | [Skillset Selection](decisions/skillset-selection.md) |
-
-**Diagrams:** [conversational-analytics](diagrams/conversational-analytics.md)
 
 ---
 
@@ -235,4 +213,4 @@ Define business terms, build a knowledge graph of entity relationships, and conn
 | Consumption Layer | Data Agent (conversational), Report (dashboards), Both | [Visualization Selection](decisions/visualization-selection.md) |
 | External Integration | Microsoft Purview (catalog/lineage), Azure OpenAI (AI context) | (Optional — configure per environment) |
 
-**Diagrams:** [semantic-governance](diagrams/semantic-governance.md)
+

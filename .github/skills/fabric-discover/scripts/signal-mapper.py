@@ -7,11 +7,21 @@ using the same 11-category lookup table the @fabric-advisor uses. Outputs a
 draft signal table that the advisor can confirm/adjust instead of discovering
 from scratch.
 
+Two operating modes:
+
+  DISCOVERY (default) — Requires ``--project`` referencing a scaffolded
+  project directory under ``_projects/``.  The project must have been
+  created via ``run-pipeline.py start`` first.  This prevents agents from
+  bypassing the project-name hard gate.
+
+  STANDALONE ANALYSIS (``--intake``) — No project required.  Useful for
+  ad-hoc signal exploration or testing.
+
 Usage:
-    python .github/skills/fabric-discover/scripts/signal-mapper.py --text "We need real-time IoT sensor data"
-    python .github/skills/fabric-discover/scripts/signal-mapper.py --text-file problem.txt
-    echo "batch ETL pipeline" | python .github/skills/fabric-discover/scripts/signal-mapper.py
-    python .github/skills/fabric-discover/scripts/signal-mapper.py --text "..." --format json --verbose --top 5
+    python .github/skills/fabric-discover/scripts/signal-mapper.py --project my-project --text "We need real-time IoT sensor data"
+    python .github/skills/fabric-discover/scripts/signal-mapper.py --project my-project --text-file problem.txt
+    python .github/skills/fabric-discover/scripts/signal-mapper.py --intake --text "batch ETL pipeline"
+    python .github/skills/fabric-discover/scripts/signal-mapper.py --project my-project --text "..." --format json --verbose --top 5
 """
 
 from __future__ import annotations
@@ -612,7 +622,7 @@ def generate_intake(result: dict, project: str | None = None) -> dict:
     """Analyze signal mapping results and generate follow-up questions.
 
     Returns a dict with:
-      - project: project name (or "Unknown" if not provided)
+      - project: project name (or "(no project name provided)" if not provided)
       - signals_detected: summary of what was found
       - follow_up_questions: list of questions to ask the user
       - ambiguity_questions: list if velocity is ambiguous
@@ -675,7 +685,7 @@ def generate_intake(result: dict, project: str | None = None) -> dict:
         })
 
     return {
-        "project": project or "Unknown",
+        "project": project or "(no project name provided)",
         "signals_detected": [
             {"signal": s["signal"], "confidence": s["confidence"]}
             for s in result.get("signals", [])
@@ -742,22 +752,70 @@ def _read_input(args: argparse.Namespace) -> str:
 # CLI
 # ---------------------------------------------------------------------------
 
+def _resolve_repo_root() -> Path:
+    """Walk up from this script to find the repo root (contains _projects/)."""
+    candidate = Path(__file__).resolve().parent
+    for _ in range(10):
+        if (candidate / "_projects").is_dir():
+            return candidate
+        candidate = candidate.parent
+    return Path(__file__).resolve().parent
+
+
+def _validate_project_context(project: str | None, intake: bool) -> None:
+    """Enforce project-name hard gate in discovery mode.
+
+    In discovery mode (the default), --project is required and the project
+    directory must already exist (scaffolded via ``run-pipeline.py start``).
+    In intake/analysis mode (``--intake``), --project is optional so the
+    mapper can be used for standalone signal exploration.
+    """
+    if intake:
+        return  # standalone analysis — no project required
+
+    if not project:
+        print(
+            "ERROR: --project is required in discovery mode.\n"
+            "       The project must be scaffolded first:\n"
+            "         python _shared/scripts/run-pipeline.py start "
+            '"Project Name" --problem "..."\n'
+            "       For standalone signal analysis, use --intake.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    repo_root = _resolve_repo_root()
+    project_dir = repo_root / "_projects" / project
+    if not project_dir.is_dir():
+        print(
+            f"ERROR: Project '{project}' not found at {project_dir}.\n"
+            "       Run 'run-pipeline.py start' to scaffold the project first.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Map problem text to Fabric architectural signals"
     )
     parser.add_argument("--text", type=str, help="Problem description text")
     parser.add_argument("--text-file", type=str, help="Path to file containing problem text")
-    parser.add_argument("--project", type=str, help="Project name (used in intake mode)")
+    parser.add_argument("--project", type=str,
+                        help="Project name (required in discovery mode; "
+                             "must reference a scaffolded project)")
     parser.add_argument(
         "--format", choices=["yaml", "json"], default="yaml",
         help="Output format (default: yaml)",
     )
     parser.add_argument("--intake", action="store_true",
-                        help="Generate follow-up questions for uncovered dimensions")
+                        help="Standalone analysis mode — allows running "
+                             "without a scaffolded project")
     parser.add_argument("--verbose", action="store_true", help="Show every keyword match with position")
     parser.add_argument("--top", type=int, default=3, help="Max task_flow_candidates to show (default: 3)")
     args = parser.parse_args()
+
+    _validate_project_context(args.project, args.intake)
 
     text = _read_input(args)
     result = map_signals(text)

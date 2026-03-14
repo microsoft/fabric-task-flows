@@ -12,6 +12,11 @@ import os
 import sys
 import yaml
 
+# Use shared lib utilities — never maintain hardcoded type dicts.
+_SHARED_LIB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "_shared", "lib")
+sys.path.insert(0, os.path.normpath(_SHARED_LIB))
+from registry_loader import build_fab_type_map, build_deploy_method_map
+
 BASE_URL = "https://api.fabric.microsoft.com/v1"
 
 def print_banner():
@@ -142,12 +147,64 @@ def deploy_to_workspace(config_path, ws_id, environment=None, credential=None):
             raise
 
 
+def _build_role_map():
+    """Build role-based variable names from the item type registry.
+
+    Derives role names from fab_type via deploy_method_map rather than
+    maintaining a hardcoded dict.  Falls back to fab_type with underscores
+    for any type not explicitly mapped.
+    """
+    deploy_map = build_deploy_method_map()
+    fab_type_map = build_fab_type_map()
+
+    # Role name overrides — kept thin; registry provides the type resolution.
+    _ROLE_OVERRIDES = {
+        "Lakehouse": "Raw_Lakehouse",
+        "Warehouse": "Curated_Warehouse",
+        "Eventhouse": "Streaming_Eventhouse",
+        "Environment": "Spark_Environment",
+        "DataPipeline": "Batch_Pipeline",
+        "Eventstream": "Feed_Eventstream",
+        "Notebook": "NLP_Notebook",
+        "KQLQueryset": "KQL_Queryset",
+        "SemanticModel": "Semantic_Model",
+        "Report": "Leadership_Report",
+        "Reflex": "Alerts_Activator",
+        "KQLDashboard": "RT_Dashboard",
+        "MLExperiment": "ML_Experiment",
+    }
+    return fab_type_map, deploy_map, _ROLE_OVERRIDES
+
+
+def _resolve_item_ref_types():
+    """Return set of fab_types that support ItemReference variables.
+
+    Derived from registry: types with rest_api.definition=true AND
+    cicd strategy in (content, platform_only) are ItemReference-capable.
+    """
+    deploy_map = build_deploy_method_map()
+    ref_types = set()
+    seen = set()
+    for key, meta in deploy_map.items():
+        fab = key
+        if fab in seen:
+            continue
+        seen.add(fab)
+        if meta.get("has_definition") and meta.get("method") == "cicd":
+            ref_types.add(fab)
+    # Core types always support ItemReference (Notebooks, Shortcuts, UDFs consume these)
+    ref_types |= {"Lakehouse", "Warehouse", "Eventhouse", "Environment", "SemanticModel"}
+    return ref_types
+
+
 def populate_variable_library(ws_id, headers):
-    # Post-deploy: populate Variable Library with ItemReference variables for all deployed items.
-    # Uses ItemReference type (workspaceId + itemId in one variable) — no separate _WSID vars needed.
+    """Post-deploy: populate Variable Library with ItemReference variables.
+
+    Uses registry_loader for type resolution — no hardcoded type dicts.
+    """
     import requests, base64
     import json as _json
-    from datetime import datetime
+    from datetime import datetime, timezone
     print()
     print("  -- POPULATING VARIABLE LIBRARY --")
 
@@ -171,62 +228,48 @@ def populate_variable_library(ws_id, headers):
     vl_id = vl_item["id"]
     print(f"  ── Found Variable Library: {vl_item.get('displayName', '')} ({vl_id[:8]}...)")
 
-    # Map item types to role-based names
-    ROLE_MAP = {
-        "Lakehouse": "Raw_Lakehouse",
-        "Warehouse": "Curated_Warehouse",
-        "Eventhouse": "Streaming_Eventhouse",
-        "Environment": "Spark_Environment",
-        "DataPipeline": "Batch_Pipeline",
-        "Eventstream": "Feed_Eventstream",
-        "Notebook": "NLP_Notebook",
-        "KQLQueryset": "KQL_Queryset",
-        "SemanticModel": "Semantic_Model",
-        "Report": "Leadership_Report",
-        "Reflex": "Alerts_Activator",
-        "KQLDashboard": "RT_Dashboard",
-        "MLExperiment": "ML_Experiment",
-    }
+    fab_type_map, _deploy_map, role_overrides = _build_role_map()
+    item_ref_types = _resolve_item_ref_types()
 
     variables = []
     role_counter = {}
-    # Only these types support ItemReference consumers (Notebooks, Shortcuts, UDFs)
-    ITEM_REF_TYPES = {"Lakehouse", "Warehouse", "Eventhouse", "Environment", "SemanticModel"}
 
     for item in items:
-        item_type = item.get("type", "")
-        if item_type == "VariableLibrary":
+        raw_type = item.get("type", "")
+        if raw_type == "VariableLibrary":
             continue
 
-        role_name = ROLE_MAP.get(item_type, item["displayName"].replace("-", "_").replace(" ", "_"))
+        # Normalize type through registry (handles aliases like "Activator"→"Reflex")
+        resolved_type = fab_type_map.get(raw_type, raw_type)
+
+        role_name = role_overrides.get(resolved_type,
+                                       item["displayName"].replace("-", "_").replace(" ", "_"))
 
         role_counter[role_name] = role_counter.get(role_name, 0) + 1
         if role_counter[role_name] > 1:
             role_name = f"{role_name}_{role_counter[role_name]}"
 
-        if item_type in ITEM_REF_TYPES:
-            # ItemReference — contains workspaceId + itemId (no separate String needed)
+        if resolved_type in item_ref_types:
             variables.append({
                 "name": role_name,
                 "type": "ItemReference",
                 "value": {"workspaceId": ws_id, "itemId": item["id"]},
-                "note": f"{item_type} — {item.get('displayName', '')}"
+                "note": f"{resolved_type} — {item.get('displayName', '')}"
             })
         else:
-            # String — for types that don't support ItemReference
             variables.append({
                 "name": role_name,
                 "type": "String",
                 "value": item["id"],
-                "note": f"{item_type} — {item.get('displayName', '')}"
+                "note": f"{resolved_type} — {item.get('displayName', '')}"
             })
 
-    # Operational metadata (String type — not item references)
+    # Operational metadata
     variables.append({"name": "Workspace_ID", "type": "String", "value": ws_id, "note": "Current workspace GUID"})
     variables.append({"name": "Workspace_URL", "type": "String", "value": f"https://app.fabric.microsoft.com/groups/{ws_id}", "note": "Fabric Portal URL"})
     variables.append({"name": "Project_Name", "type": "String", "value": "agops", "note": "Project name"})
     variables.append({"name": "Environment_Name", "type": "String", "value": "dev", "note": "Current deployment stage"})
-    variables.append({"name": "Deploy_Timestamp", "type": "String", "value": datetime.utcnow().isoformat() + "Z", "note": "Deployment timestamp"})
+    variables.append({"name": "Deploy_Timestamp", "type": "String", "value": datetime.now(timezone.utc).isoformat(), "note": "Deployment timestamp"})
 
     # Build and push definition
     var_json = _json.dumps({
