@@ -32,6 +32,10 @@ _full_cache: dict | None = None
 def load_registry() -> dict[str, dict]:
     """Load the item type registry.  Returns the ``types`` dict.
 
+    Applies ``$defaults`` (naming, availability) and reconstructs derived
+    fields (``fab_type`` defaults to key name, ``rest_api`` from flat booleans,
+    auto-generated lowercase alias) so downstream code sees the full shape.
+
     The result is cached after the first successful call so repeated imports
     across scripts share a single in-memory copy.
 
@@ -46,7 +50,49 @@ def load_registry() -> dict[str, dict]:
             raise ValueError(
                 f"Registry at {REGISTRY_PATH} is missing a valid 'types' dict"
             )
-        _cache = data["types"]
+        defaults = data.get("$defaults", {})
+        types = data["types"]
+        for name, item in types.items():
+            # Apply naming default
+            if "naming" not in item and "naming" in defaults:
+                item["naming"] = defaults["naming"].copy()
+            # Apply availability default
+            if "availability" not in item and "availability" in defaults:
+                item["availability"] = defaults["availability"]
+            # Default fab_type to key name
+            if "fab_type" not in item:
+                # Check nested api.fab_type first (v1.0.0 schema)
+                if "api" in item and "fab_type" in item["api"]:
+                    item["fab_type"] = item["api"]["fab_type"]
+                else:
+                    item["fab_type"] = name
+            # Auto-generate lowercase alias
+            auto_alias = name.lower()
+            if "aliases" not in item:
+                item["aliases"] = [auto_alias]
+            elif auto_alias not in item["aliases"]:
+                item["aliases"].insert(0, auto_alias)
+            # Reconstruct rest_api from api object (v1.0.0 schema) or flat booleans (legacy)
+            if "rest_api" not in item:
+                if "api" in item:
+                    api = item["api"]
+                    item["rest_api"] = {
+                        "creatable": api.get("creatable", False),
+                        "definition": api.get("definition", False),
+                    }
+                    if "name" in api:
+                        item["rest_api"]["api_name"] = api["name"]
+                    # Preserve api_path at top level for backward compat
+                    if "api_path" not in item:
+                        item["api_path"] = api.get("path", "items")
+                elif "api_creatable" in item:
+                    item["rest_api"] = {
+                        "creatable": item.pop("api_creatable", False),
+                        "definition": item.pop("api_definition", False),
+                    }
+                    if "api_name" in item:
+                        item["rest_api"]["api_name"] = item.pop("api_name")
+        _cache = types
     return _cache
 
 
@@ -234,9 +280,9 @@ def build_api_name_remap() -> dict[str, str]:
 
 
 def build_availability_map() -> dict[str, str]:
-    """Map type-name variants → availability status (``'ga'`` or ``'preview'``)."""
+    """Map type-name variants → availability status (``'general availability'`` or ``'public preview'``)."""
     def _value(_c: str, data: dict) -> str:
-        return data.get("availability", "ga")
+        return data.get("availability", "general availability")
 
     return _build_variant_map(_value, include_capitalized_aliases=True)
 
@@ -314,7 +360,7 @@ def build_deploy_method_map() -> dict[str, dict]:
         cicd = data.get("cicd", {})
         strategy = cicd.get("strategy")
         verified = cicd.get("verified", False)
-        availability = data.get("availability", "ga")
+        availability = data.get("availability", "general availability")
 
         if strategy in ("content", "platform_only"):
             method = "cicd"
@@ -390,6 +436,21 @@ def build_skillset_map() -> dict[str, list[str]]:
         return data.get("skillset", [])
 
     return _build_variant_map(_value)
+
+
+def build_alternatives_map() -> dict[str, list[str]]:
+    """Map canonical type name → list of alternative item type names.
+
+    Reads the ``alternatives`` field from each item type in the registry.
+    Returns only items that have alternatives defined.
+    """
+    registry = load_registry()
+    result: dict[str, list[str]] = {}
+    for canonical, data in registry.items():
+        alts = data.get("alternatives")
+        if alts and isinstance(alts, list):
+            result[canonical] = alts
+    return result
 
 
 # ─────────────────────────────────────────────────────────────────────────────

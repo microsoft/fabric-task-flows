@@ -1,8 +1,34 @@
 {
   "$schema": "Fabric Task Flows Item Type Registry",
+  "$schema_version": "1.0.0",
   "$version": "2026-03-14",
   "$cli_version": "0.1.10",
-  "$description": "Single source of truth for all Fabric item type metadata including skillset (LC=Low-Code, CF=Code-First). All scripts MUST import from this file — do NOT maintain separate item type dictionaries. ⚠️ AGENTS: Do NOT read this file directly — use registry_loader.build_*() instead. See CONTRIBUTING.md.",
+  "$description": "Single source of truth for all Fabric item type metadata. All scripts MUST import from this file — do NOT maintain separate item type dictionaries. ⚠️ AGENTS: Do NOT read this file directly — use registry_loader.build_*() instead. See CONTRIBUTING.md.",
+  "$fields": {
+    "display_name": "Human-readable name shown in Fabric portal",
+    "aliases": "Alternative names for matching and search (array, always present)",
+    "availability": "Release status: 'general availability' or 'public preview'",
+    "phase": "Deployment wave category — see $phase legend",
+    "phase_order": "Numeric sort key for deployment ordering (1=first deployed)",
+    "task_type": "What the item does — see $task_type legend",
+    "skillset": "Who uses it — see $skillset legend (array of LC/CF/Portal/auto)",
+    "query_language": "Supported query/scripting languages — see $query_language legend (array, empty if N/A)",
+    "connection_protocols": "Wire protocols for data access — see $connection_protocols legend (array)",
+    "alternatives": "Substitute or related item types for the same use case (array)",
+    "api": "Fabric REST API metadata — path, creatable, definition support",
+    "api.path": "REST API URL segment (e.g. 'lakehouses' → /workspaces/{id}/lakehouses)",
+    "api.creatable": "Whether the item can be created via REST API (boolean)",
+    "api.definition": "Whether the item supports definition GET/update via REST API (boolean)",
+    "api.fab_type": "CLI type name when it differs from the registry key (rare — only ApacheAirflowJob)",
+    "api.name": "API-specific name when it differs from the registry key (rare)",
+    "cicd": "Deployment metadata for fabric-cicd integration",
+    "cicd.strategy": "Deployment approach — see $cicd_strategy legend",
+    "cicd.files": "File patterns included in fabric-cicd workspace (array)",
+    "cicd.verified": "Whether deployment has been tested end-to-end (boolean)",
+    "cicd.supports_item_reference": "Whether fabric-cicd can reference this item by name (boolean)",
+    "cicd.notes": "Deployment-specific notes (optional)",
+    "notes": "Free-text clarifications (null if none)"
+  },
   "$connection_protocols": {
     "tds": "SQL wire protocol (ODBC/JDBC/TDS) — supports ActiveDirectoryServicePrincipal, ActiveDirectoryInteractive, ActiveDirectoryPassword auth modes",
     "abfss": "Azure Blob File System Secure (ADLS Gen2 / OneLake) — any Entra bearer token including workspace identity",
@@ -62,19 +88,12 @@
   },
   "types": {
     "Lakehouse": {
-      "api_path": "lakehouses",
       "display_name": "Lakehouse",
+      "aliases": [],
+      "availability": "general availability",
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "cicd": {
-        "strategy": "platform_only",
-        "files": [
-          ".platform"
-        ],
-        "verified": true,
-        "supports_item_reference": true
-      },
       "skillset": [
         "LC"
       ],
@@ -85,26 +104,22 @@
         "scala",
         "sql-readonly"
       ],
+      "connection_protocols": [
+        "tds",
+        "abfss",
+        "livy"
+      ],
       "alternatives": [
         "Warehouse",
         "Eventhouse",
         "SQLDatabase",
         "CosmosDBDatabase"
       ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "tds",
-        "abfss",
-        "livy"
-      ]
-    },
-    "Warehouse": {
-      "api_path": "warehouses",
-      "display_name": "Warehouse",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "store data",
+      "api": {
+        "path": "lakehouses",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "platform_only",
         "files": [
@@ -113,11 +128,24 @@
         "verified": true,
         "supports_item_reference": true
       },
+      "notes": null
+    },
+    "Warehouse": {
+      "display_name": "Warehouse",
+      "aliases": [],
+      "availability": "general availability",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
       "query_language": [
         "t-sql"
+      ],
+      "connection_protocols": [
+        "tds",
+        "abfss"
       ],
       "alternatives": [
         "Lakehouse",
@@ -125,18 +153,48 @@
         "SQLDatabase",
         "CosmosDBDatabase"
       ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "tds",
-        "abfss"
-      ]
+      "api": {
+        "path": "warehouses",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "platform_only",
+        "files": [
+          ".platform"
+        ],
+        "verified": true,
+        "supports_item_reference": true
+      },
+      "notes": null
     },
     "Eventhouse": {
-      "api_path": "eventhouses",
       "display_name": "Eventhouse",
+      "aliases": [],
+      "availability": "general availability",
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [
+        "kql"
+      ],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [
+        "Lakehouse",
+        "Warehouse",
+        "SQLDatabase",
+        "CosmosDBDatabase"
+      ],
+      "api": {
+        "path": "eventhouses",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -146,34 +204,33 @@
         "verified": true,
         "supports_item_reference": true
       },
+      "notes": null
+    },
+    "KQLDatabase": {
+      "display_name": "KQL Database",
+      "aliases": [
+        "kql database"
+      ],
+      "availability": "general availability",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
       "query_language": [
         "kql"
       ],
-      "alternatives": [
-        "Lakehouse",
-        "Warehouse",
-        "SQLDatabase",
-        "CosmosDBDatabase"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
       "connection_protocols": [
-        "rest"
-      ]
-    },
-    "KQLDatabase": {
-      "api_path": "kqlDatabases",
-      "display_name": "KQL Database",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "store data",
-      "aliases": [
-        "kql database"
+        "kusto",
+        "abfss"
       ],
-      "notes": "Requires eventhouseId parameter",
+      "alternatives": [],
+      "api": {
+        "path": "kqlDatabases",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "platform_only",
         "files": [
@@ -183,28 +240,37 @@
         "notes": "Nested in Eventhouse .children/",
         "supports_item_reference": false
       },
+      "notes": "Requires eventhouseId parameter"
+    },
+    "SQLDatabase": {
+      "display_name": "SQL Database",
+      "aliases": [
+        "sql database"
+      ],
+      "availability": "general availability",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
       "query_language": [
-        "kql"
+        "t-sql"
       ],
-      "api_creatable": true,
-      "api_definition": true,
       "connection_protocols": [
-        "kusto",
-        "abfss"
-      ]
-    },
-    "SQLDatabase": {
-      "api_path": "sqlDatabases",
-      "display_name": "SQL Database",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "store data",
-      "aliases": [
-        "sql database"
+        "tds"
       ],
+      "alternatives": [
+        "Lakehouse",
+        "Warehouse",
+        "Eventhouse",
+        "CosmosDBDatabase"
+      ],
+      "api": {
+        "path": "sqlDatabases",
+        "creatable": true,
+        "definition": false
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -215,94 +281,130 @@
         "notes": "From sample: Hello db.SQLDatabase",
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "query_language": [
-        "t-sql"
-      ],
-      "alternatives": [
-        "Lakehouse",
-        "Warehouse",
-        "Eventhouse",
-        "CosmosDBDatabase"
-      ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "tds"
-      ]
+      "notes": null
     },
     "SQLEndpoint": {
-      "api_path": "sqlEndpoints",
       "display_name": "SQL Endpoint",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "store data",
       "aliases": [
         "sql endpoint",
         "sql analytics endpoint"
       ],
-      "notes": "Auto-created with Lakehouse; read-only in CLI",
+      "availability": "general availability",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
       "skillset": [
         "auto"
       ],
       "query_language": [
         "t-sql"
       ],
-      "api_creatable": true,
       "connection_protocols": [
         "tds",
         "abfss"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "sqlEndpoints",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": "Auto-created with Lakehouse; read-only in CLI"
     },
     "Datamart": {
-      "api_path": "datamarts",
       "display_name": "Datamart",
+      "aliases": [],
+      "availability": "general availability",
       "phase": "Foundation",
       "phase_order": 1,
       "task_type": "store data",
-      "notes": "Legacy item type; still valid in CLI",
       "skillset": [
         "LC"
       ],
       "query_language": [
         "t-sql"
       ],
-      "api_creatable": true,
       "connection_protocols": [
         "tds"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "datamarts",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": "Legacy item type; still valid in CLI"
     },
     "MirroredWarehouse": {
-      "api_path": "mirroredWarehouses",
       "display_name": "Mirrored Warehouse",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "mirror data",
       "aliases": [
         "mirrored warehouse"
       ],
+      "availability": "general availability",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "mirror data",
       "skillset": [
         "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "tds",
+        "abfss"
       ],
       "alternatives": [
         "MirroredDatabase"
       ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "tds",
-        "abfss"
-      ]
+      "api": {
+        "path": "mirroredWarehouses",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "MirroredDatabase": {
-      "api_path": "mirroredDatabases",
       "display_name": "Mirrored Database",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "mirror data",
       "aliases": [
         "mirrored database"
       ],
+      "availability": "general availability",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "mirror data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "tds",
+        "abfss"
+      ],
+      "alternatives": [
+        "MirroredWarehouse"
+      ],
+      "api": {
+        "path": "mirroredDatabases",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -313,31 +415,33 @@
         "notes": "From sample: MirroredDatabase_1",
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "alternatives": [
-        "MirroredWarehouse"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "tds",
-        "abfss"
-      ]
+      "notes": null
     },
     "MountedDataFactory": {
-      "api_path": "mounteddatafactories",
       "display_name": "Mounted Data Factory",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "get data",
       "aliases": [
         "mounted data factory",
         "azure data factory",
         "adf"
       ],
-      "notes": "Azure Data Factory pipeline mounted into Fabric",
+      "availability": "general availability",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
+      "skillset": [
+        "LC",
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "mounteddatafactories",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "platform_only",
         "files": [
@@ -347,23 +451,28 @@
         "notes": "Not in sample. API: create without def = NO",
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC",
-        "CF"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": "Azure Data Factory pipeline mounted into Fabric"
     },
     "Environment": {
-      "api_path": "environments",
       "display_name": "Environment",
+      "aliases": [],
+      "availability": "general availability",
       "phase": "Environment",
       "phase_order": 2,
       "task_type": "develop",
-      "notes": "Has publish step — may take 20+ minutes after creation",
+      "skillset": [
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "environments",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -373,25 +482,34 @@
         "verified": true,
         "supports_item_reference": true
       },
-      "skillset": [
-        "CF"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": "Has publish step — may take 20+ minutes after creation"
     },
     "CopyJob": {
-      "api_path": "copyJobs",
       "display_name": "Copy Job",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "get data",
       "aliases": [
         "copy job"
       ],
-      "notes": "Commented out in CLI ItemType enum (v0.1.10); works via generic items API but not officially supported",
+      "availability": "general availability",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [
+        "DataPipeline",
+        "Dataflow",
+        "Eventstream"
+      ],
+      "api": {
+        "path": "copyJobs",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -402,30 +520,36 @@
         "notes": "From sample: Hello Copy Job.CopyJob",
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "alternatives": [
-        "DataPipeline",
-        "Dataflow",
-        "Eventstream"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": "Commented out in CLI ItemType enum (v0.1.10); works via generic items API but not officially supported"
     },
     "DataPipeline": {
-      "api_path": "dataPipelines",
       "display_name": "Data Pipeline",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "get data",
       "aliases": [
         "pipeline",
         "data pipeline"
       ],
+      "availability": "general availability",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
+      "skillset": [
+        "LC",
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [
+        "CopyJob",
+        "Dataflow",
+        "Eventstream"
+      ],
+      "api": {
+        "path": "dataPipelines",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -435,27 +559,33 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC",
-        "CF"
-      ],
-      "alternatives": [
-        "CopyJob",
-        "Dataflow",
-        "Eventstream"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": null
     },
     "Eventstream": {
-      "api_path": "eventstreams",
       "display_name": "Eventstream",
+      "aliases": [],
+      "availability": "general availability",
       "phase": "Ingestion",
       "phase_order": 3,
       "task_type": "get data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "kafka",
+        "rest"
+      ],
+      "alternatives": [
+        "CopyJob",
+        "DataPipeline",
+        "Dataflow"
+      ],
+      "api": {
+        "path": "eventstreams",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -466,28 +596,32 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "alternatives": [
-        "CopyJob",
-        "DataPipeline",
-        "Dataflow"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "kafka",
-        "rest"
-      ]
+      "notes": null
     },
     "Notebook": {
-      "api_path": "notebooks",
       "display_name": "Notebook",
+      "aliases": [],
+      "availability": "general availability",
       "phase": "Transformation",
       "phase_order": 4,
       "task_type": "prepare data",
-      "notes": "Supports lakehouse binding and environment binding via fab set",
+      "skillset": [
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "livy",
+        "rest"
+      ],
+      "alternatives": [
+        "SparkJobDefinition",
+        "KQLQueryset"
+      ],
+      "api": {
+        "path": "notebooks",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -497,30 +631,35 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "skillset": [
-        "CF"
-      ],
-      "alternatives": [
-        "SparkJobDefinition",
-        "KQLQueryset"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "livy",
-        "rest"
-      ]
+      "notes": "Supports lakehouse binding and environment binding via fab set"
     },
     "SparkJobDefinition": {
-      "api_path": "sparkJobDefinitions",
       "display_name": "Spark Job Definition",
-      "phase": "Transformation",
-      "phase_order": 4,
-      "task_type": "prepare data",
       "aliases": [
         "spark job def",
         "spark job definition"
       ],
+      "availability": "general availability",
+      "phase": "Transformation",
+      "phase_order": 4,
+      "task_type": "prepare data",
+      "skillset": [
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "livy",
+        "rest"
+      ],
+      "alternatives": [
+        "Notebook",
+        "KQLQueryset"
+      ],
+      "api": {
+        "path": "sparkJobDefinitions",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -530,29 +669,33 @@
         "verified": false,
         "supports_item_reference": false
       },
-      "skillset": [
-        "CF"
-      ],
-      "alternatives": [
-        "Notebook",
-        "KQLQueryset"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "livy",
-        "rest"
-      ]
+      "notes": null
     },
     "KQLQueryset": {
-      "api_path": "kqlQuerysets",
       "display_name": "KQL Queryset",
-      "phase": "Transformation",
-      "phase_order": 4,
-      "task_type": "prepare data",
       "aliases": [
         "kql queryset"
       ],
+      "availability": "general availability",
+      "phase": "Transformation",
+      "phase_order": 4,
+      "task_type": "prepare data",
+      "skillset": [
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "kusto"
+      ],
+      "alternatives": [
+        "Notebook",
+        "SparkJobDefinition"
+      ],
+      "api": {
+        "path": "kqlQuerysets",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -562,28 +705,35 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "skillset": [
-        "CF"
-      ],
-      "alternatives": [
-        "Notebook",
-        "SparkJobDefinition"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "kusto"
-      ]
+      "notes": null
     },
     "SemanticModel": {
-      "api_path": "semanticModels",
       "display_name": "Semantic Model",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "visualize",
       "aliases": [
         "semantic model"
       ],
+      "availability": "general availability",
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "visualize",
+      "skillset": [
+        "LC",
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "xmla",
+        "rest"
+      ],
+      "alternatives": [
+        "Report",
+        "KQLDashboard"
+      ],
+      "api": {
+        "path": "semanticModels",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -594,28 +744,31 @@
         "verified": true,
         "supports_item_reference": true
       },
-      "skillset": [
-        "LC",
-        "CF"
-      ],
-      "alternatives": [
-        "Report",
-        "KQLDashboard"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "xmla",
-        "rest"
-      ]
+      "notes": null
     },
     "Report": {
-      "api_path": "reports",
       "display_name": "Report",
+      "aliases": [],
+      "availability": "general availability",
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "visualize",
-      "notes": "Accepts -P semanticModelId=<id> to bind to a semantic model",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [
+        "SemanticModel",
+        "KQLDashboard"
+      ],
+      "api": {
+        "path": "reports",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -626,62 +779,93 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "alternatives": [
-        "SemanticModel",
-        "KQLDashboard"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": "Accepts -P semanticModelId=<id> to bind to a semantic model"
     },
     "PaginatedReport": {
-      "api_path": "paginatedReports",
       "display_name": "Paginated Report",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "visualize",
       "aliases": [
         "paginated report"
       ],
-      "skillset": [
-        "LC"
-      ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "rest"
-      ]
-    },
-    "Dashboard": {
-      "api_path": "dashboards",
-      "display_name": "Dashboard",
+      "availability": "general availability",
       "phase": "Visualization",
       "phase_order": 5,
       "task_type": "visualize",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "paginatedReports",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
-    "KQLDashboard": {
-      "api_path": "kqlDashboards",
-      "display_name": "Real-Time Dashboard",
+    "Dashboard": {
+      "display_name": "Dashboard",
+      "aliases": [],
+      "availability": "general availability",
       "phase": "Visualization",
       "phase_order": 5,
-      "task_type": "track data",
+      "task_type": "visualize",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "dashboards",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
+    },
+    "KQLDashboard": {
+      "display_name": "Real-Time Dashboard",
       "aliases": [
         "real-time dashboard",
         "realtimedashboard",
         "real-time dash"
       ],
-      "notes": "CLI type is KQLDashboard; display name is Real-Time Dashboard",
+      "availability": "general availability",
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "track data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [
+        "SemanticModel",
+        "Report"
+      ],
+      "api": {
+        "path": "kqlDashboards",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "platform_only",
         "files": [
@@ -691,29 +875,32 @@
         "notes": "Content file causes parser error in fabric-cicd",
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "alternatives": [
-        "SemanticModel",
-        "Report"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": "CLI type is KQLDashboard; display name is Real-Time Dashboard"
     },
     "MLExperiment": {
-      "api_path": "mlExperiments",
       "display_name": "ML Experiment",
-      "phase": "ML",
-      "phase_order": 6,
-      "task_type": "analyze and train data",
       "aliases": [
         "ml experiment",
         "experiment"
       ],
+      "availability": "general availability",
+      "phase": "ML",
+      "phase_order": 6,
+      "task_type": "analyze and train data",
+      "skillset": [
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "livy",
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "mlExperiments",
+        "creatable": true,
+        "definition": false
+      },
       "cicd": {
         "strategy": "platform_only",
         "files": [
@@ -723,24 +910,31 @@
         "notes": "Definition not supported by API",
         "supports_item_reference": false
       },
-      "skillset": [
-        "CF"
-      ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "livy",
-        "rest"
-      ]
+      "notes": null
     },
     "MLModel": {
-      "api_path": "mlModels",
       "display_name": "ML Model",
-      "phase": "ML",
-      "phase_order": 6,
-      "task_type": "analyze and train data",
       "aliases": [
         "ml model"
       ],
+      "availability": "general availability",
+      "phase": "ML",
+      "phase_order": 6,
+      "task_type": "analyze and train data",
+      "skillset": [
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "livy",
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "mlModels",
+        "creatable": true,
+        "definition": false
+      },
       "cicd": {
         "strategy": "unsupported",
         "files": [],
@@ -748,25 +942,30 @@
         "notes": "Not supported by fabric-cicd",
         "supports_item_reference": false
       },
-      "skillset": [
-        "CF"
-      ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "livy",
-        "rest"
-      ]
+      "notes": null
     },
     "Reflex": {
-      "api_path": "reflexes",
       "display_name": "Activator",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "track data",
       "aliases": [
         "activator"
       ],
-      "notes": "CLI type is Reflex; commonly known as Activator. Portal-only creation.",
+      "availability": "general availability",
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "track data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "reflexes",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -776,25 +975,31 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": "CLI type is Reflex; commonly known as Activator. Portal-only creation."
     },
     "GraphQLApi": {
-      "api_path": "graphqlapis",
       "display_name": "GraphQL API",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "distribute data",
       "aliases": [
         "graphql api",
         "api for graphql"
       ],
+      "availability": "general availability",
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "distribute data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "graphql"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "graphqlapis",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -805,24 +1010,30 @@
         "notes": "From sample: Sample.GraphQLApi",
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "graphql"
-      ]
+      "notes": null
     },
     "VariableLibrary": {
-      "api_path": "variableLibraries",
       "display_name": "Variable Library",
-      "phase": "Environment",
-      "phase_order": 1,
-      "task_type": "govern data",
       "aliases": [
         "variable library"
       ],
+      "availability": "general availability",
+      "phase": "Environment",
+      "phase_order": 1,
+      "task_type": "govern data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "variableLibraries",
+        "creatable": true,
+        "definition": true
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -833,40 +1044,58 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": null
     },
     "Ontology": {
-      "api_path": "ontologies",
       "display_name": "Ontology",
+      "aliases": [],
+      "availability": "public preview",
       "phase": "IQ",
       "phase_order": 7,
       "task_type": "govern data",
-      "availability": "public preview",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
-      "api_definition": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "ontologies",
+        "creatable": true,
+        "definition": true
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "DataAgent": {
-      "api_path": "dataAgents",
       "display_name": "Data Agent",
-      "phase": "IQ",
-      "phase_order": 7,
-      "task_type": "govern data",
       "aliases": [
         "data agent"
       ],
+      "availability": "general availability",
+      "phase": "IQ",
+      "phase_order": 7,
+      "task_type": "govern data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "dataAgents",
+        "creatable": true,
+        "definition": false
+      },
       "cicd": {
         "strategy": "platform_only",
         "files": [
@@ -876,28 +1105,35 @@
         "notes": "Not in sample",
         "supports_item_reference": false
       },
-      "skillset": [
-        "LC"
-      ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": null
     },
     "ApacheAirflowJob": {
-      "fab_type": "ApacheAirflowProject",
-      "api_path": "apacheAirflowJobs",
       "display_name": "Apache Airflow Job",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "get data",
       "aliases": [
         "apacheairflowproject",
         "apache airflow job",
         "airflow job",
         "airflow"
       ],
-      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only",
+      "availability": "general availability",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
+      "skillset": [
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "apacheAirflowJobs",
+        "creatable": true,
+        "definition": false,
+        "fab_type": "ApacheAirflowProject",
+        "name": "ApacheAirflowJob"
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -909,89 +1145,120 @@
         "notes": "From sample",
         "supports_item_reference": false
       },
-      "skillset": [
-        "CF"
-      ],
-      "api_creatable": true,
-      "api_name": "ApacheAirflowJob",
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only"
     },
     "SnowflakeDatabase": {
-      "api_path": "snowflakeDatabases",
       "display_name": "Snowflake Database",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "mirror data",
       "aliases": [
         "snowflake database",
         "snowflake mirroring"
       ],
-      "notes": "Snowflake mirrored into Fabric via Mirroring",
+      "availability": "general availability",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "mirror data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
-      "api_definition": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "snowflakeDatabases",
+        "creatable": true,
+        "definition": true
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": "Snowflake mirrored into Fabric via Mirroring"
     },
     "GraphModel": {
-      "api_path": "graphModels",
       "display_name": "Graph Model",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "govern data",
       "aliases": [
         "graph model",
         "knowledge graph model"
       ],
+      "availability": "general availability",
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "govern data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
-      "api_definition": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "graphModels",
+        "creatable": true,
+        "definition": true
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "MirroredAzureDatabricksCatalog": {
-      "api_path": "mirroredAzureDatabricksCatalogs",
       "display_name": "Mirrored Azure Databricks Catalog",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "mirror data",
       "aliases": [
         "mirrored azure databricks catalog",
         "mirrored databricks catalog"
       ],
+      "availability": "general availability",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "mirror data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
-      "api_definition": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "mirroredAzureDatabricksCatalogs",
+        "creatable": true,
+        "definition": true
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "CosmosDBDatabase": {
-      "api_path": "cosmosDbDatabases",
       "display_name": "Cosmos DB Database",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "store data",
       "aliases": [
         "cosmos db database",
         "cosmos db",
         "cosmosdb"
       ],
+      "availability": "general availability",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
       "query_language": [
         "nosql"
+      ],
+      "connection_protocols": [
+        "rest"
       ],
       "alternatives": [
         "Lakehouse",
@@ -999,46 +1266,78 @@
         "Eventhouse",
         "SQLDatabase"
       ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "api": {
+        "path": "cosmosDbDatabases",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "Dataflow": {
-      "api_path": "dataflows",
       "display_name": "Dataflow Gen2",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "get data",
       "aliases": [
         "dataflow gen2",
         "dataflowgen2"
       ],
+      "availability": "general availability",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
       "skillset": [
         "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
       ],
       "alternatives": [
         "CopyJob",
         "DataPipeline",
         "Eventstream"
       ],
-      "api_creatable": true,
-      "api_definition": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "api": {
+        "path": "dataflows",
+        "creatable": true,
+        "definition": true
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "UserDataFunction": {
-      "api_path": "userDataFunctions",
       "display_name": "User Data Functions",
-      "phase": "Transformation",
-      "phase_order": 4,
-      "task_type": "distribute data",
       "aliases": [
         "user data function",
         "user data functions",
         "userdatafunctions"
       ],
+      "availability": "general availability",
+      "phase": "Transformation",
+      "phase_order": 4,
+      "task_type": "distribute data",
+      "skillset": [
+        "CF"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "userDataFunctions",
+        "creatable": true,
+        "definition": false
+      },
       "cicd": {
         "strategy": "content",
         "files": [
@@ -1051,178 +1350,282 @@
         "notes": "From sample",
         "supports_item_reference": false
       },
-      "skillset": [
-        "CF"
-      ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "rest"
-      ]
+      "notes": null
     },
     "Map": {
-      "api_path": "maps",
       "display_name": "Map",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "track data",
       "aliases": [
         "real-time map",
         "realtimemap",
         "real time map"
       ],
+      "availability": "general availability",
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "track data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "maps",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "GraphQuerySet": {
-      "api_path": "graphQuerySets",
       "display_name": "Graph Queryset",
-      "phase": "Visualization",
-      "phase_order": 5,
-      "task_type": "govern data",
       "aliases": [
         "graph query set",
         "graph queryset"
       ],
+      "availability": "general availability",
+      "phase": "Visualization",
+      "phase_order": 5,
+      "task_type": "govern data",
       "skillset": [
         "Portal"
       ],
-      "api_creatable": false,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "graphQuerySets",
+        "creatable": false,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "AnomalyDetector": {
-      "api_path": "anomalyDetectors",
       "display_name": "Anomaly Detector",
-      "phase": "ML",
-      "phase_order": 6,
-      "task_type": "analyze and train data",
       "aliases": [
         "anomaly detector"
       ],
       "availability": "public preview",
+      "phase": "ML",
+      "phase_order": 6,
+      "task_type": "analyze and train data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "anomalyDetectors",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "DigitalTwinBuilder": {
-      "api_path": "digitalTwinBuilders",
       "display_name": "Digital Twin Builder",
-      "phase": "Transformation",
-      "phase_order": 4,
-      "task_type": "prepare data",
       "aliases": [
         "digital twin builder"
       ],
       "availability": "public preview",
-      "skillset": [
-        "LC"
-      ],
-      "api_creatable": true,
-      "connection_protocols": [
-        "rest"
-      ]
-    },
-    "DigitalTwinBuilderFlow": {
-      "api_path": "digitalTwinBuilderFlows",
-      "display_name": "Digital Twin Builder Flow",
       "phase": "Transformation",
       "phase_order": 4,
       "task_type": "prepare data",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "connection_protocols": [
+        "rest"
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "digitalTwinBuilders",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
+    },
+    "DigitalTwinBuilderFlow": {
+      "display_name": "Digital Twin Builder Flow",
       "aliases": [
         "digital twin builder flow"
       ],
       "availability": "public preview",
+      "phase": "Transformation",
+      "phase_order": 4,
+      "task_type": "prepare data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "digitalTwinBuilderFlows",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "EventSchemaSet": {
-      "api_path": "eventSchemasets",
       "display_name": "Event Schema Set",
-      "phase": "Ingestion",
-      "phase_order": 3,
-      "task_type": "get data",
       "aliases": [
         "event schema set"
       ],
       "availability": "public preview",
+      "phase": "Ingestion",
+      "phase_order": 3,
+      "task_type": "get data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "eventSchemasets",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "OperationsAgent": {
-      "api_path": "operationsAgents",
       "display_name": "Operations Agent",
-      "phase": "IQ",
-      "phase_order": 7,
-      "task_type": "govern data",
       "aliases": [
         "operations agent"
       ],
       "availability": "public preview",
+      "phase": "IQ",
+      "phase_order": 7,
+      "task_type": "govern data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "operationsAgents",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "RealTimeIntelligence": {
-      "api_path": "realTimeIntelligence",
       "display_name": "Real-Time Intelligence",
-      "phase": "Monitoring",
-      "phase_order": 5,
-      "task_type": "visualize",
       "aliases": [
         "real-time intelligence",
         "rti"
       ],
       "availability": "public preview",
+      "phase": "Monitoring",
+      "phase_order": 5,
+      "task_type": "visualize",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
+      "query_language": [],
       "connection_protocols": [
         "rest"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "realTimeIntelligence",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     },
     "WarehouseSnapshot": {
-      "api_path": "warehouseSnapshots",
       "display_name": "Warehouse Snapshot",
-      "phase": "Foundation",
-      "phase_order": 1,
-      "task_type": "store data",
       "aliases": [
         "warehouse snapshot"
       ],
       "availability": "public preview",
+      "phase": "Foundation",
+      "phase_order": 1,
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
-      "api_creatable": true,
+      "query_language": [],
       "connection_protocols": [
         "tds",
         "abfss"
-      ]
+      ],
+      "alternatives": [],
+      "api": {
+        "path": "warehouseSnapshots",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "files": [],
+        "verified": false,
+        "supports_item_reference": false
+      },
+      "notes": null
     }
   },
   "cicd_type_remap": {
