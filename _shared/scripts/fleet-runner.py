@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Fleet runner — scaffolds and runs all problem statements through the pipeline
 in parallel batches.
@@ -236,7 +236,7 @@ def process_project(problem: dict, dry_run: bool = False) -> dict:
     result["keyword_coverage"] = signals.get("keyword_coverage", 0)
 
     # 3. Write discovery brief
-    brief_path = project_dir / "prd" / "discovery-brief.md"
+    brief_path = project_dir / "docs" / "discovery-brief.md"
     if brief_path.exists():
         brief_content = generate_discovery_brief(problem, signals)
         brief_path.write_text(brief_content, encoding="utf-8")

@@ -1,7 +1,7 @@
-# Deployment Handoff Schema
+﻿# Deployment Handoff Schema
 
 > Schema for `/fabric-deploy` post-deployment output.
-> Save as: `_projects/[name]/prd/deployment-handoff.md`
+> Save as: `_projects/[name]/docs/deployment-handoff.md`
 
 Use the YAML template below. Every field has a max length noted in comments.
 The `implementation_notes` and `configuration_rationale` sections allow brief prose.

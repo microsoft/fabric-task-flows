@@ -1,4 +1,4 @@
----
+﻿---
 name: fabric-discover
 description: >
   Collects intake (project name + problem statement), scaffolds the project,
@@ -51,7 +51,7 @@ Present inferred signals and 4V's assessment. Get confirmation or corrections.
 
 ### Step 6: Produce Discovery Brief
 
-Write to `_projects/[name]/prd/discovery-brief.md`:
+Write to `_projects/[name]/docs/discovery-brief.md`:
 
 ```markdown
 ## Problem Statement

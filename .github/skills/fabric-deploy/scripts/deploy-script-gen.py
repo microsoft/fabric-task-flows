@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Generate deployment shell scripts from architecture handoffs.
 
@@ -7,13 +7,13 @@ YAML blocks) and generates filled .sh and .ps1 deploy scripts from the
 templates in _shared/.
 
 Usage:
-    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project"
-    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project" --output-dir projects/my-project/deployments/
-    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project" --shell bash
+    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/docs/architecture-handoff.md --project "My Project"
+    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/docs/architecture-handoff.md --project "My Project" --output-dir projects/my-project/deploy/
+    python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/docs/architecture-handoff.md --project "My Project" --shell bash
 
 Importable:
     from deploy_script_gen import generate
-    bash_script, ps1_script = generate("projects/x/prd/architecture-handoff.md", "My Project")
+    bash_script, ps1_script = generate("projects/x/docs/architecture-handoff.md", "My Project")
 """
 
 from __future__ import annotations

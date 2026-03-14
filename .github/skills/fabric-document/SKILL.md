@@ -10,28 +10,36 @@ description: >
 
 # Fabric Documentation
 
+> **⚡ Fast-forward:** After sign-off approval, `run-pipeline.py` auto-generates `docs/README.md`, `docs/architecture.md`, and `docs/deployment-log.md` deterministically from handoff data. This skill is only invoked if fast-forward was skipped, or for ADR polish and enhancement.
+
 ## Instructions
 
-### Step 1: Collect Handoffs
+### Step 1: Verify Pre-Generated Docs
 
-Parse YAML fields from all handoff documents in `_projects/[name]/prd/`.
+Check if `_projects/[name]/docs/` already contains:
+- `README.md` — project overview with items table
+- `architecture.md` — wave-by-wave deployment order
+- `deployment-log.md` — timeline and item status
 
-### Step 2: Generate Wiki Pages
+If these exist, **review and enhance** rather than rewrite. Add narrative, context, and stakeholder-friendly language.
 
-Write to `_projects/[name]/docs/`:
-- **README.md** — Stakeholder-friendly overview
-- **architecture.md** — Architecture narrative with data flow
-- **deployment-log.md** — Deployment consolidation
-
-Use templates from `references/documentation-templates.md`.
-
-### Step 3: Polish ADRs
+### Step 2: Polish ADRs
 
 Review and polish the architect's ADR drafts (`docs/decisions/001-005.md`) in parallel. Add `006-cicd.md` for multi-environment projects.
+
+This is the primary value-add of this skill — ADRs require judgment and narrative that scripts cannot provide.
+
+### Step 3: Enhance Documentation (Optional)
+
+If the pre-generated docs need enrichment:
+- Add data flow narratives to `architecture.md`
+- Add operational runbooks to `README.md`
+- Add troubleshooting guides based on `_shared/learnings.md`
 
 ## Constraints
 
 - Documents only — no architecture decisions or deployments
+- Enhance pre-generated docs, don't replace them
 
 ## Handoff
 

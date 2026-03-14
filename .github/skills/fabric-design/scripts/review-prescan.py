@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Deterministic pre-scan for architecture handoff review.
 
@@ -7,13 +7,13 @@ pre-filled review findings in the engineer-review schema format. The LLM
 reviewer then only adds judgment-based findings.
 
 Usage:
-    python .github/skills/fabric-design/scripts/review-prescan.py --handoff projects/my-project/prd/architecture-handoff.md
+    python .github/skills/fabric-design/scripts/review-prescan.py --handoff projects/my-project/docs/architecture-handoff.md
     python .github/skills/fabric-design/scripts/review-prescan.py --handoff handoff.md --format json
-    python .github/skills/fabric-design/scripts/review-prescan.py --handoff handoff.md --output review.yaml
+    python .github/skills/fabric-design/scripts/review-prescan.py --handoff handoff.md --output review.json
 
 Importable:
     from review_prescan import prescan
-    result = prescan("projects/my-project/prd/architecture-handoff.md")
+    result = prescan("projects/my-project/docs/architecture-handoff.md")
 """
 
 from __future__ import annotations
@@ -544,7 +544,7 @@ def _check_deploy_feasibility(items: list[dict]) -> tuple[list[dict], list[dict]
             "deploy_method": dm["method"],
             "strategy": dm.get("strategy"),
             "verified": dm.get("verified", False),
-            "availability": dm.get("availability", "ga"),
+            "availability": dm.get("availability", "general availability"),
             "test_method": (tm or {}).get("verify_method", "").replace("{item}", item_name),
             "has_definition": dm.get("has_definition", False),
             "phase": (tm or {}).get("phase", "Other"),
@@ -573,11 +573,11 @@ def _check_deploy_feasibility(items: list[dict]) -> tuple[list[dict], list[dict]
             })
 
         # Preview feature
-        if dm.get("availability") == "preview":
+        if dm.get("availability") == "public preview":
             findings.append({
                 "area": "Deploy feasibility",
                 "severity": "yellow",
-                "finding": f"{item_type} is a preview feature",
+                "finding": f"{item_type} is a public preview feature",
                 "suggestion": "Note preview limitations in deployment plan",
             })
 
@@ -955,8 +955,8 @@ def main() -> None:
         help="Output file path (default: stdout)",
     )
     parser.add_argument(
-        "--format", choices=["yaml", "json"], default="yaml",
-        help="Output format (default: yaml)",
+        "--format", choices=["yaml", "json"], default="json",
+        help="Output format (default: json)",
     )
     args = parser.parse_args()
 

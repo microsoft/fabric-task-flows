@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Pipeline runner — chains all Fabric agent phases with deterministic pre-compute.
 
@@ -177,7 +177,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"The project is already scaffolded at {pp}/. Edit the pre-existing files — do NOT create new ones.\n\n"
             f"1. Infer architectural signals from the problem statement\n"
             f"2. Present inferences to confirm (the user has already described the problem — infer what you can)\n"
-            f"3. Write the Discovery Brief to {pp}/prd/discovery-brief.md\n\n"
+            f"3. Write the Discovery Brief to {pp}/docs/discovery-brief.md\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
@@ -186,14 +186,14 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Project: {display_name} (folder: {pp})\n"
             + (
                 f"🔄 **SIGN-OFF REVISION {state.get('sign_off_revisions', 0)}/3** — The user requested changes at sign-off.\n"
-                f"Read their feedback from {pp}/prd/sign-off-feedback.md before revising.\n\n"
+                f"Read their feedback from {pp}/docs/sign-off-feedback.md before revising.\n\n"
                 if state.get("sign_off_revisions", 0) > 0 else ""
             )
-            + f"Read the Discovery Brief from {pp}/prd/discovery-brief.md.\n\n"
+            + f"Read the Discovery Brief from {pp}/docs/discovery-brief.md.\n\n"
             f"1. Read decisions/_index.md to find decision guides\n"
             f"2. Read diagrams/_index.md to find the matching diagram\n"
             f"3. Select the best-fit task flow and walk through decisions\n"
-            f"4. Write the FINAL Architecture Handoff to {pp}/prd/architecture-handoff.md\n"
+            f"4. Write the FINAL Architecture Handoff to {pp}/docs/architecture-handoff.md\n"
             f"   - The file may be pre-filled with items/waves/ACs from the handoff-scaffolder\n"
             f"   - If pre-filled: ADD diagram, decision rationale, alternatives, trade-offs, deployment strategy\n"
             f"   - If not pre-filled: write the complete handoff from scratch\n"
@@ -205,11 +205,11 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Use the /fabric-test skill (Mode 1: Architecture Review + Test Plan). Read the skill at .github/skills/fabric-test/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
-            f"1. Read the FINAL Architecture Handoff from {pp}/prd/architecture-handoff.md\n"
+            f"1. Read the FINAL Architecture Handoff from {pp}/docs/architecture-handoff.md\n"
             f"2. Review the architecture for testability and deployment feasibility\n"
             f"3. Read the validation checklist from _shared/registry/validation-checklists.json (task flow: {task_flow})\n"
             f"4. Map each acceptance criterion to a concrete validation check\n"
-            f"5. Write the Test Plan to {pp}/prd/test-plan.md\n"
+            f"5. Write the Test Plan to {pp}/docs/test-plan.md\n"
             f"   - The file may be pre-filled with criteria mapping from the test-plan-prefill script\n"
             f"   - If pre-filled: ADD edge cases, expected results, and critical verification steps\n"
             f"   - If not pre-filled: write the complete test plan from scratch\n\n"
@@ -222,8 +222,8 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             + (f" (Revision {state.get('sign_off_revisions', 0)}/3)" if state.get('sign_off_revisions', 0) > 0 else "")
             + f"\n\n"
             f"Review both documents before approving:\n"
-            f"  - FINAL Architecture Handoff: {pp}/prd/architecture-handoff.md\n"
-            f"  - Test Plan: {pp}/prd/test-plan.md\n\n"
+            f"  - FINAL Architecture Handoff: {pp}/docs/architecture-handoff.md\n"
+            f"  - Test Plan: {pp}/docs/test-plan.md\n\n"
             f"Options:\n"
             f"  • Say 'approved' or 'go ahead' to continue to deployment\n"
             f"  • Say 'revise' with your feedback to send back to the architect (max 3 cycles)\n\n"
@@ -235,14 +235,14 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Use the /fabric-deploy skill. Read the skill at .github/skills/fabric-deploy/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
-            f"1. Read {pp}/prd/architecture-summary.json for compact items/waves/ACs (faster than full handoff)\n"
-            f"   - If not present, fall back to {pp}/prd/architecture-handoff.md\n"
-            f"2. Read the Test Plan from {pp}/prd/test-plan.md\n"
+            f"1. Read {pp}/docs/architecture-summary.json for compact items/waves/ACs (faster than full handoff)\n"
+            f"   - If not present, fall back to {pp}/docs/architecture-handoff.md\n"
+            f"2. Read the Test Plan from {pp}/docs/test-plan.md\n"
             f"3. Read _shared/learnings.md for known Fabric CLI gotchas\n"
-            f"4. Check {pp}/prd/phase-progress.md — if resume_from is set, continue from there\n"
+            f"4. Check {pp}/docs/phase-progress.md — if resume_from is set, continue from there\n"
             f"5. Deploy items by dependency wave following the handoff's deployment order\n"
-            f"6. Update {pp}/prd/phase-progress.md after each item (status: completed or failed)\n"
-            f"7. Write the Deployment Handoff to {pp}/prd/deployment-handoff.md\n"
+            f"6. Update {pp}/docs/phase-progress.md after each item (status: completed or failed)\n"
+            f"7. Write the Deployment Handoff to {pp}/docs/deployment-handoff.md\n"
             f"8. Append any new operational learnings to _shared/learnings.md\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
@@ -253,10 +253,10 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Task flow: {task_flow}\n\n"
             f"Deployment is deterministic — items exist. Focus on manual config + smoke tests:\n\n"
             f"1. Run validate-items.py to generate config checklist:\n"
-            f"   python .github/skills/fabric-test/scripts/validate-items.py {pp}/prd/deployment-handoff.md\n"
+            f"   python .github/skills/fabric-test/scripts/validate-items.py {pp}/docs/deployment-handoff.md\n"
             f"2. For each config step, verify in Fabric Portal and mark confirmed\n"
             f"3. Run smoke tests (query data, trigger pipeline, render report)\n"
-            f"4. Write the Validation Report to {pp}/prd/validation-report.md\n"
+            f"4. Write the Validation Report to {pp}/docs/validation-report.md\n"
             f"   - status: passed (all config confirmed + smoke tests pass)\n"
             f"   - status: failed (critical config issues)\n\n"
             f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
@@ -266,7 +266,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"Use the /fabric-document skill. Read the skill at .github/skills/fabric-document/SKILL.md for instructions.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
-            f"1. Read {pp}/prd/architecture-summary.json for compact item/wave/AC data\n"
+            f"1. Read {pp}/docs/architecture-summary.json for compact item/wave/AC data\n"
             f"2. Read remaining handoffs: discovery-brief, deployment-handoff, validation-report\n"
             f"   - Only read the full architecture-handoff.md if the summary lacks needed detail (decisions, diagram)\n"
             f"3. Generate wiki documentation in {pp}/docs/\n"
@@ -285,9 +285,9 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
 
 def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
     """Run deterministic pre-compute scripts for a phase. Returns output lines."""
-    handoff_path = str(REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md")
-    discovery_path = str(REPO_ROOT / "_projects" / project / "prd" / "discovery-brief.md")
-    test_plan_path = str(REPO_ROOT / "_projects" / project / "prd" / "test-plan.md")
+    handoff_path = str(REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md")
+    discovery_path = str(REPO_ROOT / "_projects" / project / "docs" / "discovery-brief.md")
+    test_plan_path = str(REPO_ROOT / "_projects" / project / "docs" / "test-plan.md")
     _task_flow = state.get("task_flow")
     outputs: list[str] = []
 
@@ -472,7 +472,7 @@ storage requirements, and processing needs as identified during discovery.
 ## References
 
 - Decision guide: decisions/_index.md
-- Discovery brief: prd/discovery-brief.md
+- Discovery brief: docs/discovery-brief.md
 """, encoding="utf-8")
     report.append("  📄 docs/decisions/001-task-flow.md")
 
@@ -569,8 +569,8 @@ def _generate_complete_handoff(project: str) -> tuple[bool, list[str]]:
     Runs decision-resolver + handoff-scaffolder + diagram-gen in sequence,
     producing a fully populated handoff file. Returns (success, messages).
     """
-    discovery_path = str(REPO_ROOT / "_projects" / project / "prd" / "discovery-brief.md")
-    handoff_path = str(REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md")
+    discovery_path = str(REPO_ROOT / "_projects" / project / "docs" / "discovery-brief.md")
+    handoff_path = str(REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md")
     report: list[str] = []
 
     if not os.path.exists(discovery_path):
@@ -607,7 +607,7 @@ def _generate_complete_handoff(project: str) -> tuple[bool, list[str]]:
     # Pass decisions if available
     decisions_file = None
     if decisions_output:
-        decisions_file = REPO_ROOT / "_projects" / project / "prd" / ".decisions-cache.json"
+        decisions_file = REPO_ROOT / "_projects" / project / "docs" / ".decisions-cache.json"
         decisions_file.write_text(json.dumps(decisions_output, ensure_ascii=False), encoding="utf-8")
     try:
         result = subprocess.run(scaffolder_cmd, capture_output=True, text=True,
@@ -662,8 +662,8 @@ def _generate_complete_handoff(project: str) -> tuple[bool, list[str]]:
 
 def _generate_test_plan(project: str) -> list[str]:
     """Generate test-plan.md from the architecture handoff. Returns status messages."""
-    handoff_path = str(REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md")
-    test_plan_path = str(REPO_ROOT / "_projects" / project / "prd" / "test-plan.md")
+    handoff_path = str(REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md")
+    test_plan_path = str(REPO_ROOT / "_projects" / project / "docs" / "test-plan.md")
     report: list[str] = []
 
     if not os.path.exists(handoff_path):
@@ -778,7 +778,7 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
 
     # Generate architecture diagram for sign-off phase
     if phase == "2b-sign-off" and "{{DIAGRAM_PLACEHOLDER}}" in prompt:
-        handoff_path = str(REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md")
+        handoff_path = str(REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md")
         if os.path.exists(handoff_path):
             try:
                 env = os.environ.copy()
@@ -805,7 +805,7 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
 
 def _extract_task_flow(project: str) -> str | None:
     """Extract task_flow from architecture-handoff.md YAML frontmatter or content."""
-    handoff = REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md"
+    handoff = REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md"
     if not handoff.exists():
         return None
     content = handoff.read_text(encoding="utf-8")
@@ -827,9 +827,9 @@ def _generate_architecture_summary(project: str) -> None:
     JSON instead of parsing the 300+ line markdown handoff. Saves significant
     agent context when the handoff is read multiple times across phases.
 
-    Output: _projects/{project}/prd/architecture-summary.json
+    Output: _projects/{project}/docs/architecture-summary.json
     """
-    handoff_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md"
+    handoff_path = REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md"
     if not handoff_path.exists():
         return
 
@@ -900,7 +900,7 @@ def _generate_architecture_summary(project: str) -> None:
         "ac_count": len(acs),
     }
 
-    out_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-summary.json"
+    out_path = REPO_ROOT / "_projects" / project / "docs" / "architecture-summary.json"
     out_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"  📋 Generated architecture-summary.json ({len(items)} items, {len(waves)} waves, {len(acs)} ACs)")
 
@@ -968,7 +968,7 @@ def advance(project: str, approved: bool = False, revise: bool = False,
 
         # Save feedback if provided
         if feedback:
-            fb_path = REPO_ROOT / "_projects" / project / "prd" / "sign-off-feedback.md"
+            fb_path = REPO_ROOT / "_projects" / project / "docs" / "sign-off-feedback.md"
             fb_content = (
                 f"# Sign-Off Feedback (Revision {revision_count + 1})\n\n"
                 f"**Date:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n\n"
@@ -1053,7 +1053,7 @@ def reset_phase(project: str, phase: str) -> dict:
 def reconcile(project: str) -> dict:
     """Rebuild pipeline state from file evidence. Heals drift from degraded-mode edits.
 
-    Scans prd/ output files against registry to determine which phases
+    Scans docs/ output files against registry to determine which phases
     are actually complete. Extracts task_flow if missing. Idempotent — safe to
     run multiple times.
 
@@ -1174,7 +1174,7 @@ def _print_status(state: dict) -> None:
 
     # Count items and waves from architecture handoff
     project_dir = REPO_ROOT / "_projects" / project
-    handoff = project_dir / "prd" / "architecture-handoff.md"
+    handoff = project_dir / "docs" / "architecture-handoff.md"
     item_count = 0
     wave_count = 0
     if handoff.exists():
@@ -1190,7 +1190,7 @@ def _print_status(state: dict) -> None:
     adr_count = len(list(adr_dir.glob("*.md"))) if adr_dir.exists() else 0
 
     # Check for deploy script
-    deploy_dir = project_dir / "deployments"
+    deploy_dir = project_dir / "deploy"
     deploy_scripts = list(deploy_dir.glob("deploy-*.py")) if deploy_dir.exists() else []
 
     # Build phase display
@@ -1337,8 +1337,8 @@ def _print_signoff_summary(project: str) -> None:
     Shows: diagram → what we're building → why → blockers.
     Designed for business stakeholders, not engineers.
     """
-    handoff_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md"
-    summary_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-summary.json"
+    handoff_path = REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md"
+    summary_path = REPO_ROOT / "_projects" / project / "docs" / "architecture-summary.json"
 
     # Load summary data
     summary: dict = {}
@@ -1349,7 +1349,7 @@ def _print_signoff_summary(project: str) -> None:
             pass
 
     # Load decisions (decisions.json is the authoritative source)
-    decisions_path = REPO_ROOT / "_projects" / project / "prd" / "decisions.json"
+    decisions_path = REPO_ROOT / "_projects" / project / "docs" / "decisions.json"
     decisions_data: dict = {}
     if decisions_path.exists():
         try:
@@ -1474,7 +1474,7 @@ def main() -> None:
     adv_p.add_argument("--revise", action="store_true",
                        help="Request revisions at sign-off (resets to architect for feedback incorporation, max 3 cycles)")
     adv_p.add_argument("--feedback", type=str, default=None,
-                       help="Feedback text for --revise (saved to prd/sign-off-feedback.md)")
+                       help="Feedback text for --revise (saved to docs/sign-off-feedback.md)")
     adv_p.add_argument("--reconcile", action="store_true",
                        help="Run reconcile before advancing to heal any state drift")
     adv_p.add_argument("-q", "--quiet", action="store_true",

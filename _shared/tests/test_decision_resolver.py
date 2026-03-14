@@ -1,4 +1,4 @@
-"""Tests for decision-resolver.py — verifies deterministic decision resolution."""
+﻿"""Tests for decision-resolver.py — verifies deterministic decision resolution."""
 
 import importlib.util
 import json
@@ -775,7 +775,7 @@ def test_extract_brief_end_to_end_resolves():
 
 def test_extract_brief_real_file():
     """Test with the actual patient-insight-hub discovery brief if it exists."""
-    brief_path = str(REPO_ROOT / "_projects" / "patient-insight-hub" / "prd" / "discovery-brief.md")
+    brief_path = str(REPO_ROOT / "_projects" / "patient-insight-hub" / "docs" / "discovery-brief.md")
     try:
         signals = _extract_signals_from_brief(brief_path)
     except FileNotFoundError:
@@ -863,3 +863,45 @@ def test_enrichment_does_not_override_explicit_query_language():
     # query_language=t-sql wins for processing even though velocity→Eventhouse
     proc = result["decisions"]["processing"]["choice"]
     assert "KQL" not in (proc or ""), f"Expected t-sql processing, got {proc}"
+
+
+# ── Rationale field tests ────────────────────────────────────────────────
+
+
+def test_rationale_field_present():
+    """All decisions should include a rationale field."""
+    result = resolve_all({"skillset": "python", "velocity": "batch", "volume": "large"})
+    for key, decision in result["decisions"].items():
+        assert "rationale" in decision, f"Missing rationale for {key}"
+        assert isinstance(decision["rationale"], str), f"Rationale should be string for {key}"
+
+
+def test_rationale_non_empty_for_resolved():
+    """Resolved (high-confidence) decisions should have non-empty rationale."""
+    result = resolve_all({"skillset": "python", "velocity": "batch", "volume": "large"})
+    for key, decision in result["decisions"].items():
+        if decision["confidence"] == "high":
+            assert decision["rationale"], f"Resolved decision {key} has empty rationale"
+
+
+def test_rationale_present_for_all_resolvers():
+    """Individual resolvers should populate rationale."""
+    signals = {"skillset": "python", "query_language": "Spark"}
+    d = resolve_storage(signals)
+    assert d.rationale, "resolve_storage should set rationale"
+
+    d = resolve_ingestion({"velocity": "real-time"})
+    assert d.rationale, "resolve_ingestion should set rationale"
+
+    d = resolve_processing({"mode": "interactive", "skillset": "python",
+                            "query_language": "spark"})
+    assert d.rationale, "resolve_processing should set rationale"
+
+    d = resolve_visualization({"interactivity": "high"})
+    assert d.rationale, "resolve_visualization should set rationale"
+
+    d = resolve_skillset({"team_composition": "engineer"})
+    assert d.rationale, "resolve_skillset should set rationale"
+
+    d = resolve_parameterization({"environment_count": 1})
+    assert d.rationale, "resolve_parameterization should set rationale"

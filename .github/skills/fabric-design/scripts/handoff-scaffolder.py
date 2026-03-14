@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Scaffolds an architecture handoff document from registry data.
 
@@ -9,7 +9,7 @@ with YAML frontmatter, items, waves, and acceptance criteria.
 
 Usage:
     python .github/skills/fabric-design/scripts/handoff-scaffolder.py --task-flow medallion --project "My Project"
-    python .github/skills/fabric-design/scripts/handoff-scaffolder.py --task-flow lambda --project "My Project" --decisions decisions.yaml
+    python .github/skills/fabric-design/scripts/handoff-scaffolder.py --task-flow lambda --project "My Project" --decisions decisions.json
     python .github/skills/fabric-design/scripts/handoff-scaffolder.py --task-flow medallion --project "My Project" --output handoff.md
 
 Importable:
@@ -32,7 +32,7 @@ from pathlib import Path
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
 from paths import REPO_ROOT
-from registry_loader import build_fab_type_map, load_registry
+from registry_loader import build_fab_type_map, load_registry, build_alternatives_map, build_display_names
 from deployment_loader import get_deployment_items
 
 FAB_TYPE_MAP: dict[str, str] = build_fab_type_map()
@@ -100,12 +100,49 @@ def _wave_number(order: str) -> int:
     return int(m.group(1)) if m else 0
 
 
+PURPOSE_TEMPLATES: dict[str, str] = {
+    "Lakehouse": "Delta Lake storage for {rf}",
+    "Warehouse": "Relational analytics store for {rf}",
+    "Eventhouse": "Time-series/streaming store for {rf}",
+    "SQL Database": "Transactional database for {rf}",
+    "KQL Database": "KQL analytics database for {rf}",
+    "Cosmos DB": "Document/NoSQL store for {rf}",
+    "Pipeline": "Orchestrated data movement for {rf}",
+    "Dataflow Gen2": "Visual ETL transforms for {rf}",
+    "Eventstream": "Real-time streaming ingestion for {rf}",
+    "Copy Job": "Bulk data copy for {rf}",
+    "Notebook": "Interactive Spark processing for {rf}",
+    "KQL Queryset": "KQL-based data exploration for {rf}",
+    "Spark Job Definition": "Scheduled Spark job for {rf}",
+    "Stored Procedure": "T-SQL server-side logic for {rf}",
+    "Semantic Model": "Semantic layer for {rf}",
+    "Report": "Interactive report for {rf}",
+    "Paginated Report": "Pixel-perfect printable report for {rf}",
+    "Real-Time Dashboard": "Live streaming dashboard for {rf}",
+    "Dashboard": "Dashboard for {rf}",
+    "Metrics Scorecard": "KPI tracking scorecard for {rf}",
+    "Environment": "Spark compute environment for {rf}",
+    "Experiment": "ML experiment tracking for {rf}",
+    "ML Model": "Trained ML model for {rf}",
+    "Activator": "Event-driven alerting for {rf}",
+    "GraphQL API": "Flexible read API for {rf}",
+    "User Data Functions": "Custom business logic API for {rf}",
+    "Variable Library": "Workspace-scoped configuration for {rf}",
+}
+
+
 def _purpose_from(item_type: str, required_for: str) -> str:
-    """Generate a concise purpose string."""
+    """Generate a concise purpose string using templates."""
     required = required_for.strip()
-    if required and required.lower() not in {"(optional)", ""}:
-        return required
-    return f"{item_type} deployment"
+    rf = required if required and required.lower() not in {"(optional)", ""} else "data workloads"
+    # Try exact match first, then base type (strip modifiers like "Bronze", "Silver", "Gold")
+    template = PURPOSE_TEMPLATES.get(item_type)
+    if not template:
+        base_type = item_type.strip().split()[0]
+        template = PURPOSE_TEMPLATES.get(base_type)
+    if template:
+        return template.format(rf=rf)
+    return rf if rf != "data workloads" else f"{item_type} deployment"
 
 
 # ── Diagram parser — loads from JSON registry ─────────────────────────────
@@ -152,56 +189,142 @@ def parse_diagram(task_flow: str) -> list[DiagramItem]:
 
 # ── Decision filtering ────────────────────────────────────────────────────
 
-def _load_decisions_yaml(path: str) -> dict:
-    """Minimal YAML loader for decision-resolver output (no PyYAML dep)."""
+def _load_decisions_file(path: str) -> dict:
+    """Load decision-resolver output (JSON preferred, legacy YAML fallback)."""
+    import json as _json_mod
+    with open(path, encoding="utf-8") as f:
+        content = f.read().strip()
+    if content.startswith("{"):
+        return _json_mod.loads(content)
+    # Legacy YAML fallback — hand-rolled parser for flat key: value files
+    return _load_decisions_yaml_legacy(content)
+
+
+def _load_decisions_yaml_legacy(content: str) -> dict:
+    """Minimal YAML parser for legacy decision-resolver output (no PyYAML dep)."""
     result: dict = {}
     current_section: str | None = None
     current_key: str | None = None
 
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            stripped = line.rstrip()
-            if not stripped or stripped.startswith("#"):
-                continue
-            indent = len(line) - len(line.lstrip())
+    for line in content.splitlines():
+        stripped = line.rstrip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
 
-            if indent == 0 and ":" in stripped:
-                key, _, val = stripped.partition(":")
-                current_section = key.strip()
-                val = val.strip()
-                if val and val != "":
-                    result[current_section] = val.strip('"').strip("'")
-                else:
-                    result[current_section] = {}
-                current_key = None
-            elif indent == 2 and current_section == "decisions" and ":" in stripped:
-                key = stripped.strip().rstrip(":")
-                if ":" in key:
-                    k, _, v = key.partition(":")
-                    key = k.strip()
-                current_key = key.strip().rstrip(":")
-                if isinstance(result.get("decisions"), dict):
-                    result["decisions"][current_key] = {}
-            elif indent == 4 and current_key and isinstance(result.get("decisions"), dict):
-                k, _, v = stripped.strip().partition(":")
-                k = k.strip()
-                v = v.strip().strip('"').strip("'")
-                if v.lower() == "null":
-                    v = None
-                result["decisions"][current_key][k] = v
+        if indent == 0 and ":" in stripped:
+            key, _, val = stripped.partition(":")
+            current_section = key.strip()
+            val = val.strip()
+            if val and val != "":
+                result[current_section] = val.strip('"').strip("'")
+            else:
+                result[current_section] = {}
+            current_key = None
+        elif indent == 2 and current_section == "decisions" and ":" in stripped:
+            key = stripped.strip().rstrip(":")
+            if ":" in key:
+                k, _, v = key.partition(":")
+                key = k.strip()
+            current_key = key.strip().rstrip(":")
+            if isinstance(result.get("decisions"), dict):
+                result["decisions"][current_key] = {}
+        elif indent == 4 and current_key and isinstance(result.get("decisions"), dict):
+            k, _, v = stripped.strip().partition(":")
+            k = k.strip()
+            v = v.strip().strip('"').strip("'")
+            if v.lower() == "null":
+                v = None
+            result["decisions"][current_key][k] = v
 
     return result
 
 
 def _filter_by_decisions(items: list[DiagramItem], decisions: dict) -> list[DiagramItem]:
-    """Optionally prune diagram items based on resolved decisions.
+    """Prune alternative items based on resolved decisions.
 
-    Currently informational — includes all items but marks alternatives
-    based on gold_layer_storage or similar decision choices.
+    When the decision resolver has made a high-confidence choice for a
+    decision category (ingestion, storage, processing), remove the
+    unchosen alternatives from the same alternativeGroup. If the decision
+    is ambiguous, skipped, or unresolved, keep all alternatives (preserving
+    the ◄OR► in the diagram so the user can see the options).
     """
     if not decisions or "decisions" not in decisions:
         return items
-    return items
+
+    decs = decisions["decisions"]
+
+    # Map item types to their governing decision key.
+    # Item types that appear as alternatives in deployment-order.json:
+    _ITEM_TYPE_TO_DECISION: dict[str, str] = {
+        # ingestion alternatives
+        "copy job":        "ingestion",
+        "pipeline":        "ingestion",
+        "dataflow gen2":   "ingestion",
+        "eventstream":     "ingestion",
+        # storage alternatives
+        "lakehouse":       "storage",
+        "warehouse":       "storage",
+        "sql database":    "storage",
+        "cosmos db":       "storage",
+        "lakehouse gold":  "storage",
+        "warehouse gold":  "storage",
+        # processing alternatives
+        "notebook":        "processing",
+        "spark job definition": "processing",
+    }
+
+    # Collect choices with high confidence
+    resolved: dict[str, str] = {}  # decision_key → choice string (lowered)
+    for dec_key in ("ingestion", "storage", "processing"):
+        dec = decs.get(dec_key, {})
+        choice = dec.get("choice")
+        confidence = dec.get("confidence", "")
+        if (choice
+                and confidence not in ("ambiguous", "na")
+                and "not yet determined" not in (choice or "").lower()):
+            resolved[dec_key] = choice.lower()
+
+    if not resolved:
+        return items
+
+    filtered: list[DiagramItem] = []
+    for item in items:
+        if not item.is_alternative:
+            filtered.append(item)
+            continue
+
+        dec_key = _ITEM_TYPE_TO_DECISION.get(item.item_type.lower())
+        if dec_key is None or dec_key not in resolved:
+            # No decision governs this alternative — keep it
+            filtered.append(item)
+            continue
+
+        # Check if this item's type appears in the chosen value
+        choice = resolved[dec_key]
+        item_lower = item.item_type.lower()
+        if item_lower in choice or _to_kebab(item.item_type).lower() in choice.replace(" ", "-"):
+            filtered.append(item)
+        # else: pruned — this alternative was not selected
+
+    # Clean up: if an alternative survived filtering but ALL its counterparts
+    # were pruned, it's no longer an alternative — clear the flag.
+    filtered_types = {it.item_type for it in filtered}
+    for item in filtered:
+        if item.is_alternative and item.alternative_group:
+            # Count how many OTHER items share this alternative relationship
+            has_counterpart = any(
+                other is not item
+                and other.is_alternative
+                and (other.alternative_group == item.item_type
+                     or other.item_type == item.alternative_group)
+                for other in filtered
+            )
+            if not has_counterpart:
+                item.is_alternative = False
+                item.alternative_group = None
+
+    return filtered
 
 
 # ── Core scaffold logic ──────────────────────────────────────────────────
@@ -351,15 +474,22 @@ def _build_decisions_table(decisions: dict | None) -> list[str]:
     for key, label in decision_labels.items():
         entry = d.get(key, {})
         if isinstance(entry, dict):
-            choice = entry.get("choice", "")
-            rule = entry.get("rule_matched", "")
-            if choice and choice != "None":
-                rows.append(f"| {label} | {choice} | {rule or ''} |")
+            rationale = entry.get("rationale", "") or entry.get("rule_matched", "")
+            choice = entry.get("choice", "") or "Not yet determined"
+            note = entry.get("note", "")
+            if choice == "Not yet determined" and note:
+                rationale = note
+                # If rationale indicates N/A, show N/A as the choice
+                if "n/a" in note.lower():
+                    choice = "N/A"
+            rows.append(f"| {label} | {choice} | {rationale} |")
 
     if not any("Semantic Model" in r for r in rows):
-        rows.append("| Semantic Model Query Mode | | |")
+        # Semantic Model Query Mode is only relevant for task flows with a Semantic Model
+        # For Eventhouse-based flows (event-medallion, event-analytics), it's N/A
+        rows.append("| Semantic Model Query Mode | N/A | Not applicable for this task flow |")
 
-    return rows if rows else ["| Storage | | |"]
+    return rows if rows else ["| Storage | Not yet determined | |"]
 
 
 def _build_alternatives_table(decisions: dict | None) -> list[str]:
@@ -376,23 +506,122 @@ def _build_alternatives_table(decisions: dict | None) -> list[str]:
         "processing": "Processing",
         "visualization": "Visualization",
         "parameterization": "Parameterization",
+        "skillset": "Skillset",
+        "api": "API",
+    }
+
+    # Known alternatives per decision for high-confidence decisions
+    _KNOWN_ALTERNATIVES: dict[str, list[str]] = {
+        "storage": ["Lakehouse", "Warehouse", "Eventhouse", "SQL Database"],
+        "ingestion": ["Eventstream", "Pipeline", "Copy Job", "Dataflow Gen2"],
+        "processing": ["Notebook", "KQL Queryset", "Spark Job Definition", "Dataflow Gen2"],
+        "visualization": ["Power BI Report", "KQL Dashboard", "Direct Lake"],
     }
 
     for key, label in decision_labels.items():
         entry = d.get(key, {})
-        if isinstance(entry, dict):
-            candidates = entry.get("candidates", [])
-            choice = entry.get("choice", "")
-            if isinstance(candidates, list):
-                for cand in candidates:
-                    if cand != choice:
-                        rows.append(f"| {counter} | {label} | {cand} | Not selected by decision rules |")
-                        counter += 1
+        if not isinstance(entry, dict):
+            continue
+        candidates = entry.get("candidates", [])
+        choice = entry.get("choice", "")
+        rationale = entry.get("rationale", "")
+        confidence = entry.get("confidence", "")
+
+        # For high-confidence decisions without candidates, use known alternatives
+        if not candidates and choice and confidence == "high" and key in _KNOWN_ALTERNATIVES:
+            candidates = [alt for alt in _KNOWN_ALTERNATIVES[key] if alt != choice]
+
+        if isinstance(candidates, list):
+            for cand in candidates:
+                if cand != choice:
+                    if confidence == "ambiguous":
+                        reason = "Viable alternative — decision was ambiguous"
+                    elif rationale:
+                        reason = f"Not selected — {rationale}"
+                    else:
+                        reason = "Not selected by decision rules"
+                    rows.append(f"| {counter} | {label} | {cand} | {reason} |")
+                    counter += 1
 
     return rows if rows else ["| 1 | | | |"]
 
 
-# ── Public API ────────────────────────────────────────────────────────────
+def _build_tradeoffs_table(deploy_items: list[DeployItem]) -> list[str]:
+    """Build Trade-offs table from registry alternatives.
+
+    For each item in the deployment, check the registry for its alternatives.
+    If any alternative is NOT in the deployment (i.e., it was rejected),
+    document it as a trade-off: "Chose X over Y".
+    """
+    alternatives_map = build_alternatives_map()
+    display_names = build_display_names()
+    rows: list[str] = []
+    deployed_fab_types = {di.fab_type for di in deploy_items}
+    seen: set[tuple[str, str]] = set()
+    counter = 1
+
+    for di in deploy_items:
+        alts = alternatives_map.get(di.fab_type, [])
+        for alt_canonical in alts:
+            pair_key = tuple(sorted([di.fab_type, alt_canonical]))
+            if pair_key in seen:
+                continue
+            if alt_canonical not in deployed_fab_types:
+                seen.add(pair_key)
+                item_display = display_names.get(di.fab_type.lower(), di.item_type)
+                alt_display = display_names.get(alt_canonical.lower(), alt_canonical)
+                rows.append(
+                    f"| {counter} | {item_display} chosen over {alt_display}"
+                    f" | Selected by decision resolver based on project signals"
+                    f" | {alt_display} remains available if requirements change"
+                    f" | Switch via sign-off revision |"
+                )
+                counter += 1
+
+    return rows if rows else ["| 1 | (no trade-offs identified) | | | |"]
+
+
+def _build_deployment_strategy(decisions: dict | None, task_flow: str) -> list[str]:
+    """Build Deployment Strategy table from decisions."""
+    rows: list[str] = []
+
+    if decisions and "decisions" in decisions:
+        d = decisions["decisions"]
+
+        # Workspace Approach
+        param = d.get("parameterization", {})
+        env_note = param.get("note", "")
+        if "single" in env_note.lower() or (param.get("choice") and "Environment Variables" in str(param.get("choice"))):
+            rows.append("| Workspace Approach | Single workspace | Simpler setup for single-environment deployments |")
+        else:
+            rows.append("| Workspace Approach | Dev/Test/Prod workspaces | Environment isolation for safe promotion |")
+
+        # Environments
+        param_choice = param.get("choice", "")
+        if param_choice:
+            rows.append(f"| Environments | {param_choice} | {param.get('rationale', 'Based on environment configuration needs')} |")
+        else:
+            rows.append("| Environments | Dev + Prod (minimum) | Standard two-environment promotion pattern |")
+
+        # CI/CD Tool
+        rows.append("| CI/CD Tool | fabric-cicd Python package | Standard deployment tool for Fabric items |")
+
+        # Parameterization
+        if param_choice:
+            rows.append(f"| Parameterization | {param_choice} | {param.get('rationale', '')} |")
+        else:
+            rows.append("| Parameterization | Environment Variables | Default single-environment configuration |")
+
+        # Branching Model
+        rows.append("| Branching Model | Git-based with dev/test/prod branches | Standard branch-per-environment promotion |")
+    else:
+        rows.append("| Workspace Approach | Dev/Test/Prod workspaces | Environment isolation for safe promotion |")
+        rows.append("| Environments | Dev + Prod (minimum) | Standard two-environment promotion pattern |")
+        rows.append("| CI/CD Tool | fabric-cicd Python package | Standard deployment tool for Fabric items |")
+        rows.append("| Parameterization | Environment Variables | Default configuration approach |")
+        rows.append("| Branching Model | Git-based with dev/test/prod branches | Standard branch-per-environment promotion |")
+
+    return rows
 
 def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str:
     """Generate a scaffolded architecture handoff markdown string.
@@ -407,6 +636,10 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
     """
     diagram_items = parse_diagram(task_flow)
 
+    # Build tradeoffs from unfiltered items (before alternatives are pruned)
+    unfiltered_deploy = _build_deploy_items(diagram_items)
+    tradeoffs_table = _build_tradeoffs_table(unfiltered_deploy)
+
     if decisions:
         diagram_items = _filter_by_decisions(diagram_items, decisions)
 
@@ -419,6 +652,7 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
 
     decisions_table = _build_decisions_table(decisions)
     alternatives_table = _build_alternatives_table(decisions)
+    deployment_strategy = _build_deployment_strategy(decisions, task_flow)
 
     items_yaml = _emit_items_yaml(deploy_items)
     waves_yaml = _emit_waves_yaml(waves)
@@ -455,7 +689,7 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
         "---",
         "",
         "### Problem Reference",
-        "> See: prd/discovery-brief.md",
+        "> See: docs/discovery-brief.md",
         "> Summary: <!-- /fabric-design: ≤20 word summary -->",
         "",
         "---",
@@ -510,19 +744,21 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
         "",
         "| # | Trade-off | Benefit | Cost | Mitigation |",
         "|---|-----------|---------|------|------------|",
-        "| 1 | | | | |",
+    ])
+
+    parts.extend(tradeoffs_table)
+
+    parts.extend([
         "",
         "## Deployment Strategy",
         "",
         "| Decision | Choice | Rationale |",
         "|----------|--------|-----------|",
-        "| Workspace Approach | | |",
-        "| Environments | | |",
-        "| CI/CD Tool | | |",
-        "| Parameterization | | |",
-        "| Branching Model | | |",
-        "",
-        "## References",
+    ])
+
+    parts.extend(deployment_strategy)
+
+    parts.extend([
         "",
         f"- Project folder: projects/{project}/",
         f"- Diagram: diagrams/{task_flow}.md",
@@ -543,14 +779,14 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Pre-fill architecture handoff YAML from deployment diagrams"
+        description="Pre-fill architecture handoff from deployment registry"
     )
     parser.add_argument("--task-flow", required=True,
                         help="Task flow ID (e.g. medallion, lambda, event-analytics)")
     parser.add_argument("--project", required=True,
                         help="Project name")
     parser.add_argument("--decisions", default=None,
-                        help="Path to decision-resolver output YAML")
+                        help="Path to decision-resolver output (JSON or legacy YAML)")
     parser.add_argument("--output", default=None,
                         help="Output file path (default: stdout)")
     args = parser.parse_args()
@@ -558,7 +794,7 @@ def main() -> None:
     decisions: dict | None = None
     if args.decisions:
         try:
-            decisions = _load_decisions_yaml(args.decisions)
+            decisions = _load_decisions_file(args.decisions)
         except FileNotFoundError:
             print(f"Error: decisions file not found: {args.decisions}", file=sys.stderr)
             sys.exit(2)

@@ -147,16 +147,25 @@ class TestWaveNumber:
 
 class TestPurposeFrom:
     def test_required_for_text(self):
-        assert _purpose_from("Notebook", "Bronze → Silver") == "Bronze → Silver"
+        assert _purpose_from("Notebook", "Bronze → Silver") == "Interactive Spark processing for Bronze → Silver"
 
     def test_optional_fallback(self):
-        assert _purpose_from("Notebook", "(optional)") == "Notebook deployment"
+        assert _purpose_from("Notebook", "(optional)") == "Interactive Spark processing for data workloads"
 
     def test_empty_fallback(self):
-        assert _purpose_from("Notebook", "") == "Notebook deployment"
+        assert _purpose_from("Notebook", "") == "Interactive Spark processing for data workloads"
 
     def test_whitespace_only_fallback(self):
-        assert _purpose_from("Notebook", "   ") == "Notebook deployment"
+        assert _purpose_from("Notebook", "   ") == "Interactive Spark processing for data workloads"
+
+    def test_unknown_type_with_required_for(self):
+        assert _purpose_from("CustomWidget", "dashboard") == "dashboard"
+
+    def test_unknown_type_no_required_for(self):
+        assert _purpose_from("CustomWidget", "") == "CustomWidget deployment"
+
+    def test_base_type_lookup(self):
+        assert _purpose_from("Lakehouse Bronze", "raw ingestion") == "Delta Lake storage for raw ingestion"
 
 
 # ── parse_diagram tests ──────────────────────────────────────────────────
@@ -230,7 +239,7 @@ class TestBuildDeployItems:
 
     def test_purpose_uses_required_for(self):
         result = _build_deploy_items(self._make_diagram_items())
-        assert result[0].purpose == "Bronze storage"
+        assert result[0].purpose == "Delta Lake storage for Bronze storage"
 
 
 # ── _build_waves tests ────────────────────────────────────────────────────

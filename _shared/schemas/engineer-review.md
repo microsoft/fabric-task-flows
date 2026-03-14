@@ -1,7 +1,7 @@
-# Engineer Review Schema
+﻿# Engineer Review Schema
 
 > Schema for `/fabric-deploy` Mode 0 output (DRAFT architecture review).
-> Save as: `_projects/[name]/prd/engineer-review.md`
+> Save as: `_projects/[name]/docs/engineer-review.md`
 
 Use the YAML template below. Every field has a max length noted in comments.
 Do NOT add prose sections outside this structure. The architect parses this programmatically.

@@ -1,4 +1,4 @@
-"""Tests for deploy-script-gen.py — verifies fabric-cicd artifact generation."""
+﻿"""Tests for deploy-script-gen.py — verifies fabric-cicd artifact generation."""
 
 import sys
 import tempfile
@@ -34,7 +34,7 @@ def test_generated_artifacts():
     except (AttributeError, ImportError):
         return
 
-    handoff = REPO_ROOT / "_projects" / "agent-assist-telco" / "prd" / "architecture-handoff.md"
+    handoff = REPO_ROOT / "_projects" / "agent-assist-telco" / "docs" / "architecture-handoff.md"
     if not handoff.exists():
         return
 

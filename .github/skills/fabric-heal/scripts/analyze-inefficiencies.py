@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Pipeline inefficiency analyzer — stress-tests the framework's deterministic
 scripts against a problem statement and analyzes all existing project artifacts
@@ -108,7 +108,7 @@ def analyze_prescans(projects: list[Path]) -> list[str]:
     projects_analyzed = 0
 
     for proj_dir in projects:
-        handoff = proj_dir / "prd" / "architecture-handoff.md"
+        handoff = proj_dir / "docs" / "architecture-handoff.md"
         if not handoff.exists():
             continue
 
@@ -213,7 +213,7 @@ def mine_project_artifacts(projects: list[Path]) -> list[str]:
                 print(f"⚠ pipeline-state parse failed for {proj_dir.name}: {e}", file=sys.stderr)
 
         # Analyze handoff for blockers
-        handoff = proj_dir / "prd" / "architecture-handoff.md"
+        handoff = proj_dir / "docs" / "architecture-handoff.md"
         if handoff.exists():
             content = handoff.read_text(encoding="utf-8")
             # Extract blockers from frontmatter
@@ -293,7 +293,7 @@ def mine_project_artifacts(projects: list[Path]) -> list[str]:
     # Check discovery brief quality
     customer_questions_in_arch_section = 0
     for proj_dir in projects:
-        brief = proj_dir / "prd" / "discovery-brief.md"
+        brief = proj_dir / "docs" / "discovery-brief.md"
         if brief.exists():
             content = brief.read_text(encoding="utf-8")
             # Check for old "Open Questions for Architect" that contain customer-answerable questions

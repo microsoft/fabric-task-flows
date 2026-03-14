@@ -1,4 +1,4 @@
-# Parallel Deployment
+﻿# Parallel Deployment
 
 Fabric item deployments can be significantly accelerated by deploying independent items concurrently. This guide explains how to analyze deployment order tables and generate parallel scripts.
 
@@ -44,7 +44,7 @@ This produces **5 waves** instead of 15 sequential calls:
 The `deploy-script-gen.py` script generates deployment scripts with wave-based parallelism built in. Use it instead of writing bash templates manually:
 
 ```bash
-python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff _projects/[name]/prd/architecture-handoff.md
+python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff _projects/[name]/docs/architecture-handoff.md
 ```
 
 The generated scripts include parallel execution helpers, wave grouping, error handling (fail-fast on wave failure), and timing instrumentation.

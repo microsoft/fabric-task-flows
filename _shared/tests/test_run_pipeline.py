@@ -1,4 +1,4 @@
-"""Tests for run-pipeline.py — verifies project-name guardrails in start_pipeline()."""
+﻿"""Tests for run-pipeline.py — verifies project-name guardrails in start_pipeline()."""
 
 import importlib.util
 import json
@@ -96,12 +96,12 @@ PHASE_ORDER = [
 SKILLS_REGISTRY = {
     "phase_order": PHASE_ORDER,
     "phases": {
-        "0a-discovery": {"skill": "fabric-discover", "output": ["prd/discovery-brief.md"]},
-        "1-design": {"skill": "fabric-design", "output": ["prd/architecture-handoff.md"]},
-        "2a-test-plan": {"skill": "fabric-test", "mode": 1, "output": ["prd/test-plan.md"]},
+        "0a-discovery": {"skill": "fabric-discover", "output": ["docs/discovery-brief.md"]},
+        "1-design": {"skill": "fabric-design", "output": ["docs/architecture-handoff.md"]},
+        "2a-test-plan": {"skill": "fabric-test", "mode": 1, "output": ["docs/test-plan.md"]},
         "2b-sign-off": {"skill": None, "gate": "human", "output": []},
-        "2c-deploy": {"skill": "fabric-deploy", "output": ["prd/deployment-handoff.md"]},
-        "3-validate": {"skill": "fabric-test", "mode": 2, "output": ["prd/validation-report.md"]},
+        "2c-deploy": {"skill": "fabric-deploy", "output": ["docs/deployment-handoff.md"]},
+        "3-validate": {"skill": "fabric-test", "mode": 2, "output": ["docs/validation-report.md"]},
         "4-document": {"skill": "fabric-document", "output": ["docs/README.md"]},
     },
     "standalone_skills": {},
@@ -139,7 +139,7 @@ def _write_state(tmp_path, project, state):
     """Write pipeline-state.json into the expected location."""
     proj_dir = tmp_path / "_projects" / project
     proj_dir.mkdir(parents=True, exist_ok=True)
-    (proj_dir / "prd").mkdir(exist_ok=True)
+    (proj_dir / "docs").mkdir(exist_ok=True)
     state_file = proj_dir / "pipeline-state.json"
     state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
     return state_file
@@ -149,11 +149,11 @@ def _scaffold_project(tmp_path, project):
     """Create a minimal project directory structure for testing."""
     proj_dir = tmp_path / "_projects" / project
     proj_dir.mkdir(parents=True, exist_ok=True)
-    (proj_dir / "prd").mkdir(exist_ok=True)
+    (proj_dir / "docs").mkdir(exist_ok=True)
     (proj_dir / "docs" / "decisions").mkdir(parents=True, exist_ok=True)
     # Write empty template files so they exist
     for fname in ["discovery-brief.md", "architecture-handoff.md", "test-plan.md"]:
-        (proj_dir / "prd" / fname).write_text("", encoding="utf-8")
+        (proj_dir / "docs" / fname).write_text("", encoding="utf-8")
     for i in range(1, 6):
         titles = {1: "task-flow", 2: "storage", 3: "ingestion", 4: "processing", 5: "visualization"}
         (proj_dir / "docs" / "decisions" / f"{i:03d}-{titles[i]}.md").write_text("", encoding="utf-8")
@@ -294,7 +294,7 @@ class TestPhaseMetadata:
 
     def test_phase_output_files(self, monkeypatch):
         monkeypatch.setattr(rp, "_REGISTRY", SKILLS_REGISTRY)
-        assert rp._phase_output_files("0a-discovery") == ["prd/discovery-brief.md"]
+        assert rp._phase_output_files("0a-discovery") == ["docs/discovery-brief.md"]
         assert rp._phase_output_files("2b-sign-off") == []
 
 
@@ -426,7 +426,7 @@ class TestAdvance:
         """advance() extracts task_flow from architecture-handoff.md after 1-design."""
         self._setup_phase_with_output(tmp_path, monkeypatch, "p5", "1-design")
         # Write a handoff with task_flow frontmatter
-        handoff = tmp_path / "_projects" / "p5" / "prd" / "architecture-handoff.md"
+        handoff = tmp_path / "_projects" / "p5" / "docs" / "architecture-handoff.md"
         handoff.write_text(
             "---\ntask_flow: medallion\n---\n# Handoff\n" + ("x" * 300),
             encoding="utf-8",
@@ -456,7 +456,7 @@ class TestRevise:
         state = _make_state(project="rv2", current="2b-sign-off")
         _write_state(tmp_path, "rv2", state)
         rp.advance("rv2", revise=True, feedback="Use EventStream instead")
-        fb_path = tmp_path / "_projects" / "rv2" / "prd" / "sign-off-feedback.md"
+        fb_path = tmp_path / "_projects" / "rv2" / "docs" / "sign-off-feedback.md"
         assert fb_path.exists()
         content = fb_path.read_text(encoding="utf-8")
         assert "Use EventStream instead" in content
@@ -510,8 +510,8 @@ class TestVerifyOutput:
         """Files over MIN_CONTENT_SIZE without template markers pass."""
         _patch_repo(monkeypatch, tmp_path)
         proj_dir = tmp_path / "_projects" / "vo1"
-        (proj_dir / "prd").mkdir(parents=True)
-        (proj_dir / "prd" / "discovery-brief.md").write_text(
+        (proj_dir / "docs").mkdir(parents=True)
+        (proj_dir / "docs" / "discovery-brief.md").write_text(
             "x" * 300, encoding="utf-8"
         )
         ok, msg = rp._verify_output("0a-discovery", "vo1")
@@ -520,7 +520,7 @@ class TestVerifyOutput:
     def test_verify_fails_for_missing_file(self, tmp_path, monkeypatch):
         """Missing output files cause verify to fail."""
         _patch_repo(monkeypatch, tmp_path)
-        (tmp_path / "_projects" / "vo2" / "prd").mkdir(parents=True)
+        (tmp_path / "_projects" / "vo2" / "docs").mkdir(parents=True)
         ok, msg = rp._verify_output("0a-discovery", "vo2")
         assert ok is False
         assert "Missing" in msg
@@ -529,8 +529,8 @@ class TestVerifyOutput:
         """Files smaller than MIN_CONTENT_SIZE are flagged as unfilled."""
         _patch_repo(monkeypatch, tmp_path)
         proj_dir = tmp_path / "_projects" / "vo3"
-        (proj_dir / "prd").mkdir(parents=True)
-        (proj_dir / "prd" / "discovery-brief.md").write_text("tiny", encoding="utf-8")
+        (proj_dir / "docs").mkdir(parents=True)
+        (proj_dir / "docs" / "discovery-brief.md").write_text("tiny", encoding="utf-8")
         ok, msg = rp._verify_output("0a-discovery", "vo3")
         assert ok is False
         assert "template" in msg.lower() or "placeholder" in msg.lower()
@@ -539,9 +539,9 @@ class TestVerifyOutput:
         """Files containing template markers are flagged as unfilled."""
         _patch_repo(monkeypatch, tmp_path)
         proj_dir = tmp_path / "_projects" / "vo4"
-        (proj_dir / "prd").mkdir(parents=True)
+        (proj_dir / "docs").mkdir(parents=True)
         content = "# Brief\ntask_flow: TBD\n" + ("x" * 300)
-        (proj_dir / "prd" / "discovery-brief.md").write_text(content, encoding="utf-8")
+        (proj_dir / "docs" / "discovery-brief.md").write_text(content, encoding="utf-8")
         ok, msg = rp._verify_output("0a-discovery", "vo4")
         assert ok is False
 
@@ -560,7 +560,7 @@ class TestExtractTaskFlow:
 
     def test_extracts_from_yaml_frontmatter(self, tmp_path, monkeypatch):
         _patch_repo(monkeypatch, tmp_path)
-        proj_dir = tmp_path / "_projects" / "tf1" / "prd"
+        proj_dir = tmp_path / "_projects" / "tf1" / "docs"
         proj_dir.mkdir(parents=True)
         (proj_dir / "architecture-handoff.md").write_text(
             "---\ntask_flow: lambda\n---\n# Handoff", encoding="utf-8"
@@ -569,7 +569,7 @@ class TestExtractTaskFlow:
 
     def test_extracts_hyphenated_key(self, tmp_path, monkeypatch):
         _patch_repo(monkeypatch, tmp_path)
-        proj_dir = tmp_path / "_projects" / "tf2" / "prd"
+        proj_dir = tmp_path / "_projects" / "tf2" / "docs"
         proj_dir.mkdir(parents=True)
         (proj_dir / "architecture-handoff.md").write_text(
             "---\ntask-flow: medallion\n---\n# Handoff", encoding="utf-8"
@@ -578,12 +578,12 @@ class TestExtractTaskFlow:
 
     def test_returns_none_when_no_handoff(self, tmp_path, monkeypatch):
         _patch_repo(monkeypatch, tmp_path)
-        (tmp_path / "_projects" / "tf3" / "prd").mkdir(parents=True)
+        (tmp_path / "_projects" / "tf3" / "docs").mkdir(parents=True)
         assert rp._extract_task_flow("tf3") is None
 
     def test_extracts_from_body_fallback(self, tmp_path, monkeypatch):
         _patch_repo(monkeypatch, tmp_path)
-        proj_dir = tmp_path / "_projects" / "tf4" / "prd"
+        proj_dir = tmp_path / "_projects" / "tf4" / "docs"
         proj_dir.mkdir(parents=True)
         (proj_dir / "architecture-handoff.md").write_text(
             "# Handoff\nTask Flow: `medallion`\n", encoding="utf-8"
@@ -706,7 +706,7 @@ class TestPrecomputeFilesystemPath:
         _patch_repo(monkeypatch, tmp_path)
         state = _make_state(current="2a-test-plan", task_flow="medallion")
         # Create handoff at the CORRECT location
-        handoff_dir = tmp_path / "_projects" / "test-proj" / "prd"
+        handoff_dir = tmp_path / "_projects" / "test-proj" / "docs"
         handoff_dir.mkdir(parents=True, exist_ok=True)
         (handoff_dir / "architecture-handoff.md").write_text(
             "---\ntask_flow: medallion\n---\n# Handoff\n" + ("x" * 300),
@@ -749,10 +749,10 @@ class TestPrecomputeFilesystemPath:
 class TestSignoffDiagramDisplay:
     """Regression: sign-off diagram must not be suppressed by -q flag (Bug #4)."""
 
-    def test_signoff_diagram_extracted_from_handoff(self, tmp_path, monkeypatch):
-        """_print_signoff_diagram extracts code block from ## Architecture Diagram."""
+    def test_signoff_summary_shows_diagram(self, tmp_path, monkeypatch):
+        """_print_signoff_summary shows the architecture diagram."""
         _patch_repo(monkeypatch, tmp_path)
-        handoff_dir = tmp_path / "_projects" / "test-proj" / "prd"
+        handoff_dir = tmp_path / "_projects" / "test-proj" / "docs"
         handoff_dir.mkdir(parents=True, exist_ok=True)
         (handoff_dir / "architecture-handoff.md").write_text(
             "# Handoff\n\n## Architecture Diagram\n\n```\n"
@@ -760,37 +760,50 @@ class TestSignoffDiagramDisplay:
             "```\n\n## Decisions\n",
             encoding="utf-8",
         )
-        import io
-        captured = io.StringIO()
-        monkeypatch.setattr("sys.stdout", captured)
-        rp._print_signoff_diagram("test-proj")
-        output = captured.getvalue()
-        assert "ARCHITECTURE DIAGRAM" in output
-        assert "MyItem" in output
-
-    def test_signoff_diagram_silent_when_no_handoff(self, tmp_path, monkeypatch):
-        """_print_signoff_diagram does nothing if handoff file is missing."""
-        _patch_repo(monkeypatch, tmp_path)
-        import io
-        captured = io.StringIO()
-        monkeypatch.setattr("sys.stdout", captured)
-        rp._print_signoff_diagram("nonexistent-proj")
-        assert captured.getvalue() == ""
-
-    def test_signoff_diagram_silent_when_no_code_block(self, tmp_path, monkeypatch):
-        """_print_signoff_diagram does nothing if diagram section has no code block."""
-        _patch_repo(monkeypatch, tmp_path)
-        handoff_dir = tmp_path / "_projects" / "test-proj" / "prd"
-        handoff_dir.mkdir(parents=True, exist_ok=True)
-        (handoff_dir / "architecture-handoff.md").write_text(
-            "# Handoff\n\n## Architecture Diagram\n\nNo diagram yet.\n\n## Decisions\n",
+        (handoff_dir / "architecture-summary.json").write_text(
+            '{"task_flow":"medallion","items":[],"decisions":{},"item_count":0,"wave_count":0}',
             encoding="utf-8",
         )
         import io
         captured = io.StringIO()
         monkeypatch.setattr("sys.stdout", captured)
-        rp._print_signoff_diagram("test-proj")
-        assert "ARCHITECTURE DIAGRAM" not in captured.getvalue()
+        rp._print_signoff_summary("test-proj")
+        output = captured.getvalue()
+        assert "ARCHITECTURE REVIEW" in output
+        assert "MyItem" in output
+
+    def test_signoff_summary_silent_when_no_handoff(self, tmp_path, monkeypatch):
+        """_print_signoff_summary still runs (with no diagram) if handoff file is missing."""
+        _patch_repo(monkeypatch, tmp_path)
+        import io
+        captured = io.StringIO()
+        monkeypatch.setattr("sys.stdout", captured)
+        rp._print_signoff_summary("nonexistent-proj")
+        # Should still print header even without diagram
+        output = captured.getvalue()
+        assert "ARCHITECTURE REVIEW" in output
+
+    def test_signoff_summary_no_diagram_when_no_code_block(self, tmp_path, monkeypatch):
+        """_print_signoff_summary omits diagram if section has no code block."""
+        _patch_repo(monkeypatch, tmp_path)
+        handoff_dir = tmp_path / "_projects" / "test-proj" / "docs"
+        handoff_dir.mkdir(parents=True, exist_ok=True)
+        (handoff_dir / "architecture-handoff.md").write_text(
+            "# Handoff\n\n## Architecture Diagram\n\nNo diagram yet.\n\n## Decisions\n",
+            encoding="utf-8",
+        )
+        (handoff_dir / "architecture-summary.json").write_text(
+            '{"task_flow":"medallion","items":[],"decisions":{},"item_count":0,"wave_count":0}',
+            encoding="utf-8",
+        )
+        import io
+        captured = io.StringIO()
+        monkeypatch.setattr("sys.stdout", captured)
+        rp._print_signoff_summary("test-proj")
+        output = captured.getvalue()
+        # Header shown, but no diagram box chars
+        assert "ARCHITECTURE REVIEW" in output
+        assert "┌─────────┐" not in output
 
 
 class TestGetNextPromptSignoff:
@@ -832,7 +845,7 @@ class TestGetNextPromptSignoff:
         state["transitions"] = [{"from": "2b-sign-off", "auto": False}]
         _write_state(tmp_path, "gp3", state)
         # Create handoff at the CORRECT _projects/ path
-        handoff_dir = tmp_path / "_projects" / "gp3" / "prd"
+        handoff_dir = tmp_path / "_projects" / "gp3" / "docs"
         handoff_dir.mkdir(parents=True, exist_ok=True)
         (handoff_dir / "architecture-handoff.md").write_text(
             "---\ntask_flow: medallion\n---\n# Handoff\n\n"
@@ -886,20 +899,24 @@ class TestTerminalWidth:
         sep = rp._separator()
         assert sep == "─" * 80
 
-    def test_signoff_diagram_uses_separator(self, tmp_path, monkeypatch, capsys):
-        """_print_signoff_diagram uses dynamic-width separators."""
+    def test_signoff_summary_uses_separator(self, tmp_path, monkeypatch, capsys):
+        """_print_signoff_summary uses dynamic-width separators."""
         _patch_repo(monkeypatch, tmp_path)
         monkeypatch.setattr(rp, "_term_width", lambda: 150)
         proj_dir = tmp_path / "_projects" / "wp"
-        (proj_dir / "prd").mkdir(parents=True)
-        (proj_dir / "prd" / "architecture-handoff.md").write_text(
+        (proj_dir / "docs").mkdir(parents=True)
+        (proj_dir / "docs" / "architecture-handoff.md").write_text(
             "---\ntask_flow: medallion\n---\n# Handoff\n\n"
             "## Architecture Diagram\n\n```\n"
             "┌─────────┐\n│ TestBox │\n└─────────┘\n"
             "```\n",
             encoding="utf-8",
         )
-        rp._print_signoff_diagram("wp")
+        (proj_dir / "docs" / "architecture-summary.json").write_text(
+            '{"task_flow":"medallion","items":[],"decisions":{},"item_count":0,"wave_count":0}',
+            encoding="utf-8",
+        )
+        rp._print_signoff_summary("wp")
         out = capsys.readouterr().out
         assert "─" * 150 in out
 
@@ -974,7 +991,8 @@ class TestGenerateAdrs:
             "decisions": {
                 "storage": {"choice": "Lakehouse", "confidence": "high",
                             "rule_matched": "Spark/Python → Lakehouse",
-                            "guide": "decisions/storage-selection.md"},
+                            "guide": "decisions/storage-selection.md",
+                            "rationale": "Spark/Python skillset is best served by Lakehouse"},
             }
         }
         rp._generate_adrs("test-proj", decisions, "medallion")
@@ -1014,7 +1032,7 @@ class TestFastForward:
         _write_state(tmp_path, "test-proj", state)
 
         # Delete discovery brief
-        disc_path = tmp_path / "_projects" / "test-proj" / "prd" / "discovery-brief.md"
+        disc_path = tmp_path / "_projects" / "test-proj" / "docs" / "discovery-brief.md"
         if disc_path.exists():
             disc_path.unlink()
 
@@ -1029,7 +1047,7 @@ class TestFastForward:
         state = _make_state(current="0a-discovery")
         _write_state(tmp_path, "test-proj", state)
 
-        disc_path = tmp_path / "_projects" / "test-proj" / "prd" / "discovery-brief.md"
+        disc_path = tmp_path / "_projects" / "test-proj" / "docs" / "discovery-brief.md"
         disc_path.write_text("## Discovery Brief\n\nNo task flow info here.\n", encoding="utf-8")
 
         ok, report = rp._generate_complete_handoff("test-proj")
@@ -1044,7 +1062,7 @@ class TestFastForward:
         state["phases"]["0a-discovery"]["status"] = "complete"
         _write_state(tmp_path, "test-proj", state)
 
-        disc_path = tmp_path / "_projects" / "test-proj" / "prd" / "discovery-brief.md"
+        disc_path = tmp_path / "_projects" / "test-proj" / "docs" / "discovery-brief.md"
         disc_path.write_text(
             "## Discovery Brief\n\n"
             "### Suggested Task Flow Candidates\n\n"
@@ -1079,7 +1097,7 @@ class TestGenerateTestPlanFunc:
         _scaffold_project(tmp_path, "test-proj")
 
         # Delete handoff
-        handoff = tmp_path / "_projects" / "test-proj" / "prd" / "architecture-handoff.md"
+        handoff = tmp_path / "_projects" / "test-proj" / "docs" / "architecture-handoff.md"
         if handoff.exists():
             handoff.unlink()
 
@@ -1161,6 +1179,54 @@ class TestScaffolderTemplateAlignment:
         mapped_nums = set(rp._DECISION_TO_ADR.values()) | {"001"}
         assert all_nums == mapped_nums
 
+    def test_adr_no_nonsense_phrases(self, tmp_path, monkeypatch):
+        """ADRs should never contain 'Not determined aligns with'."""
+        _patch_repo(monkeypatch, tmp_path)
+        _scaffold_project(tmp_path, "test-proj")
+        decisions = {
+            "decisions": {
+                "storage": {"choice": "Lakehouse", "confidence": "high",
+                            "rule_matched": "Spark/Python → Lakehouse",
+                            "guide": "decisions/storage-selection.md",
+                            "rationale": "Spark skillset is best served by Lakehouse"},
+                "ingestion": {"choice": None, "confidence": "na",
+                              "rule_matched": None,
+                              "guide": "decisions/ingestion-selection.md",
+                              "rationale": ""},
+                "processing": {"choice": "Notebook", "confidence": "high",
+                               "rule_matched": "Interactive → Notebook",
+                               "guide": "decisions/processing-selection.md",
+                               "rationale": "Interactive Spark workloads use Notebook"},
+                "visualization": {"choice": None, "confidence": "ambiguous",
+                                  "rule_matched": None,
+                                  "guide": "decisions/visualization-selection.md",
+                                  "rationale": "", "candidates": ["Power BI Report", "Dashboard"]},
+            }
+        }
+        rp._generate_adrs("test-proj", decisions, "medallion")
+        docs_dir = tmp_path / "_projects" / "test-proj" / "docs" / "decisions"
+        for adr_file in docs_dir.glob("*.md"):
+            content = adr_file.read_text(encoding="utf-8")
+            assert "Not determined aligns with" not in content, (
+                f"{adr_file.name} contains nonsense phrase 'Not determined aligns with'"
+            )
+
+    def test_adr_rationale_appears_in_content(self, tmp_path, monkeypatch):
+        """ADR content should include the rationale from the decision."""
+        _patch_repo(monkeypatch, tmp_path)
+        _scaffold_project(tmp_path, "test-proj")
+        decisions = {
+            "decisions": {
+                "storage": {"choice": "Lakehouse", "confidence": "high",
+                            "rule_matched": "Spark/Python → Lakehouse",
+                            "guide": "decisions/storage-selection.md",
+                            "rationale": "Spark skillset is best served by Lakehouse"},
+            }
+        }
+        rp._generate_adrs("test-proj", decisions, "medallion")
+        content = (tmp_path / "_projects" / "test-proj" / "docs" / "decisions" / "002-storage.md").read_text(encoding="utf-8")
+        assert "Spark skillset is best served by Lakehouse" in content
+
 
 # ── Design pre-compute tests ────────────────────────────────────────────
 
@@ -1173,8 +1239,8 @@ class TestDesignPrecompute:
         _patch_repo(monkeypatch, tmp_path)
         state = _make_state(current="1-design")
         proj_dir = tmp_path / "_projects" / "test-proj"
-        (proj_dir / "prd").mkdir(parents=True, exist_ok=True)
-        (proj_dir / "prd" / "discovery-brief.md").write_text(
+        (proj_dir / "docs").mkdir(parents=True, exist_ok=True)
+        (proj_dir / "docs" / "discovery-brief.md").write_text(
             "## Discovery Brief\n\n### Suggested Task Flow Candidates\n\n"
             "| Candidate | Why | Confidence |\n|---|---|---|\n"
             "| medallion | fits | high |\n",
@@ -1197,8 +1263,8 @@ class TestDesignPrecompute:
         _patch_repo(monkeypatch, tmp_path)
         state = _make_state(current="1-design")
         proj_dir = tmp_path / "_projects" / "test-proj"
-        (proj_dir / "prd").mkdir(parents=True, exist_ok=True)
-        (proj_dir / "prd" / "discovery-brief.md").write_text(
+        (proj_dir / "docs").mkdir(parents=True, exist_ok=True)
+        (proj_dir / "docs" / "discovery-brief.md").write_text(
             "## Discovery Brief\n\n### Suggested Task Flow Candidates\n\n"
             "| Candidate | Why | Confidence |\n|---|---|---|\n"
             "| event-medallion | best fit | high |\n"
@@ -1305,8 +1371,8 @@ class TestPrecomputeEncoding:
         _patch_repo(monkeypatch, tmp_path)
         state = _make_state(current="1-design")
         proj_dir = tmp_path / "_projects" / "test-proj"
-        (proj_dir / "prd").mkdir(parents=True, exist_ok=True)
-        (proj_dir / "prd" / "discovery-brief.md").write_text(
+        (proj_dir / "docs").mkdir(parents=True, exist_ok=True)
+        (proj_dir / "docs" / "discovery-brief.md").write_text(
             "### Suggested Task Flow Candidates\n\n"
             "| Candidate | Why | Confidence |\n|---|---|---|\n"
             "| medallion | fits | high |\n",
@@ -1333,14 +1399,14 @@ class TestPrecomputeFileWriting:
         _patch_repo(monkeypatch, tmp_path)
         state = _make_state(current="1-design")
         proj_dir = tmp_path / "_projects" / "test-proj"
-        (proj_dir / "prd").mkdir(parents=True, exist_ok=True)
-        (proj_dir / "prd" / "discovery-brief.md").write_text(
+        (proj_dir / "docs").mkdir(parents=True, exist_ok=True)
+        (proj_dir / "docs" / "discovery-brief.md").write_text(
             "### Suggested Task Flow Candidates\n\n"
             "| Candidate | Why | Confidence |\n|---|---|---|\n"
             "| event-medallion | best | high |\n",
             encoding="utf-8",
         )
-        (proj_dir / "prd" / "architecture-handoff.md").write_text("template", encoding="utf-8")
+        (proj_dir / "docs" / "architecture-handoff.md").write_text("template", encoding="utf-8")
         import subprocess as _sp
 
         def fake_run(cmd, **kwargs):
@@ -1361,12 +1427,12 @@ class TestPrecomputeFileWriting:
         _patch_repo(monkeypatch, tmp_path)
         state = _make_state(current="2a-test-plan", task_flow="medallion")
         proj_dir = tmp_path / "_projects" / "test-proj"
-        (proj_dir / "prd").mkdir(parents=True, exist_ok=True)
-        (proj_dir / "prd" / "architecture-handoff.md").write_text(
+        (proj_dir / "docs").mkdir(parents=True, exist_ok=True)
+        (proj_dir / "docs" / "architecture-handoff.md").write_text(
             "---\ntask_flow: medallion\n---\n# Handoff\ncontent here",
             encoding="utf-8",
         )
-        test_plan_path = proj_dir / "prd" / "test-plan.md"
+        test_plan_path = proj_dir / "docs" / "test-plan.md"
         test_plan_path.write_text("template placeholder", encoding="utf-8")
         import subprocess as _sp
 

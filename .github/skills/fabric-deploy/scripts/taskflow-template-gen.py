@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Generate a Fabric Task Flow JSON template from an architecture handoff.
 
@@ -7,8 +7,8 @@ Settings → Task flow → Import. The template defines tasks (nodes) and
 edges (connections) that visualize item dependencies in the workspace.
 
 Usage:
-    python taskflow-template-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project"
-    python taskflow-template-gen.py --handoff projects/my-project/prd/architecture-handoff.md --project "My Project" --output projects/my-project/deployments/taskflow.json
+    python taskflow-template-gen.py --handoff projects/my-project/docs/architecture-handoff.md --project "My Project"
+    python taskflow-template-gen.py --handoff projects/my-project/docs/architecture-handoff.md --project "My Project" --output projects/my-project/deploy/taskflow.json
 
 Reference: https://learn.microsoft.com/en-us/fabric/fundamentals/task-flow-overview
 """
@@ -232,7 +232,7 @@ def main():
     if args.output:
         out_path = Path(args.output)
     else:
-        handoff_dir = Path(args.handoff).parent.parent / "deployments"
+        handoff_dir = Path(args.handoff).parent.parent / "deploy"
         slug = project_name.lower().replace(" ", "-")
         out_path = handoff_dir / f"taskflow-{slug}.json"
 

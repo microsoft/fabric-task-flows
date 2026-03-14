@@ -1,4 +1,4 @@
----
+﻿---
 name: fabric-design
 description: >
   The Architect skill — designs Microsoft Fabric architectures and produces
@@ -16,7 +16,7 @@ pre-compute: [decision-resolver, handoff-scaffolder]
 
 ### Step 1: Load Discovery Brief
 
-Read `_projects/[name]/prd/discovery-brief.md` for inferred signals, 4V's, and task flow candidates.
+Read `_projects/[name]/docs/discovery-brief.md` for inferred signals, 4V's, and task flow candidates.
 
 ### Step 2: Select Task Flow
 
@@ -25,7 +25,7 @@ Reference `task-flows.md` for the 11 options + general. For complex multi-patter
 ### Step 3: Resolve Architectural Decisions
 
 ```bash
-python .github/skills/fabric-design/scripts/decision-resolver.py --discovery-brief _projects/[name]/prd/discovery-brief.md --format yaml
+python .github/skills/fabric-design/scripts/decision-resolver.py --discovery-brief _projects/[name]/docs/discovery-brief.md --format yaml
 ```
 
 - **High confidence** → accept the choice
@@ -41,7 +41,7 @@ If multi-environment and Variable Library chosen: add it as a **Wave 1 item**.
 
 ### Step 4: Produce FINAL Architecture Handoff
 
-Write to `_projects/[name]/prd/architecture-handoff.md`.
+Write to `_projects/[name]/docs/architecture-handoff.md`.
 
 > **⚡ Fast-forward mode:** When advancing from discovery, the pipeline may auto-generate the complete handoff (items, waves, ACs, decisions, diagram, ADRs) and fast-forward directly to sign-off. In this case, the agent reviews the pre-generated content rather than writing from scratch.
 
@@ -53,6 +53,8 @@ If the handoff file is **already populated** (has YAML frontmatter with real `ta
 If the handoff file is **still a template** (contains `task_flow: TBD` or `items: []`):
 - Write the complete handoff from scratch using the scaffolded template structure
 - Include YAML frontmatter with `task_flow`
+
+In either case, fill in the `> Summary:` line with a ≤20-word summary of the problem statement from the discovery brief.
 
 ### Step 5: Write ADRs
 

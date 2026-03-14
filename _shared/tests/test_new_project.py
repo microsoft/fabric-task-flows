@@ -1,4 +1,4 @@
-"""Tests for new-project.py — verifies name sanitisation, scaffold structure,
+﻿"""Tests for new-project.py — verifies name sanitisation, scaffold structure,
 template content, pipeline state, and PROJECTS.md updates."""
 
 import importlib.util
@@ -123,11 +123,6 @@ class TestTemplateGenerators:
         assert "ADR-003" in doc
         assert "Ingestion Approach" in doc
 
-    def test_docs_readme_links(self):
-        doc = np.docs_readme("rp", "Read Project")
-        assert "architecture.md" in doc
-        assert "deployment-log.md" in doc
-
 
 # ── pipeline_state ───────────────────────────────────────────────────────
 
@@ -175,17 +170,17 @@ class TestScaffold:
 
         project_dir = tmp_path / "_projects" / "test-scaffold"
         assert project_dir.is_dir()
-        assert (project_dir / "prd").is_dir()
+        assert (project_dir / "docs").is_dir()
         assert (project_dir / "docs" / "decisions").is_dir()
-        assert (project_dir / "deployments").is_dir()
+        assert (project_dir / "deploy").is_dir()
 
     def test_creates_template_files(self, tmp_path):
         np.scaffold(str(tmp_path), "File Check")
 
         proj = tmp_path / "_projects" / "file-check"
         expected_files = [
-            "prd/discovery-brief.md",
-            "prd/architecture-handoff.md",
+            "docs/discovery-brief.md",
+            "docs/architecture-handoff.md",
             "pipeline-state.json",
             "docs/decisions/001-task-flow.md",
             "docs/decisions/002-storage.md",

@@ -1,4 +1,4 @@
-# Copilot Instructions
+﻿# Copilot Instructions
 
 ## Project Overview
 
@@ -17,7 +17,7 @@ Skills are composable, auto-activating instruction packs that do the actual work
 > **Skill metadata:** `_shared/registry/skills-registry.json` (consumed by `run-pipeline.py`)  
 > **Pipeline flow:** `_shared/workflow-guide.md`
 
-Skills exchange structured **handoff documents** stored in `_projects/{workspace}/prd/`.
+Skills exchange structured **handoff documents** stored in `_projects/{workspace}/docs/`.
 
 ## Parallel Execution Principle
 

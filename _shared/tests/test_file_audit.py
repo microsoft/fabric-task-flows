@@ -1,4 +1,4 @@
-"""Tests for _shared/scripts/file-audit.py."""
+﻿"""Tests for _shared/scripts/file-audit.py."""
 
 from __future__ import annotations
 
@@ -79,7 +79,7 @@ class TestCategorizePath:
 
     def test_project_docs(self):
         assert (
-            categorize_path("_projects/football-intelligence/prd/architecture-handoff.md")
+            categorize_path("_projects/football-intelligence/docs/architecture-handoff.md")
             == "project-docs"
         )
 

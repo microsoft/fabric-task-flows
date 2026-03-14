@@ -1,7 +1,7 @@
-# Test Plan Schema
+﻿# Test Plan Schema
 
 > Schema for `/fabric-test` Mode 1 output (Test Plan from FINAL architecture).
-> Save as: `_projects/[name]/prd/test-plan.md`
+> Save as: `_projects/[name]/docs/test-plan.md`
 
 Use the YAML template below. Every field has a max length noted in comments.
 Prose sections are constrained — word limits noted inline.

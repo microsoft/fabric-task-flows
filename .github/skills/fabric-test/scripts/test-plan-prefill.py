@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Pre-fill a test plan by mapping architecture handoff ACs to validation phases.
 
@@ -7,12 +7,12 @@ and items_to_deploy), maps items to phases from item-type-registry.json,
 and outputs a pre-filled test-plan.md with criteria_mapping already populated.
 
 Usage:
-    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/my-project/prd/architecture-handoff.md
-    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/my-project/prd/architecture-handoff.md --output test-plan-draft.md
+    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/my-project/docs/architecture-handoff.md
+    python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/my-project/docs/architecture-handoff.md --output test-plan-draft.md
 
 Importable:
     from test_plan_prefill import prefill
-    result = prefill("_projects/my-project/prd/architecture-handoff.md")
+    result = prefill("_projects/my-project/docs/architecture-handoff.md")
 """
 
 from __future__ import annotations
@@ -259,8 +259,8 @@ def _build_test_method(
     _tm = TEST_METHOD_MAP.get(item_type) or TEST_METHOD_MAP.get(fab_type) or {}
 
     deploy_note = ""
-    if dm.get("availability") == "preview":
-        deploy_note = "Preview feature — may have limited API support"
+    if dm.get("availability") == "public preview":
+        deploy_note = "Public preview feature — may have limited API support"
     if dm.get("method") == "cicd" and dm.get("verified"):
         cicd_note = f"fabric-cicd ({dm.get('strategy')}, verified)"
         deploy_note = f"{deploy_note}; {cicd_note}" if deploy_note else cicd_note
@@ -289,6 +289,59 @@ def _build_test_method(
         return ac_type, f"GET /workspaces/{{id}}/{api_path} | verify {item_name} exists (no definition API — check config in portal)", deploy_note
 
     return ac_type, f"GET /workspaces/{{id}}/{api_path} | verify {item_name} exists", deploy_note
+
+
+# ---------------------------------------------------------------------------
+# Edge case generation
+# ---------------------------------------------------------------------------
+
+_EDGE_CASES_BY_TYPE: dict[str, list[str]] = {
+    "Eventstream": [
+        "Source disconnects mid-ingestion — verify eventstream reconnects or alerts",
+        "Malformed event payload — verify eventstream handles schema drift gracefully",
+    ],
+    "Eventhouse": [
+        "Eventhouse storage quota exceeded — verify ingestion pauses with clear error",
+        "Concurrent KQL queries during heavy ingestion — verify query latency stays acceptable",
+    ],
+    "DataPipeline": [
+        "Pipeline job fails mid-execution — verify retry logic and partial data cleanup",
+        "Source system unavailable at scheduled run — verify pipeline reports failure clearly",
+    ],
+    "CopyJob": [
+        "Source schema changes between runs — verify copy job detects and handles drift",
+    ],
+    "KQLQueryset": [
+        "KQL query against empty table — verify graceful empty result (no error)",
+    ],
+    "KQLDashboard": [
+        "Dashboard loaded with no data in Eventhouse — verify shows empty state, not error",
+    ],
+    "Report": [
+        "Report refresh with stale semantic model — verify refresh triggers or shows warning",
+    ],
+    "Reflex": [
+        "Alert condition met repeatedly in short window — verify no duplicate alert storm",
+        "Alert threshold crossed then immediately recovered — verify alert still fires",
+    ],
+    "DataAgent": [
+        "Ambiguous natural language query — verify agent returns clarifying response, not error",
+    ],
+}
+
+
+def _generate_edge_cases(items: list[dict]) -> list[str]:
+    """Generate edge case test scenarios from item types."""
+    cases: list[str] = []
+    seen_types: set[str] = set()
+    for item in items:
+        item_type = item.get("type", "")
+        if item_type in seen_types:
+            continue
+        seen_types.add(item_type)
+        type_cases = _EDGE_CASES_BY_TYPE.get(item_type, [])
+        cases.extend(type_cases)
+    return cases if cases else ["No edge cases auto-generated for these item types"]
 
 
 # ---------------------------------------------------------------------------
@@ -419,7 +472,7 @@ def prefill(handoff_path: str) -> dict:
         "scan_type": "automated",
         "criteria_mapping": criteria_mapping,
         "critical_verification": critical_verification,
-        "edge_cases": ["LLM: Add failure scenarios"],
+        "edge_cases": _generate_edge_cases(items),
         "blockers": {
             "architecture": [],
             "deployment": [],

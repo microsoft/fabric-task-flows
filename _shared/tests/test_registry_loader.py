@@ -166,7 +166,7 @@ def test_api_name_remap_returns_dict():
             f"Remap entry {fab_type} maps to itself — should only contain mismatches"
 
 
-VALID_AVAILABILITY = {"ga", "preview"}
+VALID_AVAILABILITY = {"general availability", "public preview"}
 
 
 def test_availability_values_are_valid():

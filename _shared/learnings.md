@@ -1,4 +1,4 @@
-# Operational Learnings
+﻿# Operational Learnings
 
 > Operational knowledge captured by `/fabric-deploy` and `/fabric-test` skills during deployments and validations. This file is a living document — skills append learnings as they encounter new patterns, gotchas, and workarounds.
 
@@ -13,7 +13,7 @@
 ## Pipeline Orchestration
 
 - **Always use `run-pipeline.py`** to start projects and advance phases. Calling `new-project.py` directly or manually chaining agents bypasses state tracking, skips pre-compute scripts (signal-mapper, review-prescan, etc.), and leaves `pipeline-state.json` stale — causing the pipeline to lose its place.
-- **Never edit `pipeline-state.json` directly.** The runner owns state transitions, output verification, and human gate enforcement. Agents write to `prd/` files only.
+- **Never edit `pipeline-state.json` directly.** The runner owns state transitions, output verification, and human gate enforcement. Agents write to `docs/` files only.
 
 ## Deployment
 
@@ -84,3 +84,11 @@
 - **Coverage trend (post-patch):** 50.3% → 56.9% → 64.8% ↑
 - **Zero-candidate problems:** 0/30 across all iterations
 - Key gap categories: Real-time/Streaming (signal 1), Batch/Scheduled (signal 2), Advanced Analytics (signal 3), ML (signal 4)
+
+### Heal Orchestrator Run: 2026-03-14 19:33 UTC (4 iterations, 100 problems)
+
+- Average coverage across all batches: 0.0%
+- Total zero-candidate problems: 100/100
+- Coverage range: 0.0% – 0.0%
+- Uncovered terms across all batches: and prem, apis, batch, churn, churn prediction, code, customer, customer churn, daily, daily batch, data from, databricks, files, flat, global, mid size, needs, only, prediction, prem
+- Coverage trend: 0.0% (iter 1) → 0.0% (iter 4)

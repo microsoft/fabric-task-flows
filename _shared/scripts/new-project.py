@@ -103,7 +103,7 @@ next_phase: design-review
 ---
 
 ### Problem Reference
-> See: prd/discovery-brief.md
+> See: docs/discovery-brief.md
 > Summary: <!-- /fabric-design: ≤20 word summary -->
 
 ---
@@ -428,112 +428,6 @@ None.
 """
 
 
-def docs_readme(project: str, display_name: str) -> str:
-    return f"""# {display_name} — Architecture Documentation
-
-> Generated: <!-- /fabric-document: timestamp -->
-> Task flow: <!-- /fabric-document: task flow name -->
-> Status: <!-- /fabric-document: DEPLOYED | VALIDATED | PARTIAL -->
-
-## Overview
-
-<!-- /fabric-document: 2-3 sentence summary -->
-
-## Quick Links
-
-| Document | Description |
-|----------|-------------|
-| [Architecture](architecture.md) | System diagram and item relationships |
-| [Deployment Log](deployment-log.md) | What was deployed and how |
-| [Deployments](../deployments/) | Scripts, notebooks, and queries |
-
-### Decision Records
-
-| ADR | Decision | Outcome |
-|-----|----------|---------|
-| [001-task-flow](decisions/001-task-flow.md) | Which task flow pattern? | |
-| [002-storage](decisions/002-storage.md) | Storage layer | |
-| [003-ingestion](decisions/003-ingestion.md) | Ingestion approach | |
-| [004-processing](decisions/004-processing.md) | Processing/transformation | |
-| [005-visualization](decisions/005-visualization.md) | Visualization | |
-"""
-
-
-def docs_architecture(project: str) -> str:
-    return """# Architecture
-
-<!-- /fabric-document: generate from Architecture Handoff -->
-
-## System Diagram
-
-<!-- /fabric-document: mermaid diagram -->
-
-## Items
-
-| Item | Type | Purpose | Dependencies |
-|------|------|---------|--------------|
-| | | | |
-
-## Data Flow
-
-<!-- /fabric-document: describe data movement -->
-
-## Deployment Strategy
-
-| Aspect | Choice |
-|--------|--------|
-| Workspace approach | |
-| Environments | |
-| CI/CD tool | |
-| Branching model | |
-
-## Configuration Summary
-
-<!-- /fabric-document: pull Configuration Rationale from engineer handoff -->
-"""
-
-
-def docs_deployment_log(project: str) -> str:
-    return """# Deployment Log
-
-**Deployed:** <!-- /fabric-document: timestamp -->
-**Task flow:** <!-- /fabric-document: name -->
-**Validation Status:** <!-- /fabric-document: from validation report -->
-
-## Items Deployed
-
-| Order | Item | Type | Status | Notes |
-|-------|------|------|--------|-------|
-| | | | | |
-
-## Implementation Notes
-
-<!-- /fabric-document: pull from engineer handoff -->
-
-## Configuration Rationale
-
-<!-- /fabric-document: pull from engineer handoff -->
-
-## Manual Steps
-
-### Completed
-<!-- /fabric-document: list from engineer -->
-
-### Pending
-<!-- /fabric-document: list from engineer -->
-
-## Issues & Resolutions
-
-| Issue | Resolution | Status |
-|-------|-----------|--------|
-| | | |
-
-## Lessons Learned
-
-<!-- /fabric-document: pull from validation report Future Considerations -->
-"""
-
-
 def adr_template(number: str, title: str) -> str:
     return f"""# ADR-{number}: {title}
 
@@ -585,12 +479,12 @@ def pipeline_state(project: str) -> str:
         "problem_statement": None,
         "sign_off_revisions": 0,
         "phases": {
-            "0a-discovery":  {"status": "pending", "agent": "fabric-advisor",    "output": "prd/discovery-brief.md"},
-            "1-design":      {"status": "pending", "agent": "fabric-design",     "output": "prd/architecture-handoff.md"},
-            "2a-test-plan":  {"status": "pending", "agent": "fabric-test",       "output": "prd/test-plan.md"},
+            "0a-discovery":  {"status": "pending", "agent": "fabric-advisor",    "output": "docs/discovery-brief.md"},
+            "1-design":      {"status": "pending", "agent": "fabric-design",     "output": "docs/architecture-handoff.md"},
+            "2a-test-plan":  {"status": "pending", "agent": "fabric-test",       "output": "docs/test-plan.md"},
             "2b-sign-off":   {"status": "pending", "agent": None,               "gate": "human"},
-            "2c-deploy":     {"status": "pending", "agent": "fabric-deploy",     "output": "prd/deployment-handoff.md"},
-            "3-validate":    {"status": "pending", "agent": "fabric-test",       "output": "prd/validation-report.md"},
+            "2c-deploy":     {"status": "pending", "agent": "fabric-deploy",     "output": "docs/deployment-handoff.md"},
+            "3-validate":    {"status": "pending", "agent": "fabric-test",       "output": "docs/validation-report.md"},
             "4-document":    {"status": "pending", "agent": "fabric-document",   "output": "docs/"}
         },
         "transitions": [
@@ -670,9 +564,8 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
 
     # Create directory tree
     dirs = [
-        os.path.join(project_dir, "prd"),
         os.path.join(project_dir, "docs", "decisions"),
-        os.path.join(project_dir, "deployments"),
+        os.path.join(project_dir, "deploy"),
     ]
     for d in dirs:
         os.makedirs(d, exist_ok=True)
@@ -681,9 +574,9 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
     # Create template files — only for current-sprint phases
     # Future-phase files (test, validate, document) are created when their phase runs
     files = {
-        # PRD files (agent handoffs — current sprint)
-        "prd/discovery-brief.md": discovery_brief(project),
-        "prd/architecture-handoff.md": architecture_handoff(project),
+        # Agent handoff files (merged into docs/)
+        "docs/discovery-brief.md": discovery_brief(project),
+        "docs/architecture-handoff.md": architecture_handoff(project),
         # Pipeline state (orchestration tracking)
         "pipeline-state.json": pipeline_state(project),
         # ADRs (filled during design phase)
@@ -704,7 +597,7 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
     print(f"✅ Project '{project}' scaffolded with {len(files)} files")
     print()
     print("Next steps:")
-    print("  1. Invoke @fabric-advisor to fill in prd/discovery-brief.md")
+    print("  1. Invoke @fabric-advisor to fill in docs/discovery-brief.md")
     print("  2. Each agent edits its pre-created file — no file creation needed")
     print("  3. Pipeline auto-chains per _shared/workflow-guide.md")
 

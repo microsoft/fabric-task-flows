@@ -1,4 +1,4 @@
----
+﻿---
 name: fabric-test
 description: >
   The QA skill — reviews architecture for testability, creates test plans from
@@ -14,41 +14,40 @@ pre-compute: [test-plan-prefill, validate-items]
 
 ## Mode 1: Architecture Review + Test Plan (Phase 2a)
 
+> **⚡ Fast-forward:** This phase is auto-completed by `run-pipeline.py` fast-forward. The test plan is pre-filled deterministically. This skill is only invoked if fast-forward fails or the user requests manual review.
+
 ### Step 1: Load Architecture
 
-Read `_projects/[name]/prd/architecture-handoff.md`. Extract items, ACs, waves.
+Read `_projects/[name]/docs/architecture-handoff.md`. Extract items, ACs, waves.
 
-### Step 2: Pre-fill Registry Data
+### Step 2: Review + Produce Test Plan
 
-> **⚡ Fast-forward mode:** The test plan at `_projects/[name]/prd/test-plan.md` may already be pre-filled with criteria mapping from the pipeline's auto-generation. If it contains real AC mappings, enhance rather than rewrite.
-
-If the test plan is **not yet pre-filled**, run:
-
-```bash
-python .github/skills/fabric-test/scripts/test-plan-prefill.py --handoff _projects/[name]/prd/architecture-handoff.md
-```
-
-### Step 3: Review + Produce Test Plan
+> The test plan at `_projects/[name]/docs/test-plan.md` is pre-filled with criteria mapping from the pipeline's auto-generation. **Enhance rather than rewrite.**
 
 1. Assess testability and feasibility — flag concerns (`red` blocks, `yellow` warns)
 2. Map each AC to test method, verification command, expected result
-3. Write to `_projects/[name]/prd/test-plan.md`
+3. Write to `_projects/[name]/docs/test-plan.md`
 
 Set `review_outcome`: `approved` (no red) or `concerns` (has red).
 
 ## Mode 2: Post-Deployment Validation (Phase 3)
 
-### Step 1: Generate Config Checklist
+> **⚡ Fast-forward:** After sign-off approval, `run-pipeline.py` auto-generates `validation-report.md` with all ACs marked as structural pass. This skill is only invoked if the fast-forward was skipped, or for live workspace validation.
 
+### Step 1: Verify Pre-Generated Report
+
+Check if `_projects/[name]/docs/validation-report.md` already exists with structural validation results. If it does, **review rather than recreate**.
+
+For live workspace validation (not design-only), run:
 ```bash
-python .github/skills/fabric-test/scripts/validate-items.py _projects/[name]/prd/deployment-handoff.md
+python .github/skills/fabric-test/scripts/validate-items.py _projects/[name]/docs/deployment-handoff.md
 ```
 
 ### Step 2: Verify + Report
 
 1. Complete manual configuration steps from checklist
 2. Run smoke tests (query, pipeline trigger, report render)
-3. Update `_projects/[name]/prd/validation-report.md` with `status: passed | failed`
+3. Update `_projects/[name]/docs/validation-report.md` with `status: passed | failed`
 
 ## Constraints
 

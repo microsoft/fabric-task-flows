@@ -1,4 +1,4 @@
-# Documentation Templates
+﻿# Documentation Templates
 
 Templates used by `/fabric-document` to generate project wiki documentation in `_projects/[workspace]/docs/`.
 
@@ -17,7 +17,7 @@ _projects/[workspace-name]/
 │   │   └── 006-cicd.md        # CI/CD & deployment strategy (optional — only when multi-env)
 │   ├── architecture.md        # Visual diagram + item relationships
 │   └── deployment-log.md      # What was deployed, issues, workarounds
-└── deployments/
+└── deploy/
     ├── handoff.md             # Engineer's deployment handoff
     ├── deploy.sh / deploy.py  # Deployment script (bash or Python)
     ├── parameter.yml          # fabric-cicd parameterization (if used)
@@ -44,7 +44,7 @@ _projects/[workspace-name]/
 |----------|-------------|
 | [Architecture](architecture.md) | System diagram and item relationships |
 | [Deployment Log](deployment-log.md) | What was deployed and how |
-| [Deployments](../deployments/) | Scripts, notebooks, and queries |
+| [Deployments](../deploy/) | Scripts, notebooks, and queries |
 
 ### Decision Records
 

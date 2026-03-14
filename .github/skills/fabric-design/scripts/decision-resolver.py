@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Deterministic decision resolver for Fabric task-flow architectures.
 
 Resolves all 7 architectural decisions from signal inputs using the same
 logic encoded in the YAML frontmatter quick_decision fields of the
-decision guides in decisions/*.md.
+decision guides in decisions/*.md.  Output defaults to JSON.
 
 Usage:
     # Inline signals (JSON)
@@ -16,14 +16,14 @@ Usage:
         "environment_count": 1
     }'
 
-    # Signals from a YAML file
-    python .github/skills/fabric-design/scripts/decision-resolver.py --signals-file signals.yaml
+    # Signals from a file (JSON or key: value format)
+    python .github/skills/fabric-design/scripts/decision-resolver.py --signals-file signals.json
 
     # Extract signals from a discovery brief (markdown)
-    python .github/skills/fabric-design/scripts/decision-resolver.py --discovery-brief _projects/my-project/prd/discovery-brief.md
+    python .github/skills/fabric-design/scripts/decision-resolver.py --discovery-brief _projects/my-project/docs/discovery-brief.md
 
-    # JSON output instead of YAML
-    python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{"skillset": "python"}' --format json
+    # YAML output instead of JSON
+    python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{"skillset": "python"}' --format yaml
 
     # Verbose mode (prints rule evaluation trace)
     python .github/skills/fabric-design/scripts/decision-resolver.py --signals '{"skillset": "python"}' --verbose
@@ -54,6 +54,7 @@ class Decision:
     confidence: Confidence
     rule_matched: str | None
     guide: str
+    rationale: str = ""
     note: str | None = None
     candidates: list[str] = field(default_factory=list)
 
@@ -80,23 +81,23 @@ def _log(msg: str) -> None:
     VERBOSE_LOG.append(msg)
 
 
-def _match(decision_id: str, rule: str, choice: str) -> Decision:
+def _match(decision_id: str, rule: str, choice: str, rationale: str = "") -> Decision:
     _log(f"  ✓ {decision_id}: matched \"{rule}\"")
     return Decision(choice=choice, confidence="high", rule_matched=rule,
-                    guide=f"decisions/{decision_id}.md")
+                    guide=f"decisions/{decision_id}.md", rationale=rationale)
 
 
-def _ambiguous(decision_id: str, candidates: list[str], reason: str) -> Decision:
+def _ambiguous(decision_id: str, candidates: list[str], reason: str, rationale: str = "") -> Decision:
     _log(f"  ? {decision_id}: ambiguous — {reason}")
     return Decision(choice=None, confidence="ambiguous", rule_matched=None,
-                    guide=f"decisions/{decision_id}.md",
+                    guide=f"decisions/{decision_id}.md", rationale=rationale or reason,
                     note=reason, candidates=candidates)
 
 
-def _skip(decision_id: str, note: str) -> Decision:
+def _skip(decision_id: str, note: str, rationale: str = "") -> Decision:
     _log(f"  – {decision_id}: skipped — {note}")
     return Decision(choice=None, confidence="na", rule_matched=None,
-                    guide=f"decisions/{decision_id}.md", note=note)
+                    guide=f"decisions/{decision_id}.md", rationale=rationale or note, note=note)
 
 
 def resolve_storage(signals: dict) -> Decision:
@@ -107,32 +108,43 @@ def resolve_storage(signals: dict) -> Decision:
     vel = _norm(signals.get("velocity"))
 
     if _any_of(ql, "spark") or _any_of(sk, "spark", "pyspark"):
-        return _match("storage-selection", "Spark/Python → Lakehouse", "Lakehouse")
+        return _match("storage-selection", "Spark/Python → Lakehouse", "Lakehouse",
+                      rationale="Spark/Python skillset is best served by Lakehouse with Delta Lake format and native Spark compute")
     if _any_of(sk, "python") and not _any_of(ql, "t-sql", "tsql", "kql", "nosql", "postgres"):
-        return _match("storage-selection", "Spark/Python → Lakehouse", "Lakehouse")
+        return _match("storage-selection", "Spark/Python → Lakehouse", "Lakehouse",
+                      rationale="Spark/Python skillset is best served by Lakehouse with Delta Lake format and native Spark compute")
     if _any_of(ql, "kql", "kusto") or _any_of(uc, "time-series", "timeseries", "iot", "telemetry", "logs"):
-        return _match("storage-selection", "KQL time-series → Eventhouse", "Eventhouse")
-    if _any_of(vel, "real-time", "realtime", "streaming", "stream"):
-        return _match("storage-selection", "Real-time streaming → Eventhouse", "Eventhouse")
+        return _match("storage-selection", "KQL time-series → Eventhouse", "Eventhouse",
+                      rationale="KQL/time-series use case requires Eventhouse for optimized time-series queries and KQL analytics")
+    if _any_of(vel, "real-time", "realtime", "streaming", "stream", "both"):
+        return _match("storage-selection", "Real-time streaming → Eventhouse", "Eventhouse",
+                      rationale="Real-time streaming velocity requires Eventhouse for sub-second ingestion and hot-path analytics")
     if _any_of(ql, "t-sql", "tsql", "sql"):
         if _any_of(uc, "transactional", "oltp", "operational", "writeback", "app"):
-            return _match("storage-selection", "T-SQL transactional → SQL Database", "SQL Database")
+            return _match("storage-selection", "T-SQL transactional → SQL Database", "SQL Database",
+                          rationale="T-SQL transactional workload needs SQL Database for OLTP operations with full read/write support")
         if _any_of(uc, "analytics", "reporting", "warehouse", "dw", "bi"):
-            return _match("storage-selection", "T-SQL analytics → Warehouse", "Warehouse")
+            return _match("storage-selection", "T-SQL analytics → Warehouse", "Warehouse",
+                          rationale="T-SQL analytics workload is best served by Warehouse with optimized query engine for BI reporting")
         # T-SQL with no clear use-case leans analytics
         return _ambiguous("storage-selection",
                           ["Warehouse", "SQL Database"],
-                          "T-SQL detected but use_case unclear — set use_case to 'analytics' or 'transactional'")
+                          "T-SQL detected but use_case unclear — set use_case to 'analytics' or 'transactional'",
+                          rationale="T-SQL detected but use case unclear — could be analytics (Warehouse) or transactional (SQL Database)")
     if _any_of(ql, "nosql") or _any_of(uc, "document", "nosql", "json", "vector", "cosmos"):
-        return _match("storage-selection", "NoSQL/document → Cosmos DB", "Cosmos DB")
+        return _match("storage-selection", "NoSQL/document → Cosmos DB", "Cosmos DB",
+                      rationale="NoSQL/document data pattern requires Cosmos DB for schema-flexible JSON storage and vector search")
     if _any_of(ql, "postgres") or _any_of(sk, "postgres"):
-        return _match("storage-selection", "PostgreSQL → PostgreSQL", "PostgreSQL")
+        return _match("storage-selection", "PostgreSQL → PostgreSQL", "PostgreSQL",
+                      rationale="PostgreSQL skillset maps directly to Fabric PostgreSQL for familiar tooling and compatibility")
     if _any_of(sk, "sql") and not ql:
         return _ambiguous("storage-selection",
                           ["Warehouse", "SQL Database", "Lakehouse"],
-                          "SQL skillset without query_language — specify query_language or use_case")
+                          "SQL skillset without query_language — specify query_language or use_case",
+                          rationale="SQL skillset detected but no query language specified — need more context to choose between Lakehouse, Warehouse, and SQL Database")
 
-    return _skip("storage-selection", "No storage signals detected — provide query_language, skillset, or use_case")
+    return _skip("storage-selection", "No storage signals detected — provide query_language, skillset, or use_case",
+                 rationale="No storage signals found in discovery brief — architect should specify query language, skillset, or use case")
 
 
 def resolve_ingestion(signals: dict) -> Decision:
@@ -143,11 +155,14 @@ def resolve_ingestion(signals: dict) -> Decision:
     dp = _norm(signals.get("data_pattern"))
 
     if _any_of(vel, "stream", "real-time", "realtime") or _any_of(dp, "stream", "real-time", "realtime"):
-        return _match("ingestion-selection", "Real-time streaming → Eventstream", "Eventstream")
+        return _match("ingestion-selection", "Real-time streaming → Eventstream", "Eventstream",
+                      rationale="Real-time/streaming velocity requires Eventstream for continuous data ingestion")
     if _any_of(dp, "cdc", "replication", "mirror"):
-        return _match("ingestion-selection", "Database replication (CDC) → Mirroring", "Mirroring")
+        return _match("ingestion-selection", "Database replication (CDC) → Mirroring", "Mirroring",
+                      rationale="CDC/replication pattern maps to Mirroring for near-real-time database synchronization")
     if _any_of(dp, "complex orchestration", "multi-step", "conditional"):
-        return _match("ingestion-selection", "Complex orchestration (any volume) → Pipeline", "Pipeline")
+        return _match("ingestion-selection", "Complex orchestration (any volume) → Pipeline", "Pipeline",
+                      rationale="Complex multi-step orchestration requires Pipeline for conditional logic and sequencing")
 
     is_large = _any_of(vol, "large", "big", "massive", "high")
     is_small_med = _any_of(vol, "small", "medium", "low", "moderate") or not is_large
@@ -157,33 +172,42 @@ def resolve_ingestion(signals: dict) -> Decision:
     if is_large:
         if is_code_first:
             return _match("ingestion-selection", "Large + code-first team → Pipeline + Notebook",
-                          "Pipeline + Notebook")
+                          "Pipeline + Notebook",
+                          rationale="Large volume with code-first team benefits from Pipeline orchestration with Notebook-based Spark transformations")
         return _match("ingestion-selection", "Large + orchestration needed → Pipeline (Copy activity)",
-                      "Pipeline (Copy activity)")
+                      "Pipeline (Copy activity)",
+                      rationale="Large data volume requires Pipeline with Copy activity for high-throughput bulk data movement")
 
     if is_small_med and vol:
         if needs_transforms or _any_of(sk, "low-code", "power query", "business", "analyst"):
             return _match("ingestion-selection", "Small-medium + transforms needed → Dataflow Gen2",
-                          "Dataflow Gen2")
+                          "Dataflow Gen2",
+                          rationale="Small-medium volume with transformation needs suits Dataflow Gen2 for visual Power Query-based ETL")
         if _any_of(dp, "copy", "no transform", "as-is", "simple"):
-            return _match("ingestion-selection", "Small-medium + no transforms → Copy Job", "Copy Job")
+            return _match("ingestion-selection", "Small-medium + no transforms → Copy Job", "Copy Job",
+                          rationale="Small-medium volume with no transformations maps to Copy Job for simple point-to-point data movement")
         if is_code_first:
             return _match("ingestion-selection", "Large + code-first team → Pipeline + Notebook",
-                          "Pipeline + Notebook")
+                          "Pipeline + Notebook",
+                          rationale="Code-first team benefits from Pipeline orchestration with Notebook-based Spark transformations")
         return _ambiguous("ingestion-selection",
                           ["Dataflow Gen2", "Copy Job"],
-                          "Small-medium volume but unclear if transforms needed — set data_pattern")
+                          "Small-medium volume but unclear if transforms needed — set data_pattern",
+                          rationale="Small-medium volume detected but transformation requirements unclear — specify data_pattern to choose between Dataflow Gen2 and Copy Job")
 
     if not vol and not vel and not dp:
         return _skip("ingestion-selection",
-                      "No ingestion signals detected — provide velocity, volume, or data_pattern")
+                      "No ingestion signals detected — provide velocity, volume, or data_pattern",
+                      rationale="No ingestion signals found in discovery brief — architect should specify velocity, volume, or data_pattern")
 
     if is_code_first:
         return _match("ingestion-selection", "Large + code-first team → Pipeline + Notebook",
-                      "Pipeline + Notebook")
+                      "Pipeline + Notebook",
+                      rationale="Code-first team benefits from Pipeline orchestration with Notebook-based Spark transformations")
     return _ambiguous("ingestion-selection",
                       ["Dataflow Gen2", "Copy Job", "Pipeline"],
-                      "Insufficient signals to resolve — provide volume and data_pattern")
+                      "Insufficient signals to resolve — provide volume and data_pattern",
+                      rationale="Insufficient ingestion signals to resolve — provide volume and data_pattern to determine the right ingestion tool")
 
 
 def resolve_processing(signals: dict) -> Decision:
@@ -202,54 +226,70 @@ def resolve_processing(signals: dict) -> Decision:
 
     if is_interactive:
         if is_spark:
-            return _match("processing-selection", "Interactive + Python/Spark → Notebook", "Notebook")
+            return _match("processing-selection", "Interactive + Python/Spark → Notebook", "Notebook",
+                          rationale="Interactive Spark/Python workload best served by Notebook for exploratory development and iterative analysis")
         if is_kql:
-            return _match("processing-selection", "Interactive + KQL → KQL Queryset", "KQL Queryset")
+            return _match("processing-selection", "Interactive + KQL → KQL Queryset", "KQL Queryset",
+                          rationale="Interactive KQL workload maps to KQL Queryset for ad-hoc log and time-series exploration")
         if is_visual:
             return _match("processing-selection", "Interactive + visual/no-code → Dataflow Gen2",
-                          "Dataflow Gen2")
+                          "Dataflow Gen2",
+                          rationale="Interactive visual/low-code preference maps to Dataflow Gen2 for Power Query-based data preparation")
         if is_tsql:
-            return _match("processing-selection", "Interactive + Python/Spark → Notebook", "Notebook")
+            return _match("processing-selection", "Interactive + Python/Spark → Notebook", "Notebook",
+                          rationale="Interactive T-SQL workload maps to Notebook for ad-hoc query development and exploration")
         return _ambiguous("processing-selection",
                           ["Notebook", "KQL Queryset", "Dataflow Gen2"],
-                          "Interactive mode but skillset unclear — provide skillset or query_language")
+                          "Interactive mode but skillset unclear — provide skillset or query_language",
+                          rationale="Interactive mode detected but skillset unclear — specify skillset or query_language to choose the right processing tool")
 
     if is_production:
         if is_spark and has_cicd:
             return _match("processing-selection", "Production Spark + CI/CD → Spark Job Definition",
-                          "Spark Job Definition")
+                          "Spark Job Definition",
+                          rationale="Production Spark with CI/CD requirements maps to Spark Job Definition for automated, version-controlled job execution")
         if is_spark:
             return _match("processing-selection",
                           "Production Spark + simple schedule → Notebook (via Pipeline)",
-                          "Notebook (via Pipeline)")
+                          "Notebook (via Pipeline)",
+                          rationale="Production Spark without CI/CD maps to Notebook orchestrated via Pipeline for scheduled execution")
         if is_tsql:
             return _match("processing-selection", "Production T-SQL → Stored Procedures",
-                          "Stored Procedures")
+                          "Stored Procedures",
+                          rationale="Production T-SQL workload maps to Stored Procedures for optimized, reusable server-side logic")
         if is_kql:
             return _match("processing-selection",
                           "Production KQL → KQL Queryset (update policies)",
-                          "KQL Queryset (update policies)")
+                          "KQL Queryset (update policies)",
+                          rationale="Production KQL workload maps to KQL Queryset with update policies for automated data transformation on ingestion")
         if is_visual:
             return _match("processing-selection", "Production Power Query → Dataflow Gen2",
-                          "Dataflow Gen2")
+                          "Dataflow Gen2",
+                          rationale="Production Power Query workload maps to Dataflow Gen2 for scheduled visual ETL pipelines")
         return _ambiguous("processing-selection",
                           ["Notebook (via Pipeline)", "Spark Job Definition", "Stored Procedures"],
-                          "Production mode but skillset unclear — provide skillset or query_language")
+                          "Production mode but skillset unclear — provide skillset or query_language",
+                          rationale="Production mode detected but skillset unclear — specify skillset or query_language to choose the right processing tool")
 
     # No mode specified — infer from other signals
     if is_spark:
-        return _match("processing-selection", "Interactive + Python/Spark → Notebook", "Notebook")
+        return _match("processing-selection", "Interactive + Python/Spark → Notebook", "Notebook",
+                      rationale="Spark/Python skillset defaults to Notebook for exploratory development and iterative analysis")
     if is_kql:
-        return _match("processing-selection", "Interactive + KQL → KQL Queryset", "KQL Queryset")
+        return _match("processing-selection", "Interactive + KQL → KQL Queryset", "KQL Queryset",
+                      rationale="KQL skillset defaults to KQL Queryset for ad-hoc log and time-series exploration")
     if is_visual:
         return _match("processing-selection", "Interactive + visual/no-code → Dataflow Gen2",
-                      "Dataflow Gen2")
+                      "Dataflow Gen2",
+                      rationale="Visual/low-code preference defaults to Dataflow Gen2 for Power Query-based data preparation")
     if is_tsql:
         return _match("processing-selection", "Production T-SQL → Stored Procedures",
-                      "Stored Procedures")
+                      "Stored Procedures",
+                      rationale="T-SQL skillset defaults to Stored Procedures for optimized, reusable server-side logic")
 
     return _skip("processing-selection",
-                  "No processing signals detected — provide skillset, query_language, or mode")
+                  "No processing signals detected — provide skillset, query_language, or mode",
+                  rationale="No processing signals found in discovery brief — architect should specify skillset, query_language, or mode")
 
 
 def resolve_visualization(signals: dict) -> Decision:
@@ -260,38 +300,46 @@ def resolve_visualization(signals: dict) -> Decision:
 
     if _any_of(uc, "geospatial", "location", "fleet", "map", "gps"):
         return _match("visualization-selection",
-                      "Live geospatial/location data → Real-Time Map", "Real-Time Map")
+                      "Live geospatial/location data → Real-Time Map", "Real-Time Map",
+                      rationale="Geospatial/location data requires Real-Time Map for live fleet and asset tracking visualization")
     # App/API-backend projects typically don't need Fabric visualization —
     # don't let velocity push them into Real-Time Dashboard
     is_app_backend = _any_of(uc, "app", "api", "backend", "integration")
     if _any_of(vel, "stream", "real-time", "realtime", "sub-second") and not is_app_backend:
         return _match("visualization-selection",
                       "Live streaming data (sub-second) → Real-Time Dashboard",
-                      "Real-Time Dashboard")
+                      "Real-Time Dashboard",
+                      rationale="Sub-second streaming data requires Real-Time Dashboard for live operational monitoring")
     if _any_of(uc, "kpi", "goal", "okr", "scorecard", "metric"):
         return _match("visualization-selection",
                       "Goal/KPI tracking + check-ins → Metrics Scorecard",
-                      "Metrics Scorecard")
+                      "Metrics Scorecard",
+                      rationale="KPI/goal tracking use case maps to Metrics Scorecard for structured check-in workflows")
     if _any_of(uc, "pixel", "print", "paginated", "invoice", "regulated", "multi-page"):
         return _match("visualization-selection",
                       "Pixel-perfect / printable / multi-page → Paginated Report",
-                      "Paginated Report")
+                      "Paginated Report",
+                      rationale="Pixel-perfect/printable requirements map to Paginated Report for regulated or multi-page output")
     if _any_of(inter, "high", "interactive", "filter", "slicer", "drill", "explore", "exploration"):
         return _match("visualization-selection",
                       "Interactive exploration + filters → Power BI Report",
-                      "Power BI Report")
+                      "Power BI Report",
+                      rationale="Interactive exploration with filters and slicers maps to Power BI Report for self-service analytics")
     if _any_of(uc, "report", "dashboard", "bi", "analytics", "analysis"):
         return _match("visualization-selection",
                       "Interactive exploration + filters → Power BI Report",
-                      "Power BI Report")
+                      "Power BI Report",
+                      rationale="Interactive exploration with filters and slicers maps to Power BI Report for self-service analytics")
 
     # Default: most projects need a Power BI report
     if inter or uc:
         return _ambiguous("visualization-selection",
                           ["Power BI Report", "Paginated Report", "Real-Time Dashboard"],
-                          "Visualization signals present but no clear match — refine interactivity or use_case")
+                          "Visualization signals present but no clear match — refine interactivity or use_case",
+                          rationale="Visualization signals present but no clear match — refine interactivity or use_case to determine the right report type")
     return _skip("visualization-selection",
-                  "No visualization signals detected — provide interactivity or use_case")
+                  "No visualization signals detected — provide interactivity or use_case",
+                  rationale="No visualization signals found in discovery brief — architect should specify interactivity or use_case")
 
 
 def resolve_skillset(signals: dict) -> Decision:
@@ -301,36 +349,45 @@ def resolve_skillset(signals: dict) -> Decision:
 
     if _any_of(tc, "mixed", "hybrid", "both"):
         return _match("skillset-selection",
-                      "Mixed team (engineers + analysts) → Hybrid [LC/CF]", "Hybrid [LC/CF]")
+                      "Mixed team (engineers + analysts) → Hybrid [LC/CF]", "Hybrid [LC/CF]",
+                      rationale="Mixed team composition (engineers + analysts) requires Hybrid approach supporting both code-first and low-code tools")
     if _any_of(sk, "power query", "business", "analyst", "low-code", "no-code", "citizen"):
         return _match("skillset-selection",
-                      "Business Analysts + Power Query → Low-Code [LC]", "Low-Code [LC]")
+                      "Business Analysts + Power Query → Low-Code [LC]", "Low-Code [LC]",
+                      rationale="Business analyst / Power Query skillset maps to Low-Code tools for visual, no-code data preparation")
     if _any_of(sk, "python", "spark", "pyspark", "scala", "kql", "code-first") or \
        (_any_of(sk, "sql") and _any_of(tc, "engineer")):
         if _any_of(sk, "visual", "prefer visual"):
             return _match("skillset-selection",
-                          "Engineers + prefer visual tools → Low-Code [LC]", "Low-Code [LC]")
+                          "Engineers + prefer visual tools → Low-Code [LC]", "Low-Code [LC]",
+                          rationale="Engineers who prefer visual tools can use Low-Code approach for accelerated development")
         return _match("skillset-selection",
-                      "Engineers + Python/Spark/SQL → Code-First [CF]", "Code-First [CF]")
+                      "Engineers + Python/Spark/SQL → Code-First [CF]", "Code-First [CF]",
+                      rationale="Engineering team with Python/Spark/SQL skills maps to Code-First tools for full programmatic control")
     if _any_of(tc, "engineer", "developer"):
         return _match("skillset-selection",
-                      "Engineers + Python/Spark/SQL → Code-First [CF]", "Code-First [CF]")
+                      "Engineers + Python/Spark/SQL → Code-First [CF]", "Code-First [CF]",
+                      rationale="Engineering team composition maps to Code-First tools for full programmatic control")
     if _any_of(tc, "analyst", "business"):
         return _match("skillset-selection",
-                      "Business Analysts + Power Query → Low-Code [LC]", "Low-Code [LC]")
+                      "Business Analysts + Power Query → Low-Code [LC]", "Low-Code [LC]",
+                      rationale="Business analyst team composition maps to Low-Code tools for visual, no-code data preparation")
     if _any_of(sk, "sql") and not tc:
         return _ambiguous("skillset-selection",
                           ["Code-First [CF]", "Hybrid [LC/CF]"],
-                          "SQL skillset detected but team_composition unknown — engineers or analysts?")
+                          "SQL skillset detected but team_composition unknown — engineers or analysts?",
+                          rationale="SQL skillset detected but team composition unknown — need to know if team is engineers or analysts")
 
     return _skip("skillset-selection",
-                  "No skillset signals detected — provide skillset or team_composition")
+                  "No skillset signals detected — provide skillset or team_composition",
+                  rationale="No skillset signals found in discovery brief — architect should specify skillset or team_composition")
 
 
 def resolve_parameterization(signals: dict) -> Decision:
     _log("parameterization-selection:")
     env_count = signals.get("environment_count")
     dt = _norm(signals.get("deployment_tool"))
+    vol = _norm(signals.get("volume"))
 
     if env_count is not None:
         try:
@@ -338,42 +395,55 @@ def resolve_parameterization(signals: dict) -> Decision:
         except (ValueError, TypeError):
             env_count = None
 
+    # Infer single-environment for small volume / small team projects
+    if env_count is None and _any_of(vol, "small", "low", "handful", "single"):
+        env_count = 1
+
     if env_count is not None and env_count <= 1:
         return _match("parameterization-selection",
                       "Single environment → Environment Variables (or skip)",
-                      "Environment Variables")
+                      "Environment Variables",
+                      rationale="Single environment requires only Environment Variables for simple key-value configuration")
 
     is_multi = env_count is not None and env_count > 1
 
     if is_multi:
         if _any_of(dt, "fabric git", "git integration", "fabric-git"):
             return _match("parameterization-selection",
-                          "Multi-env + Fabric Git → Variable Library", "Variable Library")
+                          "Multi-env + Fabric Git → Variable Library", "Variable Library",
+                          rationale="Multi-environment with Fabric Git Integration maps to Variable Library for workspace-scoped parameter management")
         if _any_of(dt, "fabric-cicd", "cicd library"):
             return _match("parameterization-selection",
-                          "Multi-env + fabric-cicd → parameter.yml", "parameter.yml")
+                          "Multi-env + fabric-cicd → parameter.yml", "parameter.yml",
+                          rationale="Multi-environment with fabric-cicd maps to parameter.yml for declarative, version-controlled configuration")
         if _any_of(dt, "fab", "fab cli"):
             return _match("parameterization-selection",
                           "Multi-env + fab CLI → Environment Variables or Variable Library",
-                          "Environment Variables or Variable Library")
+                          "Environment Variables or Variable Library",
+                          rationale="Multi-environment with fab CLI maps to Environment Variables or Variable Library depending on complexity")
         return _ambiguous("parameterization-selection",
                           ["Variable Library", "parameter.yml", "Environment Variables"],
-                          "Multiple environments but deployment_tool not specified")
+                          "Multiple environments but deployment_tool not specified",
+                          rationale="Multiple environments detected but deployment tool not specified — need deployment_tool to choose parameterization strategy")
 
     if dt:
         if _any_of(dt, "fabric-cicd", "cicd library"):
             return _match("parameterization-selection",
-                          "Multi-env + fabric-cicd → parameter.yml", "parameter.yml")
+                          "Multi-env + fabric-cicd → parameter.yml", "parameter.yml",
+                          rationale="fabric-cicd deployment tool maps to parameter.yml for declarative, version-controlled configuration")
         if _any_of(dt, "fabric git", "git integration", "fabric-git"):
             return _match("parameterization-selection",
-                          "Multi-env + Fabric Git → Variable Library", "Variable Library")
+                          "Multi-env + Fabric Git → Variable Library", "Variable Library",
+                          rationale="Fabric Git Integration deployment tool maps to Variable Library for workspace-scoped parameter management")
         if _any_of(dt, "fab", "fab cli"):
             return _match("parameterization-selection",
                           "Single environment → Environment Variables (or skip)",
-                          "Environment Variables")
+                          "Environment Variables",
+                          rationale="fab CLI without multi-environment maps to Environment Variables for simple key-value configuration")
 
     return _skip("parameterization-selection",
-                  "No parameterization signals detected — provide environment_count and deployment_tool")
+                  "No parameterization signals detected — provide environment_count and deployment_tool",
+                  rationale="No parameterization signals found in discovery brief — architect should specify environment_count and deployment_tool")
 
 
 def resolve_api(signals: dict) -> Decision:
@@ -385,7 +455,8 @@ def resolve_api(signals: dict) -> Decision:
                                           "crud", "function", "endpoint")
     if not has_api_signal:
         return _skip("api-selection",
-                      "No API signals detected — skip unless app-backend task flow")
+                      "N/A — no API layer needed for this task flow",
+                      rationale="No API signals detected — this task flow does not require an API backend")
 
     needs_reads = _any_of(api, "read", "query", "flexible", "graphql", "fetch")
     needs_writes = _any_of(api, "write", "logic", "function", "custom", "mutation", "writeback")
@@ -394,22 +465,27 @@ def resolve_api(signals: dict) -> Decision:
     if _any_of(uc, "crud") or needs_crud:
         return _match("api-selection",
                       "Simple CRUD from internal tools → Direct Connection",
-                      "Direct Connection")
+                      "Direct Connection",
+                      rationale="Simple CRUD from internal tools maps to Direct Connection for zero-code database access")
     if needs_reads and needs_writes:
         return _match("api-selection",
                       "Both reads AND logic → GraphQL API + User Data Functions",
-                      "GraphQL API + User Data Functions")
+                      "GraphQL API + User Data Functions",
+                      rationale="Both read queries and custom write logic require GraphQL API for flexible reads plus User Data Functions for business logic")
     if needs_reads or _any_of(uc, "graphql"):
         return _match("api-selection",
-                      "Flexible read queries → GraphQL API", "GraphQL API")
+                      "Flexible read queries → GraphQL API", "GraphQL API",
+                      rationale="Flexible read query requirements map to GraphQL API for client-driven data fetching")
     if needs_writes or _any_of(uc, "function", "rest", "custom logic"):
         return _match("api-selection",
                       "Custom business logic/writes → User Data Functions",
-                      "User Data Functions")
+                      "User Data Functions",
+                      rationale="Custom business logic and write operations map to User Data Functions for server-side processing")
 
     return _ambiguous("api-selection",
                       ["GraphQL API", "User Data Functions", "Direct Connection"],
-                      "API signals present but needs unclear — specify api_needs (read/write/crud)")
+                      "API signals present but needs unclear — specify api_needs (read/write/crud)",
+                      rationale="API signals present but needs unclear — specify api_needs to determine the right API approach")
 
 
 # ---------------------------------------------------------------------------
@@ -487,6 +563,7 @@ def resolve_all(signals: dict) -> dict:
             "confidence": result.confidence,
             "rule_matched": result.rule_matched,
             "guide": result.guide,
+            "rationale": result.rationale,
         }
         if result.note:
             entry["note"] = result.note
@@ -744,6 +821,19 @@ def _extract_signals_from_brief(path: str) -> dict:
 
                         elif resolver_key == "variety":
                             signals["variety"] = v_value
+                            # Extract use_case signals from variety descriptions
+                            _VARIETY_USE_CASES = {
+                                "iot": "iot", "sensor": "iot", "telemetry": "iot",
+                                "time-series": "time-series", "timeseries": "time-series",
+                                "pos": "transactional", "point of sale": "transactional",
+                                "social": "social", "social media": "social",
+                                "log": "logs", "logs": "logs",
+                            }
+                            for keyword, uc_val in _VARIETY_USE_CASES.items():
+                                if keyword in v_value:
+                                    existing_uc = signals.get("use_case", "")
+                                    if uc_val not in existing_uc:
+                                        signals["use_case"] = (existing_uc + "+" + uc_val).lstrip("+") if existing_uc else uc_val
 
                     break
 
@@ -769,6 +859,12 @@ def _extract_signals_from_brief(path: str) -> dict:
         if "analytics" not in existing:
             signals["use_case"] = (existing + "+analytics").lstrip("+") if existing else "analytics"
 
+    # Infer query_language from use_case when not explicitly set
+    uc = signals.get("use_case", "")
+    if "query_language" not in signals:
+        if any(t in uc for t in ("iot", "time-series", "telemetry", "logs")):
+            signals["query_language"] = "kql"
+
     return signals
 
 
@@ -784,11 +880,11 @@ def main() -> None:
     group.add_argument("--signals", type=str,
                        help="JSON string of signal inputs")
     group.add_argument("--signals-file", type=str,
-                       help="Path to a YAML file with signal inputs")
+                       help="Path to a signals file (JSON or key: value format)")
     group.add_argument("--discovery-brief", type=str,
                        help="Path to a discovery brief markdown file")
-    parser.add_argument("--format", choices=["yaml", "json"], default="yaml",
-                        help="Output format (default: yaml)")
+    parser.add_argument("--format", choices=["yaml", "json"], default="json",
+                        help="Output format (default: json)")
     parser.add_argument("--verbose", action="store_true",
                         help="Print rule evaluation trace to stderr")
     args = parser.parse_args()

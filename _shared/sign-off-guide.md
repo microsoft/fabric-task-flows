@@ -1,4 +1,4 @@
-# Phase 2b: User Sign-Off Guide
+﻿# Phase 2b: User Sign-Off Guide
 
 > **This is the only step where you — not an agent — make the final call.** Everything before this point is preparation. Everything after it creates real Fabric items in your workspace.
 
@@ -21,7 +21,7 @@ This is your chance to catch misunderstandings, adjust scope, or ask questions �
 │  • Deployment order             │     │                                 │
 │  • Alternatives considered      │     │                                 │
 │                                 │     │                                 │
-│  _projects/[name]/prd/            │     │  _projects/[name]/prd/            │
+│  _projects/[name]/docs/            │     │  _projects/[name]/docs/            │
 │  architecture-handoff.md        │     │  test-plan.md                   │
 └─────────────────────────────────┘     └─────────────────────────────────┘
                          │                         │
@@ -69,7 +69,7 @@ Walk through these before giving the go-ahead:
                                 ▼
                     ┌───────────────────────┐
                     │  Phase 1c: Finalize   │◄── Your feedback saved to
-                    │  (Architect revises)  │    prd/sign-off-feedback.md
+                    │  (Architect revises)  │    docs/sign-off-feedback.md
                     └───────────┬───────────┘
                                 │
                                 ▼

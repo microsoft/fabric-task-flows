@@ -29,10 +29,22 @@ Route to the appropriate skill based on pipeline phase. Each skill owns:
 The ONLY phase requiring orchestrator action.
 
 **When presenting sign-off to the user:**
-1. Read the `## Architecture Diagram` section from `_projects/<name>/prd/architecture-handoff.md`
-2. Display the diagram directly in the chat inside a code fence so the user can see it
-3. Summarize key decisions (task flow, storage, ingestion, visualization)
-4. Ask the user to approve or revise
+
+The CLI tool (`run-pipeline.py advance`) already prints a complete user-friendly summary with the diagram, items, rationale, and any warnings. Do NOT re-summarize this output. Instead:
+
+1. Let the CLI output speak for itself — the user sees the full summary in the terminal
+2. After the CLI output, ask the user ONE question: **approve or revise?**
+3. Do NOT present raw tables (decisions, deployment waves, alternatives, trade-offs)
+4. Do NOT repeat information from the CLI output in your own words
+5. If the CLI output flags "NEEDS ATTENTION" items, highlight those briefly and ask the user how to proceed
+
+**What to NEVER show at sign-off:**
+- Deployment wave ordering or item dependency chains
+- Decision tables with columns like "Choice | Rationale | Confidence"
+- Alternatives considered or trade-offs
+- Any contradictory information (e.g., showing different values for the same decision in different places)
+
+**The user is a business stakeholder.** Speak in plain language. If you need to call out something important, use 1-2 sentences — not a table.
 
 ```bash
 # Approve architecture

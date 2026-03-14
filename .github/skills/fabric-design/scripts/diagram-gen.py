@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Deterministic architecture diagram generator.
 
@@ -7,12 +7,12 @@ ASCII diagram with validated box-drawing characters. Items are grouped by
 architectural layer and connected by arrows based on depends_on relationships.
 
 Usage:
-    python .github/skills/fabric-design/scripts/diagram-gen.py --handoff projects/my-project/prd/architecture-handoff.md
+    python .github/skills/fabric-design/scripts/diagram-gen.py --handoff projects/my-project/docs/architecture-handoff.md
     python .github/skills/fabric-design/scripts/diagram-gen.py --handoff handoff.md --output diagram.txt
 
 Importable:
     from diagram_gen import generate_diagram
-    text = generate_diagram("projects/my-project/prd/architecture-handoff.md")
+    text = generate_diagram("projects/my-project/docs/architecture-handoff.md")
 """
 
 from __future__ import annotations
@@ -140,9 +140,7 @@ def generate_diagram(handoff_path: str) -> str:
     box_inner = max(max_name, max_type, 14)
     box_width = box_inner + 4  # "│ " + content + " │"
 
-    # --- Build wave-based layout ---
-    # Group items by wave, display wave by wave
-    waves_sorted = sorted(set(item_wave.values()))
+    # --- Build layer-based layout ---
     max_content_width = 116  # 120 - 4 for "║ " and " ║"
 
     output_lines: list[str] = []
@@ -154,51 +152,75 @@ def generate_diagram(handoff_path: str) -> str:
     output_lines.append(f"║ {title.center(max_content_width)} ║")
     output_lines.append(f"╠═{border}═╣")
 
-    for wave_id in waves_sorted:
-        wave_name = wave_names.get(wave_id, f"Wave {wave_id}")
-        wave_items = [i for i in items_raw if i.get("_wave") == wave_id]
+    # Group items by architectural layer
+    layer_items: dict[str, list[dict]] = {}
+    for item in items_raw:
+        layer_items.setdefault(item["_layer"], []).append(item)
 
-        # Wave header
-        wave_header = f"  Wave {wave_id}: {wave_name}"
-        output_lines.append(f"║ {wave_header.ljust(max_content_width)} ║")
-        output_lines.append(f"║ {'─' * len(wave_header) + ' ' * (max_content_width - len(wave_header))} ║")
+    active_layers = [l for l in LAYER_ORDER if l in layer_items]
 
-        # Lay out items in rows of N (fit within width)
+    for layer_idx, layer in enumerate(active_layers):
+        items = layer_items[layer]
+        label = LAYER_LABELS.get(layer, layer)
+
+        # Collect wave numbers in this layer for the header subtitle
+        wave_nums = sorted(set(i["_wave"] for i in items if i["_wave"] is not None))
+        wave_annotation = ", ".join(f"Wave {w}" for w in wave_nums)
+
+        # Layer header: ░░ LABEL (Wave N) ░░░░░░░░░
+        header_core = f"░░ {label}"
+        if wave_annotation:
+            header_core += f" ({wave_annotation})"
+        header_core += " "
+        fill = max(max_content_width - 4 - len(header_core), 0)
+        header_line = "  " + header_core + "░" * fill
+
+        output_lines.append(f"║ {' ' * max_content_width} ║")
+        output_lines.append(f"║ {header_line.ljust(max_content_width)} ║")
+
+        # Lay out items horizontally within the layer
         items_per_row = max(1, max_content_width // (box_width + 4))
-        rows = [wave_items[i:i + items_per_row]
-                for i in range(0, len(wave_items), items_per_row)]
+        rows = [items[i:i + items_per_row]
+                for i in range(0, len(items), items_per_row)]
 
         for row_items in rows:
-            # Build boxes for this row
             boxes: list[list[str]] = []
             for item in row_items:
                 box = _make_box(
                     item.get("name", "?"),
                     item.get("type", "?"),
-                    None,  # wave already shown in header
+                    item.get("_wave"),
                     box_width,
                 )
                 boxes.append(box)
 
-            # Render line by line
             max_h = max(len(b) for b in boxes)
             for line_idx in range(max_h):
                 row_line = "  "
                 for col_idx, box in enumerate(boxes):
                     cell = box[line_idx] if line_idx < len(box) else " " * box_width
                     if col_idx < len(boxes) - 1:
-                        connector = " ── " if line_idx == 1 else "    "
+                        next_item = row_items[col_idx + 1]
+                        curr_item = row_items[col_idx]
+                        note = next_item.get("note", "")
+                        curr_name = curr_item.get("name", "")
+                        is_alt = isinstance(note, str) and "Alternative to" in note and curr_name in note
+                        if is_alt:
+                            connector = "  ◄OR►  " if line_idx == 1 else "        "
+                        else:
+                            connector = " ── " if line_idx == 1 else "    "
                         row_line += cell + connector
                     else:
                         row_line += cell
                 output_lines.append(f"║ {row_line.ljust(max_content_width)} ║")
 
-        # Blank line + down arrow between waves
-        if wave_id != waves_sorted[-1]:
-            arrow_line = " " * (box_width // 2 + 2) + "│"
-            output_lines.append(f"║ {arrow_line.ljust(max_content_width)} ║")
-            arrow_line2 = " " * (box_width // 2 + 2) + "▼"
-            output_lines.append(f"║ {arrow_line2.ljust(max_content_width)} ║")
+        # Data-flow arrow between layers
+        if layer_idx < len(active_layers) - 1:
+            arrow_pos = box_width // 2 + 2
+            output_lines.append(f"║ {(' ' * arrow_pos + '│').ljust(max_content_width)} ║")
+            output_lines.append(f"║ {(' ' * arrow_pos + '▼').ljust(max_content_width)} ║")
+
+    output_lines.append(f"║ {' ' * max_content_width} ║")
 
     # Footer — blockers
     output_lines.append(f"╠═{border}═╣")
@@ -215,8 +237,6 @@ def generate_diagram(handoff_path: str) -> str:
         else:
             output_lines.append(f"║ {'  No blockers'.ljust(max_content_width)} ║")
     output_lines.append(f"╚═{border}═╝")
-
-    return "\n".join(output_lines)
 
     return "\n".join(output_lines)
 

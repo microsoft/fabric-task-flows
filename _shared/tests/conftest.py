@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for task-flows test suite."""
+﻿"""Shared pytest fixtures for task-flows test suite."""
 from __future__ import annotations
 
 import json
@@ -15,16 +15,16 @@ def mock_repo(tmp_path):
         ├── _shared/registry/item-type-registry.json (minimal)
         ├── _shared/lib/
         ├── _projects/test-project/
-        │   ├── prd/
-        │   ├── deployments/
+        │   ├── docs/
+        │   ├── deploy/
         │   └── docs/decisions/
         └── .github/skills/
     """
     # Create directory structure
     (tmp_path / "_shared" / "registry").mkdir(parents=True)
     (tmp_path / "_shared" / "lib").mkdir(parents=True)
-    (tmp_path / "_projects" / "test-project" / "prd").mkdir(parents=True)
-    (tmp_path / "_projects" / "test-project" / "deployments").mkdir(parents=True)
+    (tmp_path / "_projects" / "test-project" / "docs").mkdir(parents=True)
+    (tmp_path / "_projects" / "test-project" / "deploy").mkdir(parents=True)
     (tmp_path / "_projects" / "test-project" / "docs" / "decisions").mkdir(parents=True)
     (tmp_path / ".github" / "skills").mkdir(parents=True)
 
@@ -40,7 +40,7 @@ def mock_repo(tmp_path):
                 "task_type": "store data",
                 "aliases": ["lakehouse"],
                 "rest_api": {"creatable": True, "definition": True},
-                "availability": "ga",
+                "availability": "general availability",
                 "notes": ""
             },
             "Notebook": {
@@ -52,7 +52,7 @@ def mock_repo(tmp_path):
                 "task_type": "prepare data",
                 "aliases": ["notebook", "spark notebook"],
                 "rest_api": {"creatable": True, "definition": True},
-                "availability": "ga",
+                "availability": "general availability",
                 "notes": ""
             }
         }
