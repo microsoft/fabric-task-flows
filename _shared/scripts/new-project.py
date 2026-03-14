@@ -678,24 +678,15 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
         os.makedirs(d, exist_ok=True)
         print(f"  📁 {os.path.relpath(d, repo_root)}")
 
-    # Create template files
+    # Create template files — only for current-sprint phases
+    # Future-phase files (test, validate, document) are created when their phase runs
     files = {
-        # PRD files (agent handoffs)
+        # PRD files (agent handoffs — current sprint)
         "prd/discovery-brief.md": discovery_brief(project),
         "prd/architecture-handoff.md": architecture_handoff(project),
-        "prd/engineer-review.md": engineer_review(project),
-        "prd/tester-review.md": tester_review(project),
-        "prd/test-plan.md": test_plan(project),
-        "prd/deployment-handoff.md": deployment_handoff(project),
-        "prd/validation-report.md": validation_report(project),
-        # Status
-        "STATUS.md": status_md(project, display_name),
         # Pipeline state (orchestration tracking)
         "pipeline-state.json": pipeline_state(project),
-        # Docs (documenter fills these)
-        "docs/README.md": docs_readme(project, display_name),
-        "docs/architecture.md": docs_architecture(project),
-        "docs/deployment-log.md": docs_deployment_log(project),
+        # ADRs (filled during design phase)
         "docs/decisions/001-task-flow.md": adr_template("001", "Task Flow Selection"),
         "docs/decisions/002-storage.md": adr_template("002", "Storage Layer Selection"),
         "docs/decisions/003-ingestion.md": adr_template("003", "Ingestion Approach"),
@@ -710,12 +701,7 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
         print(f"  📄 {os.path.relpath(full_path, repo_root)}")
 
     print()
-
-    # Update PROJECTS.md
-    update_projects_md(repo_root, project)
-
-    print()
-    print(f"✅ Project '{project}' scaffolded with {len(files)} template files")
+    print(f"✅ Project '{project}' scaffolded with {len(files)} files")
     print()
     print("Next steps:")
     print("  1. Invoke @fabric-advisor to fill in prd/discovery-brief.md")

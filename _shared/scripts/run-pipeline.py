@@ -296,7 +296,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
         cmd = [sys.executable, str(SKILLS_DIR / "fabric-discover" / "scripts" / "signal-mapper.py"),
                "--project", project, "--text", state["problem_statement"], "--format", "json"]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             if result.returncode == 0:
                 outputs.append(f"Signal mapper output:\n{result.stdout}")
             else:
@@ -310,7 +310,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
                         str(SKILLS_DIR / "fabric-design" / "scripts" / "decision-resolver.py"),
                         "--discovery-brief", discovery_path, "--format", "yaml"]
         try:
-            result = subprocess.run(resolver_cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
+            result = subprocess.run(resolver_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             if result.returncode == 0:
                 outputs.append(f"Decision resolver output:\n{result.stdout}")
         except Exception as e:
@@ -324,7 +324,7 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
                               "--task-flow", top_tf, "--project", project,
                               "--output", handoff_path]
             try:
-                result = subprocess.run(scaffolder_cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
+                result = subprocess.run(scaffolder_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
                 if result.returncode == 0:
                     outputs.append(
                         f"📋 Handoff pre-filled from '{top_tf}' scaffolder → {os.path.basename(handoff_path)}\n"
@@ -340,11 +340,11 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
         cmd = [sys.executable, str(SKILLS_DIR / "fabric-test" / "scripts" / "test-plan-prefill.py"),
                "--handoff", handoff_path]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
-            if result.returncode == 0 and result.stdout.strip():
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
+            if result.returncode == 0 and (result.stdout or "").strip():
                 # Write prefill output directly into test-plan.md
                 Path(test_plan_path).write_text(
-                    f"```yaml\n{result.stdout.strip()}\n```\n", encoding="utf-8"
+                    f"```yaml\n{(result.stdout or '').strip()}\n```\n", encoding="utf-8"
                 )
                 outputs.append(
                     f"📋 Test plan pre-filled from architecture handoff → {os.path.basename(test_plan_path)}\n"
@@ -589,8 +589,8 @@ def _generate_complete_handoff(project: str) -> tuple[bool, list[str]]:
                     "--discovery-brief", discovery_path, "--format", "json"]
     try:
         result = subprocess.run(resolver_cmd, capture_output=True, text=True,
-                                encoding="utf-8", timeout=30)
-        if result.returncode == 0 and result.stdout.strip():
+                                encoding="utf-8", errors="replace", timeout=30)
+        if result.returncode == 0 and (result.stdout or "").strip():
             import json as _json
             decisions_output = _json.loads(result.stdout)
             report.append(f"  📋 Decisions resolved ({len(decisions_output.get('decisions', {}))} decisions)")
@@ -611,7 +611,7 @@ def _generate_complete_handoff(project: str) -> tuple[bool, list[str]]:
         decisions_file.write_text(json.dumps(decisions_output, ensure_ascii=False), encoding="utf-8")
     try:
         result = subprocess.run(scaffolder_cmd, capture_output=True, text=True,
-                                encoding="utf-8", timeout=30)
+                                encoding="utf-8", errors="replace", timeout=30)
         if result.returncode == 0:
             report.append(f"  📋 Handoff scaffolded → architecture-handoff.md")
         else:
@@ -633,15 +633,15 @@ def _generate_complete_handoff(project: str) -> tuple[bool, list[str]]:
                        "--handoff", handoff_path]
         try:
             result = subprocess.run(diagram_cmd, capture_output=True, text=True,
-                                    encoding="utf-8", timeout=30, env=env)
-            if result.returncode == 0 and result.stdout.strip():
+                                    encoding="utf-8", errors="replace", timeout=30, env=env)
+            if result.returncode == 0 and (result.stdout or "").strip():
                 # Insert diagram into the handoff
                 handoff_content = Path(handoff_path).read_text(encoding="utf-8")
                 diagram_placeholder = "```\n<!-- Replace this block with your ASCII diagram -->\n```"
                 if diagram_placeholder in handoff_content:
                     handoff_content = handoff_content.replace(
                         diagram_placeholder,
-                        f"```\n{result.stdout.strip()}\n```"
+                        f"```\n{(result.stdout or '').strip()}\n```"
                     )
                     Path(handoff_path).write_text(handoff_content, encoding="utf-8")
                     report.append(f"  📋 Architecture diagram generated and inserted")
@@ -672,10 +672,10 @@ def _generate_test_plan(project: str) -> list[str]:
     cmd = [sys.executable, str(SKILLS_DIR / "fabric-test" / "scripts" / "test-plan-prefill.py"),
            "--handoff", handoff_path]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
-        if result.returncode == 0 and result.stdout.strip():
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
+        if result.returncode == 0 and (result.stdout or "").strip():
             Path(test_plan_path).write_text(
-                f"```yaml\n{result.stdout.strip()}\n```\n", encoding="utf-8"
+                f"```yaml\n{(result.stdout or '').strip()}\n```\n", encoding="utf-8"
             )
             report.append(f"  📋 Test plan generated → test-plan.md")
         else:
@@ -787,8 +787,8 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
                        "--handoff", handoff_path]
                 result = subprocess.run(cmd, capture_output=True, text=True,
                                         timeout=30, encoding="utf-8", env=env)
-                if result.returncode == 0 and result.stdout.strip():
-                    prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}", result.stdout.strip())
+                if result.returncode == 0 and (result.stdout or "").strip():
+                    prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}", (result.stdout or '').strip())
                 else:
                     prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
                                             "(Diagram generation failed — review handoff directly)")
@@ -1167,22 +1167,93 @@ def start_pipeline(display_name: str, problem: str | None = None) -> dict:
 # ---------------------------------------------------------------------------
 
 def _print_status(state: dict) -> None:
-    """Print a human-readable pipeline status."""
-    print(f"\n  Pipeline Status: {state['project']}")
-    print(f"  Task Flow: {state.get('task_flow', 'TBD')}")
-    print(f"  Current Phase: {state['current_phase']}")
+    """Print a rich CLI dashboard for pipeline status."""
+    project = state["project"]
+    task_flow = state.get("task_flow", "TBD") or "TBD"
+    current = state["current_phase"]
+
+    # Count items and waves from architecture handoff
+    project_dir = REPO_ROOT / "_projects" / project
+    handoff = project_dir / "prd" / "architecture-handoff.md"
+    item_count = 0
+    wave_count = 0
+    if handoff.exists():
+        import re as _re
+        content = handoff.read_text(encoding="utf-8", errors="ignore")
+        item_count = len(_re.findall(r"^\|\s*\d", content, _re.MULTILINE))
+        waves = _re.findall(r"wave[_\s]*(\d+)", content, _re.IGNORECASE)
+        if waves:
+            wave_count = max(int(w) for w in waves)
+
+    # Count ADRs
+    adr_dir = project_dir / "docs" / "decisions"
+    adr_count = len(list(adr_dir.glob("*.md"))) if adr_dir.exists() else 0
+
+    # Check for deploy script
+    deploy_dir = project_dir / "deployments"
+    deploy_scripts = list(deploy_dir.glob("deploy-*.py")) if deploy_dir.exists() else []
+
+    # Build phase display
+    width = 58
     print()
+    print(f"  {'=' * width}")
+    print(f"  {project}  ·  {task_flow}")
+    print(f"  {'=' * width}")
 
     for phase_id in _phase_order():
         phase = state["phases"][phase_id]
         status = phase["status"]
-        agent = _phase_skill(phase_id) or "(user)"
-        is_current = "→" if phase_id == state["current_phase"] else " "
-        gate = " 🛑" if _phase_is_gate(phase_id) else ""
+        agent = _phase_skill(phase_id) or "you"
+        output = phase.get("output", "")
 
-        icon = {"pending": "⬜", "in_progress": "🔄", "complete": "✅"}.get(status, "❓")
-        print(f"  {is_current} {icon} {phase_id:<16} {agent or '(user)':<20} {status}{gate}")
+        if status == "complete":
+            icon = "+"
+            suffix = ""
+            if output:
+                out_path = project_dir / output
+                if out_path.exists() and out_path.stat().st_size > 50:
+                    suffix = f" -> {output}"
+        elif status == "in_progress":
+            icon = ">"
+            suffix = f" ({agent})"
+        else:
+            icon = " "
+            suffix = ""
 
+        # Phase label (human-friendly)
+        labels = {
+            "0a-discovery": "Discover",
+            "1-design": "Design",
+            "2a-test-plan": "Test Plan",
+            "2b-sign-off": "Sign-Off",
+            "2c-deploy": "Deploy",
+            "3-validate": "Validate",
+            "4-document": "Document",
+        }
+        label = labels.get(phase_id, phase_id)
+        gate = " (human gate)" if _phase_is_gate(phase_id) else ""
+
+        status_icons = {"complete": "[done]", "in_progress": "[....]", "pending": "[    ]"}
+        si = status_icons.get(status, "[  ? ]")
+
+        line = f"  {si} {label:<12}{suffix}{gate}"
+        print(line)
+
+    print(f"  {'=' * width}")
+
+    # Summary line
+    parts = []
+    if item_count:
+        parts.append(f"Items: {item_count}")
+    if wave_count:
+        parts.append(f"Waves: {wave_count}")
+    if adr_count:
+        parts.append(f"ADRs: {adr_count}")
+    if deploy_scripts:
+        parts.append(f"Deploy: {deploy_scripts[0].name}")
+    if parts:
+        print(f"  {' | '.join(parts)}")
+        print(f"  {'=' * width}")
     print()
 
 
@@ -1208,20 +1279,14 @@ def _print_phase_output(project: str, completed_phase: str) -> None:
         print()
 
 
-def _print_signoff_diagram(project: str) -> None:
-    """Extract and display the architecture diagram from the handoff at sign-off."""
-    handoff_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md"
+def _extract_diagram(handoff_path: Path) -> str | None:
+    """Extract the ASCII architecture diagram from the handoff markdown."""
     if not handoff_path.exists():
-        return
-
+        return None
     content = handoff_path.read_text(encoding="utf-8")
-
-    # Extract the ## Architecture Diagram section from the handoff markdown
-    diagram_text = None
     in_diagram_section = False
     in_code_block = False
     code_lines: list[str] = []
-
     for line in content.split("\n"):
         if line.strip().startswith("## Architecture Diagram"):
             in_diagram_section = True
@@ -1234,14 +1299,150 @@ def _print_signoff_diagram(project: str) -> None:
                 continue
             elif line.strip().startswith("```") and in_code_block:
                 in_code_block = False
-                diagram_text = "\n".join(code_lines)
-                break
+                return "\n".join(code_lines)
             elif in_code_block:
                 code_lines.append(line)
+    return None
 
-    if diagram_text and diagram_text.strip():
-        print(_separator("ARCHITECTURE DIAGRAM"))
-        print(diagram_text)
+
+# Item type → user-friendly layer label + emoji
+_LAYER_LABELS: dict[str, tuple[str, str]] = {
+    "Eventhouse":      ("Store",     "🗄️"),
+    "Lakehouse":       ("Store",     "🗄️"),
+    "Warehouse":       ("Store",     "🗄️"),
+    "SQLDatabase":     ("Store",     "🗄️"),
+    "Eventstream":     ("Ingest",    "📥"),
+    "DataPipeline":    ("Ingest",    "📥"),
+    "CopyJob":         ("Ingest",    "📥"),
+    "DataflowGen2":    ("Ingest",    "📥"),
+    "KQLQueryset":     ("Process",   "⚙️"),
+    "Notebook":        ("Process",   "⚙️"),
+    "SparkJobDefinition": ("Process", "⚙️"),
+    "KQLDashboard":    ("Visualize", "📊"),
+    "Report":          ("Visualize", "📊"),
+    "SemanticModel":   ("Visualize", "📊"),
+    "DataAgent":       ("AI / ML",   "🤖"),
+    "Ontology":        ("AI / ML",   "🤖"),
+    "MLExperiment":    ("AI / ML",   "🤖"),
+    "MLModel":         ("AI / ML",   "🤖"),
+    "Reflex":          ("Alert",     "🔔"),
+    "VariableLibrary": ("Config",    "🔧"),
+    "Environment":     ("Config",    "🔧"),
+}
+
+
+def _print_signoff_summary(project: str) -> None:
+    """Print a user-friendly architecture summary for the sign-off gate.
+
+    Shows: diagram → what we're building → why → blockers.
+    Designed for business stakeholders, not engineers.
+    """
+    handoff_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-handoff.md"
+    summary_path = REPO_ROOT / "_projects" / project / "prd" / "architecture-summary.json"
+
+    # Load summary data
+    summary: dict = {}
+    if summary_path.exists():
+        try:
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Load decisions (decisions.json is the authoritative source)
+    decisions_path = REPO_ROOT / "_projects" / project / "prd" / "decisions.json"
+    decisions_data: dict = {}
+    if decisions_path.exists():
+        try:
+            raw = json.loads(decisions_path.read_text(encoding="utf-8"))
+            decisions_data = raw.get("decisions", raw)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    state: dict = {}
+    try:
+        state = _load_state(project)
+    except FileNotFoundError:
+        pass
+    display_name = state.get("display_name", project)
+    task_flow = summary.get("task_flow") or state.get("task_flow") or "TBD"
+    items = summary.get("items", [])
+    decisions = decisions_data or summary.get("decisions", {})
+    item_count = summary.get("item_count", len(items))
+    wave_count = summary.get("wave_count", 0)
+
+    # ── Header ──
+    print(_separator(f"ARCHITECTURE REVIEW — {display_name}"))
+    print(f"  Pattern: {task_flow}")
+    print(f"  Scope:   {item_count} Fabric items in {wave_count} deployment waves")
+    print()
+
+    # ── Diagram ──
+    diagram = _extract_diagram(handoff_path)
+    if diagram and diagram.strip():
+        print(diagram)
+        print()
+
+    # ── What We're Building ──
+    if items:
+        print(_separator("WHAT WE'RE BUILDING"))
+        # Group items by layer, preserving order
+        seen_layers: dict[str, list[dict]] = {}
+        for item in items:
+            item_type = item.get("type", "")
+            layer_label, _ = _LAYER_LABELS.get(item_type, ("Other", "📦"))
+            seen_layers.setdefault(layer_label, []).append(item)
+
+        for layer_label, layer_items in seen_layers.items():
+            emoji = _LAYER_LABELS.get(layer_items[0].get("type", ""), ("", "📦"))[1]
+            names = []
+            for it in layer_items:
+                name = it.get("name", "unknown")
+                purpose = it.get("purpose", "")
+                if purpose:
+                    names.append(f"{name} — {purpose}")
+                else:
+                    names.append(f"{name} ({it.get('type', '')})")
+            if len(names) == 1:
+                print(f"  {emoji} {layer_label:<10} {names[0]}")
+            else:
+                print(f"  {emoji} {layer_label}")
+                for n in names:
+                    print(f"     {'':10} {n}")
+        print()
+
+    # ── Why This Architecture ──
+    user_facing_decisions = {
+        "storage": "Storage",
+        "ingestion": "Ingestion",
+        "processing": "Processing",
+        "visualization": "Visualization",
+    }
+    rationale_lines: list[str] = []
+    for dec_key, label in user_facing_decisions.items():
+        dec = decisions.get(dec_key, {})
+        choice = dec.get("choice")
+        rationale = dec.get("rationale", "")
+        if choice and choice not in ("N/A", "Not yet determined"):
+            rationale_lines.append(f"  • {label}: {choice} — {rationale}")
+
+    if rationale_lines:
+        print(_separator("WHY THIS ARCHITECTURE"))
+        for line in rationale_lines:
+            print(line)
+        print()
+
+    # ── Needs Attention (only if issues exist) ──
+    warnings: list[str] = []
+    for dec_key, label in user_facing_decisions.items():
+        dec = decisions.get(dec_key, {})
+        choice = dec.get("choice")
+        if not choice or choice == "Not yet determined":
+            warnings.append(f"  ⚠️  {label} decision is unresolved — needs input before deployment")
+
+    if warnings:
+        print(_separator("NEEDS ATTENTION"))
+        for w in warnings:
+            print(w)
         print()
 
 
@@ -1348,9 +1549,9 @@ def main() -> None:
         if not args.quiet and state["current_phase"] != prev_phase:
             _print_phase_output(args.project, prev_phase)
 
-        # Show architecture diagram when entering sign-off phase (always — never suppressed by -q)
+        # Show user-friendly architecture summary when entering sign-off phase
         if state["current_phase"] == "2b-sign-off":
-            _print_signoff_diagram(args.project)
+            _print_signoff_summary(args.project)
 
         prompt, agent, phase, is_gate = get_next_prompt(args.project)
         if agent:

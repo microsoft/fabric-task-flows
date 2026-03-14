@@ -169,13 +169,7 @@ class TestScaffold:
     """Verify full project scaffolding creates expected tree."""
 
     def test_creates_directory_tree(self, tmp_path):
-        # Create a fake task-flows.md so scaffold's repo_root check would pass
-        # (scaffold itself doesn't check, but good practice).
         (tmp_path / "task-flows.md").touch()
-        (tmp_path / "PROJECTS.md").write_text(
-            "| Project | Task Flow |\n|---|---|\n> Project rows\n",
-            encoding="utf-8",
-        )
 
         np.scaffold(str(tmp_path), "Test Scaffold")
 
@@ -186,23 +180,13 @@ class TestScaffold:
         assert (project_dir / "deployments").is_dir()
 
     def test_creates_template_files(self, tmp_path):
-        (tmp_path / "PROJECTS.md").write_text("> Project rows\n", encoding="utf-8")
         np.scaffold(str(tmp_path), "File Check")
 
         proj = tmp_path / "_projects" / "file-check"
         expected_files = [
             "prd/discovery-brief.md",
             "prd/architecture-handoff.md",
-            "prd/engineer-review.md",
-            "prd/tester-review.md",
-            "prd/test-plan.md",
-            "prd/deployment-handoff.md",
-            "prd/validation-report.md",
-            "STATUS.md",
             "pipeline-state.json",
-            "docs/README.md",
-            "docs/architecture.md",
-            "docs/deployment-log.md",
             "docs/decisions/001-task-flow.md",
             "docs/decisions/002-storage.md",
             "docs/decisions/003-ingestion.md",
@@ -213,7 +197,6 @@ class TestScaffold:
             assert (proj / rel).exists(), f"Missing: {rel}"
 
     def test_pipeline_state_is_valid_json(self, tmp_path):
-        (tmp_path / "PROJECTS.md").write_text("> Project rows\n", encoding="utf-8")
         np.scaffold(str(tmp_path), "Json Test")
 
         state_path = tmp_path / "_projects" / "json-test" / "pipeline-state.json"
@@ -222,23 +205,20 @@ class TestScaffold:
 
     def test_existing_directory_exits(self, tmp_path):
         """scaffold should sys.exit(1) if project directory already exists."""
-        (tmp_path / "PROJECTS.md").write_text("", encoding="utf-8")
         proj_dir = tmp_path / "_projects" / "dup-proj"
         proj_dir.mkdir(parents=True)
 
         with pytest.raises(SystemExit):
             np.scaffold(str(tmp_path), "Dup Proj")
 
-    def test_status_md_content(self, tmp_path):
-        (tmp_path / "PROJECTS.md").write_text("> Project rows\n", encoding="utf-8")
+    def test_pipeline_state_content(self, tmp_path):
         np.scaffold(str(tmp_path), "Status Demo")
 
-        status = (tmp_path / "_projects" / "status-demo" / "STATUS.md").read_text(
+        state = (tmp_path / "_projects" / "status-demo" / "pipeline-state.json").read_text(
             encoding="utf-8"
         )
-        assert "Status Demo" in status
-        assert "status-demo" in status
-        assert "Discovery" in status
+        assert "status-demo" in state
+        assert "0a-discovery" in state
 
 
 # ── update_projects_md ───────────────────────────────────────────────────
