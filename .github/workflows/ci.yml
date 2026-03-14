@@ -18,13 +18,14 @@ jobs:
           python-version: "3.11"
 
       - name: Install test dependencies
-        run: pip install "pytest==8.3.5" "pytest-cov<7"
+        run: pip install pytest pytest-cov
 
       - name: Run tests
         env:
           PYTHONPATH: _shared
           COLUMNS: "120"
-        run: python -m pytest _shared/tests/ -v --cov=lib --cov-report=term-missing
+          TERM: dumb
+        run: python -m pytest _shared/tests/ -p no:terminal --tb=short --cov=lib --cov-report=term-missing
 
       - name: Lint with ruff
         run: pip install ruff && ruff check _shared/
