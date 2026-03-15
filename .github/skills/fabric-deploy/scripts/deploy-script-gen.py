@@ -641,11 +641,6 @@ def _gen_deploy_script(project: str, data: HandoffData) -> str:
     # Build a self-contained banner function for the deploy script
     banner_func = _build_deploy_banner_func(project, data.task_flow)
 
-    # Check if architecture includes an Environment item (needs post-publish wait)
-    has_environment = any(_resolve_fab_type(i.type) == "Environment" for i in data.items)
-    env_wait_single = "\n            wait_for_environment_publish()" if has_environment else ""
-    env_wait_multi = "\n                if env == envs[0]:  # Only wait on first environment\n                    wait_for_environment_publish()" if has_environment else ""
-
     return f"""#!/usr/bin/env python3
 \"""
 Fabric Task Flows - Deploy Script
@@ -789,15 +784,6 @@ def deploy_to_workspace(config_path, ws_id, environment=None, credential=None):
                     time.sleep(wait)
                     continue
             raise
-
-
-def wait_for_environment_publish():
-    \"""Wait for Environment item to finish publishing (can take 20+ min with libraries).\"""
-    print()
-    print("  -- ENVIRONMENT PUBLISH --")
-    print("  ⚠  Environment items can take 20+ minutes to publish (especially with libraries).")
-    print("  ⚠  Notebooks/Pipelines that bind to this Environment may fail if it hasn't finished.")
-    input("  ? Press Enter when the Environment shows 'Published' in the portal (or wait 60s)... ")
 
 
 def populate_variable_library(ws_id, headers):
@@ -972,7 +958,7 @@ def main():
         print()
         print("  -- DEPLOYING --")
         try:
-            deploy_to_workspace(args.config, ws_id, credential=credential){env_wait_single}
+            deploy_to_workspace(args.config, ws_id, credential=credential)
             populate_variable_library(ws_id, headers)
             print()
             print("  " + "=" * 56)
@@ -1011,7 +997,7 @@ def main():
         for env in envs:
             print(f"  Deploying to {{env.upper()}}...")
             try:
-                deploy_to_workspace(args.config, ws_ids[env], environment=env, credential=credential){env_wait_multi}
+                deploy_to_workspace(args.config, ws_ids[env], environment=env, credential=credential)
                 populate_variable_library(ws_ids[env], headers)
                 print(f"  {{env.upper()}} complete!")
             except Exception as e:
