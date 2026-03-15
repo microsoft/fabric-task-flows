@@ -1,0 +1,10 @@
+{
+  "formatVersion": "202502",
+  "name": "Dataflow",
+  "queryGroups": [],
+  "documentLocale": "en-US",
+  "queriesMetadata": {},
+  "fastCombine": false,
+  "allowNativeQueries": true,
+  "skipAutomaticTypeAndHeaderDetection": false
+}

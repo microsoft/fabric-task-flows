@@ -10,10 +10,6 @@ Usage:
     python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/docs/architecture-handoff.md --project "My Project"
     python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/docs/architecture-handoff.md --project "My Project" --output-dir projects/my-project/deploy/
     python .github/skills/fabric-deploy/scripts/deploy-script-gen.py --handoff projects/my-project/docs/architecture-handoff.md --project "My Project" --shell bash
-
-Importable:
-    from deploy_script_gen import generate
-    bash_script, ps1_script = generate("projects/x/docs/architecture-handoff.md", "My Project")
 """
 
 from __future__ import annotations
@@ -28,7 +24,6 @@ from pathlib import Path
 
 SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
 SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-deploy/
-ASSETS_DIR = SKILL_DIR / "assets"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Item type → fab command mapping
@@ -39,43 +34,41 @@ ASSETS_DIR = SKILL_DIR / "assets"
 _SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"
 
 sys.path.insert(0, str(_SHARED_DIR))
-from registry_loader import build_fab_commands, build_display_names, load_registry
+from registry_loader import load_registry
 from banner import BANNER_ART
 from yaml_utils import extract_yaml_blocks, parse_yaml_value, split_list, parse_inline_mapping
 from text_utils import slugify, escape_for_python_string
 
-# REST API creation support map: lowercase alias → True/False
-FAB_COMMANDS: dict[str, bool] = build_fab_commands()
-DISPLAY_NAMES: dict[str, str] = build_display_names()
+# REST API creation support map loaded from registry
 REGISTRY_TYPES: dict = load_registry()
 
-# Task-flow-specific prompts
-TASK_FLOW_PROMPTS: dict[str, list[tuple[str, str, str, str, bool]]] = {
-    # (env_var, prompt_text, default, description, optional)
-    "event-analytics": [
-        ("EVENT_HUB_NAMESPACE", "Event Hub namespace (Azure Event Hubs that streams events into Fabric)", "", "Azure Event Hub namespace for streaming", True),
-        ("EVENT_HUB_CONSUMER_GROUP", "Event Hub consumer group (isolates this pipeline's read position — use $Default if unsure)", "$Default", "Consumer group controls which reader offset Eventstream uses", False),
-    ],
-    "event-medallion": [
-        ("EVENT_HUB_NAMESPACE", "Event Hub namespace (Azure Event Hubs that streams events into Fabric)", "", "Azure Event Hub namespace for streaming", True),
-        ("EVENT_HUB_CONSUMER_GROUP", "Event Hub consumer group (isolates this pipeline's read position — use $Default if unsure)", "$Default", "Consumer group controls which reader offset Eventstream uses", False),
-    ],
-    "medallion": [
-        ("SOURCE_CONNECTION_STRING", "Source database connection string (e.g., SQL Server, PostgreSQL — used by Copy Job)", "", "Connection to source database", True),
-    ],
-    "lambda": [
-        ("SOURCE_CONNECTION_STRING", "Source database connection string (e.g., SQL Server, PostgreSQL — used by Copy Job)", "", "Connection to source database", True),
-        ("EVENT_HUB_NAMESPACE", "Event Hub namespace (Azure Event Hubs that streams events into Fabric)", "", "Azure Event Hub namespace for streaming", True),
-        ("EVENT_HUB_CONSUMER_GROUP", "Event Hub consumer group (isolates this pipeline's read position — use $Default if unsure)", "$Default", "Consumer group controls which reader offset Eventstream uses", False),
-    ],
-    "app-backend": [
-        ("API_FRONTEND_URL", "API frontend URL (the app that will call the GraphQL/REST endpoints)", "", "URL of the application frontend", True),
-    ],
-    "sensitive-data-insights": [
-        ("KEY_VAULT_URL", "Key Vault URL (Azure Key Vault storing encryption keys for PII masking)", "", "Azure Key Vault for encryption keys", True),
-        ("ENCRYPTION_KEY_NAME", "Encryption key name (key used by masking notebooks)", "", "Name of the encryption key", True),
-    ],
-}
+# Static item content templates — loaded from _shared/templates/ (single source of truth)
+# Each subdirectory contains the exact empty-state definition files that fabric-cicd
+# will base64-encode and POST to the Fabric Items API.
+_TEMPLATES_DIR = SHARED_DIR / "templates"
+
+# Fallback: cicd-templates.json (kept in sync but templates/ directory takes precedence)
+_CICD_TEMPLATES_PATH = SHARED_DIR / "registry" / "cicd-templates.json"
+_CICD_TEMPLATES: dict[str, dict[str, object]] = {}
+if _CICD_TEMPLATES_PATH.exists():
+    _CICD_TEMPLATES = json.loads(_CICD_TEMPLATES_PATH.read_text(encoding="utf-8")).get("templates", {})
+
+
+def _load_template_files(cicd_type: str) -> dict[str, str] | None:
+    """Load definition files from _shared/templates/{cicd_type}/.
+
+    Returns {relative_path: content} or None if no template directory exists.
+    Files are read as-is — no JSON parsing or transformation.
+    """
+    tpl_dir = _TEMPLATES_DIR / cicd_type
+    if not tpl_dir.is_dir():
+        return None
+    result: dict[str, str] = {}
+    for fpath in sorted(tpl_dir.rglob("*")):
+        if fpath.is_file() and fpath.name != "README.md":
+            rel = fpath.relative_to(tpl_dir).as_posix()
+            result[rel] = fpath.read_text(encoding="utf-8")
+    return result or None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -235,6 +228,9 @@ def _resolve_string_deps(items: list[Item]) -> None:
     (e.g. "Lakehouse Bronze") are matched against item names/types and
     replaced with the corresponding item ID.
     """
+    def _norm(s: str) -> str:
+        return s.lower().replace("-", "").replace("_", "").replace(" ", "")
+
     name_to_id: dict[str, int] = {}
     for item in items:
         name_to_id[item.name.lower()] = item.id
@@ -242,6 +238,10 @@ def _resolve_string_deps(items: list[Item]) -> None:
         # Support "Type Name" patterns like "Lakehouse Bronze"
         composite = f"{item.type} {item.name}".lower()
         name_to_id[composite] = item.id
+        # Normalized variants (collapse dashes, underscores, spaces)
+        name_to_id[_norm(item.name)] = item.id
+        name_to_id[_norm(item.type)] = item.id
+        name_to_id[_norm(f"{item.type} {item.name}")] = item.id
     for item in items:
         resolved = []
         for dep in item.depends_on:
@@ -251,6 +251,8 @@ def _resolve_string_deps(items: list[Item]) -> None:
                 key = dep.lower().strip()
                 if key in name_to_id:
                     resolved.append(name_to_id[key])
+                elif _norm(dep) in name_to_id:
+                    resolved.append(name_to_id[_norm(dep)])
                 else:
                     resolved.append(dep)
         item.depends_on = resolved
@@ -411,14 +413,8 @@ def _slugify(name: str) -> str:
 
 
 def _type_key(item_type: str) -> str:
-    """Normalize item type for FAB_COMMANDS lookup."""
+    """Normalize item type for registry lookup."""
     return item_type.lower().replace("_", "").replace(" ", "").replace("-", "")
-
-
-def _is_portal_only(item_type: str) -> bool:
-    """True if the item cannot be created via the Fabric REST API."""
-    key = _type_key(item_type)
-    return not FAB_COMMANDS.get(key, FAB_COMMANDS.get(item_type.lower(), False))
 
 
 def _cli_safe_name(name: str) -> str:
@@ -432,34 +428,11 @@ def _cli_safe_name(name: str) -> str:
     return name.replace("-", "_")
 
 
-def _get_display_type(item_type: str) -> str:
-    key = _type_key(item_type)
-    return DISPLAY_NAMES.get(key, DISPLAY_NAMES.get(item_type.lower(), item_type))
-
-
 def _resolve_fab_type(item_type: str) -> str:
     """Resolve item type to its Fabric type name (e.g., 'Pipeline' → 'DataPipeline')."""
     from registry_loader import build_fab_type_map
     fab_map = build_fab_type_map()
     return fab_map.get(item_type, fab_map.get(item_type.title(), item_type))
-
-
-def _has_or_alternatives(data: HandoffData) -> list[tuple[Item, Item]]:
-    """Detect items that are ──OR── alternatives."""
-    alternatives: list[tuple[Item, Item]] = []
-    _items_by_name = {item.name: item for item in data.items}
-    # Check for items with "Alternative to" note from scaffolder
-    for item in data.items:
-        if hasattr(item, "purpose") and "alternative" in str(getattr(item, "purpose", "")).lower():
-            continue
-    # Fallback: group by same non-zero id
-    if not alternatives:
-        seen_ids: dict[int, list[Item]] = {}
-        for item in data.items:
-            if item.id != 0:
-                seen_ids.setdefault(item.id, []).append(item)
-        alternatives = [(g[0], g[1]) for g in seen_ids.values() if len(g) >= 2]
-    return alternatives
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -517,58 +490,6 @@ def _collect_folders(data: "HandoffData") -> list[str]:
     return folders
 
 
-def _gen_folder_creation_ps1(data: "HandoffData", ws_var: str) -> str:
-    """Generate PowerShell folder creation calls before wave deployment."""
-    folders = _collect_folders(data)
-    if not folders:
-        return ""
-    lines = [
-        "",
-        "  # ─────────────────────────────────────────────────────────────────",
-        "  # Workspace Folders",
-        "  # ─────────────────────────────────────────────────────────────────",
-        '  Write-Host ""',
-        '  Write-Host "  Workspace Folders"',
-    ]
-    for idx, folder in enumerate(folders):
-        connector = "└──" if idx == len(folders) - 1 else "├──"
-        lines.append(f'  New-FabFolder -WorkspacePath $wsPath -FolderName "{folder}" -TreeChar "{connector}"')
-    lines.append("")
-    return "\n".join(lines)
-
-
-def _gen_folder_creation_bash(data: "HandoffData", ws_var: str) -> str:
-    """Generate bash folder creation calls before wave deployment."""
-    folders = _collect_folders(data)
-    if not folders:
-        return ""
-    lines = [
-        "",
-        "  # ─────────────────────────────────────────────────────────────────",
-        "  # Workspace Folders",
-        "  # ─────────────────────────────────────────────────────────────────",
-        '  echo ""',
-        '  echo "  Workspace Folders"',
-    ]
-    for idx, folder in enumerate(folders):
-        connector = "└──" if idx == len(folders) - 1 else "├──"
-        lines.append(f'  fab_create_folder "{ws_var}.Workspace" "{folder}" "{connector}"')
-    lines.append("")
-    return "\n".join(lines)
-
-
-def _build_item_lookup(data: HandoffData) -> dict[str, Item]:
-    lookup: dict[str, Item] = {}
-    for item in data.items:
-        lookup[item.name] = item
-        lookup[str(item.id)] = item
-    return lookup
-
-
-def _tree_connector(idx: int, total: int) -> str:
-    return "└──" if idx == total - 1 else "├──"
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Code generation: Python deploy script
 # ─────────────────────────────────────────────────────────────────────────────
@@ -616,6 +537,7 @@ def _gen_config_yml(data: HandoffData, project: str, ws_desc: str) -> str:
     """Generate a config.yml for fabric-cicd deploy_with_config."""
     slug = _slugify(project)
     # Collect unique item types, filtering to fabric-cicd supported only
+    # Exclude REST-only types — they're created via REST API post-deploy
     raw_types = set()
     for item in data.items:
         if not item.name:
@@ -663,6 +585,17 @@ def _gen_config_yml(data: HandoffData, project: str, ws_desc: str) -> str:
         "  - enable_workspace_folder_publish",
     ]
 
+    # fabric-cicd v0.3.1+ uses 'features' key instead of 'feature_flags'
+    feature_list = ["enable_workspace_folder_publish"]
+    if folders:
+        feature_list += ["enable_experimental_features", "enable_include_folder"]
+    lines += [
+        "",
+        "features:",
+    ]
+    for feat in feature_list:
+        lines.append(f"  - {feat}")
+
     return "\n".join(lines) + "\n"
 
 
@@ -708,6 +641,11 @@ def _gen_deploy_script(project: str, data: HandoffData) -> str:
     # Build a self-contained banner function for the deploy script
     banner_func = _build_deploy_banner_func(project, data.task_flow)
 
+    # Check if architecture includes an Environment item (needs post-publish wait)
+    has_environment = any(_resolve_fab_type(i.type) == "Environment" for i in data.items)
+    env_wait_single = "\n            wait_for_environment_publish()" if has_environment else ""
+    env_wait_multi = "\n                if env == envs[0]:  # Only wait on first environment\n                    wait_for_environment_publish()" if has_environment else ""
+
     return f"""#!/usr/bin/env python3
 \"""
 Fabric Task Flows - Deploy Script
@@ -728,19 +666,33 @@ BASE_URL = "https://api.fabric.microsoft.com/v1"
 
 def get_credential():
     try:
-        from azure.identity import DefaultAzureCredential, InteractiveBrowserCredential
+        from azure.identity import AzureCliCredential, DeviceCodeCredential, InteractiveBrowserCredential
     except ImportError:
         print("  -- azure-identity not installed. Run: pip install azure-identity")
         sys.exit(1)
     scope = "https://api.fabric.microsoft.com/.default"
+
+    # 1. Azure CLI — works if user has run 'az login' (best for terminal/CI)
     try:
-        cred = DefaultAzureCredential()
+        cred = AzureCliCredential()
+        cred.get_token(scope)
+        print("  -- Authenticated via Azure CLI")
+        return cred
+    except Exception:
+        pass
+
+    # 2. Device code — prints a code to the terminal (works in headless/CLI environments)
+    try:
+        print("  -- Azure CLI not available. Using device code flow...")
+        cred = DeviceCodeCredential()
         cred.get_token(scope)
         return cred
     except Exception:
-        # Intentional: DefaultAzureCredential may not be available; fall back to browser login.
-        print("  -- Default credentials not available. Opening browser for sign-in...")
-        return InteractiveBrowserCredential()
+        pass
+
+    # 3. Browser — last resort (requires visible browser window)
+    print("  -- Falling back to browser sign-in...")
+    return InteractiveBrowserCredential()
 
 
 def get_auth_headers(credential=None):
@@ -813,7 +765,7 @@ def deploy_to_workspace(config_path, ws_id, environment=None, credential=None):
         config = yaml.safe_load(f)
     config["core"]["workspace_id"] = ws_id
     config["core"].pop("workspace", None)
-    with open(config_path, "w", encoding="utf-8") as f:
+    with open(config_path, "w", encoding="utf-8", newline="\\n") as f:
         yaml.dump(config, f, default_flow_style=False, sort_keys=False)
     kwargs = {{"config_file_path": config_path}}
     if environment:
@@ -837,6 +789,15 @@ def deploy_to_workspace(config_path, ws_id, environment=None, credential=None):
                     time.sleep(wait)
                     continue
             raise
+
+
+def wait_for_environment_publish():
+    \"""Wait for Environment item to finish publishing (can take 20+ min with libraries).\"""
+    print()
+    print("  -- ENVIRONMENT PUBLISH --")
+    print("  ⚠  Environment items can take 20+ minutes to publish (especially with libraries).")
+    print("  ⚠  Notebooks/Pipelines that bind to this Environment may fail if it hasn't finished.")
+    input("  ? Press Enter when the Environment shows 'Published' in the portal (or wait 60s)... ")
 
 
 def populate_variable_library(ws_id, headers):
@@ -959,7 +920,7 @@ def populate_variable_library(ws_id, headers):
         print(f"  ── Could not update Variable Library: {{update_resp.text[:200]}}")
         script_dir = os.path.dirname(os.path.abspath(__file__))
         fallback = os.path.join(script_dir, "variable-library-definition.json")
-        with open(fallback, "w", encoding="utf-8") as f:
+        with open(fallback, "w", encoding="utf-8", newline="\\n") as f:
             _json.dump(body, f, indent=2)
         print(f"  ── Definition saved to: {{fallback}}")
 
@@ -1011,7 +972,7 @@ def main():
         print()
         print("  -- DEPLOYING --")
         try:
-            deploy_to_workspace(args.config, ws_id, credential=credential)
+            deploy_to_workspace(args.config, ws_id, credential=credential){env_wait_single}
             populate_variable_library(ws_id, headers)
             print()
             print("  " + "=" * 56)
@@ -1050,7 +1011,7 @@ def main():
         for env in envs:
             print(f"  Deploying to {{env.upper()}}...")
             try:
-                deploy_to_workspace(args.config, ws_ids[env], environment=env, credential=credential)
+                deploy_to_workspace(args.config, ws_ids[env], environment=env, credential=credential){env_wait_multi}
                 populate_variable_library(ws_ids[env], headers)
                 print(f"  {{env.upper()}} complete!")
             except Exception as e:
@@ -1079,23 +1040,6 @@ if __name__ == "__main__":
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Public API
-# ─────────────────────────────────────────────────────────────────────────────
-
-def generate(handoff_path: str, project: str) -> None:
-    """Generate fabric-cicd deployment artifacts from a handoff file.
-
-    Creates:
-        - workspace/ directory with item subdirectories and .platform files
-        - config.yml for fabric-cicd
-        - deploy-{slug}.py thin deploy script
-        - descriptions-{slug}.json (central definitions)
-        - taskflow-{slug}.json (importable task flow)
-    """
-    pass  # Called from main() which handles output
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Extracted helpers (called from main)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1103,31 +1047,30 @@ def _gen_item_definitions(
     cicd_type: str, item: Item, data: HandoffData,
     safe_name: str, description: str, folder: str,
 ) -> dict[str, str]:
-    """Return ``{relative_path: content}`` for an item's definition files."""
-    if cicd_type == "Environment":
-        return {
-            "Setting/Sparkcompute.yml": (
-                "instancePool: \"\"\ntargetPlatform: spark\nruntimeVersion: \"1.3\"\nautomaticLog:\n  enabled: true\n"
-            ),
-        }
+    """Return ``{relative_path: content}`` for an item's definition files.
 
-    if cicd_type == "VariableLibrary":
-        variables = {
-            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
-            "variables": [
-                {"name": "workspace_id", "type": "String", "value": "", "note": "Workspace ID — set at deploy time"},
-            ]
-        }
-        settings = {
-            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
-            "valueSetsOrder": []
-        }
-        return {
-            "variables.json": json.dumps(variables, indent=2),
-            "settings.json": json.dumps(settings, indent=2),
-        }
+    Templates are loaded from ``_shared/templates/{cicd_type}/`` — the single
+    source of truth for empty-state item definitions.  These files are
+    byte-for-byte what fabric-cicd will base64-encode and POST to the Fabric
+    Items API.
+
+    A small number of *dynamic* types customise the template with runtime
+    values (item name, dependency paths, etc.).  All others are copied
+    verbatim.
+    """
+    # ── Dynamic types: need runtime values ──────────────────────────────────
 
     if cicd_type == "Notebook":
+        # Embed item name and description into the notebook cell
+        tpl = _load_template_files(cicd_type)
+        if tpl and "notebook-content.py" in tpl:
+            base = tpl["notebook-content.py"]
+            base = base.replace(
+                "# Welcome to your new notebook\n# Type here in the cell editor to add code!",
+                f"# {safe_name} — {description}\nprint(\"{safe_name} initialized\")",
+            )
+            return {"notebook-content.py": base}
+        # Inline fallback
         nb_content = (
             "# Fabric notebook source\n\n"
             "# METADATA ********************\n\n"
@@ -1147,22 +1090,10 @@ def _gen_item_definitions(
         )
         return {"notebook-content.py": nb_content}
 
-    if cicd_type == "SemanticModel":
-        pbism = json.dumps({"version": "4.0", "settings": {}}, indent=2)
-        tmdl = (
-            "model Model\n"
-            "\tculture: en-US\n"
-            "\tdefaultPowerBIDataSourceVersion: powerBI_V3\n"
-            "\tsourceQueryCulture: en-US\n"
-        )
-        return {
-            "definition.pbism": pbism,
-            "definition/model.tmdl": tmdl,
-        }
-
     if cicd_type == "Report":
+        # Resolve semantic model relative path from dependencies
         items_by_id = {i.id: i for i in data.items}
-        sm_path = None
+        sm_path = ""
         for dep_id in (item.depends_on or []):
             dep = items_by_id.get(dep_id)
             if dep and _cicd_type(dep.type) == "SemanticModel":
@@ -1176,80 +1107,35 @@ def _gen_item_definitions(
                     sm_path = f"../{dep_safe}.SemanticModel"
                 break
 
-        pbir = {"version": "4.0", "datasetReference": {}}
-        if sm_path:
-            pbir["datasetReference"]["byPath"] = {"path": sm_path}
-        else:
-            pbir["datasetReference"]["byPath"] = {"path": ""}
-        report_json = {
-            "config": json.dumps({
-                "version": "5.59",
-                "themeCollection": {"baseTheme": {"name": "CY24SU10", "version": "5.61", "type": 2}},
-                "activeSectionIndex": 0,
-                "settings": {"useNewFilterPaneExperience": True, "allowChangeFilterTypes": True}
-            }),
+        # Load report.json from template, customise definition.pbir
+        tpl = _load_template_files(cicd_type) or {}
+        pbir = json.dumps({
+            "version": "4.0",
+            "datasetReference": {"byPath": {"path": sm_path}}
+        }, indent=2)
+        report_json = tpl.get("report.json", json.dumps({
+            "config": "{}",
             "layoutOptimization": 0,
-            "sections": [{
-                "config": "{}",
-                "displayName": "Page 1",
-                "displayOption": 1,
-                "filters": "[]",
-                "height": 720.0,
-                "name": "ReportSection",
-                "visualContainers": [],
-                "width": 1280.0
-            }]
-        }
+            "sections": []
+        }, indent=2))
         return {
-            "definition.pbir": json.dumps(pbir, indent=2),
-            "report.json": json.dumps(report_json, indent=2),
+            "definition.pbir": pbir,
+            "report.json": report_json,
         }
-
-    if cicd_type == "DataPipeline":
-        return {"pipeline-content.json": json.dumps({"properties": {"activities": []}}, indent=2)}
-
-    if cicd_type == "CopyJob":
-        copyjob = {"properties": {"jobMode": "Batch", "source": {"type": "LakehouseTable"}, "destination": {"type": "LakehouseTable"}, "policy": {"timeout": "0.12:00:00"}}, "activities": []}
-        return {"copyjob-content.json": json.dumps(copyjob, indent=2)}
-
-    if cicd_type == "Eventstream":
-        return {
-            "eventstream.json": json.dumps({"compatibilityLevel": "1.0", "sources": [], "destinations": []}, indent=2),
-            "eventstreamProperties.json": json.dumps({"retentionTimeInDays": 1, "eventThroughputLevel": "Low"}, indent=2),
-        }
-
-    if cicd_type == "KQLQueryset":
-        queryset = {"queryset": {"version": "1.0.0", "dataSources": [], "tabs": []}}
-        return {"RealTimeQueryset.json": json.dumps(queryset, indent=2)}
-
-    if cicd_type == "Eventhouse":
-        return {"EventhouseProperties.json": "{}"}
-
-    if cicd_type == "KQLDashboard":
-        return {}
-
-    if cicd_type == "Reflex":
-        return {"ReflexEntities.json": "[]"}
-
-    if cicd_type == "Dataflow":
-        return {"mashup.pq": 'section Section1;\n\nshared Table = let\n    Source = ""\nin\n    Source;\n'}
-
-    if cicd_type == "GraphQLApi":
-        return {"graphql-definition.json": json.dumps({"datasources": []}, indent=2)}
-
-    if cicd_type == "SparkJobDefinition":
-        return {"SparkJobDefinitionV1.json": json.dumps({
-            "executableFile": None, "defaultLakehouseArtifactId": "", "mainClass": ""
-        }, indent=2)}
 
     if cicd_type == "SQLDatabase":
+        # Embed item name into .sqlproj filename and content
+        tpl = _load_template_files(cicd_type)
+        if tpl and "template.sqlproj" in tpl:
+            content = tpl["template.sqlproj"].replace("{{ITEM_NAME}}", safe_name)
+            return {f"{safe_name}.sqlproj": content}
         sqlproj = (
             '<?xml version="1.0" encoding="utf-8"?>\n'
             '<Project DefaultTargets="Build">\n'
             '  <Sdk Name="Microsoft.Build.Sql" Version="1.0.0-rc1" />\n'
             '  <PropertyGroup>\n'
             f'    <Name>{safe_name}</Name>\n'
-            '    <ProjectGuid>{00000000-0000-0000-0000-000000000000}</ProjectGuid>\n'
+            '    <ProjectGuid>{{00000000-0000-0000-0000-000000000000}}</ProjectGuid>\n'
             '    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlDbFabricDatabaseSchemaProvider</DSP>\n'
             '    <ModelCollation>1033, CI</ModelCollation>\n'
             '  </PropertyGroup>\n'
@@ -1260,25 +1146,24 @@ def _gen_item_definitions(
         )
         return {f"{safe_name}.sqlproj": sqlproj}
 
-    if cicd_type == "UserDataFunction":
-        return {
-            "function_app.py": 'from fabric_user_data_functions import udf\n\n@udf.function()\ndef hello():\n    return "Hello"\n',
-            "definition.json": json.dumps({"connections": [], "libraries": []}, indent=2),
-            ".resources/functions.json": json.dumps({"functions": []}, indent=2),
-        }
+    # ── All other types: load from _shared/templates/ (source of truth) ─────
 
-    if cicd_type == "MirroredDatabase":
-        mirroring = {"properties": {"source": {"type": "GenericMirror", "typeProperties": None}, "target": {"type": "MountedRelationalDatabase", "typeProperties": {"format": "Delta", "defaultSchema": "dbo"}}}}
-        return {"mirroring.json": json.dumps(mirroring, indent=2)}
+    tpl = _load_template_files(cicd_type)
+    if tpl:
+        return tpl
 
-    if cicd_type == "ApacheAirflowJob":
-        airflow = {"properties": {"type": "Airflow", "typeProperties": {"airflowProperties": {"airflowVersion": "2.10.5", "pythonVersion": "3.12", "airflowEnvironment": "FabricAirflowJob-1.0.0", "airflowRequirements": [], "enableAADIntegration": True, "enableTriggerers": False, "airflowConfigurationOverrides": {}, "environmentVariables": {}, "packageProviderPath": "plugins"}, "computeProperties": {"computePool": "StarterPool", "computeSize": "Small", "enableAutoscale": False, "enableAvailabilityZones": False, "extraNodes": 0}}}}
-        dag_content = 'from datetime import datetime\nfrom airflow import DAG\nfrom airflow.operators.bash import BashOperator\n\ndefault_args = {"owner": "airflow", "depends_on_past": False, "start_date": datetime(2023, 5, 1)}\n\nwith DAG("dag1", default_args=default_args, schedule_interval=None, catchup=False) as dag:\n    hello = BashOperator(task_id="hello", bash_command=\'echo "Hello"\')\n    hello\n'
-        return {
-            "apacheairflowjob-content.json": json.dumps(airflow, indent=2),
-            "dags/dag1.py": dag_content,
-        }
+    # Fallback: cicd-templates.json (kept in sync)
+    template = _CICD_TEMPLATES.get(cicd_type)
+    if template:
+        result: dict[str, str] = {}
+        for filename, content in template.items():
+            if isinstance(content, str):
+                result[filename] = content
+            else:
+                result[filename] = json.dumps(content, indent=2)
+        return result
 
+    # Types with no definition files (e.g. KQLDashboard, Lakehouse platform-only)
     return {}
 
 
@@ -1291,19 +1176,26 @@ def _inject_variable_library(slug: str, project: str, ws_dir: Path) -> None:
         "VariableLibrary", vl_name,
         f"Variable Library for {project} — CI/CD stage configuration"
     )
-    (vl_dir / ".platform").write_text(vl_platform, encoding="utf-8")
-    variables = {
-        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
-        "variables": [
-            {"name": "workspace_id", "type": "String", "value": "", "note": "Workspace ID — populated at deploy time"},
-        ]
-    }
-    (vl_dir / "variables.json").write_text(json.dumps(variables, indent=2), encoding="utf-8")
-    settings = {
-        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
-        "valueSetsOrder": []
-    }
-    (vl_dir / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    (vl_dir / ".platform").write_text(vl_platform, encoding="utf-8", newline="\n")
+    # Load from templates directory (source of truth)
+    tpl = _load_template_files("VariableLibrary")
+    if tpl:
+        for filename, content in tpl.items():
+            filepath = vl_dir / filename
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+            filepath.write_text(content, encoding="utf-8", newline="\n")
+    else:
+        # Inline fallback
+        variables = {
+            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
+            "variables": []
+        }
+        (vl_dir / "variables.json").write_text(json.dumps(variables, indent=2), encoding="utf-8", newline="\n")
+        settings = {
+            "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/settings/1.0.0/schema.json",
+            "valueSetsOrder": []
+        }
+        (vl_dir / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8", newline="\n")
 
 
 def _gen_parameter_yml(data: HandoffData, project: str) -> str:
@@ -1430,6 +1322,8 @@ def main() -> None:
         for item in data.items if item.name
     )
 
+    # REST-only types skip workspace directory creation (created via REST API post-deploy)
+
     for item in data.items:
         if not item.name:
             continue
@@ -1448,14 +1342,14 @@ def main() -> None:
         item_dir.mkdir(parents=True, exist_ok=True)
 
         platform_content = _gen_platform_file(item.type, safe_name, description)
-        (item_dir / ".platform").write_text(platform_content, encoding="utf-8")
+        (item_dir / ".platform").write_text(platform_content, encoding="utf-8", newline="\n")
 
         # Generate required definition files per item type
         definitions = _gen_item_definitions(cicd_type, item, data, safe_name, description, folder)
         for filename, content in definitions.items():
             filepath = item_dir / filename
             filepath.parent.mkdir(parents=True, exist_ok=True)
-            filepath.write_text(content, encoding="utf-8")
+            filepath.write_text(content, encoding="utf-8", newline="\n")
 
     # Auto-inject Variable Library if not already present
     if not has_vl:
@@ -1467,7 +1361,7 @@ def main() -> None:
     # 2. Generate parameter.yml
     param_content = _gen_parameter_yml(data, args.project)
     param_path = ws_dir / "parameter.yml"
-    param_path.write_text(param_content, encoding="utf-8")
+    param_path.write_text(param_content, encoding="utf-8", newline="\n")
 
     # 3. Generate config.yml
     ws_desc = f"{args.project} — {data.task_flow} architecture"
@@ -1476,18 +1370,18 @@ def main() -> None:
 
     config_content = _gen_config_yml(data, args.project, ws_desc)
     config_path = out / "config.yml"
-    config_path.write_text(config_content, encoding="utf-8")
+    config_path.write_text(config_content, encoding="utf-8", newline="\n")
     print(f"✅ {config_path}")
 
     # 3. Generate thin deploy script
     deploy_content = _gen_deploy_script(args.project, data)
     deploy_path = out / f"deploy-{slug}.py"
-    deploy_path.write_text(deploy_content, encoding="utf-8")
+    deploy_path.write_text(deploy_content, encoding="utf-8", newline="\n")
     print(f"✅ {deploy_path}")
 
     # 4. Generate descriptions JSON
     desc_path = out / f"descriptions-{slug}.json"
-    desc_path.write_text(_gen_descriptions_json(data, args.project), encoding="utf-8")
+    desc_path.write_text(_gen_descriptions_json(data, args.project), encoding="utf-8", newline="\n")
     print(f"✅ {desc_path}")
 
     # 5. Generate task flow JSON template
@@ -1528,7 +1422,7 @@ def main() -> None:
         "artifacts": artifacts,
     }
     manifest_path = out / "_deploy_manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8", newline="\n")
     print(f"✅ {manifest_path}")
 
 

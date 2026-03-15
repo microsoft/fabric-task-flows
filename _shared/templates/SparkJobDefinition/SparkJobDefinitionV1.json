@@ -1,0 +1,11 @@
+{
+  "executableFile": null,
+  "defaultLakehouseArtifactId": "",
+  "mainClass": "",
+  "additionalLakehouseIds": [],
+  "retryPolicy": null,
+  "commandLineArguments": "",
+  "additionalLibraryUris": [],
+  "language": "",
+  "environmentArtifactId": null
+}

@@ -405,7 +405,7 @@
         "notes": "From sample: MirroredDatabase_1",
         "supports_item_reference": false
       },
-      "notes": null
+      "notes": "API creatable but requires source database connection/config. Initial setup recommended via Fabric Portal. SAMI permissions needed for Azure SQL sources."
     },
     "MountedDataFactory": {
       "display_name": "Mounted Data Factory",
@@ -1271,10 +1271,11 @@
         "definition": true
       },
       "cicd": {
-        "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
+        "strategy": "content",
+        "files": [".platform", "queryMetadata.json", "mashup.pq"],
+        "verified": true,
+        "supports_item_reference": false,
+        "notes": null
       },
       "notes": null
     },
