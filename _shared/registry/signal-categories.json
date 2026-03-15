@@ -1,2038 +1,345 @@
 {
   "schema": "Fabric Task Flows Signal Categories",
-  "version": "2026-03-10",
-  "description": "Signal categories for discovery-phase keyword matching. Patched by /fabric-heal skill. All scripts MUST load from this file. ⚠️ AGENTS: Do NOT read this file directly — use signal-mapper.py instead.",
+  "version": "2.0.0",
+  "description": "v2 schema with weighted keywords, unified signals, canonical examples, exclusions, and category relationships. ⚠️ AGENTS: Do NOT read this file directly — use signal-mapper.py instead.",
   "categories": [
     {
       "id": 1,
       "name": "Real-time / Streaming",
-      "keywords": [
-        "real-time",
-        "streaming",
-        "IoT",
-        "sensors",
-        "alerts",
-        "live",
-        "events",
-        "telemetry",
-        "event-driven",
-        "kafka",
-        "event hub",
-        "pub/sub",
-        "push notifications",
-        "webhooks",
-        "continuous",
-        "sub-second",
-        "low latency",
-        "live dashboard",
-        "monitoring",
-        "GPS",
-        "geofencing",
-        "tracking",
-        "real-time monitoring",
-        "observability",
-        "scalability",
-        "doesn't scale",
-        "unplanned downtime",
-        "message broker",
-        "event backbone",
-        "late-arriving",
-        "CDC",
-        "change data capture",
-        "replication",
-        "event",
-        "sensor",
-        "temperature",
-        "outage",
-        "edge computing",
-        "edge ML",
-        "diagnostics",
-        "clickstream",
-        "SCADA",
-        "occupancy",
-        "anomalies",
-        "readings",
-        "vibration",
-        "FHIR",
-        "footfall",
-        "POS",
-        "sequencing",
-        "leaderboard",
-        "in-app",
-        "session duration",
-        "player retention",
-        "pressure sensors",
-        "flow meters",
-        "excursion",
-        "tire pressure",
-        "engine temp",
-        "payload",
-        "haul trucks",
-        "cold-chain",
-        "weather station",
-        "satellite",
-        "RFID"
-      ],
       "velocity": "Real-time",
       "use_case": "Event analytics",
-      "task_flow_candidates": [
-        "event-analytics",
-        "event-medallion"
+      "task_flow_candidates": ["event-analytics", "event-medallion"],
+      "keywords": {
+        "strong": ["real-time", "streaming", "IoT", "event hub", "CDC", "kafka", "pub/sub"],
+        "moderate": ["event-driven", "webhooks", "telemetry", "sensors", "low latency"],
+        "weak": ["monitoring", "alerts", "live", "GPS", "tracking"]
+      },
+      "signals": [
+        {"pattern": "every \\d+ (seconds|minutes|milliseconds)", "weight": 3, "label": "Temporal frequency"},
+        {"pattern": "\\d+ms latency", "weight": 3, "label": "Millisecond latency requirement"},
+        {"pattern": "24/7|round-the-clock|always-on", "weight": 2, "label": "Always-on operations"},
+        {"pattern": "alert[s]? when|notify .{0,20} when|trigger when", "weight": 2, "label": "Event trigger condition"},
+        {"pattern": "live (view|feed|display|monitor|stream)", "weight": 2, "label": "Live feed/display"},
+        {"pattern": "\\d+ (events|messages|transactions) per (second|minute)", "weight": 3, "label": "High-throughput velocity"},
+        {"pattern": "within \\d+ (minutes|seconds)", "weight": 2, "label": "Latency SLA"},
+        {"pattern": "near.?real.?time", "weight": 2, "label": "Near-real-time"},
+        {"pattern": "track .{0,15}(fleet|vehicle|shipment|asset|location)", "weight": 2, "label": "Asset tracking"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "every \\d+ (seconds|minutes|milliseconds)",
-          "label": "Temporal frequency (every N units)",
-          "weight": 2
-        },
-        {
-          "pattern": "\\d+ms latency",
-          "label": "Millisecond latency requirement",
-          "weight": 2
-        },
-        {
-          "pattern": "(sampling|reporting) every",
-          "label": "Periodic sampling/reporting",
-          "weight": 1
-        },
-        {
-          "pattern": "24/7|round-the-clock",
-          "label": "Always-on operations",
-          "weight": 2
-        },
-        {
-          "pattern": "continuously (monitored|recording)",
-          "label": "Continuous monitoring/recording",
-          "weight": 2
-        },
-        {
-          "pattern": "nonstop|always-on",
-          "label": "Nonstop/always-on operations",
-          "weight": 1
-        },
-        {
-          "pattern": "alert[s]? when",
-          "label": "Alert trigger condition",
-          "weight": 2
-        },
-        {
-          "pattern": "notify .{0,20} when",
-          "label": "Notification trigger condition",
-          "weight": 2
-        },
-        {
-          "pattern": "trigger when",
-          "label": "Event trigger condition",
-          "weight": 1
-        },
-        {
-          "pattern": "detect .{0,15} in real.?time",
-          "label": "Real-time detection intent",
-          "weight": 2
-        },
-        {
-          "pattern": "flag .{0,15} immediately",
-          "label": "Immediate flagging intent",
-          "weight": 2
-        },
-        {
-          "pattern": "real.?time (map|view|display|feed|tracker)",
-          "label": "Real-time display/visualization",
-          "weight": 2
-        },
-        {
-          "pattern": "live (view|feed|display|monitor|stream)",
-          "label": "Live feed/display",
-          "weight": 2
-        },
-        {
-          "pattern": "\\d+ (events|messages|transactions|readings|measurements) per (second|minute)",
-          "label": "High-throughput velocity",
-          "weight": 2
-        },
-        {
-          "pattern": "(sensor|probe|meter|gauge|monitor).{0,30}(every|per|each) \\d+",
-          "label": "Sensor cadence pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "within \\d+ (minutes|hours|seconds)",
-          "label": "Latency SLA",
-          "weight": 2
-        },
-        {
-          "pattern": "closed.?loop|automatic(ally)? (adjust|control|respond|trigger|initiate)",
-          "label": "Closed-loop/automatic control",
-          "weight": 2
-        },
-        {
-          "pattern": "near.?real.?time",
-          "label": "Near-real-time",
-          "weight": 2
-        },
-        {
-          "pattern": "(log|record|track|capture).{0,20}(every|continuously|constantly|all)",
-          "label": "Continuous logging",
-          "weight": 1
-        },
-        {
-          "pattern": "keeps? (having|getting|experiencing|reporting) .{0,15}(problem|issue|error|failure|outage|downtime)",
-          "label": "Recurring operational problems",
-          "weight": 2
-        },
-        {
-          "pattern": "track .{0,15}(fleet|vehicle|truck|shipment|delivery|asset|location|position|driver)",
-          "label": "Asset/fleet tracking",
-          "weight": 2
-        },
-        {
-          "pattern": "(monitor|watch|observe|track).{0,20}(temperature|pressure|flow|level|speed|rate|performance)",
-          "label": "Process monitoring",
-          "weight": 1
-        },
-        {
-          "pattern": "(zero|no|eliminate|minimize) (unplanned |unexpected |)(downtime|outage|interruption|disruption)",
-          "label": "Zero-downtime aspiration",
-          "weight": 2
-        },
-        {
-          "pattern": "(architecture|system|platform|infrastructure).{0,20}(doesn.?t|does not|can.?t|cannot|won.?t) scale",
-          "label": "Scalability problem",
-          "weight": 2
-        },
-        {
-          "pattern": "(volume|traffic|load|data).{0,15}(growing|doubling|tripling|increasing|explod).{0,15}(\\d+%|exponential|year|month|rapid)",
-          "label": "Rapid data growth",
-          "weight": 2
-        }
-      ]
+      "examples": [
+        "Our IoT sensors send temperature readings every 5 seconds and we need to detect anomalies immediately",
+        "We need to track delivery trucks in real-time and alert dispatchers if a vehicle deviates from route",
+        "Process credit card transactions and flag suspicious activity within milliseconds"
+      ],
+      "exclusions": ["batch is fine", "overnight processing", "no real-time needed", "daily refresh is enough"],
+      "relationships": {
+        "combines_with": [2],
+        "synthesis_produces": 3
+      }
     },
     {
       "id": 2,
       "name": "Batch / Scheduled",
-      "keywords": [
-        "batch",
-        "daily",
-        "weekly",
-        "nightly",
-        "ETL",
-        "historical",
-        "reports",
-        "scheduled",
-        "periodic",
-        "cron",
-        "overnight",
-        "data warehouse",
-        "monthly",
-        "quarterly",
-        "dashboard",
-        "flat files",
-        "CSV export",
-        "analytics",
-        "analytics platform",
-        "KPI",
-        "trend reports",
-        "data strategy",
-        "compliance reporting",
-        "reporting",
-        "self-service dashboards",
-        "visibility",
-        "benchmark",
-        "benchmarking",
-        "orchestration",
-        "DAG",
-        "Airflow",
-        "cost optimization",
-        "legacy",
-        "mainframe",
-        "decompose",
-        "Spark",
-        "SCD",
-        "dimension table",
-        "slowly changing",
-        "pipeline spaghetti",
-        "ingestion",
-        "query performance",
-        "star schema",
-        "fact table",
-        "materialized view",
-        "pre-computation",
-        "ad-hoc",
-        "time-series",
-        "VWAP",
-        "canary deployment",
-        "pipeline",
-        "database",
-        "query",
-        "transformation",
-        "incremental processing",
-        "backup",
-        "disaster recovery",
-        "backfill",
-        "reprocessing",
-        "settlement",
-        "scorecard",
-        "drill-down",
-        "refreshes",
-        "generation reports",
-        "portfolio",
-        "maintenance",
-        "shift-level",
-        "yield",
-        "quality control",
-        "test score",
-        "reservation",
-        "dashboards",
-        "revenue",
-        "claims",
-        "loss-ratio",
-        "markdown",
-        "sell-through",
-        "replenishment",
-        "carrier assignments",
-        "shift productivity",
-        "capital planning",
-        "billing"
-      ],
       "velocity": "Batch",
       "use_case": "Analytics / Reporting",
-      "task_flow_candidates": [
-        "basic-data-analytics",
-        "medallion"
+      "task_flow_candidates": ["basic-data-analytics", "medallion"],
+      "keywords": {
+        "strong": ["ETL", "data warehouse", "batch", "star schema", "OLAP"],
+        "moderate": ["scheduled", "historical", "reports", "dashboard", "KPI"],
+        "weak": ["analytics", "daily", "weekly", "nightly", "visibility"]
+      },
+      "signals": [
+        {"pattern": "(daily|weekly|monthly|quarterly) (reports?|dashboard|analytics)", "weight": 3, "label": "Periodic reporting cadence"},
+        {"pattern": "end[- ]of[- ](day|week|month|quarter)", "weight": 3, "label": "End-of-period processing"},
+        {"pattern": "(historical|trend|year-over-year) (analysis|comparison|data)", "weight": 2, "label": "Historical/trend analysis"},
+        {"pattern": "export .{0,20} (to|as) (Excel|PDF|CSV)", "weight": 1, "label": "Export to common formats"},
+        {"pattern": "(stale|outdated|old).{0,15}(data|report|dashboard)", "weight": 2, "label": "Data freshness concern"},
+        {"pattern": "(spreadsheet|Excel|manual).{0,20}(mess|chaos|error|painful)", "weight": 3, "label": "Manual process pain point"},
+        {"pattern": "flying blind|no visibility|can't see", "weight": 2, "label": "Visibility gap"},
+        {"pattern": "(take|takes) .{0,30}(week|day|forever) to (get|pull|produce)", "weight": 2, "label": "Slow data delivery"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "(daily|weekly|monthly|quarterly|annual|yearly|nightly) (reports?|dashboard|analytics|summary|digest)",
-          "label": "Periodic reporting cadence",
-          "weight": 2
-        },
-        {
-          "pattern": "(end[- ]of[- ](day|week|month|quarter|year))",
-          "label": "End-of-period processing",
-          "weight": 2
-        },
-        {
-          "pattern": "once (a|per) (day|week|month)",
-          "label": "Periodic execution frequency",
-          "weight": 1
-        },
-        {
-          "pattern": "(dashboard|report|view) showing",
-          "label": "Visualization display intent",
-          "weight": 1
-        },
-        {
-          "pattern": "(want|need) to (see|view|visualize|track|monitor)",
-          "label": "Visualization need",
-          "weight": 1
-        },
-        {
-          "pattern": "give .{0,20} (visibility|insight)",
-          "label": "Insight/visibility request",
-          "weight": 1
-        },
-        {
-          "pattern": "(historical|trend|over time|year-over-year|month-over-month) (analysis|comparison|data)",
-          "label": "Historical/trend analysis",
-          "weight": 2
-        },
-        {
-          "pattern": "(planning|forecast|budget|capacity plan).{0,20}(team|committee|board)",
-          "label": "Planning/forecasting for stakeholders",
-          "weight": 1
-        },
-        {
-          "pattern": "export .{0,20} (to|for|as) (Excel|PDF|CSV|PowerPoint|email)",
-          "label": "Export to common formats",
-          "weight": 1
-        },
-        {
-          "pattern": "(analyz|process|scan|review|examine).{0,15}\\d+[,.]?\\d*\\s*(million|billion|thousand|[KMB])\\b",
-          "label": "Scale analytics",
-          "weight": 2
-        },
-        {
-          "pattern": "(benchmark|compare|rank).{0,15}(against|across|between|to|with)",
-          "label": "Benchmarking",
-          "weight": 1
-        },
-        {
-          "pattern": "(produce|generate|create|build).{0,15}(report|visualization|dashboard|chart|summary)",
-          "label": "Reporting output",
-          "weight": 1
-        },
-        {
-          "pattern": "(review|investigate|audit|examine|assess).{0,15}(historical|past|previous|prior|existing)",
-          "label": "Retrospective analysis",
-          "weight": 1
-        },
-        {
-          "pattern": "currently.{0,30}(want|need|target|goal)",
-          "label": "Currently/improvement",
-          "weight": 1
-        },
-        {
-          "pattern": "use data (to|for) .{0,20}(better|improv|understand|decid|plan|manag|optimi)",
-          "label": "Data-driven decision intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(smarter|better|faster|more efficien).{0,10} (about|with|at|decisions|insight)",
-          "label": "Smart/better analytics intent",
-          "weight": 1
-        },
-        {
-          "pattern": "(better|improved|more) data (to|for)",
-          "label": "Data improvement for decisions",
-          "weight": 2
-        },
-        {
-          "pattern": "(with|using|through|leveraging|via) data",
-          "label": "Data-powered intent",
-          "weight": 1
-        },
-        {
-          "pattern": "need (better|improved|faster|automated) (report|reporting|insight|analytics|visibility)",
-          "label": "Reporting improvement need",
-          "weight": 2
-        },
-        {
-          "pattern": "(over budget|cost overrun|too expensive|costs? too much|inefficien)",
-          "label": "Cost/budget concern",
-          "weight": 1
-        },
-        {
-          "pattern": "(always|keep|keeps|constantly) (going|running|getting|falling|miss|late|behind)",
-          "label": "Recurring operational issue",
-          "weight": 1
-        },
-        {
-          "pattern": "compare .{0,20}(actual|planned|expected|baseline|target|budget|forecast)",
-          "label": "Variance/comparison analysis",
-          "weight": 1
-        },
-        {
-          "pattern": "(want|need) .{0,15}(visibility|insight|transparency|overview|picture) (into|of|across)",
-          "label": "Visibility/insight request",
-          "weight": 2
-        },
-        {
-          "pattern": "single pane of glass|unified (view|dashboard|platform)|one (place|platform|system) (to|for)",
-          "label": "Unified view/platform intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(too much|overwhelm|drown|flood|overload|avalanche).{0,15}(data|information|report|alert|log)",
-          "label": "Data overload concern",
-          "weight": 1
-        },
-        {
-          "pattern": "(spreadsheet|Excel|manual|paper|fax).{0,20}(mess|chaos|error|outdated|slow|painful|tedious|broken|nightmare)",
-          "label": "Manual process pain point",
-          "weight": 2
-        },
-        {
-          "pattern": "flying blind|no visibility|can't see|don't know (what|how|where|if)",
-          "label": "Visibility gap",
-          "weight": 2
-        },
-        {
-          "pattern": "(falling|fall) through the cracks",
-          "label": "Process gap idiom",
-          "weight": 1
-        },
-        {
-          "pattern": "make sense (of|out of)",
-          "label": "Sense-making intent",
-          "weight": 1
-        },
-        {
-          "pattern": "\\bwhy (are|is|do|does|did|was|were) .{0,20}(bad|wrong|low|high|slow|late|behind|failing|poor|declining)",
-          "label": "Root cause questioning",
-          "weight": 2
-        },
-        {
-          "pattern": "can't (find|locate|discover|access|get to|search)",
-          "label": "Discovery/search difficulty",
-          "weight": 2
-        },
-        {
-          "pattern": "how (do|can|will|would|should) we (know|measure|tell|track|assess|evaluate|determine) (if|whether|how|what)",
-          "label": "Measurement/assessment need",
-          "weight": 2
-        },
-        {
-          "pattern": "(based on|rely on|using) (gut|instinct|intuition|guesswork|feel|anecdote)",
-          "label": "Need for data-driven decisions",
-          "weight": 2
-        },
-        {
-          "pattern": "(drowning|overwhelmed|overloaded|swamped|buried|crushed)( (in|by|with))?",
-          "label": "Team overwhelm/overload",
-          "weight": 1
-        },
-        {
-          "pattern": "can't (tell|see|determine|understand) what (happened|went wrong|changed|caused|is going on)",
-          "label": "Lack of historical insight",
-          "weight": 2
-        },
-        {
-          "pattern": "(left hand|right hand|silos|siloed|disconnected|doesn't know what .{0,20} doing)",
-          "label": "Organizational disconnection",
-          "weight": 2
-        },
-        {
-          "pattern": "(take|takes|taking) .{0,30}(week|day|month|forever|too long|hours|two weeks) to (get|pull|produce|find|create|generate|answer|compile)",
-          "label": "Slow data delivery",
-          "weight": 2
-        },
-        {
-          "pattern": "(notebook|prototype|POC|proof of concept|demo).{0,20}(never|didn't|hasn't|not).{0,15}(production|deployed|live|shipped|operationalized)",
-          "label": "MLOps/productionization gap",
-          "weight": 2
-        },
-        {
-          "pattern": "(competitor|competition|market|rival).{0,20}(before|ahead|faster|first|know)",
-          "label": "Competitive intelligence need",
-          "weight": 1
-        },
-        {
-          "pattern": "(own truth|their own .{0,10}(numbers|version|data|metrics))|who.?s right",
-          "label": "Conflicting truths/metrics",
-          "weight": 2
-        },
-        {
-          "pattern": "(connect|bridge|link|integrate).{0,30}(shop floor|operations|front.?line|field).{0,30}(back office|headquarters|HQ|management|corporate|finance)",
-          "label": "Operations-to-office integration",
-          "weight": 2
-        },
-        {
-          "pattern": "(nobody|no one) (read|use|look|care|trust|understand|maintain).{0,10}(s |ed |ing )",
-          "label": "Adoption/usage problem",
-          "weight": 1
-        },
-        {
-          "pattern": "(broke|break|broken|fail|crash).{0,30}(nobody|no one|can't).{0,20}(fix|understand|debug|maintain)",
-          "label": "Unmaintainable system",
-          "weight": 2
-        },
-        {
-          "pattern": "(team|engineer|developer|analyst|people) (quit|left|resigned|departed|turnover|attrition)",
-          "label": "Knowledge loss / team departure",
-          "weight": 2
-        },
-        {
-          "pattern": "(vendor|platform) lock.?in|locked (us |)in|stuck with .{0,15}(vendor|platform|tool|system|contract)",
-          "label": "Vendor lock-in concern",
-          "weight": 1
-        },
-        {
-          "pattern": "(slow|takes? forever|loading|timeout|minutes to|hours to) .{0,15}(load|query|run|process|return|render|respond|execute|open)",
-          "label": "Performance/latency problem",
-          "weight": 2
-        },
-        {
-          "pattern": "(load|respond|run|process|render|execute|query).{0,10}(slowly|slow|so slow|too slow)",
-          "label": "Slowness complaint (reversed)",
-          "weight": 2
-        },
-        {
-          "pattern": "(can't|cannot|unable to|hard to|difficult to|impossible to) hire",
-          "label": "Talent shortage → automation need",
-          "weight": 1
-        },
-        {
-          "pattern": "every (department|team|group|division|unit|BU) .{0,20}(own|their own|bought|purchased|chose|picked|uses|using) .{0,10}(tool|system|platform|software|solution)",
-          "label": "Tool/platform fragmentation",
-          "weight": 2
-        },
-        {
-          "pattern": "(no way|can't|unable) to (find|discover|locate|search|identify) .{0,15}(what|data|information|report|dataset|table)",
-          "label": "Data discoverability gap",
-          "weight": 2
-        },
-        {
-          "pattern": "combining .{0,20}(data|information).{0,20}(owned by|from|across) .{0,15}(different|separate|multiple|three|various)",
-          "label": "Cross-domain data combination",
-          "weight": 2
-        },
-        {
-          "pattern": "(stale|outdated|old|delayed|lagging|behind|hours old|days old).{0,15}(data|information|report|numbers|dashboard|metrics)",
-          "label": "Data freshness/staleness",
-          "weight": 2
-        },
-        {
-          "pattern": "data (is |)(stale|outdated|old|delayed|behind)",
-          "label": "Stale data (direct)",
-          "weight": 2
-        },
-        {
-          "pattern": "(fined|penalty|violation|breach|incident|leaked|exposed).{0,15}(data|privacy|security|compliance|regulation|GDPR|breach)",
-          "label": "Compliance incident/penalty",
-          "weight": 2
-        },
-        {
-          "pattern": "(share|sharing|exchange) data .{0,15}(with|to|between) .{0,15}(partner|vendor|supplier|client|customer|external|third.?party)",
-          "label": "External data sharing",
-          "weight": 1
-        },
-        {
-          "pattern": "(biased|bias|fairness|discrimination|disparate impact|protected class)",
-          "label": "ML bias/fairness concern",
-          "weight": 2
-        },
-        {
-          "pattern": "(fail|failing|error).{0,15}(silently|without|no one|nobody|unnoticed|undetected)",
-          "label": "Silent failure / no observability",
-          "weight": 2
-        },
-        {
-          "pattern": "in (under|less than|within) \\d+\\s*(ms|millisecond|second|minute)",
-          "label": "Response time SLA",
-          "weight": 2
-        },
-        {
-          "pattern": "(can't|don't|unable to) (write|use|understand) (SQL|code|Python|script|query)",
-          "label": "Technical skill gap → self-service need",
-          "weight": 2
-        },
-        {
-          "pattern": "(executive KPI|health metric)",
-          "label": "Executive KPI/health metric",
-          "weight": 1
-        },
-        {
-          "pattern": "(need a |)(number|metric|report|answer|dashboard|slide) .{0,15}(for|in front of|to present|to show|to give) .{0,15}(board|CEO|CFO|CTO|executive|management|leadership|investor|stakeholder)",
-          "label": "Executive reporting need",
-          "weight": 2
-        },
-        {
-          "pattern": "(prove|demonstrate|show|justify|measure) .{0,15}(ROI|value|impact|benefit|return on|worth|business case)",
-          "label": "ROI/value justification",
-          "weight": 1
-        },
-        {
-          "pattern": "(auditor|audit|examiner|inspector|regulator) .{0,15}(coming|arriving|scheduled|next month|next quarter|this year|visit|examination|review)",
-          "label": "Upcoming audit/exam urgency",
-          "weight": 2
-        },
-        {
-          "pattern": "(\\d+ days?|\\d+ months?|\\d+ weeks?) to comply",
-          "label": "Compliance deadline",
-          "weight": 2
-        },
-        {
-          "pattern": "(lifted? and shift|lift.?and.?shift|same architecture|re.?architect)",
-          "label": "Architecture migration pattern",
-          "weight": 1
-        },
-        {
-          "pattern": "(instant|immediate) (answers?|response|results?|access|insight)",
-          "label": "Instant response demand",
-          "weight": 2
-        },
-        {
-          "pattern": "(lag|latency|delay|gap) .{0,15}(\\d+ (hour|minute|second|day)|between .{0,15}(event|data|collection|ingestion))",
-          "label": "Pipeline lag/latency measurement",
-          "weight": 2
-        },
-        {
-          "pattern": "(enterprise.?grade|production.?grade|bank.?grade) .{0,15}(security|governance|compliance|reliability|availability)",
-          "label": "Enterprise-grade requirements",
-          "weight": 1
-        },
-        {
-          "pattern": "(highly available|high availability|HA|perfectly consistent|strong consistency|CAP theorem)",
-          "label": "Availability/consistency requirement",
-          "weight": 1
-        },
-        {
-          "pattern": "keep (starting|building|creating).{0,20}(never|don't|not).{0,10}(finish|complete|deliver|ship)",
-          "label": "Project completion failure",
-          "weight": 1
-        },
-        {
-          "pattern": "(agree|consensus|alignment|aligned|consistent).{0,15}(on |)(numbers|data|metrics|definition|KPI)",
-          "label": "Data consistency/trust concern",
-          "weight": 2
-        },
-        {
-          "pattern": "(don't|doesn't|none of them|never|can't) agree",
-          "label": "Disagreement/inconsistency (broad)",
-          "weight": 1
-        },
-        {
-          "pattern": "(bottleneck|backlog|queue|waiting for|depends on|blocked by) .{0,15}(IT|data team|engineering|analyst|DBA|admin)",
-          "label": "IT bottleneck/dependency",
-          "weight": 2
-        },
-        {
-          "pattern": "(IT|data team|engineering|analyst|DBA) .{0,15}(bottleneck|backlog|overloaded|overwhelmed|can't keep up)",
-          "label": "IT bottleneck (reversed)",
-          "weight": 2
-        },
-        {
-          "pattern": "can't (compare|benchmark|measure|evaluate)",
-          "label": "Comparison difficulty",
-          "weight": 1
-        },
-        {
-          "pattern": "(report|measure|calculate|define|track).{0,15}(differently|inconsistently|their own way)",
-          "label": "Inconsistent measurement",
-          "weight": 2
-        },
-        {
-          "pattern": "don't (even |)know what (data|information|asset|system|report|dashboard|pipeline) we (have|own|possess|run)",
-          "label": "Data inventory gap",
-          "weight": 2
-        },
-        {
-          "pattern": "(every|each) (new |)(project|pipeline|integration|onboarding).{0,15}(from scratch|starts over|reinvent|rebuild)",
-          "label": "No reuse/starting fresh each time",
-          "weight": 2
-        },
-        {
-          "pattern": "(emailing|email|sharing|passing|circulating) .{0,15}(spreadsheet|Excel|CSV|attachment|report|file)",
-          "label": "Email-based data sharing",
-          "weight": 2
-        },
-        {
-          "pattern": "(asking|ask) .{0,15}(question|thing).{0,15}(can't|cannot|unable|don't know how to|no way to) answer",
-          "label": "Unanswerable questions",
-          "weight": 2
-        },
-        {
-          "pattern": "different (screen|system|tool|app|platform|portal).{0,15}(for|to) .{0,15}(billing|order|shipping|ticket|account|history|status|profile)",
-          "label": "Multi-system context switching",
-          "weight": 2
-        },
-        {
-          "pattern": "(not enough|need more|lack of|missing) (answer|insight|information|data|analytics|visibility)",
-          "label": "Insight gap",
-          "weight": 1
-        },
-        {
-          "pattern": "everything is in (spreadsheet|Excel|email|silo|different)",
-          "label": "Data fragmentation",
-          "weight": 2
-        },
-        {
-          "pattern": "data is (everywhere|scattered|fragmented|siloed|all over)",
-          "label": "Data scattering",
-          "weight": 2
-        },
-        {
-          "pattern": "(paper|manual|fax|handwritten|hand.?written|pen and paper|clipboard)",
-          "label": "Paper/manual process",
-          "weight": 2
-        },
-        {
-          "pattern": "(campaign|marketing|advertising).{0,20}(working|effective|performing|ROI|impact|attribution|result)",
-          "label": "Campaign effectiveness measurement",
-          "weight": 1
-        },
-        {
-          "pattern": "(modern|next.?gen|contemporary|state.?of.?the.?art) data (platform|architecture|stack|infrastructure)",
-          "label": "Platform modernization intent",
-          "weight": 1
-        },
-        {
-          "pattern": "(every|all) (decision|choice|move).{0,20}(backed|driven|supported|informed) by data",
-          "label": "Data-driven decision culture",
-          "weight": 1
-        },
-        {
-          "pattern": "(data team|IT|engineering).{0,20}(says|told|estimated).{0,20}(\\d+\\s*(week|month|day|sprint))",
-          "label": "Delivery speed bottleneck",
-          "weight": 1
-        },
-        {
-          "pattern": "how much data.{0,20}(using|used|consumed|active|accessed) (vs|versus|compared|relative).{0,20}(stor|keep|have|sitting)",
-          "label": "Data usage vs storage analysis",
-          "weight": 1
-        },
-        {
-          "pattern": "(paying|spend|cost|bill|budget|invoice).{0,80}(cut|reduce|optimize|lower|half|save|decrease)",
-          "label": "Cost optimization pressure",
-          "weight": 1
-        },
-        {
-          "pattern": "(cut|reduce|optimize|lower|save|decrease).{0,20}(cost|spend|bill|budget|expenditure|invoice)",
-          "label": "Cost reduction intent (reverse)",
-          "weight": 1
-        },
-        {
-          "pattern": "(one|single|a) .{0,10}(fail|break|error|crash).{0,20}(cascade|chain|domino|trigger|cause).{0,15}(\\d+|many|multiple|other|downstream)",
-          "label": "Cascading failure pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "(DAG|pipeline|job|workflow|process).{0,15}(fail|break|error|crash).{0,20}(cascade|chain|domino|\\d+ other)",
-          "label": "Orchestration cascade failure",
-          "weight": 2
-        },
-        {
-          "pattern": "(firefight|fight fires|putting out fires|constant.{0,10}(fix|repair|patch)|always.{0,10}(fix|repair|break))",
-          "label": "Pipeline firefighting burden",
-          "weight": 2
-        },
-        {
-          "pattern": "(broken|failing|flaky|unreliable).{0,10}(pipeline|job|process|ETL|workflow)",
-          "label": "Pipeline reliability problem",
-          "weight": 2
-        },
-        {
-          "pattern": "(spend|waste|devote|dedicate|lose).{0,15}(\\d+%|time|hours|days|weeks).{0,20}(fix|maintain|support|troubleshoot|firefight|manual)",
-          "label": "Operational time sink",
-          "weight": 2
-        },
-        {
-          "pattern": "(total cost|cost of).{0,10}(data|ownership|platform|infrastructure)",
-          "label": "Data cost governance",
-          "weight": 2
-        },
-        {
-          "pattern": "(timing out|timed? out|time.?out|doesn.?t finish|never completes|takes too long|keeps? failing)",
-          "label": "Job timeout/completion failure",
-          "weight": 1
-        },
-        {
-          "pattern": "(overwhelm|overload|buckle|can.?t handle|can.?t cope).{0,15}(traffic|load|volume|spike|peak|demand)",
-          "label": "Capacity overload pattern",
-          "weight": 1
-        },
-        {
-          "pattern": "(lose|losing|lost|drop|missing).{0,10}(data|event|record|message)",
-          "label": "Data loss pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "(right.?size|underutiliz|over.?provis|idle|wast).{0,30}(cluster|compute|resource|capacity|infrastructure|platform|environment)",
-          "label": "Compute right-sizing need",
-          "weight": 1
-        },
-        {
-          "pattern": "(elastic|auto.?scal|scale.{0,5}(up|down|out|in)|burst|on.demand).{0,30}(compute|capacity|resource|cluster|processing|infrastructure)",
-          "label": "Elastic compute need",
-          "weight": 1
-        },
-        {
-          "pattern": "(schema|contract|interface).{0,10}(change|break|evolv|drift|mismatch|incompatib)",
-          "label": "Schema evolution problem",
-          "weight": 2
-        },
-        {
-          "pattern": "(data (contract|agreement|SLA|interface)|(contract|agreement|SLA).{0,10}(data|schema|quality|freshness))",
-          "label": "Data contract pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "(reverse ETL|push.{0,10}(back|into|to).{0,10}(operational|CRM|production|application|system)|activate.{0,10}(data|insight|segment|model))",
-          "label": "Reverse ETL / data activation",
-          "weight": 2
-        },
-        {
-          "pattern": "(join|query).{0,15}(performance|optimiz|slow|degrad).{0,15}(exponential|linear|as.{0,10}(grow|scale|add))",
-          "label": "Query performance degradation",
-          "weight": 1
-        },
-        {
-          "pattern": "(same|identical|duplicate).{0,10}(aggregat|calculat|computation|query|logic).{0,15}(computed|run|executed|built|repeated).{0,15}(\\d+|multiple|many|different|across)",
-          "label": "Redundant computation pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "(fire hose|flood|deluge|tsunami|avalanche|tidal wave|explosion).{0,10}(of)?.{0,10}(data|information|event|message|record)",
-          "label": "Data volume overwhelm (metaphor)",
-          "weight": 1
-        },
-        {
-          "pattern": "(Rube Goldberg|house of cards|duct tape|band.?aid|bubble gum|held together with|might collapse|afraid to touch|nobody wants to touch)",
-          "label": "Fragile architecture metaphor",
-          "weight": 2
-        },
-        {
-          "pattern": "(request|ticket|ask|demand).{0,10}(per|each|every).{0,10}(week|day|month|sprint).{0,15}(only|can.?t|unable|capacity|deliver|handle)",
-          "label": "Analytics request bottleneck",
-          "weight": 2
-        },
-        {
-          "pattern": "(rolling|sliding|tumbling|hopping).{0,10}(window|average|sum|aggregat|median|computation)",
-          "label": "Windowed computation pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "(circuit breaker|dead.?letter|retry|backoff|graceful.{0,5}degradation|fault.{0,5}toleran)",
-          "label": "Pipeline resilience pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "(shadow IT|rogue|unauthorized|unsanctioned).{0,15}(pipeline|spreadsheet|database|tool|system|report)",
-          "label": "Shadow IT / ungoverned data",
-          "weight": 2
-        },
-        {
-          "pattern": "(low.latency|sub.second|sub.millisecond|millisecond|microsecond).{0,15}(query|queries|response|lookup|serving|retrieval)",
-          "label": "Low-latency query requirement",
-          "weight": 2
-        },
-        {
-          "pattern": "(exactly.once|at.least.once|at.most.once|idempoten).{0,10}(semantic|processing|guarantee|delivery)",
-          "label": "Processing semantics guarantee",
-          "weight": 2
-        },
-        {
-          "pattern": "(cold.start|new (user|item|product).{0,10}(no|zero|lack|without).{0,10}(history|data|interaction))",
-          "label": "Cold-start problem",
-          "weight": 1
-        },
-        {
-          "pattern": "(takes|taking|runs|running|grown to).{0,15}(\\d+).{0,5}(second|minute|hour|day).*?(load|query|process|ETL|batch|report|dashboard)",
-          "label": "Slow query/ETL performance",
-          "weight": 2
-        },
-        {
-          "pattern": "(resume|restart|checkpoint|pick up where|recover from failure|mid.?batch).{0,15}(without|from|after|where)",
-          "label": "Checkpoint/resume capability",
-          "weight": 2
-        },
-        {
-          "pattern": "(managed service|open.source|vendor|self.hosted|SaaS|PaaS|IaaS).{0,15}(vs|versus|or|compared|instead|choose|decision|debate)",
-          "label": "Build-vs-buy architecture decision",
-          "weight": 1
-        }
-      ]
+      "examples": [
+        "We need to consolidate sales data from 12 regions into a weekly executive dashboard",
+        "Our analysts spend 3 days every month manually pulling data from SAP into Excel",
+        "Generate end-of-quarter compliance reports for the board"
+      ],
+      "exclusions": ["real-time alerts", "sub-second latency", "streaming required"],
+      "relationships": {
+        "combines_with": [1],
+        "synthesis_produces": 3
+      }
     },
     {
       "id": 3,
       "name": "Both / Mixed (Lambda)",
-      "keywords": [
-        "both batch and real-time",
-        "historical + live",
-        "stream and batch",
-        "hybrid",
-        "lambda",
-        "real-time and batch",
-        "hot and cold",
-        "speed layer",
-        "batch layer",
-        "end-of-day",
-        "reconciliation",
-        "live and historical",
-        "operational and analytical",
-        "real-time and historical",
-        "statistical",
-        "A/B testing",
-        "cohort",
-        "significance",
-        "vision inspection",
-        "variant calling",
-        "actuarial",
-        "parametric",
-        "geochemical",
-        "geophysical",
-        "assay",
-        "block model",
-        "risk segmentation",
-        "size-return"
-      ],
       "velocity": "Both",
       "use_case": "Mixed analytics",
-      "task_flow_candidates": [
-        "lambda",
-        "event-medallion"
+      "task_flow_candidates": ["lambda", "event-medallion"],
+      "keywords": {
+        "strong": ["lambda", "both batch and real-time", "hot and cold", "speed layer"],
+        "moderate": ["hybrid", "reconciliation", "operational and analytical"],
+        "weak": ["A/B testing"]
+      },
+      "signals": [
+        {"pattern": "(real.?time|live|streaming).{0,50}(and|plus|while also).{0,50}(batch|daily|report|historical)", "weight": 3, "label": "Dual velocity requirement"},
+        {"pattern": "(batch|daily|report).{0,50}(and|plus|but also).{0,50}(real.?time|live|streaming|alert)", "weight": 3, "label": "Dual velocity (reversed)"},
+        {"pattern": "(both|support).{0,10}(operational|OLTP).{0,20}(and).{0,20}(analytical|OLAP)", "weight": 3, "label": "OLTP+OLAP dual workload"},
+        {"pattern": "(immediate|instant).{0,30}(and|plus).{0,30}(deep|detailed|comprehensive)", "weight": 2, "label": "Speed plus depth"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "(real.?time|live|streaming).{0,50}(and|plus|while also|as well as).{0,50}(batch|daily|weekly|monthly|report|historical)",
-          "label": "Real-time plus batch dual velocity",
-          "weight": 2
-        },
-        {
-          "pattern": "(batch|daily|weekly|report).{0,50}(and|plus|but also|while).{0,50}(real.?time|live|streaming|alert|immediate)",
-          "label": "Batch plus real-time dual velocity",
-          "weight": 2
-        },
-        {
-          "pattern": "(immediate|instant).{0,30}(and|plus|with).{0,30}(deep|detailed|comprehensive|full)",
-          "label": "Speed plus depth requirement",
-          "weight": 1
-        },
-        {
-          "pattern": "(monitor|track|watch).{0,30}(and|plus).{0,30}(report|analyze|review)",
-          "label": "Monitoring plus reporting",
-          "weight": 1
-        },
-        {
-          "pattern": "(both|support).{0,10}(operational|transactional|OLTP).{0,20}(and|plus).{0,20}(analytical|OLAP|reporting|analytics)",
-          "label": "OLTP+OLAP dual workload",
-          "weight": 2
-        },
-        {
-          "pattern": "(operational|transactional).{0,15}(queries|workload).{0,20}(analytical|complex|aggregat)",
-          "label": "Mixed operational/analytical",
-          "weight": 2
-        }
-      ]
+      "examples": [
+        "We need real-time fraud alerts but also weekly trend reports for compliance",
+        "Monitor production line sensors live while also running daily quality analytics",
+        "Operational dashboards for floor managers plus monthly executive summaries"
+      ],
+      "exclusions": [],
+      "relationships": {
+        "synthesized_from": [1, 2],
+        "tiebreak_over": []
+      }
     },
     {
       "id": 4,
       "name": "Machine Learning",
-      "keywords": [
-        "ML",
-        "predict",
-        "train models",
-        "forecast",
-        "scoring",
-        "classification",
-        "regression",
-        "neural network",
-        "deep learning",
-        "feature engineering",
-        "model",
-        "inference",
-        "AI",
-        "machine learning",
-        "anomaly detection",
-        "recommendation",
-        "sentiment",
-        "predictive",
-        "ML pipelines",
-        "NLP",
-        "text analytics",
-        "A/B test",
-        "retrain",
-        "model drift",
-        "digital twin",
-        "digital twins",
-        "computer vision",
-        "machine vision",
-        "optimize",
-        "optimization",
-        "personalize",
-        "personalization",
-        "churn",
-        "attrition",
-        "segmentation",
-        "clustering",
-        "root cause",
-        "root cause analysis",
-        "early warning",
-        "fraud detection",
-        "demand forecasting",
-        "demand planning",
-        "propensity",
-        "detect",
-        "detection",
-        "automate",
-        "automation",
-        "feature store",
-        "feature drift",
-        "data drift",
-        "concept drift",
-        "training-serving skew",
-        "A/B test",
-        "model serving",
-        "vector database",
-        "RAG",
-        "retrieval-augmented generation",
-        "LLM",
-        "synthetic data",
-        "prediction",
-        "pattern recognition",
-        "correlation",
-        "correlate",
-        "models",
-        "applications",
-        "risk models",
-        "propensity-to-churn",
-        "underperforming",
-        "remaining-useful-life",
-        "defect classification",
-        "guest satisfaction",
-        "churn prediction",
-        "retention cohort",
-        "fraud scoring",
-        "leak detection",
-        "route optimization",
-        "predictive maintenance",
-        "infrastructure aging"
-      ],
       "velocity": "Batch (typically)",
       "use_case": "Machine learning",
-      "task_flow_candidates": [
-        "basic-machine-learning-models"
+      "task_flow_candidates": ["basic-machine-learning-models"],
+      "keywords": {
+        "strong": ["ML", "machine learning", "train models", "neural network", "deep learning", "LLM", "RAG"],
+        "moderate": ["predict", "classification", "regression", "inference", "feature engineering", "anomaly detection"],
+        "weak": ["detect", "recommendation", "forecast", "churn", "scoring", "NLP"]
+      },
+      "signals": [
+        {"pattern": "\\b(predict|detect|classify|identify|recognize)\\b.{0,30}(from|based on|using)", "weight": 3, "label": "Prediction intent"},
+        {"pattern": "\\b(optimize|improve|reduce|maximize|minimize)\\b.{0,30}(based on|using|from)", "weight": 2, "label": "Data-driven optimization"},
+        {"pattern": "(pattern|anomal|outlier).{0,15}(detection|discovery|identification)", "weight": 3, "label": "Pattern/anomaly discovery"},
+        {"pattern": "\\d+(\\.\\d+)?% (accuracy|precision|recall|F1|AUC)", "weight": 3, "label": "ML performance metric"},
+        {"pattern": "(training|labeled|annotated) (data|set|corpus)", "weight": 3, "label": "Training data reference"},
+        {"pattern": "automat(e|ed|ic).{0,20}(classif|categoriz|decision|diagnos)", "weight": 2, "label": "Automated classification"},
+        {"pattern": "(risk|fraud|credit) (scor|rank|rating)", "weight": 2, "label": "Scoring/ranking"},
+        {"pattern": "(model|prediction).{0,15}(degrad|decay|drift)", "weight": 2, "label": "Model drift detection"},
+        {"pattern": "(leaving|churning|dropping off|abandoning)", "weight": 2, "label": "Churn behavior"},
+        {"pattern": "(proactive|preventive|before .{0,15}(happen|break|fail))", "weight": 2, "label": "Predictive intent"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "\\b(predict|detect|classify|identify|recognize|categorize|score|rank)\\b.{0,30}(from|based on|using)",
-          "label": "Prediction/detection from data",
-          "weight": 2
-        },
-        {
-          "pattern": "\\b(optimize|improve|reduce|maximize|minimize)\\b.{0,30}(based on|using|from|by analyzing)",
-          "label": "Data-driven optimization",
-          "weight": 1
-        },
-        {
-          "pattern": "(correlat|model the|relationship between|compare .{0,20} (with|to|against))",
-          "label": "Correlation/modeling intent",
-          "weight": 1
-        },
-        {
-          "pattern": "build .{0,20} model",
-          "label": "Model building intent",
-          "weight": 1
-        },
-        {
-          "pattern": "(pattern|anomal|outlier|trend).{0,15}(detection|discovery|identification|analysis|recognition)",
-          "label": "Pattern/anomaly discovery",
-          "weight": 2
-        },
-        {
-          "pattern": "\\d+(\\.\\d+)?% (accuracy|precision|recall|F1|AUC)",
-          "label": "ML performance metric",
-          "weight": 2
-        },
-        {
-          "pattern": "currently .{0,20} want .{0,20} \\d+%",
-          "label": "Performance improvement goal",
-          "weight": 1
-        },
-        {
-          "pattern": "(training|labeled|annotated) (data|set|corpus|examples)",
-          "label": "Training data reference",
-          "weight": 2
-        },
-        {
-          "pattern": "\\d+[,.]?\\d*\\s*(cases|samples|examples|records|observations).{0,20}(train|learn|build)",
-          "label": "Training dataset size",
-          "weight": 2
-        },
-        {
-          "pattern": "automat(e|ed|ic).{0,20}(classif|categoriz|decision|triage|sort|grade|assess|diagnos)",
-          "label": "Automated classification/decision",
-          "weight": 2
-        },
-        {
-          "pattern": "(entity|identity|record) (resolution|matching|linking|dedup)",
-          "label": "Entity resolution",
-          "weight": 2
-        },
-        {
-          "pattern": "(simulat|what.?if|scenario|monte carlo).{0,15}(model|analys|run|environment)",
-          "label": "Simulation/what-if",
-          "weight": 2
-        },
-        {
-          "pattern": "(risk|quality|priority|threat|fraud|credit) (scor|rank|rating|assessment)",
-          "label": "Scoring/ranking",
-          "weight": 2
-        },
-        {
-          "pattern": "(fuzzy match|entity match|text (min|analyt)|natural language (process|understand))",
-          "label": "NLP/text understanding",
-          "weight": 1
-        },
-        {
-          "pattern": "(image|scan|X.?ray|CT|MRI|photo|video).{0,20}(analy|classif|detect|recogni|process|assess)",
-          "label": "Image/vision analysis",
-          "weight": 2
-        },
-        {
-          "pattern": "(identify|find|discover|pinpoint) which.{0,30}(correlat|caus|affect|influenc|driv)",
-          "label": "Comparison/identification",
-          "weight": 1
-        },
-        {
-          "pattern": "(too many|reduce|fewer|less|minimize) .{0,15}(defect|error|failure|reject|waste|downtime|false positive|scrap)",
-          "label": "Defect/error reduction goal",
-          "weight": 2
-        },
-        {
-          "pattern": "catch .{0,15}(fraud|abuse|anomal|error|issue|outlier|suspicious)",
-          "label": "Fraud/anomaly catch intent",
-          "weight": 2
-        },
-        {
-          "pattern": "figure out (why|what|when|how|which)",
-          "label": "Root cause investigation",
-          "weight": 1
-        },
-        {
-          "pattern": "improve .{0,15}(outcome|result|performance|quality|efficiency|yield|accuracy|throughput)",
-          "label": "Improvement/optimization goal",
-          "weight": 1
-        },
-        {
-          "pattern": "(which|what) .{0,20}(work|effective|successful|best|worst|cause|drive|influence)",
-          "label": "Effectiveness analysis",
-          "weight": 1
-        },
-        {
-          "pattern": "(want to|need to|trying to) (understand|know|learn|see|find out)",
-          "label": "Understanding/discovery intent",
-          "weight": 1
-        },
-        {
-          "pattern": "\\b(detect|identify|catch|find|spot) .{0,20}(threat|anomal|fraud|pattern|issue|problem|risk|degradation|failure|outlier|suspicious|crisis|outbreak|disease|incident|breach|leak)",
-          "label": "Threat/anomaly detection intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(take|takes|taking) too (long|much time)",
-          "label": "Process speed optimization",
-          "weight": 1
-        },
-        {
-          "pattern": "(running out|out of stock|stockout|shortage|surplus|overstock|excess inventory)",
-          "label": "Demand/supply imbalance",
-          "weight": 2
-        },
-        {
-          "pattern": "(speed up|faster|quicker|accelerate|shorten) .{0,15}(process|development|cycle|turnaround|delivery|response)",
-          "label": "Process acceleration intent",
-          "weight": 1
-        },
-        {
-          "pattern": "(waste|wasting|too much) .{0,15}(energy|time|money|resource|material|effort)",
-          "label": "Waste/inefficiency concern",
-          "weight": 1
-        },
-        {
-          "pattern": "(reduce|decrease|minimize|lower|cut) .{0,15}(cost|delay|time|waste|error|risk|churn|turnover)",
-          "label": "Reduction/improvement goal",
-          "weight": 1
-        },
-        {
-          "pattern": "(leaving|churning|dropping off|abandoning|unsubscribing|canceling|attriting)",
-          "label": "Churn/attrition behavior",
-          "weight": 2
-        },
-        {
-          "pattern": "raise more|increase .{0,15}(revenue|sales|conversion|donation|engagement|retention)",
-          "label": "Growth/increase goal",
-          "weight": 1
-        },
-        {
-          "pattern": "(proactive|preventive|preventative|before .{0,15}(happen|break|fail|problem|too late))",
-          "label": "Proactive/preventive intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(aging|deteriorat|degrading|wear|end of life|replace first|prioriti).{0,15}(infrastructure|asset|equipment|pipeline|system|fleet|replace|inspection|maintenance)",
-          "label": "Asset lifecycle/aging concern",
-          "weight": 2
-        },
-        {
-          "pattern": "(infrastructure|asset|equipment|system|fleet).{0,15}(aging|old|deteriorat|degrading|end of life|obsolete|failing)",
-          "label": "Aging infrastructure (reversed)",
-          "weight": 2
-        },
-        {
-          "pattern": "don't know (what|which|where|when|how) to .{0,15}(replace|fix|maintain|prioriti|invest|upgrade)",
-          "label": "Prioritization uncertainty",
-          "weight": 1
-        },
-        {
-          "pattern": "(no good way|difficult|hard|struggle|challenge|pain|tedious|manual) .{0,15}(to |)(search|find|discover|access|analyze|report|manage|process)",
-          "label": "Pain point with current process",
-          "weight": 1
-        },
-        {
-          "pattern": "(feature store|feature engineering|feature pipeline|model feature|ML feature)",
-          "label": "ML feature management",
-          "weight": 2
-        },
-        {
-          "pattern": "(model|prediction|score|inference).{0,15}(degrad|decay|drift|stale|rot|deteriorat)",
-          "label": "Model degradation/drift detection",
-          "weight": 2
-        },
-        {
-          "pattern": "(training|train).{0,10}(serving|inference|production).{0,10}(skew|mismatch|gap|difference|inconsisten)",
-          "label": "Training-serving skew",
-          "weight": 2
-        },
-        {
-          "pattern": "(graph|network).{0,10}(analys|analytic|mining|traversal|pattern|detect|algorithm)",
-          "label": "Graph analytics pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "(influence|relationship|connection|link).{0,10}(network|graph|map|diagram|analys)",
-          "label": "Network/relationship mapping",
-          "weight": 2
-        },
-        {
-          "pattern": "(fraud ring|money laundering|transaction network|beneficial ownership|shell compan|layered.{0,5}entit)",
-          "label": "Financial graph analysis",
-          "weight": 2
-        },
-        {
-          "pattern": "(collaborative filter|recommendation.{0,10}(engine|system|algorithm)|content.?based filter)",
-          "label": "Recommendation system pattern",
-          "weight": 2
-        }
-      ]
+      "examples": [
+        "Build a model to predict which customers will churn in the next 30 days",
+        "Detect defects in manufacturing images using computer vision",
+        "We need to forecast demand for 10,000 SKUs across 200 stores"
+      ],
+      "exclusions": ["no ML needed", "simple reporting", "just dashboards"],
+      "relationships": {
+        "often_with": [1, 2],
+        "tiebreak_over": []
+      }
     },
     {
       "id": 5,
       "name": "Sensitive Data",
-      "keywords": [
-        "sensitive",
-        "PII",
-        "compliance",
-        "HIPAA",
-        "masking",
-        "encryption",
-        "access control",
-        "access controls",
-        "GDPR",
-        "SOC2",
-        "audit",
-        "privacy",
-        "regulated",
-        "classified",
-        "restricted",
-        "PHI",
-        "confidential",
-        "regulatory reporting",
-        "chain of custody",
-        "e-discovery",
-        "SOX",
-        "PCI-DSS",
-        "de-identified",
-        "audit trail",
-        "breach notification",
-        "data sovereignty",
-        "tenant isolation",
-        "explainable",
-        "data provenance",
-        "FERPA",
-        "AML",
-        "KYC",
-        "insider threat",
-        "air-gapped",
-        "data residency",
-        "regulatory",
-        "risk",
-        "RPO",
-        "RTO",
-        "cryptographic erasure",
-        "traceability",
-        "de-identify",
-        "role-based access",
-        "HL7",
-        "W-2",
-        "taxpayer",
-        "CDC audit",
-        "environmental compliance",
-        "payout"
-      ],
       "velocity": "Varies",
       "use_case": "Sensitive data",
-      "task_flow_candidates": [
-        "sensitive-data-insights"
+      "task_flow_candidates": ["sensitive-data-insights"],
+      "keywords": {
+        "strong": ["PII", "HIPAA", "GDPR", "PCI-DSS", "SOC2", "SOX", "FERPA", "PHI"],
+        "moderate": ["compliance", "encryption", "access control", "audit", "AML", "KYC"],
+        "weak": ["privacy", "regulated", "confidential", "data residency", "tenant isolation"]
+      },
+      "signals": [
+        {"pattern": "(must|required to|obligated to) (comply|report|retain|disclose)", "weight": 3, "label": "Compliance obligation"},
+        {"pattern": "(audit|inspection).{0,15}(ready|trail|log|evidence)", "weight": 3, "label": "Audit readiness"},
+        {"pattern": "(retain|retention|archive).{0,20}\\d+\\s*(year|month)", "weight": 2, "label": "Data retention period"},
+        {"pattern": "(FDA|EPA|SEC|FINRA|DOT|CMS).{0,20}(require|mandate|regulation)", "weight": 3, "label": "Regulatory body"},
+        {"pattern": "(role.?based|row.?level|column.?level|least privilege)", "weight": 2, "label": "Access control pattern"},
+        {"pattern": "(ISO \\d+|SOC ?[12]|FedRAMP|NIST|CMMC)", "weight": 3, "label": "Compliance standard"},
+        {"pattern": "(discover|find|identify|classify).{0,15}(PII|sensitive|personal).{0,15}data", "weight": 2, "label": "PII discovery"},
+        {"pattern": "(can't|not allowed to).{0,30}(move|transfer|export).{0,30}(out of|outside)", "weight": 2, "label": "Data residency"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "(must|required to|obligated to|need to) (comply|report|retain|disclose|notify|file)",
-          "label": "Compliance obligation",
-          "weight": 2
-        },
-        {
-          "pattern": "(audit|inspection|oversight).{0,15}(ready|trail|log|evidence|proof)",
-          "label": "Audit readiness",
-          "weight": 2
-        },
-        {
-          "pattern": "(retain|retention|archive).{0,20}\\d+\\s*(year|month|day)",
-          "label": "Data retention period",
-          "weight": 2
-        },
-        {
-          "pattern": "(FDA|EPA|SEC|OSHA|FINRA|DOT|USDA|FAA|FCC|CMS|OCC|CFPB|CFTC|NRC).{0,20}(require|mandate|regulation|reporting|submission|compliance)",
-          "label": "Regulatory body requirement",
-          "weight": 2
-        },
-        {
-          "pattern": "(role.?based|row.?level|column.?level|need.?to.?know|least privilege|segregation of duties)",
-          "label": "Access control pattern",
-          "weight": 2
-        },
-        {
-          "pattern": "(ISO \\d+|SOC ?[12]|FedRAMP|NIST|CMMC|CLIA|CAP|AS9100|ITAR|DFARS)",
-          "label": "Certification/standard reference",
-          "weight": 2
-        },
-        {
-          "pattern": "(court|legal|admissibl|litigation|evidence|forensic)",
-          "label": "Court/legal admissibility",
-          "weight": 1
-        },
-        {
-          "pattern": "(delete|erase|purge|remove|forget).{0,20}(data|record|information).{0,20}(request|right|upon|customer|user)",
-          "label": "Data deletion rights",
-          "weight": 1
-        },
-        {
-          "pattern": "(California|Illinois|CCPA|CPRA|BIPA|state|jurisdiction).{0,15}(privacy|regulation|require|law)",
-          "label": "Privacy jurisdiction",
-          "weight": 1
-        },
-        {
-          "pattern": "(implement|set up|configure|establish|enforce).{0,15}(access control|security|permission|authorization|data protection)",
-          "label": "Access control implementation",
-          "weight": 2
-        },
-        {
-          "pattern": "(discover|find|locate|identify|classify|inventory).{0,15}(PII|sensitive|personal|protected|confidential).{0,15}data",
-          "label": "PII discovery/classification",
-          "weight": 2
-        },
-        {
-          "pattern": "(can't|cannot|not allowed to|must not|prohibited from) .{0,30}(move|transfer|export|send|transmit|copy).{0,30}(data|information).{0,20}(out of|outside|from|across|to another)",
-          "label": "Data residency/sovereignty constraint",
-          "weight": 2
-        },
-        {
-          "pattern": "(prove|demonstrate|show|trace|track).{0,15}(auditor|regulator|examiner|inspector).{0,20}(transformation|change|lineage|step|process)",
-          "label": "Audit traceability requirement",
-          "weight": 2
-        },
-        {
-          "pattern": "(data residency|data.{0,5}(stay|remain|not leave|not cross)|cross.?border|border.?crossing|data transfer).{0,20}(country|region|jurisdiction|territory|sovereign|EU|US|GDPR|contractual clause|regulation|requirement)",
-          "label": "Cross-border data residency",
-          "weight": 2
-        },
-        {
-          "pattern": "(shouldn.?t|should not|must not|not supposed to).{0,15}(access|see|view|query|read).{0,15}(sensitive|salary|PII|confidential|personal|private|protected)",
-          "label": "Unauthorized sensitive access",
-          "weight": 2
-        },
-        {
-          "pattern": "(access denied|permission denied|unauthoriz|forbidden|locked out|can.?t access)",
-          "label": "Access control failure",
-          "weight": 1
-        },
-        {
-          "pattern": "(clean room|data clean room|secure.{0,10}collaboration|joint analytic|privacy.?preserving.{0,10}(analytic|computation|processing))",
-          "label": "Privacy-preserving analytics",
-          "weight": 2
-        },
-        {
-          "pattern": "(differential privacy|k.?anonymit|anonymiz|de.?identif|pseudonymiz|data mask).{0,15}(technique|method|approach|implementation|pipeline|process)",
-          "label": "Privacy engineering technique",
-          "weight": 2
-        }
-      ]
+      "examples": [
+        "We handle patient health records and must comply with HIPAA",
+        "Store customer credit card data with PCI-DSS compliance",
+        "European customer data must stay in EU data centers per GDPR"
+      ],
+      "exclusions": ["public data only", "no sensitive data", "internal analytics only"],
+      "relationships": {
+        "additive_to": [1, 2, 4, 8],
+        "tiebreak_over": []
+      }
     },
     {
       "id": 6,
       "name": "Transactional",
-      "keywords": [
-        "writeback",
-        "transactional",
-        "CRUD",
-        "operational",
-        "update records",
-        "insert",
-        "delete",
-        "point-of-sale",
-        "inventory",
-        "order management",
-        "OLTP",
-        "sync",
-        "bidirectional",
-        "self-service portal",
-        "query results"
-      ],
       "velocity": "Real-time",
       "use_case": "Transactional",
-      "task_flow_candidates": [
-        "translytical"
+      "task_flow_candidates": ["translytical"],
+      "keywords": {
+        "strong": ["writeback", "OLTP", "transactional", "CRUD"],
+        "moderate": ["bidirectional", "point-of-sale", "order management"],
+        "weak": ["inventory", "operational"]
+      },
+      "signals": [
+        {"pattern": "(write back|update .{0,15} record|insert .{0,15} into|modify .{0,15} in real.?time)", "weight": 3, "label": "Write-back intent"},
+        {"pattern": "(operational|transactional|OLTP) (system|database|workload)", "weight": 2, "label": "Transactional system"},
+        {"pattern": "(inventory|order|booking|reservation).{0,15}(management|tracking|processing)", "weight": 2, "label": "Operational management"},
+        {"pattern": "(trigger|initiate|kick off) .{0,20} (process|workflow|action)", "weight": 1, "label": "Process triggering"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "(write back|update .{0,15} record|insert .{0,15} into|modify .{0,15} in real.?time)",
-          "label": "Write-back/record mutation intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(operational|transactional|OLTP) (system|database|workload)",
-          "label": "Operational/transactional system",
-          "weight": 2
-        },
-        {
-          "pattern": "(trigger|initiate|kick off|launch) .{0,20} (process|workflow|action|task|job|order)",
-          "label": "Process triggering intent",
-          "weight": 1
-        },
-        {
-          "pattern": "(inventory|order|booking|reservation|ticket).{0,15}(management|tracking|processing|system)",
-          "label": "Inventory/order management",
-          "weight": 1
-        },
-        {
-          "pattern": "(automat|instant).{0,15}(pay|refund|reimburse|credit|notify|calculate|process|initiate)",
-          "label": "Automated payout/action",
-          "weight": 1
-        }
-      ]
+      "examples": [
+        "Update inventory levels in real-time as orders are placed",
+        "Analysts need to write corrections back to the source system",
+        "Our POS system needs sub-second transaction processing"
+      ],
+      "exclusions": ["read-only analytics", "no write-back needed", "reporting only"],
+      "relationships": {
+        "mutually_exclusive": [],
+        "tiebreak_over": [2]
+      }
     },
     {
       "id": 7,
       "name": "Unstructured / Semi-structured",
-      "keywords": [
-        "unstructured",
-        "semi-structured",
-        "files",
-        "JSON",
-        "Parquet",
-        "SQL queries on files",
-        "CSV",
-        "logs",
-        "XML",
-        "nested",
-        "schema-on-read",
-        "data lake",
-        "documents",
-        "text",
-        "images",
-        "videos",
-        "content",
-        "emails"
-      ],
       "velocity": "Batch",
       "use_case": "SQL analytics",
-      "task_flow_candidates": [
-        "data-analytics-sql-endpoint"
+      "task_flow_candidates": ["data-analytics-sql-endpoint"],
+      "keywords": {
+        "strong": ["unstructured", "data lake", "Parquet", "schema-on-read"],
+        "moderate": ["files", "JSON", "documents", "images"],
+        "weak": ["logs", "XML", "CSV", "videos"]
+      },
+      "signals": [
+        {"pattern": "\\d+\\s*(GB|TB|PB)\\s*(per|a)\\s*(day|week|month)", "weight": 2, "label": "Large file volume"},
+        {"pattern": "(OCR|text extraction|document processing|digitiz|transcript)", "weight": 2, "label": "Document processing"},
+        {"pattern": "(different|various|multiple) (format|schema|structure)", "weight": 1, "label": "Multi-format data"},
+        {"pattern": "(satellite|radar|geospatial|GIS|LiDAR)", "weight": 2, "label": "Geospatial data"},
+        {"pattern": "(extract|parse|mine).{0,15}(from|out of).{0,10}(PDF|document|contract|invoice)", "weight": 2, "label": "Document extraction"},
+        {"pattern": "(sentiment|topic|tone|intent).{0,15}(analysis|detection|extraction)", "weight": 2, "label": "NLP analysis"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "\\d+\\s*(GB|TB|PB|gigabyte|terabyte|petabyte)\\s*(per|a|each)\\s*(day|week|month|hour|page|scan|image)",
-          "label": "Large file volume",
-          "weight": 2
-        },
-        {
-          "pattern": "(image|video|audio|photo|scan|X-ray|CT|MRI|recording|footage).{0,20}(per|each|every)\\s*(day|hour|patient|site|unit)",
-          "label": "Media data volume",
-          "weight": 2
-        },
-        {
-          "pattern": "(OCR|text extraction|document processing|parse|digitiz|transcript)",
-          "label": "Document processing/extraction",
-          "weight": 2
-        },
-        {
-          "pattern": "(different|various|multiple|mixed) (format|schema|structure|encoding|naming convention)",
-          "label": "Multi-format data",
-          "weight": 1
-        },
-        {
-          "pattern": "(satellite|radar|geospatial|GIS|remote sensing|imagery|LiDAR|NDVI|spectral)",
-          "label": "Geospatial data",
-          "weight": 1
-        },
-        {
-          "pattern": "\\d+\\s*(GB|MB)\\s*(per|each|a)\\s*(file|image|scan|page|record|sample|biopsy)",
-          "label": "Large file processing",
-          "weight": 1
-        },
-        {
-          "pattern": "(extract|pull|parse|mine|scrape).{0,15}(from|out of).{0,10}(PDF|document|contract|drawing|spec|report|form|invoice|receipt|email)",
-          "label": "Document extraction pipeline",
-          "weight": 2
-        },
-        {
-          "pattern": "(PDF|contract|drawing|spec|CAD|blueprint|schematic|scan|invoice).{0,20}(search|index|catalog|extract|classify|categorize|sort)",
-          "label": "Document search/classification",
-          "weight": 2
-        },
-        {
-          "pattern": "(free.?text|natural language|plain.?text|unstructured.?text).{0,15}(categoriz|classif|tag|label|route|sort|triage)",
-          "label": "Text classification pipeline",
-          "weight": 2
-        },
-        {
-          "pattern": "(sentiment|topic|tone|emotion|intent).{0,15}(analysis|detection|extraction|mining|tracking)",
-          "label": "NLP analysis pipeline",
-          "weight": 2
-        },
-        {
-          "pattern": "(transcript|recording|meeting|call|conversation).{0,15}(extract|action item|summariz|analyz|search|index)",
-          "label": "Conversation/transcript analysis",
-          "weight": 2
-        }
-      ]
+      "examples": [
+        "Analyze 500GB of server logs daily to identify security incidents",
+        "Extract data from 10,000 PDF invoices using OCR",
+        "Query satellite imagery stored in Parquet format"
+      ],
+      "exclusions": ["structured SQL only", "relational database", "clean tabular data"],
+      "relationships": {
+        "often_with": [2, 8],
+        "tiebreak_over": []
+      }
     },
     {
       "id": 8,
       "name": "Data Quality / Layered",
-      "keywords": [
-        "data quality",
-        "bronze/silver/gold",
-        "layers",
-        "curated",
-        "cleanse",
-        "transform stages",
-        "raw",
-        "refined",
-        "aggregated",
-        "medallion",
-        "data governance",
-        "lineage",
-        "data silos",
-        "unified catalog",
-        "data catalog",
-        "single source of truth",
-        "consolidate",
-        "centralize",
-        "federated",
-        "data mesh",
-        "data products",
-        "data contracts",
-        "versioning",
-        "standardize",
-        "unified",
-        "reconcile",
-        "reconciliation",
-        "traceability",
-        "integrate",
-        "integration",
-        "unify",
-        "migrate",
-        "migration",
-        "normalize",
-        "normalization",
-        "modernize",
-        "modernization",
-        "lakehouse",
-        "data-driven",
-        "entity resolution",
-        "master data",
-        "semantic layer",
-        "data trust",
-        "OLAP",
-        "provisioning",
-        "data swamp",
-        "catalog",
-        "data contract",
-        "schema enforcement",
-        "schema drift",
-        "data correctness",
-        "schema evolution",
-        "deduplication",
-        "golden record",
-        "freshness",
-        "completeness",
-        "consistency",
-        "source of truth",
-        "records",
-        "end-to-end",
-        "cross-reference",
-        "aggregation",
-        "cross-match",
-        "discrepancy",
-        "drill-hole",
-        "geologist"
-      ],
       "velocity": "Varies",
       "use_case": "Layered analytics",
-      "task_flow_candidates": [
-        "medallion"
+      "task_flow_candidates": ["medallion"],
+      "keywords": {
+        "strong": ["medallion", "data quality", "data governance", "single source of truth", "data mesh"],
+        "moderate": ["lineage", "data catalog", "consolidate", "standardize", "lakehouse"],
+        "weak": ["data silos", "migrate", "entity resolution", "deduplication"]
+      },
+      "signals": [
+        {"pattern": "(normaliz|standardiz|harmoniz|reconcil|consolidat|unif).{0,20}(data|across|from)", "weight": 2, "label": "Normalization intent"},
+        {"pattern": "from\\s+\\d+\\s+(different\\s+)?(source|system|vendor|platform|partner)", "weight": 2, "label": "Multiple sources"},
+        {"pattern": "(different|various|multiple).{0,30}(source|system|vendor|format|schema).{0,20}(different|various|multiple)", "weight": 3, "label": "Data heterogeneity"},
+        {"pattern": "(migrat|moderniz|decommission|replac).{0,20}(legacy|old|mainframe)", "weight": 2, "label": "Migration intent"},
+        {"pattern": "360.?degree (view|profile)|single view of|holistic view", "weight": 3, "label": "360-degree view"},
+        {"pattern": "(single source of truth|golden record|one version of)", "weight": 3, "label": "Trust/consistency"},
+        {"pattern": "(never match|don't match|numbers? (are|is) different)", "weight": 2, "label": "Data matching problem"},
+        {"pattern": "(three|multiple|different) .{0,10}(version|number|figure).{0,10}(of |for |)(same|revenue)", "weight": 3, "label": "Single source of truth gap"},
+        {"pattern": "(nobody|no one).{0,30}(trust|believe).{0,15}data", "weight": 2, "label": "Data trust deficit"},
+        {"pattern": "(manual|manually).{0,15}(reconcil|consolidat|aggregat)", "weight": 2, "label": "Manual data wrangling"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "(different|various|multiple|each .{0,10} (provides|sends|has)) .{0,30}(format|schema|naming convention|standard)",
-          "label": "Data heterogeneity across sources",
-          "weight": 1
-        },
-        {
-          "pattern": "(normaliz|standardiz|harmoniz|reconcil|consolidat|unif|integrat).{0,20}(data|across|from|into)",
-          "label": "Normalization/standardization intent",
-          "weight": 2
-        },
-        {
-          "pattern": "from\\s+\\d+\\s+(source|system|vendor|platform|partner|provider|foundry|facility|clinic|plant|site|farm)",
-          "label": "Multiple source diversity",
-          "weight": 2
-        },
-        {
-          "pattern": "(migrat|moderniz|decommission|replac|retir|sunset).{0,20}(legacy|old|existing|current|mainframe|on.?prem)",
-          "label": "Migration/modernization intent",
-          "weight": 1
-        },
-        {
-          "pattern": "move .{0,30}to .{0,15}(cloud|modern|new|target|Azure|AWS|GCP|Fabric)",
-          "label": "Cloud migration intent",
-          "weight": 2
-        },
-        {
-          "pattern": "bring .{0,20}(together|into one|in one place|under one|into a single)",
-          "label": "Data consolidation intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(genealogy|provenance|birth.?to.?|end.?to.?end|full.?life|cradle.?to.?)",
-          "label": "Full lifecycle traceability",
-          "weight": 2
-        },
-        {
-          "pattern": "360.?degree (view|profile|picture)|single view of|holistic view|complete (view|picture|profile)",
-          "label": "360-degree/holistic view",
-          "weight": 2
-        },
-        {
-          "pattern": "(single source of truth|golden record|master data|one version of|trust the numbers|conflicting data|different numbers)",
-          "label": "Trust/consistency concern",
-          "weight": 2
-        },
-        {
-          "pattern": "(cross.?referenc|cross.?check|reconcil|validat).{0,15}(against|with|between|across)",
-          "label": "Cross-referencing",
-          "weight": 1
-        },
-        {
-          "pattern": "(consistency|consistent|standardiz|uniform).{0,15}(across|between|among).{0,15}(facilit|plant|site|location|factor|region|unit)",
-          "label": "Consistency across sites",
-          "weight": 1
-        },
-        {
-          "pattern": "(anonymiz|de.?identif|aggregat|blend).{0,15}(data|metric|result|benchmark)",
-          "label": "Anonymization/aggregation",
-          "weight": 1
-        },
-        {
-          "pattern": "(never match|don't match|numbers? (are|is) (different|wrong)|trust the (number|data|report))",
-          "label": "Data trust/matching problem",
-          "weight": 2
-        },
-        {
-          "pattern": "(more |)(reliable|trustworthy|accurate|dependable|consistent) .{0,15}(data|numbers?|metrics?|reports?|dashboards?|analytics|information)",
-          "label": "Data reliability concern",
-          "weight": 2
-        },
-        {
-          "pattern": "(duplicate|stale|undocumented|orphaned|unknown).{0,15}data",
-          "label": "Data quality/hygiene concern",
-          "weight": 1
-        },
-        {
-          "pattern": "(inherit|acqui|merger|merge).{0,20}(system|platform|database|data|company)",
-          "label": "Post-M&A data integration",
-          "weight": 2
-        },
-        {
-          "pattern": "(three|two|multiple|several|different) .{0,10}(of everything|CRM|ERP|system|database|warehouse|platform)",
-          "label": "System proliferation",
-          "weight": 2
-        },
-        {
-          "pattern": "(nothing|don't|doesn't|can't|cannot) (talk|connect|integrate|communicate|share) (to|with) each other",
-          "label": "System isolation",
-          "weight": 2
-        },
-        {
-          "pattern": "(nobody|no one|people don.?t|staff don.?t|team doesn.?t|organization doesn.?t).{0,30}(trusts?|believes?|rely on|have confidence in).{0,15}data",
-          "label": "Data trust deficit",
-          "weight": 2
-        },
-        {
-          "pattern": "(three|3|four|4|five|5|multiple|different) .{0,20}(version|number|figure|answer|result).{0,10}(of |for |)(the |our |)(same|revenue|metric|KPI|number)",
-          "label": "Single source of truth gap",
-          "weight": 2
-        },
-        {
-          "pattern": "(decision|we decide|make.{0,5}decision).{0,20}(data doesn.?t|data does not|data can.?t|no data|without data|lacking data)",
-          "label": "Decision-data gap",
-          "weight": 1
-        },
-        {
-          "pattern": "data doesn.?t support",
-          "label": "Data doesn't support decisions",
-          "weight": 1
-        },
-        {
-          "pattern": "(can.?t|cannot|impossible to) get a (straight|clear|consistent|reliable|definitive) answer",
-          "label": "Data inconsistency frustration",
-          "weight": 2
-        },
-        {
-          "pattern": "(merge|consolidate|unify|combine|deduplicate).{0,150}(different|multiple|duplicate|separate|various).{0,15}(ID|identifier|spelling|format|schema|address)",
-          "label": "Entity resolution/deduplication",
-          "weight": 2
-        },
-        {
-          "pattern": "(different|multiple|duplicate|separate|various).{0,10}(ID|identifier|spelling|format|schema|address).{0,20}(merge|consolidate|unify|combine|deduplicate|match|reconcile)",
-          "label": "Entity resolution/deduplication (reverse)",
-          "weight": 2
-        },
-        {
-          "pattern": "(semantic layer|metrics layer|metric store|universal metric|unified metric|business glossary)",
-          "label": "Semantic/metrics layer need",
-          "weight": 2
-        },
-        {
-          "pattern": "(need|want|require).{0,10}(better|improved|cleaner|higher.quality|reliable|trustworthy|accurate).{0,10}(data|information|numbers|records|reporting)",
-          "label": "General data quality aspiration",
-          "weight": 1
-        },
-        {
-          "pattern": "(which.{0,10}(report|dashboard|metric)|nobody knows which|no one knows which).{0,15}(matter|important|used|active|relevant)",
-          "label": "Report/metric rationalization need",
-          "weight": 1
-        },
-        {
-          "pattern": "(conflicting|contradicting|inconsistent|different).{0,10}(numbers|figures|totals|results|answers).{0,15}(across|between|from|in)",
-          "label": "Cross-system data conflict",
-          "weight": 2
-        },
-        {
-          "pattern": "(manual|manually).{0,15}(download|export|extract|copy|paste|reconcil|consolidat|aggregat|collect|gather)",
-          "label": "Manual data wrangling",
-          "weight": 2
-        }
-      ]
+      "examples": [
+        "Consolidate customer data from 5 different CRMs into a single golden record",
+        "We have 3 different versions of revenue — Finance, Sales, and Operations all report different numbers",
+        "Migrate our on-prem data warehouse to a modern lakehouse architecture"
+      ],
+      "exclusions": ["single source system", "data is already clean", "no quality issues"],
+      "relationships": {
+        "often_with": [2, 7],
+        "tiebreak_over": []
+      }
     },
     {
       "id": 9,
       "name": "Application Backend",
-      "keywords": [
-        "API",
-        "app",
-        "frontend",
-        "mobile",
-        "backend",
-        "GraphQL",
-        "REST endpoint",
-        "microservices",
-        "CRUD",
-        "web app",
-        "application",
-        "SaaS",
-        "multi-tenant",
-        "customer-facing",
-        "embedded analytics",
-        "chatbot",
-        "natural language",
-        "self-service",
-        "mobile app",
-        "platform",
-        "lending",
-        "payment processing",
-        "website",
-        "tournament",
-        "esports",
-        "Leapfrog",
-        "dispatcher",
-        "brokerage"
-      ],
       "velocity": "Varies",
       "use_case": "Application backend",
-      "task_flow_candidates": [
-        "app-backend",
-        "conversational-analytics"
+      "task_flow_candidates": ["app-backend", "conversational-analytics"],
+      "keywords": {
+        "strong": ["API", "microservices", "multi-tenant", "embedded analytics"],
+        "moderate": ["frontend", "backend", "chatbot"],
+        "weak": ["app", "mobile", "web app", "SaaS"]
+      },
+      "signals": [
+        {"pattern": "(customer|user|patient|employee).{0,20}(portal|app|interface|dashboard)", "weight": 2, "label": "Consumer-facing app"},
+        {"pattern": "(API|endpoint|integration).{0,20}(for|to|serving|powering)", "weight": 2, "label": "Integration API"},
+        {"pattern": "(self.?service|no.?code|low.?code).{0,10}(user|analyst|team)", "weight": 2, "label": "Self-service for non-technical"},
+        {"pattern": "(look it up|find it|answer it).{0,20}(themselves|on their own|without)", "weight": 2, "label": "Self-service lookup"},
+        {"pattern": "(embed|integrat).{0,15}(analytics|report|chart).{0,15}(in|into) .{0,15}(app|portal|product)", "weight": 3, "label": "Embedded analytics"},
+        {"pattern": "(business user|non.?technical).{0,20}(explore|access|query).{0,15}data.{0,15}(without).{0,10}(SQL|code)", "weight": 2, "label": "No-code analytics"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "(customer|user|client|patient|consumer|employee|member|subscriber).{0,20}(portal|app|interface|dashboard|experience)",
-          "label": "Consumer-facing application",
-          "weight": 2
-        },
-        {
-          "pattern": "(API|endpoint|integration|webhook|feed).{0,20}(for|to|serving|powering|feeding)",
-          "label": "Integration API purpose",
-          "weight": 1
-        },
-        {
-          "pattern": "(self.?service|drag.?and.?drop|no.?code|low.?code|non.?technical).{0,10}(user|analyst|team|staff)",
-          "label": "Self-service for non-technical users",
-          "weight": 1
-        },
-        {
-          "pattern": "(look it up|find it|answer it|check it|get it) (themselves|by themselves|on their own|without|independently)",
-          "label": "Self-service lookup intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(wish|want|need).{0,15}(could|to) just .{0,15}(look|find|search|ask|query|check|see)",
-          "label": "Self-service desire",
-          "weight": 1
-        },
-        {
-          "pattern": "(embed|integrat).{0,15}(analytics|report|chart|visual).{0,15}(in|into|within) .{0,15}(app|portal|product|platform)",
-          "label": "Embedded analytics in application",
-          "weight": 2
-        },
-        {
-          "pattern": "(business user|non.?technical|analyst|manager|executive).{0,20}(explore|access|query|interact|work with|use).{0,15}data.{0,15}(without|no |not ).{0,10}(SQL|code|coding|programming|technical|developer)",
-          "label": "Self-service/no-code analytics",
-          "weight": 2
-        },
-        {
-          "pattern": "(let|enable|allow|empower) .{0,15}(business|user|analyst|team|everyone).{0,15}(explore|access|discover|find|browse|search).{0,10}data",
-          "label": "Data exploration enablement",
-          "weight": 1
-        }
-      ]
+      "examples": [
+        "Embed Power BI dashboards in our customer-facing portal",
+        "Build a GraphQL API to serve product recommendations to our mobile app",
+        "Let business users query data using natural language without writing SQL"
+      ],
+      "exclusions": ["internal analytics only", "no external users", "analyst-only access"],
+      "relationships": {
+        "often_with": [4, 10],
+        "tiebreak_over": []
+      }
     },
     {
       "id": 10,
       "name": "Document / NoSQL / AI-ready",
-      "keywords": [
-        "document data",
-        "NoSQL",
-        "JSON",
-        "semi-structured",
-        "Cosmos DB",
-        "schema-less",
-        "vector search",
-        "embeddings",
-        "RAG",
-        "knowledge base",
-        "data agent",
-        "natural language queries",
-        "conversational AI",
-        "MRO",
-        "clinical trials",
-        "FDA",
-        "REIT",
-        "insurtech",
-        "freight",
-        "mining",
-        "copper mine",
-        "grocery chain",
-        "e-commerce marketplace",
-        "water utility",
-        "tax authority"
-      ],
       "velocity": "Varies",
       "use_case": "NoSQL / AI-ready apps",
-      "task_flow_candidates": [
-        "app-backend",
-        "translytical",
-        "conversational-analytics"
+      "task_flow_candidates": ["app-backend", "translytical", "conversational-analytics"],
+      "keywords": {
+        "strong": ["NoSQL", "Cosmos DB", "vector search", "embeddings", "knowledge base"],
+        "moderate": ["conversational AI", "document store"],
+        "weak": ["schema-less", "flexible schema"]
+      },
+      "signals": [
+        {"pattern": "(ask|query|question).{0,20}(about|against|from) .{0,15}(data|database)", "weight": 2, "label": "Conversational querying"},
+        {"pattern": "(natural language|plain English).{0,20}(query|search|ask|explore)", "weight": 3, "label": "Natural language query"},
+        {"pattern": "(AI|intelligent|smart) (assistant|agent|copilot|bot)", "weight": 2, "label": "AI assistant"},
+        {"pattern": "(search|discover|find).{0,15}(across|within) .{0,15}(data|document|catalog)", "weight": 2, "label": "Cross-data search"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "(ask|query|question).{0,20}(about|against|from|across) .{0,15}(data|database|system|collection)",
-          "label": "Conversational data querying",
-          "weight": 2
-        },
-        {
-          "pattern": "(natural language|plain English|non.?technical .{0,10}(user|people|staff|team)) .{0,20}(query|search|ask|explore)",
-          "label": "Natural language query intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(AI|intelligent|smart) (assistant|agent|copilot|bot|chat)",
-          "label": "AI assistant/agent",
-          "weight": 2
-        },
-        {
-          "pattern": "(chatbot|virtual assistant|conversational)",
-          "label": "Conversational AI interface",
-          "weight": 1
-        },
-        {
-          "pattern": "(search|discover|find|explore).{0,15}(across|within|through) .{0,15}(data|document|record|artifact|catalog)",
-          "label": "Cross-data search/discovery",
-          "weight": 1
-        },
-        {
-          "pattern": "(search|discover|find|browse|explore) .{0,20}(collection|catalog|archive|library|repository|corpus|database|knowledge)",
-          "label": "Collection search intent",
-          "weight": 2
-        },
-        {
-          "pattern": "(more|better) (accessible|discoverable|searchable|usable|findable)",
-          "label": "Accessibility/discoverability goal",
-          "weight": 1
-        }
-      ]
+      "examples": [
+        "Build a RAG system so employees can ask questions about company policies",
+        "Store product catalog in Cosmos DB with flexible schema for different product types",
+        "Enable semantic search across 1M technical documents"
+      ],
+      "exclusions": ["relational only", "no AI features", "structured schema required"],
+      "relationships": {
+        "often_with": [4, 9],
+        "tiebreak_over": []
+      }
     },
     {
       "id": 11,
       "name": "Semantic Governance",
-      "keywords": [
-        "cross-domain",
-        "unified vocabulary",
-        "knowledge graph",
-        "enterprise semantics",
-        "ontology",
-        "business terms",
-        "data catalog",
-        "glossary",
-        "metadata management",
-        "data stewardship",
-        "taxonomy",
-        "classification schema",
-        "data product",
-        "data publishing",
-        "data mesh",
-        "metrics",
-        "data marketplace",
-        "data contract",
-        "managed service",
-        "open source",
-        "SLA",
-        "versioning"
-      ],
       "velocity": "Varies",
       "use_case": "Semantic governance",
-      "task_flow_candidates": [
-        "medallion",
-        "data-analytics-sql-endpoint"
+      "task_flow_candidates": ["medallion", "data-analytics-sql-endpoint"],
+      "keywords": {
+        "strong": ["knowledge graph", "ontology", "data product", "semantic layer"],
+        "moderate": ["glossary", "taxonomy", "data stewardship", "metrics"],
+        "weak": ["cross-domain", "SLA", "metadata"]
+      },
+      "signals": [
+        {"pattern": "(who owns|data owner|data steward|accountab).{0,15}(data|domain|dataset)", "weight": 2, "label": "Data ownership"},
+        {"pattern": "(common|shared|unified|standard).{0,15}(vocabulary|terminology|definition|metric)", "weight": 2, "label": "Standards alignment"},
+        {"pattern": "(defin|mean).{0,20}differently|different definition", "weight": 3, "label": "Semantic inconsistency"},
+        {"pattern": "(no|lack of|missing|without) (documentation|standard|governance)", "weight": 2, "label": "Governance gap"},
+        {"pattern": "(metric|KPI).{0,10}(disagree|conflict|contradict|inconsisten)", "weight": 3, "label": "Metric disagreement"}
       ],
-      "inference_rules": [
-        {
-          "pattern": "(who owns|data owner|data steward|accountab|responsib).{0,15}(data|domain|dataset|table)",
-          "label": "Data ownership/stewardship",
-          "weight": 2
-        },
-        {
-          "pattern": "(common|shared|unified|standard|consistent).{0,15}(vocabulary|terminology|definition|naming|metric|KPI)",
-          "label": "Vocabulary/standards alignment",
-          "weight": 2
-        },
-        {
-          "pattern": "(catalog|discover|search|browse|inventory).{0,15}(data|dataset|table|asset|artifact|resource)",
-          "label": "Data catalog/discovery",
-          "weight": 1
-        },
-        {
-          "pattern": "(classif|tag|label|categoriz|taxonomy).{0,15}(data|asset|dataset|column|field|table)",
-          "label": "Data classification/tagging",
-          "weight": 1
-        },
-        {
-          "pattern": "(best practice|knowledge shar|lesson|benchmark).{0,15}(across|between|among|for)",
-          "label": "Best practices/knowledge sharing",
-          "weight": 1
-        },
-        {
-          "pattern": "(defin|mean).{0,20}differently|different definition",
-          "label": "Semantic inconsistency",
-          "weight": 2
-        },
-        {
-          "pattern": "(no|lack of|missing|without) (documentation|standard|framework|process|governance|catalog|standardized|standardization|reuse|reusability)",
-          "label": "Governance gap",
-          "weight": 2
-        },
-        {
-          "pattern": "(defin|mean|interpret|calculat|count).{0,10}(s |ed |es |ing ).{0,10}differently|different (definition|meaning|interpretation)",
-          "label": "Semantic inconsistency (broad)",
-          "weight": 2
-        },
-        {
-          "pattern": "(metric|KPI|number|figure|measure).{0,10}(disagree|conflict|contradict|inconsisten|mismatch|don.?t match)",
-          "label": "Metric disagreement pattern",
-          "weight": 2
-        }
-      ]
+      "examples": [
+        "Marketing and Finance define 'customer' differently — we need a unified glossary",
+        "Build a knowledge graph to connect product, customer, and supplier data",
+        "Create a semantic layer so everyone uses the same metric definitions"
+      ],
+      "exclusions": ["single team ownership", "no governance needed", "informal process is fine"],
+      "relationships": {
+        "often_with": [8],
+        "tiebreak_over": []
+      }
     }
   ]
 }

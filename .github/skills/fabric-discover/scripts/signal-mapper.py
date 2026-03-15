@@ -33,48 +33,91 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# Add _shared/lib to path for registry_loader
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+from registry_loader import load_stop_words
+
 # Universal English stop words — excluded from coverage denominator so the
 # metric reflects actual tech-content coverage, not natural-language filler.
-# Maintained in _shared/registry/stop-words.json — do NOT hardcode here.
-_STOP_WORDS_PATH = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "registry" / "stop-words.json"
-STOP_WORDS: frozenset[str] = frozenset(
-    json.loads(_STOP_WORDS_PATH.read_text(encoding="utf-8"))["words"]
-)
+STOP_WORDS: frozenset[str] = load_stop_words()
 
 
 # ---------------------------------------------------------------------------
 # Signal category definitions — loaded from _shared/registry/signal-categories.json
+# Supports both v1 (flat keywords list) and v2 (weighted keywords dict) schemas
 # ---------------------------------------------------------------------------
 
 SIGNAL_CATEGORIES_PATH = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "registry" / "signal-categories.json"
+
+# Keyword weight levels for v2 schema
+KEYWORD_WEIGHTS = {"strong": 3, "moderate": 2, "weak": 1}
+
 
 @dataclass(frozen=True)
 class SignalCategory:
     id: int
     name: str
     keywords: tuple[str, ...]
+    keyword_weights: tuple[tuple[str, int], ...]  # (keyword, weight) pairs for frozen hashability
     velocity: str
     use_case: str
     task_flow_candidates: tuple[str, ...]
     inference_rules: tuple[dict, ...] = ()
+    examples: tuple[str, ...] = ()
+    exclusions: tuple[str, ...] = ()
+
+    def get_keyword_weight(self, keyword: str) -> int:
+        """Get weight for a keyword (defaults to 1)."""
+        for kw, weight in self.keyword_weights:
+            if kw == keyword:
+                return weight
+        return 1
 
 
 def _load_categories() -> tuple[SignalCategory, ...]:
-    """Load signal categories from the shared JSON data file."""
+    """Load signal categories from the shared JSON data file.
+    
+    Supports both v1 schema (flat keywords list, inference_rules) and
+    v2 schema (weighted keywords dict, signals array).
+    """
     with open(SIGNAL_CATEGORIES_PATH, encoding="utf-8") as f:
         data = json.load(f)
-    return tuple(
-        SignalCategory(
+    
+    categories = []
+    for cat in data["categories"]:
+        # Handle keywords: v2 has dict with strong/moderate/weak, v1 has flat list
+        raw_keywords = cat["keywords"]
+        if isinstance(raw_keywords, dict):
+            # v2 schema: weighted keywords
+            all_keywords = []
+            keyword_weights = []
+            for level, kws in raw_keywords.items():
+                weight = KEYWORD_WEIGHTS.get(level, 1)
+                for kw in kws:
+                    all_keywords.append(kw)
+                    keyword_weights.append((kw, weight))
+        else:
+            # v1 schema: flat list, all weight 1
+            all_keywords = raw_keywords
+            keyword_weights = [(kw, 1) for kw in raw_keywords]
+        
+        # Handle inference rules: v2 uses "signals", v1 uses "inference_rules"
+        inference_rules = cat.get("signals", cat.get("inference_rules", []))
+        
+        categories.append(SignalCategory(
             id=cat["id"],
             name=cat["name"],
-            keywords=tuple(cat["keywords"]),
+            keywords=tuple(all_keywords),
+            keyword_weights=tuple(keyword_weights),
             velocity=cat["velocity"],
             use_case=cat["use_case"],
             task_flow_candidates=tuple(cat["task_flow_candidates"]),
-            inference_rules=tuple(cat.get("inference_rules", [])),
-        )
-        for cat in data["categories"]
-    )
+            inference_rules=tuple(inference_rules),
+            examples=tuple(cat.get("examples", [])),
+            exclusions=tuple(cat.get("exclusions", [])),
+        ))
+    
+    return tuple(categories)
 
 
 CATEGORIES: tuple[SignalCategory, ...] = _load_categories()
@@ -89,6 +132,7 @@ class KeywordPattern:
     keyword: str
     pattern: re.Pattern[str]
     category_id: int
+    weight: int = 1  # v2 schema: strong=3, moderate=2, weak=1
 
 
 def _build_patterns() -> list[KeywordPattern]:
@@ -104,7 +148,8 @@ def _build_patterns() -> list[KeywordPattern]:
                 regex = re.compile(rf"\b{escaped}s?\b", re.IGNORECASE)
             else:
                 regex = re.compile(rf"\b{escaped}\b", re.IGNORECASE)
-            patterns.append(KeywordPattern(keyword=kw, pattern=regex, category_id=cat.id))
+            weight = cat.get_keyword_weight(kw)
+            patterns.append(KeywordPattern(keyword=kw, pattern=regex, category_id=cat.id, weight=weight))
     return patterns
 
 
@@ -230,6 +275,7 @@ class KeywordMatch:
     keyword: str
     start: int
     end: int
+    weight: int = 1  # v2 schema: strong=3, moderate=2, weak=1
 
 
 @dataclass
@@ -239,13 +285,21 @@ class CategoryResult:
 
     @property
     def hit_count(self) -> int:
+        """Raw count of matches (for backward compatibility)."""
         return len(self.matches)
 
     @property
+    def weighted_score(self) -> int:
+        """Sum of weights for all matches (v2 schema scoring)."""
+        return sum(m.weight for m in self.matches)
+
+    @property
     def confidence(self) -> str:
-        if self.hit_count >= 3:
+        """Confidence based on weighted score (v2) or hit count (v1)."""
+        score = self.weighted_score
+        if score >= 5:  # e.g., 2 strong keywords or 1 strong + 1 moderate
             return "high"
-        if self.hit_count == 2:
+        if score >= 3:  # e.g., 1 strong or 2 moderate or 3 weak
             return "medium"
         return "low"
 
@@ -299,20 +353,31 @@ def map_signals(text: str) -> dict:
                     continue
                 matched_spans.append((m.start(), m.end()))
                 results[kp.category_id].matches.append(
-                    KeywordMatch(keyword=kp.keyword, start=m.start(), end=m.end())
+                    KeywordMatch(keyword=kp.keyword, start=m.start(), end=m.end(), weight=kp.weight)
                 )
 
     # ── Inference pass: detect architectural intent from natural language ──
     for ip in INFERENCE_PATTERNS:
         if ip.pattern.search(text):
-            for _ in range(ip.weight):
-                results[ip.category_id].matches.append(
-                    KeywordMatch(
-                        keyword=f"(inferred: {ip.label})",
-                        start=-1,
-                        end=-1,
-                    )
+            # v2 schema: add single match with full weight; v1: add multiple matches
+            results[ip.category_id].matches.append(
+                KeywordMatch(
+                    keyword=f"(inferred: {ip.label})",
+                    start=-1,
+                    end=-1,
+                    weight=ip.weight,
                 )
+            )
+
+    # ── Exclusion pass: suppress categories if exclusion patterns match ──
+    text_lower = text.lower()
+    for cat in CATEGORIES:
+        if cat.exclusions:
+            for excl in cat.exclusions:
+                if excl.lower() in text_lower:
+                    # Clear matches for this category if exclusion found
+                    results[cat.id].matches.clear()
+                    break
 
     active: dict[int, CategoryResult] = {
         cid: r for cid, r in results.items() if r.hit_count > 0
@@ -323,12 +388,12 @@ def map_signals(text: str) -> dict:
     if 1 in active and 2 in active and 3 not in active:
         # Synthesize lambda signal — both batch and real-time detected
         cat3.matches.append(
-            KeywordMatch(keyword="(inferred: batch+real-time → lambda)", start=-1, end=-1)
+            KeywordMatch(keyword="(inferred: batch+real-time → lambda)", start=-1, end=-1, weight=2)
         )
     elif 1 in active and 2 in active and 3 in active:
         if cat3.confidence != "high":
             cat3.matches.append(
-                KeywordMatch(keyword="(inferred: batch+real-time)", start=-1, end=-1)
+                KeywordMatch(keyword="(inferred: batch+real-time)", start=-1, end=-1, weight=1)
             )
 
     active = {cid: r for cid, r in results.items() if r.hit_count > 0}
@@ -346,13 +411,13 @@ def map_signals(text: str) -> dict:
             "source_quotes": [],
         })
 
-    # Build task flow candidates with scores
+    # Build task flow candidates with weighted scores
     tf_scores: dict[str, dict] = {}
     for cid, r in active.items():
         for tf in r.category.task_flow_candidates:
             if tf not in tf_scores:
                 tf_scores[tf] = {"score": 0, "signals": []}
-            tf_scores[tf]["score"] += r.hit_count
+            tf_scores[tf]["score"] += r.weighted_score  # v2: use weighted score
             tf_scores[tf]["signals"].append(r.category.name)
 
     candidates = [
@@ -422,6 +487,7 @@ def _verbose_matches(text: str) -> list[dict]:
                     details.append({
                         "keyword": kp.keyword,
                         "category": cat.name,
+                        "weight": kp.weight,
                         "position": f"{m.start()}-{m.end()}",
                         "context": text[max(0, m.start() - 20):m.end() + 20].strip(),
                         "negated": True,
@@ -432,6 +498,7 @@ def _verbose_matches(text: str) -> list[dict]:
                 details.append({
                     "keyword": kp.keyword,
                     "category": cat.name,
+                    "weight": kp.weight,
                     "position": f"{m.start()}-{m.end()}",
                     "context": text[max(0, m.start() - 20):m.end() + 20].strip(),
                 })
@@ -443,6 +510,7 @@ def _verbose_matches(text: str) -> list[dict]:
             details.append({
                 "keyword": f"(inferred: {ip.label})",
                 "category": next(c.name for c in CATEGORIES if c.id == ip.category_id),
+                "weight": ip.weight,
                 "position": f"{m.start()}-{m.end()}",
                 "context": text[max(0, m.start() - 20):m.end() + 20].strip(),
             })

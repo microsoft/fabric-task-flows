@@ -17,7 +17,6 @@ def mock_repo(tmp_path):
         ├── _projects/test-project/
         │   ├── docs/
         │   ├── deploy/
-        │   └── docs/decisions/
         └── .github/skills/
     """
     # Create directory structure
@@ -25,7 +24,6 @@ def mock_repo(tmp_path):
     (tmp_path / "_shared" / "lib").mkdir(parents=True)
     (tmp_path / "_projects" / "test-project" / "docs").mkdir(parents=True)
     (tmp_path / "_projects" / "test-project" / "deploy").mkdir(parents=True)
-    (tmp_path / "_projects" / "test-project" / "docs" / "decisions").mkdir(parents=True)
     (tmp_path / ".github" / "skills").mkdir(parents=True)
 
     # Write minimal registry

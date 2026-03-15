@@ -34,6 +34,7 @@ _emit_ac_yaml = _mod._emit_ac_yaml
 _to_kebab = _mod._to_kebab
 _wave_number = _mod._wave_number
 _purpose_from = _mod._purpose_from
+_filter_by_decisions = _mod._filter_by_decisions
 
 # ── Mock deployment-order data ────────────────────────────────────────────
 
@@ -94,6 +95,31 @@ MOCK_REGISTRY = {
                 "dependsOn": [],
                 "requiredFor": ["Storage"],
                 "alternativeGroup": "gold-storage",
+            },
+        ],
+    },
+    "alt-ingestion-flow": {
+        "primaryStorage": "Lakehouse",
+        "items": [
+            {
+                "order": "1a",
+                "itemType": "Lakehouse",
+                "dependsOn": [],
+                "requiredFor": ["Storage"],
+            },
+            {
+                "order": "2a",
+                "itemType": "Copy Job",
+                "dependsOn": ["Lakehouse"],
+                "requiredFor": ["Ingestion"],
+                "alternativeGroup": "ingestion",
+            },
+            {
+                "order": "2a",
+                "itemType": "Pipeline",
+                "dependsOn": ["Lakehouse"],
+                "requiredFor": ["Ingestion"],
+                "alternativeGroup": "ingestion",
             },
         ],
     },
@@ -437,3 +463,65 @@ class TestScaffold:
     def test_alternative_items_annotated(self, _mock):
         md = scaffold("alt-flow", "Test Project")
         assert "Alternative to" in md
+
+
+# ── Decision filtering regression tests ──────────────────────────────────
+
+
+class TestFilterByDecisions:
+    """Tests for _filter_by_decisions — verifies alternative pruning and fallback."""
+
+    def _make_alt_items(self):
+        """Create a list of items with an alternative group (Lakehouse vs Warehouse)."""
+        return [
+            DiagramItem(order="1a", item_type="Lakehouse", skillset="[LC]",
+                        depends_on="", required_for="Storage",
+                        is_alternative=True, alternative_group="Warehouse"),
+            DiagramItem(order="1a", item_type="Warehouse", skillset="[LC]",
+                        depends_on="", required_for="Storage",
+                        is_alternative=True, alternative_group="Lakehouse"),
+        ]
+
+    def test_matching_decision_prunes_unchosen(self):
+        """High-confidence Lakehouse decision should prune Warehouse."""
+        items = self._make_alt_items()
+        decisions = {"decisions": {"storage": {"choice": "Lakehouse", "confidence": "high"}}}
+        result = _filter_by_decisions(items, decisions)
+        types = [i.item_type for i in result]
+        assert "Lakehouse" in types
+        assert "Warehouse" not in types
+
+    def test_mismatched_decision_falls_back(self):
+        """Decision resolving to Eventhouse (not in flow) should recover first alternative."""
+        items = self._make_alt_items()
+        decisions = {"decisions": {"storage": {"choice": "Eventhouse", "confidence": "high"}}}
+        result = _filter_by_decisions(items, decisions)
+        types = [i.item_type for i in result]
+        # Should NOT lose both items — at least one must survive as fallback
+        assert len(types) >= 1, "All alternatives lost — fallback failed"
+        # The fallback item should no longer be marked as an alternative
+        for item in result:
+            if item.item_type in ("Lakehouse", "Warehouse"):
+                assert not item.is_alternative, "Fallback item should not be marked as alternative"
+
+    def test_ambiguous_decision_keeps_all(self):
+        """Ambiguous decisions should keep all alternatives (no pruning)."""
+        items = self._make_alt_items()
+        decisions = {"decisions": {"storage": {"choice": "Lakehouse", "confidence": "ambiguous"}}}
+        result = _filter_by_decisions(items, decisions)
+        types = [i.item_type for i in result]
+        assert "Lakehouse" in types
+        assert "Warehouse" in types
+
+    @patch.object(_mod, "get_deployment_items", side_effect=_mock_get_deployment_items)
+    def test_ingestion_mismatch_recovers(self, _mock):
+        """Ingestion decision=Eventstream (not in flow) should fall back to first ingestion item."""
+        items = parse_diagram("alt-ingestion-flow")
+        decisions = {"decisions": {"ingestion": {"choice": "Eventstream", "confidence": "high"}}}
+        result = _filter_by_decisions(items, decisions)
+        types = [i.item_type for i in result]
+        # Lakehouse (non-alternative) should always survive
+        assert "Lakehouse" in types
+        # At least one ingestion item should survive as fallback
+        ingestion_items = [t for t in types if t in ("Copy Job", "Pipeline")]
+        assert len(ingestion_items) >= 1, f"All ingestion items lost — got {types}"

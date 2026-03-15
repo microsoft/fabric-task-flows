@@ -164,16 +164,13 @@ def parse_diagram(task_flow: str) -> list[DiagramItem]:
     items: list[DiagramItem] = []
 
     for ji in json_items:
+        # Skip optional items — they should only be included when
+        # explicitly selected by the architect during design.
+        if ji.get("optional"):
+            continue
+
         is_alt = "alternativeGroup" in ji
         alt_group = ji.get("alternativeGroup")
-        
-        # Resolve the alternative group reference to the first item in that group
-        if is_alt and alt_group:
-            # Find the first item with this alternative group
-            for prev in json_items:
-                if prev.get("alternativeGroup") == alt_group and prev["itemType"] != ji["itemType"]:
-                    alt_group = prev["itemType"]
-                    break
         
         items.append(DiagramItem(
             order=ji["order"],
@@ -274,7 +271,7 @@ def _filter_by_decisions(items: list[DiagramItem], decisions: dict) -> list[Diag
         "spark job definition": "processing",
     }
 
-    # Collect choices with high confidence
+    # Collect choices with high or default confidence
     resolved: dict[str, str] = {}  # decision_key → choice string (lowered)
     for dec_key in ("ingestion", "storage", "processing"):
         dec = decs.get(dec_key, {})
@@ -289,6 +286,7 @@ def _filter_by_decisions(items: list[DiagramItem], decisions: dict) -> list[Diag
         return items
 
     filtered: list[DiagramItem] = []
+    pruned_groups: dict[str, list[DiagramItem]] = {}  # track pruned items by group
     for item in items:
         if not item.is_alternative:
             filtered.append(item)
@@ -300,16 +298,42 @@ def _filter_by_decisions(items: list[DiagramItem], decisions: dict) -> list[Diag
             filtered.append(item)
             continue
 
-        # Check if this item's type appears in the chosen value
+        # Check if this item's type matches the chosen value (bidirectional)
         choice = resolved[dec_key]
         item_lower = item.item_type.lower()
-        if item_lower in choice or _to_kebab(item.item_type).lower() in choice.replace(" ", "-"):
+        item_kebab = _to_kebab(item.item_type).lower()
+        choice_kebab = choice.replace(" ", "-")
+        if (item_lower in choice or choice in item_lower
+                or item_kebab in choice_kebab or choice_kebab in item_kebab):
             filtered.append(item)
-        # else: pruned — this alternative was not selected
+        else:
+            # Track pruned item so we can recover if ALL group members are pruned
+            group_key = item.alternative_group or item.item_type
+            pruned_groups.setdefault(group_key, []).append(item)
+
+    # Guard: if ALL members of an alternative group were pruned, the decision
+    # choice doesn't exist in this task flow. Recover the first item as fallback.
+    for group_key, pruned_items in pruned_groups.items():
+        # Check if any item from this group survived
+        group_survived = any(
+            f.is_alternative and (f.alternative_group == group_key
+                                  or f.item_type == group_key
+                                  or f.alternative_group in [p.item_type for p in pruned_items])
+            for f in filtered
+        )
+        if not group_survived:
+            # No item from this group survived — decision doesn't match flow.
+            # Recover first item as a non-alternative (resolved by fallback).
+            fallback = pruned_items[0]
+            fallback.is_alternative = False
+            fallback.alternative_group = None
+            filtered.append(fallback)
+            import sys
+            print(f"  ⚠ Decision '{group_key}' resolved to a type not in this task flow — "
+                  f"falling back to {fallback.item_type}", file=sys.stderr)
 
     # Clean up: if an alternative survived filtering but ALL its counterparts
     # were pruned, it's no longer an alternative — clear the flag.
-    filtered_types = {it.item_type for it in filtered}
     for item in filtered:
         if item.is_alternative and item.alternative_group:
             # Count how many OTHER items share this alternative relationship
@@ -345,8 +369,17 @@ def _build_deploy_items(diagram_items: list[DiagramItem]) -> list[DeployItem]:
         portal_only = di.item_type in PORTAL_ONLY_TYPES
 
         alt_note: str | None = None
-        if di.is_alternative:
-            alt_note = f"Alternative to {_to_kebab(di.alternative_group)}" if di.alternative_group else "Alternative option"
+        if di.is_alternative and di.alternative_group:
+            # Find the peer item in the same alternative group
+            peer = next(
+                (other for other in diagram_items
+                 if other is not di
+                 and other.alternative_group == di.alternative_group),
+                None,
+            )
+            alt_note = f"Alternative to {_to_kebab(peer.item_type)}" if peer else "Alternative option"
+        elif di.is_alternative:
+            alt_note = "Alternative option"
 
         deploy_items.append(DeployItem(
             item_name=name,
@@ -546,12 +579,18 @@ def _build_alternatives_table(decisions: dict | None) -> list[str]:
     return rows if rows else ["| 1 | | | |"]
 
 
-def _build_tradeoffs_table(deploy_items: list[DeployItem]) -> list[str]:
+def _build_tradeoffs_table(
+    deploy_items: list[DeployItem],
+    decisions: dict | None = None,
+) -> list[str]:
     """Build Trade-offs table from registry alternatives.
 
     For each item in the deployment, check the registry for its alternatives.
     If any alternative is NOT in the deployment (i.e., it was rejected),
     document it as a trade-off: "Chose X over Y".
+
+    When decisions are available, uses signal-aware rationale instead of
+    generic text.
     """
     alternatives_map = build_alternatives_map()
     display_names = build_display_names()
@@ -559,6 +598,16 @@ def _build_tradeoffs_table(deploy_items: list[DeployItem]) -> list[str]:
     deployed_fab_types = {di.fab_type for di in deploy_items}
     seen: set[tuple[str, str]] = set()
     counter = 1
+
+    # Build a lookup: fab_type → decision rationale (from decision-resolver)
+    rationale_by_fab: dict[str, str] = {}
+    if decisions and "decisions" in decisions:
+        for _key, entry in decisions["decisions"].items():
+            if isinstance(entry, dict):
+                choice = entry.get("choice", "")
+                rationale = entry.get("rationale", "") or entry.get("rule_matched", "")
+                if choice and rationale:
+                    rationale_by_fab[choice] = rationale
 
     for di in deploy_items:
         alts = alternatives_map.get(di.fab_type, [])
@@ -570,9 +619,13 @@ def _build_tradeoffs_table(deploy_items: list[DeployItem]) -> list[str]:
                 seen.add(pair_key)
                 item_display = display_names.get(di.fab_type.lower(), di.item_type)
                 alt_display = display_names.get(alt_canonical.lower(), alt_canonical)
+                benefit = rationale_by_fab.get(
+                    item_display,
+                    f"Best fit for project signals (batch velocity, structured data)",
+                )
                 rows.append(
                     f"| {counter} | {item_display} chosen over {alt_display}"
-                    f" | Selected by decision resolver based on project signals"
+                    f" | {benefit}"
                     f" | {alt_display} remains available if requirements change"
                     f" | Switch via sign-off revision |"
                 )
@@ -638,7 +691,7 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
 
     # Build tradeoffs from unfiltered items (before alternatives are pruned)
     unfiltered_deploy = _build_deploy_items(diagram_items)
-    tradeoffs_table = _build_tradeoffs_table(unfiltered_deploy)
+    tradeoffs_table = _build_tradeoffs_table(unfiltered_deploy, decisions)
 
     if decisions:
         diagram_items = _filter_by_decisions(diagram_items, decisions)
@@ -740,7 +793,13 @@ def scaffold(task_flow: str, project: str, decisions: dict | None = None) -> str
 
     parts.extend([
         "",
-        f"- Diagram: diagrams/{task_flow}.md",
+        "## Architecture Diagram",
+        "",
+        "```",
+        "<!-- Replace this block with your ASCII diagram -->",
+        "```",
+        "",
+        f"- Diagram reference: diagrams/{task_flow}.md",
     ])
 
     return "\n".join(parts)
@@ -783,8 +842,12 @@ def main() -> None:
         sys.exit(1)
 
     if args.output:
-        Path(args.output).write_text(result, encoding="utf-8")
-        print(f"Wrote scaffolded handoff to {args.output}", file=sys.stderr)
+        output_path = Path(args.output)
+        if not output_path.is_absolute():
+            output_path = (REPO_ROOT / output_path).resolve()
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(result, encoding="utf-8", newline="\n")
+        print(f"Wrote scaffolded handoff to {output_path}", file=sys.stderr)
     else:
         sys.stdout.buffer.write(result.encode("utf-8"))
         sys.stdout.buffer.write(b"\n")

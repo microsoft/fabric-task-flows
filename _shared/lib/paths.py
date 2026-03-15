@@ -67,6 +67,3 @@ SHARED_DIR: Path = REPO_ROOT / "_shared"
 
 REGISTRY_DIR: Path = SHARED_DIR / "registry"
 """Absolute path to ``_shared/registry/``."""
-
-LIB_DIR: Path = SHARED_DIR / "lib"
-"""Absolute path to ``_shared/lib/``."""

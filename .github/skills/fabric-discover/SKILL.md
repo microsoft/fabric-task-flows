@@ -2,12 +2,17 @@
 name: fabric-discover
 description: >
   Collects intake (project name + problem statement), scaffolds the project,
-  infers architectural signals, and produces a Discovery Brief. Use when user
-  describes a data problem, mentions "IoT sensors", "batch ETL", "real-time
-  analytics", "data warehouse", "compliance", "dashboard", "streaming",
-  "we need analytics", or asks "what task flow fits my needs". Do NOT use
-  for architecture design (use fabric-design), deployment (use fabric-deploy),
-  or validation (use fabric-test).
+  infers architectural signals, and produces a Discovery Brief. This is the
+  DEFAULT first skill — invoke it for ANY new user request that describes a
+  data, analytics, reporting, or integration problem, no matter how it is
+  phrased. The signal mapper handles keyword matching; routing just needs to
+  get the user here first. When in doubt, invoke fabric-discover — a
+  false-positive intake is recoverable; a freelanced answer is not. Common
+  triggers include "IoT sensors", "batch ETL", "real-time analytics", "data
+  warehouse", "compliance", "dashboard", "streaming", "we need analytics",
+  or "what task flow fits my needs", but any description of a data problem
+  qualifies. Do NOT use for architecture design (use fabric-design),
+  deployment (use fabric-deploy), or validation (use fabric-test).
 pre-compute: [signal-mapper]
 ---
 
@@ -47,11 +52,35 @@ Only ask about gaps NOT already in the problem statement:
 
 ### Step 5: Confirm with User
 
-Present inferred signals and 4V's assessment. Get confirmation or corrections.
+Present inferred signals **and all 4 V's** conversationally. Get confirmation or corrections.
+
+**You MUST present all 4 V's explicitly — no exceptions:**
+
+1. **Volume** — data size (e.g., "looks like small daily loads under 10 GB")
+2. **Velocity** — timing (e.g., "daily batch refresh, not real-time")
+3. **Variety** — sources (e.g., "two sources: Square API and your accounting CSV")
+4. **Versatility** — skill level (e.g., "low-code approach since your team prefers drag-and-drop")
+
+Example confirmation message:
+> *"Here's what I'm seeing from your problem statement:*
+> - **Volume:** Small data — daily loads under 10 GB
+> - **Velocity:** Batch — you mentioned end-of-day processing
+> - **Variety:** Two sources — Square POS and your accounting exports
+> - **Versatility:** Low-code — your team wants minimal scripting
+>
+> *Does that match your situation, or should I adjust anything?"*
+
+**Presentation rules — the user is a business stakeholder:**
+
+- Use **plain-language bullets** — NOT markdown tables (tables go only in the handoff file).
+- Use the user's own language: "your Square sales data" not "API-based ingestion pattern."
+- If a V is unknown or ambiguous, **ask** — don't skip it or guess.
 
 ### Step 6: Produce Discovery Brief
 
 Write to `_projects/[name]/docs/discovery-brief.md`:
+
+> **File editing:** This file is pre-scaffolded with placeholder content. Replace the **entire file contents** using the `edit` tool — use the full existing file as `old_str` and the completed brief as `new_str`. Do NOT use `create` (the file already exists) or pass an empty `old_str`.
 
 ```markdown
 ## Problem Statement
@@ -73,7 +102,7 @@ Write to `_projects/[name]/docs/discovery-brief.md`:
 
 ## Constraints
 
-- Do NOT read `signal-categories.json` directly — use `signal-mapper.py`
+- Use `signal-mapper.py` for all signal lookups — do not access registry files directly
 - Discovery Brief: max 60 lines
 - Signal table cells: max 15 words
 - Architectural Judgment Calls: max 20 words each

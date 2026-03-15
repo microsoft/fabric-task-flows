@@ -32,11 +32,8 @@ from typing import Any
 # Source: registry/item-type-registry.json (rest_api.creatable field)
 # ---------------------------------------------------------------------------
 
-# Portal-only items — loaded from _shared/registry/item-type-registry.json
-# Do NOT maintain this dict manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
 from registry_loader import (
-    build_portal_only_items,
     build_deploy_method_map,
     build_test_method_map,
     build_phase_map,
@@ -48,7 +45,6 @@ from yaml_utils import (
     find_block,
 )
 
-PORTAL_ONLY_ITEMS: dict[str, str] = build_portal_only_items()
 DEPLOY_METHODS: dict[str, dict] = build_deploy_method_map()
 TEST_METHODS: dict[str, dict] = build_test_method_map()
 PHASE_MAP: dict[str, tuple[str, int]] = build_phase_map()
@@ -192,34 +188,6 @@ def _has_cycle(graph: dict) -> bool:
         return False
 
     return any(dfs(node) for node, c in list(color.items()) if c == WHITE)
-
-
-def _check_cli_support(items: list[dict]) -> tuple[list[dict], list[dict]]:
-    findings: list[dict] = []
-    cli_entries: list[dict] = []
-
-    for item in items:
-        item_type = item.get("type", "")
-        if not item_type:
-            continue
-        lookup = item_type.lower().strip()
-        matched_fab_type = PORTAL_ONLY_ITEMS.get(lookup)
-
-        if matched_fab_type:
-            findings.append({
-                "area": "CLI support",
-                "severity": "yellow",
-                "finding": f"{item_type} is portal-only",
-                "suggestion": "Document as manual step in deployment",
-            })
-            cli_entries.append({
-                "item_type": item_type,
-                "fab_type": matched_fab_type,
-                "supported": False,
-                "fallback": "portal",
-            })
-
-    return findings, cli_entries
 
 
 def _check_ac_coverage(items: list[dict], acs: list[dict]) -> list[dict]:

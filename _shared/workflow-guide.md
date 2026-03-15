@@ -78,20 +78,32 @@ See `@fabric-advisor` agent instructions for the phase-to-skill mapping. Key out
 | Phase | Produces | Key Detail |
 |-------|----------|------------|
 | 0a Discovery | `docs/discovery-brief.md` | Infers signals, suggests task flow candidates |
-| 1a Design | DRAFT `docs/architecture-handoff.md` + ADRs `docs/decisions/001-005` | ADRs written during design (not deferred to Phase 4) |
+| 1a Design | DRAFT `docs/architecture-handoff.md` | Decisions inline in handoff (not separate ADR files) |
 | 1b Review | `docs/engineer-review.md` + `docs/tester-review.md` | `review_outcome: approved \| revise` (max 3 iterations) |
 | 1c Finalize | FINAL `docs/architecture-handoff.md` | Incorporates review feedback; updates ADRs if decisions changed |
 | 2a Test Plan | `docs/test-plan.md` | Maps each AC to validation check |
 | 2b Sign-Off | — | `advance --approve` or `--revise --feedback "..."` (max 3 cycles). See [Sign-Off Guide](sign-off-guide.md) |
-| 2c Deploy | `docs/deployment-handoff.md` | Wave-ordered deployment. **Design-only mode:** generates deploy scripts instead |
-| 3 Validate | `docs/validation-report.md` + `docs/remediation-log.md` | Validate→remediate loop (max 3). Design issues escalate |
-| 4 Document | `docs/` (README, ADRs, wiki) | Synthesizes all handoffs |
+| 2c Deploy | `docs/deployment-handoff.md` | Live deployment or artifacts-only review (user chooses at sign-off→deploy transition) |
+| 3 Validate | `docs/validation-report.md` + `docs/remediation-log.md` | Live: validate→remediate loop (max 3). Artifacts-only: structural validation |
+| 4 Document | `docs/project-brief.md` | Synthesizes all handoffs into one human-readable brief |
 
 ---
 
 ## Orchestration Rules
 
 > **These rules govern automatic phase transitions.** The orchestrating agent (or human operator) MUST follow these rules — do NOT stop and ask the user between phases unless the rule says `🛑 HUMAN GATE`.
+
+### Rule 0: Cold Start (No Active Project)
+
+When a user's first message arrives and no project/phase is active:
+
+| User Intent | Action | Gate |
+|-------------|--------|------|
+| Describes a data, analytics, reporting, or integration problem | Route to `/fabric-discover` to collect intake (project name + problem statement) | 🟢 Immediate |
+| Asks a how-to, tutorial, or general tech question | **Decline.** Explain you're a Fabric architecture specialist and ask the user to describe their data problem instead | 🚫 Out of scope |
+| Asks about an existing project | Load project state via `run-pipeline.py status` and resume at current phase | 🟢 Immediate |
+
+> **The orchestrator must NEVER freelance answers.** If the query could plausibly be a data problem, route to `/fabric-discover` — a false-positive intake is recoverable; a skipped discovery is not.
 
 All phase transitions are automatic via `run-pipeline.py advance && next` — the only exception is Phase 2b Sign-Off which requires `--approve`.
 
@@ -104,14 +116,23 @@ All phase transitions are automatic via `run-pipeline.py advance && next` — th
 | 4 | 1c — Finalize (FINAL produced) | 2a — Test Plan | FINAL handoff saved to `docs/architecture-handoff.md` | 🟢 `advance && next` |
 | 5 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `docs/test-plan.md` | 🛑 **HUMAN GATE** — `advance --approve` required |
 | 5a | 2b — Sign-Off (`revise`) | 1c — Finalize (revise) | User runs `advance --revise --feedback "..."` | 🔄 Iterative (max 3 cycles, then must approve) |
-| 6 | 2b — Sign-Off (user approved) | 2c — Deploy | User runs `advance --approve` | 🟢 `advance && next` |
+| 6 | 2b — Sign-Off (user approved) | 2c — Deploy | User runs `advance --approve`. Orchestrator asks: deploy live or artifacts only? | 🟡 **DEPLOY MODE GATE** — ask user before proceeding |
 | 7 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved to `docs/deployment-handoff.md` | 🟢 `advance && next` |
 | 7a | 3 — Validate (issues found) | 2c — Remediate | Remediation log created with `routed_to: engineer` issues | 🔄 Iterative (max 3 cycles, then escalate) |
 | 7b | 3 — Validate (design issues) | ESCALATE | `category: design` issues in remediation log | 🛑 **ESCALATION GATE** — human/architect intervention |
 | 8 | 3 — Validate (PASSED) | 4 — Document | Validation Report saved with `status: passed` | 🟢 `advance && next` |
-| 9 | 4 — Document (docs produced) | Complete | Wiki + ADRs saved | 🟢 `advance` (final) |
+| 9 | 4 — Document (docs produced) | Complete | Project brief saved | 🟢 `advance` (final) |
 
-**Key principle:** Only Rule #5 stops for user input (approve or revise). All other transitions use `run-pipeline.py advance && next`. If the orchestrator finds itself asking "should I continue?" at any transition other than Rule #5, the answer is always YES — run `advance && next` immediately.
+**Key principle:** Rules #5 and #6 stop for user input. Rule #5 is the architecture sign-off (approve or revise). Rule #6 is the deployment mode choice (live or artifacts-only). All other transitions use `run-pipeline.py advance && next` — run immediately without asking.
+
+### Deployment Mode
+
+After sign-off approval, the orchestrator presents generated artifacts and asks the user whether to deploy live or review artifacts only. This sets `deploy_mode` in `pipeline-state.json` which controls Phase 2c/3/4 behavior:
+
+| Mode | Phase 2c | Phase 3 | Phase 4 |
+|------|----------|---------|---------|
+| `live` | User runs deploy script → items created in Fabric | Validate in Portal + smoke tests | "Deployed and validated" |
+| `artifacts_only` | Review artifacts → handoff with `status: planned` | Structural validation only | "Artifacts ready, deployment pending" |
 
 ### How to Pass Context Between Phases
 
@@ -128,7 +149,7 @@ Each agent reads the previous agent's output from the project folder. The orches
 | /fabric-deploy | `docs/architecture-handoff.md` + `docs/test-plan.md` | `_projects/[name]/docs/deployment-handoff.md` + `docs/phase-progress.md` | YAML schema |
 | /fabric-test (validate) | `docs/deployment-handoff.md` + validation checklists (via `validate-items.py`) | `_projects/[name]/docs/validation-report.md` + `docs/remediation-log.md` | YAML schema |
 | /fabric-deploy (remediate) | `docs/remediation-log.md` | `docs/remediation-log.md` (updated) + `docs/phase-progress.md` | YAML schema |
-| /fabric-document | All 5 documents in `docs/` | `_projects/[name]/docs/` | Markdown (wiki output) |
+| /fabric-document | All handoffs in `docs/` | `_projects/[name]/docs/project-brief.md` | Markdown (synthesized brief) |
 
 ---
 
@@ -163,4 +184,4 @@ All agents follow these constraints:
 - **No re-stating prior documents** — reference items by name, ACs by ID
 - **Architecture Handoff: max 220 lines** — uses YAML data blocks for items, ACs, waves
 - **Prose sections have explicit word limits** — documented in each schema file
-- **The documenter is the prose agent** — it reads structured YAML and produces human-readable wiki documentation
+- The documenter reads structured YAML and produces a single human-readable project brief

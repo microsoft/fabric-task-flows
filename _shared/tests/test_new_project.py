@@ -118,11 +118,6 @@ class TestTemplateGenerators:
         assert "My Project" in doc
         assert "my-proj" in doc
 
-    def test_adr_template_number_and_title(self):
-        doc = np.adr_template("003", "Ingestion Approach")
-        assert "ADR-003" in doc
-        assert "Ingestion Approach" in doc
-
 
 # ── pipeline_state ───────────────────────────────────────────────────────
 

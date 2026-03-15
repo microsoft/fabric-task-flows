@@ -24,7 +24,6 @@ class DeploymentItem(TypedDict, total=False):
     skillset: str
     dependsOn: list[str]
     requiredFor: list[str]
-    optional: bool
     alternativeGroup: str
     notes: str
 
@@ -57,17 +56,12 @@ def get_deployment_items(task_flow: str) -> list[DeploymentItem]:
     """Get deployment items for a task flow from the JSON registry.
     
     Args:
-        task_flow: Task flow ID (e.g., 'medallion', 'lambda')
+        task_flow: Task flow ID (e.g., 'medallion', 'lambda').
+                   Case-insensitive — normalized to lowercase internally.
         
     Returns:
         List of deployment items with order, itemType, dependsOn, etc.
     """
     registry = load_registry()
-    flow_data = registry.get(task_flow, {})
+    flow_data = registry.get(task_flow.lower(), {})
     return flow_data.get("items", [])
-
-
-def get_task_flow_metadata(task_flow: str) -> TaskFlowData:
-    """Get full metadata for a task flow including primaryStorage."""
-    registry = load_registry()
-    return registry.get(task_flow, {})

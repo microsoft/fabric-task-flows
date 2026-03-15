@@ -135,10 +135,24 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
                 signals = data.get("signals_detected", [])
                 candidates = data.get("task_flow_candidates", [])
                 cov = data.get("keyword_coverage", 0)
-                # If intake mode (no keyword_coverage), estimate from signal confidence
+
+                # Intake mode has no keyword_coverage — estimate from signal count and confidence
                 if not cov and signals:
                     conf_scores = {"high": 1.0, "medium": 0.5, "low": 0.2}
                     cov = sum(conf_scores.get(s.get("confidence", "low"), 0.1) for s in signals) / max(len(signals), 1)
+
+                # Intake mode embeds candidate names in candidate_tie_questions
+                if not candidates:
+                    for tq in data.get("candidate_tie_questions", []):
+                        reason = tq.get("reason", "")
+                        question = tq.get("question", "")
+                        for tf_name in re.findall(r"[\w-]+", question):
+                            if tf_name in ("basic-data-analytics", "medallion", "lambda",
+                                           "event-analytics", "sensitive-data-insights",
+                                           "data-analytics-sql-endpoint", "conversational-analytics",
+                                           "translytical", "app-backend", "event-medallion"):
+                                candidates.append({"id": tf_name})
+
                 coverage_scores.append(cov)
                 category_coverage.setdefault(p["category"], []).append(cov)
 
@@ -459,22 +473,6 @@ def write_problems_file(problems: list[dict], batch_idx: int) -> None:
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
-
-def log_iteration(iteration: int, before: dict, after: dict | None,
-                  uncovered: list[str], dry_run: bool) -> str:
-    """Generate a log entry for one iteration."""
-    entry = f"\n**Iteration {iteration + 1}:**\n"
-    entry += f"- Coverage: {before['avg_coverage']:.1%}"
-    if after:
-        delta = after['avg_coverage'] - before['avg_coverage']
-        entry += f" → {after['avg_coverage']:.1%} ({'+' if delta >= 0 else ''}{delta:.1%})"
-    entry += "\n"
-    entry += (f"- Zero-candidates: {before['zero_candidates']}/"
-              f"{before['total_problems']}\n")
-    if uncovered:
-        entry += f"- Uncovered: {', '.join(uncovered[:8])}\n"
-    return entry
-
 
 def log_summary(results: list[dict], dry_run: bool) -> None:
     """Append aggregate results to learnings.md."""

@@ -177,18 +177,39 @@ def generate_taskflow_json(data: HandoffData, project_name: str = "") -> dict:
 
     # Build edges from depends_on relationships
     edges = []
+    # Build lookup: normalize dependency name → item id
+    # depends_on uses "{Type} {Qualifier}" format (e.g., "Lakehouse Bronze")
+    # Items have name like "bronze-lakehouse" and type "Lakehouse"
+    def _norm(s: str) -> str:
+        return s.lower().replace("-", "").replace("_", "").replace(" ", "")
+
+    name_to_id: dict[str, int] = {}
+    for item in data.items:
+        # Register by type (for single-instance types like "Environment")
+        name_to_id[_norm(item.type)] = item.id
+        # Register by "{Type} {Name-qualifier}" (e.g., "lakehousebronze")
+        name_to_id[_norm(f"{item.type} {item.name}")] = item.id
+        # Register by name directly
+        name_to_id[_norm(item.name)] = item.id
+        # Register by "{Type} {qualifier}" extracted from name parts
+        for part in item.name.replace("-", " ").replace("_", " ").split():
+            name_to_id[_norm(f"{item.type} {part}")] = item.id
+
     for item in data.items:
         target_task_id = item_id_to_task_id.get(item.id)
         if not target_task_id:
             continue
         deps = item.depends_on or []
-        for dep_id in deps:
-            if isinstance(dep_id, str):
+        for dep in deps:
+            source_item_id = None
+            if isinstance(dep, int):
+                source_item_id = dep
+            elif isinstance(dep, str):
                 try:
-                    dep_id = int(dep_id)
+                    source_item_id = int(dep)
                 except ValueError:
-                    continue
-            source_task_id = item_id_to_task_id.get(dep_id)
+                    source_item_id = name_to_id.get(_norm(dep))
+            source_task_id = item_id_to_task_id.get(source_item_id)
             if source_task_id:
                 edges.append({
                     "source": source_task_id,
@@ -237,7 +258,7 @@ def main():
         out_path = handoff_dir / f"taskflow-{slug}.json"
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(taskflow, indent=2, ensure_ascii=False), encoding="utf-8")
+    out_path.write_text(json.dumps(taskflow, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n")
     print(f"✅ {out_path}")
 
 

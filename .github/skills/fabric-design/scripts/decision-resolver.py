@@ -45,7 +45,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Literal
 
-Confidence = Literal["high", "ambiguous", "na"]
+Confidence = Literal["high", "default", "ambiguous", "na"]
 
 
 @dataclass
@@ -94,6 +94,12 @@ def _ambiguous(decision_id: str, candidates: list[str], reason: str, rationale: 
                     note=reason, candidates=candidates)
 
 
+def _default(decision_id: str, choice: str, source: str, rationale: str = "") -> Decision:
+    _log(f"  ⊙ {decision_id}: defaulted to \"{choice}\" ({source})")
+    return Decision(choice=choice, confidence="default", rule_matched=f"Default: {source}",
+                    guide=f"decisions/{decision_id}.md", rationale=rationale)
+
+
 def _skip(decision_id: str, note: str, rationale: str = "") -> Decision:
     _log(f"  – {decision_id}: skipped — {note}")
     return Decision(choice=None, confidence="na", rule_matched=None,
@@ -116,9 +122,14 @@ def resolve_storage(signals: dict) -> Decision:
     if _any_of(ql, "kql", "kusto") or _any_of(uc, "time-series", "timeseries", "iot", "telemetry", "logs"):
         return _match("storage-selection", "KQL time-series → Eventhouse", "Eventhouse",
                       rationale="KQL/time-series use case requires Eventhouse for optimized time-series queries and KQL analytics")
-    if _any_of(vel, "real-time", "realtime", "streaming", "stream", "both"):
+    if _any_of(vel, "real-time", "realtime", "streaming", "stream"):
         return _match("storage-selection", "Real-time streaming → Eventhouse", "Eventhouse",
                       rationale="Real-time streaming velocity requires Eventhouse for sub-second ingestion and hot-path analytics")
+    if _any_of(vel, "both"):
+        # Batch-primary with streaming supplement — Lakehouse handles both
+        # via Eventstream → bronze lakehouse + batch transformations
+        return _match("storage-selection", "Batch + streaming → Lakehouse", "Lakehouse",
+                      rationale="Batch-primary with streaming supplement is best served by Lakehouse — Eventstream feeds bronze layer while batch pipelines handle the primary workload")
     if _any_of(ql, "t-sql", "tsql", "sql"):
         if _any_of(uc, "transactional", "oltp", "operational", "writeback", "app"):
             return _match("storage-selection", "T-SQL transactional → SQL Database", "SQL Database",
@@ -143,6 +154,14 @@ def resolve_storage(signals: dict) -> Decision:
                           "SQL skillset without query_language — specify query_language or use_case",
                           rationale="SQL skillset detected but no query language specified — need more context to choose between Lakehouse, Warehouse, and SQL Database")
 
+    # Batch analytics without a specific query language → Lakehouse
+    # Lakehouse supports both SQL and Spark access, making it the safe default
+    # for mixed or low-code teams doing analytics workloads.
+    if _any_of(uc, "analytics", "reporting", "warehouse", "dw", "bi"):
+        return _default("storage-selection", "Lakehouse", "batch analytics",
+                        rationale="Analytics use case without a specific query language defaults to Lakehouse — "
+                        "it supports both SQL endpoint and Spark, making it the most flexible choice")
+
     return _skip("storage-selection", "No storage signals detected — provide query_language, skillset, or use_case",
                  rationale="No storage signals found in discovery brief — architect should specify query language, skillset, or use case")
 
@@ -154,9 +173,12 @@ def resolve_ingestion(signals: dict) -> Decision:
     sk = _norm(signals.get("skillset"))
     dp = _norm(signals.get("data_pattern"))
 
-    if _any_of(vel, "stream", "real-time", "realtime") or _any_of(dp, "stream", "real-time", "realtime"):
+    if _any_of(vel, "stream", "real-time", "realtime") and not _any_of(vel, "both"):
         return _match("ingestion-selection", "Real-time streaming → Eventstream", "Eventstream",
                       rationale="Real-time/streaming velocity requires Eventstream for continuous data ingestion")
+    if _any_of(dp, "stream", "real-time", "realtime") and not _any_of(vel, "both", "batch"):
+        return _match("ingestion-selection", "Real-time streaming → Eventstream", "Eventstream",
+                      rationale="Real-time/streaming data pattern requires Eventstream for continuous data ingestion")
     if _any_of(dp, "cdc", "replication", "mirror"):
         return _match("ingestion-selection", "Database replication (CDC) → Mirroring", "Mirroring",
                       rationale="CDC/replication pattern maps to Mirroring for near-real-time database synchronization")
@@ -528,7 +550,59 @@ def _enrich_query_language(signals: dict, storage_choice: str | None) -> None:
         pass  # Registry unavailable — proceed without enrichment
 
 
-def resolve_all(signals: dict) -> dict:
+def _load_task_flow_defaults(task_flow: str) -> dict[str, str]:
+    """Load default choices from a task flow template's primaryStorage and first alternativeGroup items.
+
+    Returns a mapping from decision category to default choice, e.g.:
+        {"storage": "Lakehouse", "ingestion": "Copy Job", "processing": "Notebook"}
+    """
+    import pathlib
+    registry_path = (
+        pathlib.Path(__file__).resolve().parents[4]
+        / "_shared" / "registry" / "deployment-order.json"
+    )
+    try:
+        with open(registry_path, encoding="utf-8") as f:
+            registry = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+    tf_data = registry.get("taskFlows", {}).get(task_flow, {})
+    if not tf_data:
+        return {}
+
+    defaults: dict[str, str] = {}
+
+    # Extract primary storage from template metadata
+    ps = tf_data.get("primaryStorage", "")
+    if "lakehouse" in ps.lower():
+        defaults["storage"] = "Lakehouse"
+    elif "warehouse" in ps.lower():
+        defaults["storage"] = "Warehouse"
+    elif "eventhouse" in ps.lower():
+        defaults["storage"] = "Eventhouse"
+
+    # Extract first item from each alternative group as the default
+    _GROUP_TO_DECISION = {
+        "gold-layer": "storage",
+        "ingestion": "ingestion",
+        "transformation": "processing",
+    }
+    seen_groups: set[str] = set()
+    for item in tf_data.get("items", []):
+        group = item.get("alternativeGroup")
+        if not group or group in seen_groups:
+            continue
+        seen_groups.add(group)
+        dec_key = _GROUP_TO_DECISION.get(group)
+        if dec_key and dec_key not in defaults:
+            # Use the item type as the default choice
+            defaults[dec_key] = item["itemType"]
+
+    return defaults
+
+
+def resolve_all(signals: dict, *, task_flow: str | None = None) -> dict:
     """Resolve all 7 architectural decisions from signal inputs.
 
     Storage is resolved first. If the chosen storage item has a known
@@ -536,10 +610,14 @@ def resolve_all(signals: dict) -> dict:
     supply one, the primary language is injected into signals so that
     downstream decisions (especially processing) can benefit.
 
+    When *task_flow* is provided, any decisions that resolve as "na" (no
+    signals) are replaced with a default from the task flow template.
+
     Args:
         signals: Dict with keys like skillset, velocity, volume, query_language,
                  use_case, environment_count, deployment_tool, interactivity,
                  data_pattern, mode, team_composition, api_needs.
+        task_flow: Optional task flow name for default fallbacks.
 
     Returns:
         Dict with 'decisions', 'ambiguous', and 'unresolved' keys.
@@ -550,14 +628,30 @@ def resolve_all(signals: dict) -> dict:
     ambiguous: list[str] = []
     unresolved: list[str] = []
 
+    # Load task flow defaults if available
+    tf_defaults = _load_task_flow_defaults(task_flow) if task_flow else {}
+
     # --- Phase 1: resolve storage first for enrichment --------------------
-    storage_guide, storage_resolver = RESOLVERS["storage"]
+    _, storage_resolver = RESOLVERS["storage"]
     storage_result = storage_resolver(signals)
+
+    # Apply task-flow default if storage is unresolved
+    if storage_result.confidence == "na" and storage_result.choice is None and "storage" in tf_defaults:
+        storage_result = _default("storage-selection", tf_defaults["storage"], f"{task_flow} template",
+                                  rationale=f"No storage signals detected — defaulting to {tf_defaults['storage']} "
+                                  f"based on {task_flow} task flow template primary storage")
     _enrich_query_language(signals, storage_result.choice)
 
     # --- Phase 2: resolve all (storage result already cached) -------------
     for key, (_guide_id, resolver) in RESOLVERS.items():
         result = storage_result if key == "storage" else resolver(signals)
+
+        # Apply task-flow default if unresolved
+        if result.confidence == "na" and result.choice is None and key in tf_defaults:
+            result = _default(_guide_id, tf_defaults[key], f"{task_flow} template",
+                              rationale=f"No {key} signals detected — defaulting to {tf_defaults[key]} "
+                              f"based on {task_flow} task flow template")
+
         entry: dict = {
             "choice": result.choice,
             "confidence": result.confidence,
@@ -797,7 +891,7 @@ def _extract_signals_from_brief(path: str) -> dict:
 
                         if resolver_key == "volume":
                             # Normalize volume: look for size indicators
-                            if any(t in v_value for t in ("tb", "terabyte", "massive", "huge")):
+                            if any(t in v_value for t in ("tb", "terabyte", "massive", "huge", "million", "billion", "10+")):
                                 signals["volume"] = "large"
                             elif any(t in v_value for t in ("gb", "thousand", "small", "moderate")):
                                 signals["volume"] = "small"
@@ -805,12 +899,19 @@ def _extract_signals_from_brief(path: str) -> dict:
                                 signals["volume"] = v_value
 
                         elif resolver_key == "velocity":
-                            # 4V velocity overrides signal-inferred velocity
-                            if any(t in v_value for t in ("both", "batch + real", "batch+real", "mixed")):
+                            # 4V velocity overrides signal-inferred velocity.
+                            # Check compound values FIRST — "batch primary,
+                            # near-real-time secondary" must map to "both", not
+                            # match "real-time" as a substring of "near-real-time".
+                            has_batch = "batch" in v_value
+                            has_rt = any(t in v_value for t in ("real-time", "realtime", "streaming", "stream"))
+                            if has_batch and has_rt:
                                 signals["velocity"] = "both"
-                            elif any(t in v_value for t in ("real-time", "realtime", "streaming", "stream")):
+                            elif any(t in v_value for t in ("both", "batch + real", "batch+real", "mixed")):
+                                signals["velocity"] = "both"
+                            elif has_rt and not has_batch:
                                 signals["velocity"] = "real-time"
-                            elif "batch" in v_value:
+                            elif has_batch:
                                 signals["velocity"] = "batch"
 
                         elif resolver_key == "versatility":
@@ -885,6 +986,8 @@ def main() -> None:
                        help="Path to a discovery brief markdown file")
     parser.add_argument("--format", choices=["yaml", "json"], default="json",
                         help="Output format (default: json)")
+    parser.add_argument("--task-flow", type=str, default=None,
+                        help="Task flow name (e.g., medallion) for default fallbacks")
     parser.add_argument("--verbose", action="store_true",
                         help="Print rule evaluation trace to stderr")
     args = parser.parse_args()
@@ -914,7 +1017,7 @@ def main() -> None:
             print(f"Error reading discovery brief: {e}", file=sys.stderr)
             sys.exit(2)
 
-    result = resolve_all(signals)
+    result = resolve_all(signals, task_flow=args.task_flow)
 
     if args.verbose:
         for line in VERBOSE_LOG:

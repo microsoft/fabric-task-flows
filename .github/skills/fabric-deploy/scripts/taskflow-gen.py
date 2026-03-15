@@ -47,9 +47,6 @@ from deployment_loader import get_deployment_items
 
 ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()
 
-# Valid Fabric task types — derived from registry values (not hardcoded).
-VALID_TASK_TYPES: set[str] = set(ITEM_TO_TASK_TYPE.values()) | {"general"}
-
 # ── Scaffold-mode generic task names ──────────────────────────────────────
 
 SCAFFOLD_TASK_NAMES: dict[str, str] = {
@@ -611,7 +608,7 @@ def main() -> None:
     if args.output:
         out_path = Path(args.output)
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(output_json + "\n", encoding="utf-8")
+        out_path.write_text(output_json + "\n", encoding="utf-8", newline="\n")
         print(f"Wrote task flow JSON to {args.output}", file=sys.stderr)
     else:
         print(output_json)

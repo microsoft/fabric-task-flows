@@ -4,7 +4,7 @@ Fabric item deployments can be significantly accelerated by deploying independen
 
 ## Dependency-Wave Analysis
 
-The canonical deployment order is accessible via `deployment_loader.get_deployment_items(task_flow)`. Do NOT read `_shared/registry/deployment-order.json` directly — use the Python tool. Each item includes `dependsOn` and `requiredFor` fields. To parallelize:
+The canonical deployment order is accessible via `deployment_loader.get_deployment_items(task_flow)` — do not access registry files directly. Each item includes `dependsOn` and `requiredFor` fields. To parallelize:
 
 1. **Identify foundation items** — items with no dependencies (depth 0)
 2. **Walk the graph** — for each remaining item, its depth = max(dependency depths) + 1

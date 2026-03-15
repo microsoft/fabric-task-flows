@@ -12,4 +12,4 @@
 
 4. **Some items work BETTER without content files.** KQLDashboard's content file causes a fabric-cicd parser crash — `.platform` only works fine.
 
-5. **When adding a new item type: check the sample repo FIRST, then test deployment, then update `item-type-registry.json`.**
+5. **When adding a new item type: check the sample repo FIRST, then test deployment, then run `sync-item-types.py` to update the registry.**

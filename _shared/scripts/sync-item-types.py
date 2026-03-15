@@ -127,7 +127,7 @@ def update_registry(registry: dict, cli_types: dict[str, str],
     reg_fab_types = {data["fab_type"]: name for name, data in reg_types.items()}
     added = 0
 
-    for enum_name, fab_type in cli_types.items():
+    for _, fab_type in cli_types.items():
         if fab_type in reg_fab_types:
             continue
 

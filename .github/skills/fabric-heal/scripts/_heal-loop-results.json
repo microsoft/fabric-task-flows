@@ -2,88 +2,16 @@
   "iterations": [
     {
       "iteration": 1,
-      "problems": 25,
-      "coverage_before": 0.0,
-      "coverage_after": null,
-      "zero_candidates": 25,
-      "lambda_suggested": 0,
-      "uncovered_terms": [
-        "needs",
-        "daily",
-        "batch",
-        "team",
-        "daily batch",
-        "customer",
-        "churn",
-        "prediction",
-        "customer churn",
-        "churn prediction"
-      ]
-    },
-    {
-      "iteration": 2,
-      "problems": 25,
-      "coverage_before": 0.0,
-      "coverage_after": null,
-      "zero_candidates": 25,
-      "lambda_suggested": 0,
-      "uncovered_terms": [
-        "real",
-        "time",
-        "real time",
-        "size",
-        "mid size",
-        "needs",
-        "team",
-        "data from",
-        "regulatory",
-        "code"
-      ]
-    },
-    {
-      "iteration": 3,
-      "problems": 25,
-      "coverage_before": 0.0,
-      "coverage_after": null,
-      "zero_candidates": 25,
-      "lambda_suggested": 0,
-      "uncovered_terms": [
-        "needs",
-        "team",
-        "regulatory",
-        "data from",
-        "global",
-        "databricks",
-        "flat",
-        "files",
-        "apis",
-        "only"
-      ]
-    },
-    {
-      "iteration": 4,
-      "problems": 25,
-      "coverage_before": 0.0,
-      "coverage_after": null,
-      "zero_candidates": 25,
-      "lambda_suggested": 0,
-      "uncovered_terms": [
-        "needs",
-        "team",
-        "data from",
-        "snowflake",
-        "prem",
-        "regulatory",
-        "only",
-        "snowflake and",
-        "and prem",
-        "prem sql"
-      ]
+      "problems": 5,
+      "coverage_before": 0.4766666666666667,
+      "zero_candidates": 0,
+      "lambda_suggested": 1,
+      "uncovered_terms": []
     }
   ],
   "distribution": {
     "suggestion_counts": {},
     "top_counts": {},
-    "total_problems": 100
+    "total_problems": 5
   }
 }

@@ -102,7 +102,7 @@ SKILLS_REGISTRY = {
         "2b-sign-off": {"skill": None, "gate": "human", "output": []},
         "2c-deploy": {"skill": "fabric-deploy", "output": ["docs/deployment-handoff.md"]},
         "3-validate": {"skill": "fabric-test", "mode": 2, "output": ["docs/validation-report.md"]},
-        "4-document": {"skill": "fabric-document", "output": ["docs/README.md"]},
+        "4-document": {"skill": "fabric-document", "output": ["docs/project-brief.md"]},
     },
     "standalone_skills": {},
 }
@@ -150,13 +150,9 @@ def _scaffold_project(tmp_path, project):
     proj_dir = tmp_path / "_projects" / project
     proj_dir.mkdir(parents=True, exist_ok=True)
     (proj_dir / "docs").mkdir(exist_ok=True)
-    (proj_dir / "docs" / "decisions").mkdir(parents=True, exist_ok=True)
     # Write empty template files so they exist
     for fname in ["discovery-brief.md", "architecture-handoff.md", "test-plan.md"]:
         (proj_dir / "docs" / fname).write_text("", encoding="utf-8")
-    for i in range(1, 6):
-        titles = {1: "task-flow", 2: "storage", 3: "ingestion", 4: "processing", 5: "visualization"}
-        (proj_dir / "docs" / "decisions" / f"{i:03d}-{titles[i]}.md").write_text("", encoding="utf-8")
 
 
 def _patch_repo(monkeypatch, tmp_path):
@@ -948,76 +944,6 @@ class TestProblemStatementCache:
         assert "We need analytics for game day" in prompt
 
 
-# ── ADR generator tests ─────────────────────────────────────────────────
-
-
-class TestGenerateAdrs:
-    """Tests for _generate_adrs()."""
-
-    def test_writes_all_five_adrs(self, tmp_path, monkeypatch):
-        """_generate_adrs creates all 5 ADR files."""
-        _patch_repo(monkeypatch, tmp_path)
-        _scaffold_project(tmp_path, "test-proj")
-        decisions = {
-            "decisions": {
-                "storage": {"choice": "Lakehouse", "confidence": "high",
-                            "rule_matched": "Spark/Python → Lakehouse",
-                            "guide": "decisions/storage-selection.md"},
-                "ingestion": {"choice": "Pipeline", "confidence": "high",
-                              "rule_matched": "Large → Pipeline",
-                              "guide": "decisions/ingestion-selection.md"},
-                "processing": {"choice": "Notebook", "confidence": "high",
-                               "rule_matched": "Interactive → Notebook",
-                               "guide": "decisions/processing-selection.md"},
-                "visualization": {"choice": "Power BI Report", "confidence": "high",
-                                  "rule_matched": "Filters → Report",
-                                  "guide": "decisions/visualization-selection.md"},
-            }
-        }
-        report = rp._generate_adrs("test-proj", decisions, "medallion")
-        docs_dir = tmp_path / "_projects" / "test-proj" / "docs" / "decisions"
-        assert (docs_dir / "001-task-flow.md").exists()
-        assert (docs_dir / "002-storage.md").exists()
-        assert (docs_dir / "003-ingestion.md").exists()
-        assert (docs_dir / "004-processing.md").exists()
-        assert (docs_dir / "005-visualization.md").exists()
-        assert len(report) >= 5
-
-    def test_adr_contains_choice(self, tmp_path, monkeypatch):
-        """ADR-002 contains the storage choice."""
-        _patch_repo(monkeypatch, tmp_path)
-        _scaffold_project(tmp_path, "test-proj")
-        decisions = {
-            "decisions": {
-                "storage": {"choice": "Lakehouse", "confidence": "high",
-                            "rule_matched": "Spark/Python → Lakehouse",
-                            "guide": "decisions/storage-selection.md",
-                            "rationale": "Spark/Python skillset is best served by Lakehouse"},
-            }
-        }
-        rp._generate_adrs("test-proj", decisions, "medallion")
-        content = (tmp_path / "_projects" / "test-proj" / "docs" / "decisions" / "002-storage.md").read_text(encoding="utf-8")
-        assert "Lakehouse" in content
-        assert "Spark/Python" in content
-
-    def test_adr_001_contains_task_flow(self, tmp_path, monkeypatch):
-        """ADR-001 contains the task flow name."""
-        _patch_repo(monkeypatch, tmp_path)
-        _scaffold_project(tmp_path, "test-proj")
-        decisions = {"decisions": {}}
-        rp._generate_adrs("test-proj", decisions, "event-medallion")
-        content = (tmp_path / "_projects" / "test-proj" / "docs" / "decisions" / "001-task-flow.md").read_text(encoding="utf-8")
-        assert "event-medallion" in content
-
-    def test_missing_docs_dir_returns_warning(self, tmp_path, monkeypatch):
-        """Returns warning when docs/decisions/ doesn't exist."""
-        _patch_repo(monkeypatch, tmp_path)
-        project_dir = tmp_path / "_projects" / "test-proj"
-        project_dir.mkdir(parents=True)
-        report = rp._generate_adrs("test-proj", {"decisions": {}}, "medallion")
-        assert any("not found" in r for r in report)
-
-
 # ── Fast-forward tests ───────────────────────────────────────────────────
 
 
@@ -1158,75 +1084,6 @@ class TestScaffolderTemplateAlignment:
         # The generate function calls the scaffolder which now produces frontmatter
         assert "handoff-scaffolder" in source or "scaffolder" in source.lower()
 
-    def test_adr_titles_match_constants(self):
-        """ADR title constants match expected file names."""
-        assert rp._ADR_TITLES["001"] == ("001", "Task Flow Selection")
-        assert rp._ADR_TITLES["002"] == ("002", "Storage Layer Selection")
-        assert rp._ADR_TITLES["003"] == ("003", "Ingestion Approach")
-        assert rp._ADR_TITLES["004"] == ("004", "Processing Selection")
-        assert rp._ADR_TITLES["005"] == ("005", "Visualization Selection")
-
-    def test_decision_to_adr_mapping(self):
-        """Decision resolver keys map to correct ADR numbers."""
-        assert rp._DECISION_TO_ADR["storage"] == "002"
-        assert rp._DECISION_TO_ADR["ingestion"] == "003"
-        assert rp._DECISION_TO_ADR["processing"] == "004"
-        assert rp._DECISION_TO_ADR["visualization"] == "005"
-
-    def test_all_five_adrs_covered(self):
-        """All 5 ADR numbers have either a title or decision mapping."""
-        all_nums = set(rp._ADR_TITLES.keys())
-        mapped_nums = set(rp._DECISION_TO_ADR.values()) | {"001"}
-        assert all_nums == mapped_nums
-
-    def test_adr_no_nonsense_phrases(self, tmp_path, monkeypatch):
-        """ADRs should never contain 'Not determined aligns with'."""
-        _patch_repo(monkeypatch, tmp_path)
-        _scaffold_project(tmp_path, "test-proj")
-        decisions = {
-            "decisions": {
-                "storage": {"choice": "Lakehouse", "confidence": "high",
-                            "rule_matched": "Spark/Python → Lakehouse",
-                            "guide": "decisions/storage-selection.md",
-                            "rationale": "Spark skillset is best served by Lakehouse"},
-                "ingestion": {"choice": None, "confidence": "na",
-                              "rule_matched": None,
-                              "guide": "decisions/ingestion-selection.md",
-                              "rationale": ""},
-                "processing": {"choice": "Notebook", "confidence": "high",
-                               "rule_matched": "Interactive → Notebook",
-                               "guide": "decisions/processing-selection.md",
-                               "rationale": "Interactive Spark workloads use Notebook"},
-                "visualization": {"choice": None, "confidence": "ambiguous",
-                                  "rule_matched": None,
-                                  "guide": "decisions/visualization-selection.md",
-                                  "rationale": "", "candidates": ["Power BI Report", "Dashboard"]},
-            }
-        }
-        rp._generate_adrs("test-proj", decisions, "medallion")
-        docs_dir = tmp_path / "_projects" / "test-proj" / "docs" / "decisions"
-        for adr_file in docs_dir.glob("*.md"):
-            content = adr_file.read_text(encoding="utf-8")
-            assert "Not determined aligns with" not in content, (
-                f"{adr_file.name} contains nonsense phrase 'Not determined aligns with'"
-            )
-
-    def test_adr_rationale_appears_in_content(self, tmp_path, monkeypatch):
-        """ADR content should include the rationale from the decision."""
-        _patch_repo(monkeypatch, tmp_path)
-        _scaffold_project(tmp_path, "test-proj")
-        decisions = {
-            "decisions": {
-                "storage": {"choice": "Lakehouse", "confidence": "high",
-                            "rule_matched": "Spark/Python → Lakehouse",
-                            "guide": "decisions/storage-selection.md",
-                            "rationale": "Spark skillset is best served by Lakehouse"},
-            }
-        }
-        rp._generate_adrs("test-proj", decisions, "medallion")
-        content = (tmp_path / "_projects" / "test-proj" / "docs" / "decisions" / "002-storage.md").read_text(encoding="utf-8")
-        assert "Spark skillset is best served by Lakehouse" in content
-
 
 # ── Design pre-compute tests ────────────────────────────────────────────
 
@@ -1309,10 +1166,34 @@ class TestDesignPrecompute:
 class TestExtractTopTaskFlow:
     """Tests for _extract_top_task_flow helper."""
 
-    def test_returns_high_confidence(self, tmp_path):
+    def test_score_based_picks_highest(self, tmp_path):
+        """Current format: picks candidate with highest numeric score."""
         brief = tmp_path / "brief.md"
         brief.write_text(
-            "### Suggested Task Flow Candidates\n\n"
+            "### Task Flow Candidates\n\n"
+            "| Candidate | Score | Why It Fits |\n|---|---|---|\n"
+            "| translytical | 4 | Transactional ERP |\n"
+            "| basic-data-analytics | 14 | Simple batch |\n"
+            "| medallion | 14 | Layered batch |\n",
+            encoding="utf-8",
+        )
+        assert rp._extract_top_task_flow(str(brief)) == "basic-data-analytics"
+
+    def test_score_based_single_candidate(self, tmp_path):
+        brief = tmp_path / "brief.md"
+        brief.write_text(
+            "### Task Flow Candidates\n\n"
+            "| Candidate | Score | Why It Fits |\n|---|---|---|\n"
+            "| event-analytics | 8 | Streaming focus |\n",
+            encoding="utf-8",
+        )
+        assert rp._extract_top_task_flow(str(brief)) == "event-analytics"
+
+    def test_confidence_high_returns_immediately(self, tmp_path):
+        """Legacy format: 'high' confidence in any column triggers immediate return."""
+        brief = tmp_path / "brief.md"
+        brief.write_text(
+            "### Task Flow Candidates\n\n"
             "| Candidate | Why | Confidence |\n|---|---|---|\n"
             "| lambda | ok | medium |\n"
             "| event-medallion | best | high |\n",
@@ -1320,10 +1201,10 @@ class TestExtractTopTaskFlow:
         )
         assert rp._extract_top_task_flow(str(brief)) == "event-medallion"
 
-    def test_returns_first_if_no_high(self, tmp_path):
+    def test_no_high_no_score_returns_first(self, tmp_path):
         brief = tmp_path / "brief.md"
         brief.write_text(
-            "### Suggested Task Flow Candidates\n\n"
+            "### Task Flow Candidates\n\n"
             "| Candidate | Why | Confidence |\n|---|---|---|\n"
             "| medallion | ok | medium |\n"
             "| basic | simple | low |\n",

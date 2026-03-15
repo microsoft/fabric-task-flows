@@ -12,7 +12,7 @@
 
 ## Pipeline Orchestration
 
-- **Always use `run-pipeline.py`** to start projects and advance phases. Calling `new-project.py` directly or manually chaining agents bypasses state tracking, skips pre-compute scripts (signal-mapper, review-prescan, etc.), and leaves `pipeline-state.json` stale — causing the pipeline to lose its place.
+- **Always use `run-pipeline.py`** to start projects and advance phases. Calling `new-project.py` directly or manually chaining agents bypasses state tracking, skips pre-compute scripts (signal-mapper, decision-resolver, etc.), and leaves `pipeline-state.json` stale — causing the pipeline to lose its place.
 - **Never edit `pipeline-state.json` directly.** The runner owns state transitions, output verification, and human gate enforcement. Agents write to `docs/` files only.
 
 ## Deployment
@@ -23,7 +23,9 @@
 - **Environment publish delay requires explicit wait.** Add interactive confirmation prompt in deploy scripts between Environment creation and Notebook binding to prevent attachment failures.
 - **Eventstream, MLExperiment, MLModel reject hyphens in names.** Use underscores instead (e.g., `social_feed_eventstream`). Deploy scripts auto-convert hyphenated names from the architecture handoff.
 - **Lakehouse also rejects hyphens** — the initial assumption that only 3 types needed underscores was wrong. Universal policy: convert ALL item names to underscores in deploy scripts. The `_cli_safe_name()` function in `deploy-script-gen.py` handles this automatically.
-- **DefaultAzureCredential fails on local machines without `az login`.** Deploy scripts now fall back to `InteractiveBrowserCredential` which opens a browser for sign-in. The credential object is created once via `get_credential()` and passed to both REST API calls (via `get_auth_headers()`) and `fabric-cicd` (via `token_credential` parameter in `deploy_with_config()`). Without passing the credential to `fabric-cicd`, it creates its own `DefaultAzureCredential` internally and fails even though our REST calls succeed.
+- **DefaultAzureCredential fails on local machines without `az login`.** Deploy scripts now use a 3-tier auth chain: (1) `AzureCliCredential` for existing `az login` sessions — works in terminals and CI, (2) `DeviceCodeCredential` for headless/CLI environments, (3) `InteractiveBrowserCredential` as last resort. The credential object is created once via `get_credential()` and passed to both REST API calls (via `get_auth_headers()`) and `fabric-cicd` (via `token_credential` parameter in `deploy_with_config()`). Without passing the credential to `fabric-cicd`, it creates its own `DefaultAzureCredential` internally and fails even though our REST calls succeed.
+- **Dataflow Gen2 and CopyJob deploy via fabric-cicd like all other items.** These item types use `cicd.strategy: "content"` and are published through fabric-cicd's standard `deploy_with_config()`. Dataflow requires `mashup.pq` and CopyJob requires `copyjob-content.json` — both defined in `cicd-templates.json`. Do NOT bypass fabric-cicd with REST API fallbacks.
+- **fabric-cicd v0.3.1 renamed `feature_flags` to `features` in config.yml.** The `folder_path_to_include` setting now requires both `enable_experimental_features` and `enable_include_folder` flags under a `features` key (not `feature_flags`). Deploy scripts should include both keys for cross-version compatibility.
 - **Variable Library has no programmatic creation via fabric-cicd but has full REST API.** Use `POST /v1/workspaces/{id}/variableLibraries` to create. Must be in Wave 1 — consuming items (Notebooks, Pipelines, Shortcuts) need it to exist before they can reference it. Create value sets per deployment stage (Dev, PPE, Prod). See `decisions/parameterization-selection.md` for when to use VL vs parameter.yml vs env vars.
 
 ## Validation
@@ -92,3 +94,15 @@
 - Coverage range: 0.0% – 0.0%
 - Uncovered terms across all batches: and prem, apis, batch, churn, churn prediction, code, customer, customer churn, daily, daily batch, data from, databricks, files, flat, global, mid size, needs, only, prediction, prem
 - Coverage trend: 0.0% (iter 1) → 0.0% (iter 4)
+
+### Heal Orchestrator Run: 2026-03-14 21:20 UTC (1 iterations, 5 problems)
+
+- Average coverage across all batches: 0.0%
+- Total zero-candidate problems: 5/5
+- Coverage range: 0.0% – 0.0%
+
+### Heal Orchestrator Run: 2026-03-14 21:24 UTC (1 iterations, 5 problems)
+
+- Average coverage across all batches: 47.7%
+- Total zero-candidate problems: 0/5
+- Coverage range: 47.7% – 47.7%

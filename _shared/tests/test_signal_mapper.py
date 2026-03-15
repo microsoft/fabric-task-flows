@@ -69,22 +69,20 @@ def test_category_result_confidence_low():
 
 
 def test_category_result_confidence_medium():
-    """2 matches → medium confidence."""
+    """Weighted score >= 3 → medium confidence (e.g., 1 strong or 3 weak)."""
     cat = sm.CATEGORIES[0]
     cr = sm.CategoryResult(category=cat, matches=[
-        sm.KeywordMatch(keyword="a", start=0, end=1),
-        sm.KeywordMatch(keyword="b", start=2, end=3),
+        sm.KeywordMatch(keyword="a", start=0, end=1, weight=3),  # 1 strong keyword
     ])
     assert cr.confidence == "medium"
 
 
 def test_category_result_confidence_high():
-    """3+ matches → high confidence."""
+    """Weighted score >= 5 → high confidence (e.g., 2 strong or 1 strong + 1 moderate)."""
     cat = sm.CATEGORIES[0]
     cr = sm.CategoryResult(category=cat, matches=[
-        sm.KeywordMatch(keyword="a", start=0, end=1),
-        sm.KeywordMatch(keyword="b", start=2, end=3),
-        sm.KeywordMatch(keyword="c", start=4, end=5),
+        sm.KeywordMatch(keyword="a", start=0, end=1, weight=3),  # strong
+        sm.KeywordMatch(keyword="b", start=2, end=3, weight=2),  # moderate
     ])
     assert cr.confidence == "high"
 

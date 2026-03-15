@@ -239,7 +239,7 @@ def process_project(problem: dict, dry_run: bool = False) -> dict:
     brief_path = project_dir / "docs" / "discovery-brief.md"
     if brief_path.exists():
         brief_content = generate_discovery_brief(problem, signals)
-        brief_path.write_text(brief_content, encoding="utf-8")
+        brief_path.write_text(brief_content, encoding="utf-8", newline="\n")
 
     # 4. Advance past discovery
     try:
@@ -322,7 +322,7 @@ def update_projects_md(results: list[dict]) -> None:
             insert_point = content.rfind("\n", 0, insert_point) + 1
 
         new_content = content[:insert_point] + "\n".join(new_rows) + "\n" + content[insert_point:]
-        projects_md.write_text(new_content, encoding="utf-8")
+        projects_md.write_text(new_content, encoding="utf-8", newline="\n")
 
 
 # ---------------------------------------------------------------------------
@@ -405,7 +405,7 @@ def main():
 
     # Write fleet results to session file
     results_path = PROJECTS_DIR / "_fleet-results.json"
-    with open(results_path, "w", encoding="utf-8") as f:
+    with open(results_path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(results, f, indent=2)
     print(f"  Results saved to {results_path}\n")
 

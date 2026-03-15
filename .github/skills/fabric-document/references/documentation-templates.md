@@ -1,178 +1,112 @@
 ﻿# Documentation Templates
 
-Templates used by `/fabric-document` to generate project wiki documentation in `_projects/[workspace]/docs/`.
+Templates used by `/fabric-document` to generate a single project brief in `_projects/[workspace]/docs/`.
 
 ## Directory Structure
 
 ```
 _projects/[workspace-name]/
 ├── docs/
-│   ├── README.md              # Project overview with navigation
-│   ├── decisions/
-│   │   ├── 001-task-flow.md    # Why this task flow was chosen
-│   │   ├── 002-storage.md     # Storage decision ADR
-│   │   ├── 003-ingestion.md   # Ingestion decision ADR
-│   │   ├── 004-processing.md  # Processing decision ADR
-│   │   ├── 005-visualization.md # Visualization decision ADR
-│   │   └── 006-cicd.md        # CI/CD & deployment strategy (optional — only when multi-env)
-│   ├── architecture.md        # Visual diagram + item relationships
-│   └── deployment-log.md      # What was deployed, issues, workarounds
+│   └── project-brief.md          # ONE human-readable deliverable
 └── deploy/
-    ├── handoff.md             # Engineer's deployment handoff
-    ├── deploy.sh / deploy.py  # Deployment script (bash or Python)
-    ├── parameter.yml          # fabric-cicd parameterization (if used)
-    ├── notebooks/             # Notebook source files
-    └── queries/               # KQL and other query files
+    ├── deploy-[name].py           # Deployment script
+    ├── config.yml                 # Deployment config
+    ├── workspace/                 # Fabric item definitions
+    └── taskflow-[name].json       # Task flow import file
 ```
 
-## 1. Project README (`docs/README.md`)
+> **Pipeline-internal files** (architecture-handoff.md, deployment-handoff.md, test-plan.md,
+> validation-report.md, pipeline-state.json) are consumed by pipeline scripts only.
+> They are NOT documentation — do NOT duplicate their content into separate human-facing files.
+
+## Project Brief (`docs/project-brief.md`)
+
+The single human deliverable. A CTO reads it in 10 minutes.
 
 ```markdown
-# [Workspace Name] - Architecture Documentation
+# [Project Name]
 
-> Generated: [timestamp]
-> Task flow: [task flow name]
-> Status: [DEPLOYED | VALIDATED | PARTIAL]
+> [Task flow] architecture on Microsoft Fabric | [Date] | [Status: VALIDATED ✅ / DEPLOYED / PARTIAL]
 
-## Overview
+## The Problem
 
-[2-3 sentence summary of what this project does and why it exists]
+[2-3 sentences from discovery brief — what business problem are we solving and why now?]
 
-## Quick Links
+## What We Built
 
-| Document | Description |
-|----------|-------------|
-| [Architecture](architecture.md) | System diagram and item relationships |
-| [Deployment Log](deployment-log.md) | What was deployed and how |
-| [Deployments](../deploy/) | Scripts, notebooks, and queries |
+[Architecture diagram — ASCII or Mermaid showing data flow from sources through storage,
+processing, and visualization layers]
 
-### Decision Records
+### Fabric Items ([count] items, [wave count] deployment waves)
 
-| ADR | Decision | Outcome |
-|-----|----------|---------|
-| [001-task-flow](decisions/001-task-flow.md) | Which task flow pattern? | [choice] |
-| [002-storage](decisions/002-storage.md) | Storage layer | [choice] |
+| Wave | Items | Purpose |
+|------|-------|---------|
+| 1: Foundation | Lakehouse, Warehouse, Eventhouse | Storage layers |
+| 2: Compute | Environment, Variable Library | Spark runtime, config |
 | ... | ... | ... |
 
-## Architecture Diagram
+## Why This Architecture
 
-```mermaid
-[Generate from Architecture Handoff items and relationships]
-```
+### Task Flow: [name]
+
+[1-2 sentences: why this pattern over alternatives]
+
+| Alternative | Why Not |
+|-------------|---------|
+| [other flow] | [1 sentence] |
+
+### Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Storage | [choice] | [1 sentence why] |
+| Ingestion | [choice] | [1 sentence why] |
+| Processing | [choice] | [1 sentence why] |
+| Visualization | [choice] | [1 sentence why] |
+| CI/CD | [choice] | [1 sentence why] |
+
+## How to Deploy
+
+**Tool:** fabric-cicd
+**Environments:** [Dev / Test / Prod]
+**Script:** `deploy/deploy-[name].py`
+
+### Manual Steps (Post-Deploy)
+
+| Step | Item | Action | Blocked By |
+|------|------|--------|------------|
+| M-1 | [item] | [action] | [dependency] |
+
+### Configuration
+
+| Item | Setting | Why |
+|------|---------|-----|
+| [item] | [setting] | [≤10 words] |
 
 ## Validation Summary
 
-| Phase | Status |
+| Check | Result |
 |-------|--------|
-| Foundation | ✅/⚠️/❌ |
-| ... | ... |
+| All [N] items deployed | ✅ |
+| Smoke tests passed | ✅ |
+| Config checklist confirmed | ✅ |
 
-## Future Considerations
+### Edge Cases Tested
 
-[Pull from Validation Report's Future Considerations section]
+- [edge case 1]
+- [edge case 2]
+
+## What's Next
+
+- [Future consideration 1]
+- [Future consideration 2]
 ```
 
-## 2. ADR Files (`docs/decisions/NNN-*.md`)
+## Rules
 
-Use the template from `.github/skills/fabric-design/references/adr-template.md` for each decision:
-- 001-task-flow.md - Why this task flow pattern
-- 002-storage.md - Storage layer decision
-- 003-ingestion.md - Ingestion approach
-- 004-processing.md - Processing/transformation choice
-- 005-visualization.md - Visualization layer (if applicable)
-- 006-cicd.md - CI/CD & deployment strategy (if multi-environment)
+1. **ONE file.** Do not create README.md, architecture.md, deployment-log.md, or separate ADR files.
+2. **No duplication.** Every fact appears exactly once. If it's in the items table, don't repeat it in prose.
+3. **Decisions inline.** Architecture decisions go in the "Key Decisions" table — not separate files.
+4. **~1,500 words max.** If you need more, you're duplicating something.
+5. **Pull from pipeline files.** Read architecture-handoff.md, deployment-handoff.md, test-plan.md, validation-report.md, discovery-brief.md — synthesize, don't copy.
 
-## 3. Architecture Page (`docs/architecture.md`)
-
-```markdown
-# Architecture
-
-## System Diagram
-
-```mermaid
-flowchart LR
-    subgraph Ingestion
-        [items]
-    end
-    subgraph Storage
-        [items]
-    end
-    ...
-```
-
-## Items
-
-| Item | Type | Purpose | Dependencies |
-|------|------|---------|--------------|
-| [from deployment] | [type] | [from architecture] | [relationships] |
-
-## Data Flow
-
-[Describe how data moves through the system]
-
-## Deployment Strategy
-
-| Aspect | Choice |
-|--------|--------|
-| Workspace approach | [Single / Multi-workspace — from Architect handoff] |
-| Environments | [DEV, PPE, PROD — from Architect handoff] |
-| CI/CD tool | fabric-cicd |
-| Branching model | [PPE-first / Main-first / N/A] |
-
-[If multi-environment: describe workspace naming, connection management, parameterization approach]
-
-## Configuration Summary
-
-[Pull Configuration Rationale from Engineer's handoff]
-```
-
-## 4. Deployment Log (`docs/deployment-log.md`)
-
-```markdown
-# Deployment Log
-
-**Deployed:** [timestamp]
-**Task flow:** [name]
-**Validation Status:**[from Validation Report]
-
-## Items Deployed
-
-| Order | Item | Type | Status | Notes |
-|-------|------|------|--------|-------|
-| 1 | [name] | [type] | ✅ | [from Engineer] |
-
-## Implementation Notes
-
-[Pull from Engineer's Implementation Notes - deviations, workarounds, CLI commands]
-
-## Configuration Rationale
-
-[Pull Engineer's Configuration Rationale table]
-
-## Manual Steps
-
-### Completed
-- [list from Engineer]
-
-### Pending
-- [list from Engineer]
-
-## Issues & Resolutions
-
-| Issue | Resolution | Status |
-|-------|-----------|--------|
-| [from Engineer/Tester] | [how resolved] | [fixed/open] |
-
-## CI/CD Configuration
-
-**Deployment Tool:** fabric-cicd
-**Parameterization:** [parameter.yml / Variable Library / environment variables / none]
-
-- parameter.yml location and key replacements configured
-- Spark pool mappings applied
-- Dynamic variables used ($workspace.id, $items references)
-
-## Lessons Learned
-
-[Pull from Validation Report's Future Considerations]
-```

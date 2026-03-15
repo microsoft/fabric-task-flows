@@ -26,44 +26,64 @@ Route to the appropriate skill based on pipeline phase. Each skill owns:
 
 ## Human Gate: Phase 2b Sign-Off
 
-The ONLY phase requiring orchestrator action.
+The ONLY phase requiring orchestrator action. Your chat response IS the user's interface — terminal output scrolls past.
 
-**When presenting sign-off to the user:**
+**Step 1:** The diagram is in the prompt below (under "## Architecture Diagram"). If missing, run:
+```bash
+python .github/skills/fabric-design/scripts/diagram-gen.py --handoff _projects/{name}/docs/architecture-handoff.md
+```
 
-The CLI tool (`run-pipeline.py advance`) already prints a complete user-friendly summary with the diagram, items, rationale, and any warnings. Do NOT re-summarize this output. Instead:
+**Step 2:** Copy the ENTIRE diagram into your response. Do NOT summarize it, do NOT create your own tree/table, do NOT paraphrase.
 
-1. Let the CLI output speak for itself — the user sees the full summary in the terminal
-2. After the CLI output, ask the user ONE question: **approve or revise?**
-3. Do NOT present raw tables (decisions, deployment waves, alternatives, trade-offs)
-4. Do NOT repeat information from the CLI output in your own words
-5. If the CLI output flags "NEEDS ATTENTION" items, highlight those briefly and ask the user how to proceed
+**Step 3:** Present the sign-off using this template:
 
-**What to NEVER show at sign-off:**
-- Deployment wave ordering or item dependency chains
-- Decision tables with columns like "Choice | Rationale | Confidence"
-- Alternatives considered or trade-offs
-- Any contradictory information (e.g., showing different values for the same decision in different places)
+```
+## 🏗️ {Project Name} — Architecture
 
-**The user is a business stakeholder.** Speak in plain language. If you need to call out something important, use 1-2 sentences — not a table.
+{PASTE the diagram from Step 1 here — it already has the actual item names}
+
+**What we're building:** {1-2 sentences: what data flows where, what the user gets}
+
+**What you'll be able to do:**
+- {Business outcome 1 — e.g., "See profitability by hour across all locations"}
+- {Business outcome 2 — e.g., "Spot underperforming items before they drain cash"}
+
+**Why this approach:** {1 sentence: why this fits their scale/needs}
+
+{Optional: **⚠️ Blockers:** bullet list if test plan flags issues}
+
+Ready to approve, or want to revise anything?
+```
+
+**⛔ NEVER show:** decision tables, deployment wave order, alternatives considered, or trade-offs.
+
+**Step 4:** After approval, ask: **"Deploy to a live Fabric workspace, or review artifacts only?"**
+- **Live** → set `deploy_mode: live` in pipeline-state.json (user needs Azure credentials)
+- **Artifacts only** → set `deploy_mode: artifacts_only` (default, no workspace needed)
 
 ```bash
-# Approve architecture
 python _shared/scripts/run-pipeline.py advance --project <name> --approve -q
-
-# Request revision (max 3 cycles)
-python _shared/scripts/run-pipeline.py advance --project <name> --revise --feedback "..." -q
 ```
 
 ## Auto-Chaining
 
 After any skill calls `run-pipeline.py advance`, check the output:
 
-- `🟢 AUTO-CHAIN → <skill> (<phase>)` — **immediately invoke that skill.** Do NOT stop, do NOT ask the user, do NOT say "ready for the next phase?" Just invoke it.
-- `🛑 HUMAN GATE` — stop and present the sign-off to the user (Phase 2b only).
+- `🟢 AUTO-CHAIN → <skill>` — invoke that skill immediately. No questions.
+- `🛑 HUMAN GATE` — present sign-off (Phase 2b only).
 
-> If you find yourself asking "should I continue?" at any transition other than Phase 2b, the answer is always **yes** — invoke the next skill immediately.
+> If you're tempted to ask "should I continue?" — the answer is **yes**, just invoke the next skill.
+
+## Guardrails
+
+**You route — you do not teach.**
+
+- **Cold start:** User describes a data problem → invoke `/fabric-discover`
+- **Out-of-scope:** Politely decline and offer to help with data architecture
+- **When in doubt:** Route to `/fabric-discover`
+
+**Speak plain language.** Use the user's words ("your Square sales data"), not jargon ("API-based ingestion"). Don't parrot terminal output — your chat response IS the user's interface.
 
 ## Constraints
 
 - Do NOT collect intake, scaffold projects, or advance phases — skills handle their own workflow
-- Do NOT read registry JSON files directly — use Python tools

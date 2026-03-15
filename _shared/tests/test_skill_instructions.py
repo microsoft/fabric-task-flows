@@ -57,63 +57,6 @@ class TestDiscoverRerunDetection:
         )
 
 
-# ── Design: ADR template reference ───────────────────────────────────────
-
-
-class TestDesignADRTemplateReference:
-    """Bug #9: Design SKILL.md must document the exact ADR file titles so
-    agents can construct edit old_str without viewing each file first."""
-
-    ADR_FILES = {
-        "001-task-flow.md": "ADR-001: Task Flow Selection",
-        "002-storage.md": "ADR-002: Storage Layer Selection",
-        "003-ingestion.md": "ADR-003: Ingestion Approach",
-        "004-processing.md": "ADR-004: Processing Selection",
-        "005-visualization.md": "ADR-005: Visualization Selection",
-    }
-
-    def test_all_adr_titles_documented(self):
-        content = _read_skill("fabric-design")
-        for filename, title in self.ADR_FILES.items():
-            assert title in content, (
-                f"Design SKILL.md must document ADR title '{title}' "
-                f"so agents can predict old_str for {filename}"
-            )
-
-    def test_all_adr_filenames_documented(self):
-        content = _read_skill("fabric-design")
-        for filename in self.ADR_FILES:
-            assert filename in content, (
-                f"Design SKILL.md must reference filename '{filename}'"
-            )
-
-    def test_template_body_documented(self):
-        """The template body must be included so agents know the exact
-        old_str to use for replacement."""
-        content = _read_skill("fabric-design")
-        # Key template markers that must be present
-        assert "<!-- /fabric-document: date -->" in content
-        assert "<!-- /fabric-document: what was chosen -->" in content
-        assert "<!-- /fabric-document: link to decisions/*.md -->" in content
-
-    def test_adr_titles_match_scaffolder(self):
-        """ADR titles in SKILL.md must match what new-project.py scaffolds."""
-        import importlib.util
-        import sys
-
-        np_path = REPO_ROOT / "_shared" / "scripts" / "new-project.py"
-        spec = importlib.util.spec_from_file_location("new_project", str(np_path))
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules["new_project"] = mod
-        spec.loader.exec_module(mod)
-
-        for _filename, title in self.ADR_FILES.items():
-            number = title.split("-")[1].split(":")[0]
-            title_text = title.split(": ", 1)[1]
-            generated = mod.adr_template(number, title_text)
-            assert f"# ADR-{number}: {title_text}" in generated
-
-
 # ── Auto-chain instructions ──────────────────────────────────────────────
 
 

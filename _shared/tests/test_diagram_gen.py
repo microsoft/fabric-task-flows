@@ -10,33 +10,16 @@ import pytest
 SHARED_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SHARED_DIR / "lib"))
 
-# Import yaml_utils stub before sys.path manipulation triggers E402
-from yaml_utils import parse_yaml as _parse_yaml_stub  # noqa: E402
-
 REPO_ROOT = SHARED_DIR.parent
 DESIGN_SKILL = REPO_ROOT / ".github" / "skills" / "fabric-design"
 SCRIPT_PATH = DESIGN_SKILL / "scripts" / "diagram-gen.py"
 
-# Pre-load review-prescan so diagram-gen can import it
-_rp_spec = importlib.util.spec_from_file_location(
-    "review-prescan",
-    str(DESIGN_SKILL / "scripts" / "review-prescan.py"),
-)
-_rp_mod = importlib.util.module_from_spec(_rp_spec)
-sys.modules["review-prescan"] = _rp_mod
-_rp_spec.loader.exec_module(_rp_mod)
-
-# diagram-gen.py references _parse_yaml from review-prescan (unused dead code)
-# but the function doesn't exist — provide a stub to avoid AttributeError
-_rp_mod._parse_yaml = _parse_yaml_stub
-
-# Now load diagram-gen
+# Load diagram-gen
 _spec = importlib.util.spec_from_file_location("diagram_gen", str(SCRIPT_PATH))
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 
 _make_box = _mod._make_box
-_compute_box_width = _mod._compute_box_width
 generate_diagram = _mod.generate_diagram
 LAYER_MAP = _mod.LAYER_MAP
 LAYER_ORDER = _mod.LAYER_ORDER
@@ -157,25 +140,6 @@ class TestMakeBox:
     def test_box_minimum_width(self):
         lines = _make_box("x", "Y", wave=None, width=20)
         assert len(lines[0]) == 20
-
-
-# ── _compute_box_width tests ───────────────────────────────────────
-
-
-class TestComputeBoxWidth:
-    def test_minimum_width(self):
-        items = [{"name": "a", "type": "B"}]
-        assert _compute_box_width(items) >= 20
-
-    def test_width_grows_with_name(self):
-        short_items = [{"name": "x", "type": "Y"}]
-        long_items = [{"name": "very-long-item-name", "type": "Y"}]
-        assert _compute_box_width(long_items) >= _compute_box_width(short_items)
-
-    def test_width_accounts_for_type(self):
-        items = [{"name": "x", "type": "Spark Job Definition"}]
-        width = _compute_box_width(items)
-        assert width >= len("(Spark Job Definition)") + 6
 
 
 # ── LAYER_MAP constants ────────────────────────────────────────────

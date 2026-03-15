@@ -151,7 +151,7 @@
         {"item_type": "Environment", "action": "Configure Spark settings; install ML libraries; publish"},
         {"item_type": "Notebook", "action": "Set default lakehouse; verify environment attachment"},
         {"item_type": "Experiment", "action": "Verify experiment tracking enabled"},
-        {"item_type": "ML Model", "action": "Register best model from experiment"},
+        {"item_type": "ML Model", "action": "Run experiment first (at least 1 run required), then register best model. Cannot validate until experiment has completed runs."},
         {"item_type": "Report", "action": "Verify semantic model binding; check predictions data"}
       ],
       "phases": {

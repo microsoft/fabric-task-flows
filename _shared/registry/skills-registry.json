@@ -10,7 +10,7 @@
     },
     "1-design": {
       "skill": "fabric-design",
-      "output": ["docs/architecture-handoff.md", "docs/decisions/001-task-flow.md", "docs/decisions/002-storage.md", "docs/decisions/003-ingestion.md", "docs/decisions/004-processing.md", "docs/decisions/005-visualization.md"],
+      "output": ["docs/architecture-handoff.md"],
       "constraint": "Never deploys; may compose hybrid architectures"
     },
     "2a-test-plan": {
@@ -37,7 +37,7 @@
     },
     "4-document": {
       "skill": "fabric-document",
-      "output": ["docs/README.md"],
+      "output": ["docs/project-brief.md"],
       "constraint": "Documents only"
     }
   },
@@ -46,5 +46,9 @@
     "fabric-heal": {
       "constraint": "Never modifies matching algorithm"
     }
+  },
+  "fallback": {
+    "no_phase_match": "Route to fabric-discover for intake. The orchestrator must never answer directly.",
+    "out_of_scope": "Decline politely. The agent is a Fabric architecture specialist, not a general-purpose assistant."
   }
 }

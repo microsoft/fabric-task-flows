@@ -87,15 +87,6 @@ def _make_box(name: str, item_type: str, wave: int | None, width: int) -> list[s
     return lines
 
 
-def _compute_box_width(items: list[dict]) -> int:
-    """Compute uniform box width based on longest item name/type."""
-    max_len = 0
-    for item in items:
-        max_len = max(max_len, len(item.get("name", "")))
-        max_len = max(max_len, len(f"({item.get('type', '')})"))
-    return max(max_len + 6, 20)  # minimum 20 chars wide
-
-
 # ---------------------------------------------------------------------------
 # Diagram generation
 # ---------------------------------------------------------------------------
@@ -238,7 +229,15 @@ def generate_diagram(handoff_path: str) -> str:
             output_lines.append(f"║ {'  No blockers'.ljust(max_content_width)} ║")
     output_lines.append(f"╚═{border}═╝")
 
-    return "\n".join(output_lines)
+    diagram = "\n".join(output_lines)
+
+    # Warn if unresolved OR branches remain — architecture should be decisive
+    if "◄OR►" in diagram:
+        import sys
+        print("  ⚠ Diagram contains unresolved ◄OR► branches — decisions should eliminate alternatives",
+              file=sys.stderr)
+
+    return diagram
 
 
 # ---------------------------------------------------------------------------

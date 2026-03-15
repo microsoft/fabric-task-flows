@@ -288,47 +288,6 @@ None.
 """
 
 
-def adr_template(number: str, title: str) -> str:
-    return f"""# ADR-{number}: {title}
-
-## Status
-
-Accepted
-
-**Date:** <!-- /fabric-document: date -->
-**Deciders:** fabric-architect agent + user confirmation
-
-## Context
-
-<!-- /fabric-document: problem, constraints, requirements -->
-
-## Decision
-
-<!-- /fabric-document: what was chosen -->
-
-## Alternatives Considered
-
-| Option | Pros | Cons | Why Rejected |
-|--------|------|------|--------------|
-| | | | |
-
-## Consequences
-
-### Benefits
-<!-- /fabric-document: what this enables -->
-
-### Costs
-<!-- /fabric-document: what this limits -->
-
-### Mitigations
-<!-- /fabric-document: how costs are addressed -->
-
-## References
-
-- Decision guide: <!-- /fabric-document: link to decisions/*.md -->
-"""
-
-
 def pipeline_state(project: str) -> str:
     """Initial pipeline state file for orchestration tracking."""
     import json
@@ -345,7 +304,7 @@ def pipeline_state(project: str) -> str:
             "2b-sign-off":   {"status": "pending", "agent": None,               "gate": "human"},
             "2c-deploy":     {"status": "pending", "agent": "fabric-deploy",     "output": "docs/deployment-handoff.md"},
             "3-validate":    {"status": "pending", "agent": "fabric-test",       "output": "docs/validation-report.md"},
-            "4-document":    {"status": "pending", "agent": "fabric-document",   "output": "docs/"}
+            "4-document":    {"status": "pending", "agent": "fabric-document",   "output": "docs/project-brief.md"}
         },
         "transitions": [
             {"from": "0a-discovery", "to": "1-design",     "auto": True},
@@ -399,7 +358,7 @@ def update_projects_md(repo_root: str, project: str):
             lines.insert(insert_idx, new_row)
             content = "\n".join(lines)
 
-    with open(projects_path, "w", encoding="utf-8") as f:
+    with open(projects_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(content)
 
     print("  ✅ Added row to PROJECTS.md")
@@ -432,7 +391,7 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
         print(f"  📁 {os.path.relpath(d, repo_root)}")
 
     # Create template files — only for current-sprint phases
-    # Future-phase files (test, validate, document, ADRs) created when their phase runs
+    # Future-phase files (test, validate, document) created when their phase runs
     files = {
         "docs/discovery-brief.md": discovery_brief(project),
         "docs/architecture-handoff.md": architecture_handoff(project),
@@ -441,7 +400,7 @@ def scaffold(repo_root: str, display_name: str, task_flow: str | None = None):
 
     for rel_path, content in files.items():
         full_path = os.path.join(project_dir, rel_path)
-        with open(full_path, "w", encoding="utf-8") as f:
+        with open(full_path, "w", encoding="utf-8", newline="\n") as f:
             f.write(content)
         print(f"  📄 {os.path.relpath(full_path, repo_root)}")
 

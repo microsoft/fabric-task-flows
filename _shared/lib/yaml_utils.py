@@ -3,7 +3,7 @@ Shared YAML parsing utilities for task-flows scripts.
 
 Consolidates duplicated YAML extraction and parsing logic that was
 previously copy-pasted across deploy-script-gen.py, taskflow-gen.py,
-taskflow-template-gen.py, test-plan-prefill.py, and review-prescan.py.
+taskflow-template-gen.py, and test-plan-prefill.py.
 """
 
 from __future__ import annotations

@@ -22,7 +22,6 @@ from paths import REPO_ROOT, REGISTRY_DIR
 REGISTRY_PATH = REGISTRY_DIR / "item-type-registry.json"
 
 _cache: dict | None = None
-_full_cache: dict | None = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -105,23 +104,6 @@ def load_registry() -> dict[str, dict]:
     return _cache
 
 
-def load_full_registry() -> dict:
-    """Load the complete registry JSON including schema/version metadata.
-
-    Use this when you need the full structure for round-trip read → modify →
-    save (e.g. ``sync-item-types.py``).  The ``types`` dict inside is the
-    same cached object returned by :func:`load_registry`.
-    """
-    global _full_cache
-    if _full_cache is None:
-        _full_cache = _read_registry_file()
-        # Ensure types cache is also populated
-        global _cache
-        if _cache is None:
-            _cache = _full_cache.get("types", {})
-    return _full_cache
-
-
 def _read_registry_file() -> dict:
     """Read and parse the registry JSON with clear error messages."""
     if not REGISTRY_PATH.exists():
@@ -136,22 +118,6 @@ def _read_registry_file() -> dict:
         raise ValueError(
             f"Invalid JSON in {REGISTRY_PATH}: {exc}"
         ) from exc
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Normalisation utilities
-# ─────────────────────────────────────────────────────────────────────────────
-
-def normalize_type_key(item_type: str) -> str:
-    """Normalize an item type string for case-insensitive lookups.
-
-    Strips spaces, hyphens, and underscores then lowercases::
-
-        "Data Pipeline" → "datapipeline"
-        "data-pipeline" → "datapipeline"
-        "DATA_PIPELINE" → "datapipeline"
-    """
-    return item_type.lower().replace(" ", "").replace("-", "").replace("_", "")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -512,3 +478,27 @@ def validate_registry() -> list[str]:
             errors.append(f"{name}: empty or missing fab_type")
 
     return errors
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stop words loader
+# ─────────────────────────────────────────────────────────────────────────────
+
+_stop_words_cache: frozenset[str] | None = None
+
+
+def load_stop_words() -> frozenset[str]:
+    """Load English stop words from registry/stop-words.json.
+
+    Stop words are excluded from keyword coverage calculations so metrics
+    reflect actual tech-content coverage, not natural-language filler.
+
+    Result is cached after first call.
+    """
+    global _stop_words_cache
+    if _stop_words_cache is None:
+        path = REGISTRY_DIR / "stop-words.json"
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        _stop_words_cache = frozenset(data.get("words", []))
+    return _stop_words_cache

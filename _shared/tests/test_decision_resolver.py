@@ -865,6 +865,91 @@ def test_enrichment_does_not_override_explicit_query_language():
     assert "KQL" not in (proc or ""), f"Expected t-sql processing, got {proc}"
 
 
+# ── Compound velocity regression tests ───────────────────────────────────
+
+
+def test_extract_4v_batch_primary_near_realtime():
+    """'Batch primary, near-real-time secondary' must extract as velocity=both, not real-time."""
+    brief = _write_brief(vs=[
+        ("Velocity", "Batch primary, near-real-time secondary", "high", "User confirmed"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["velocity"] == "both", f"Expected 'both', got '{result.get('velocity')}'"
+
+
+def test_extract_4v_near_realtime_alone_is_realtime():
+    """'near-real-time' without batch should still extract as real-time."""
+    brief = _write_brief(vs=[
+        ("Velocity", "Near-real-time updates", "high", "IoT sensors"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["velocity"] == "real-time"
+
+
+def test_extract_4v_batch_with_some_streaming():
+    """'Mostly batch, some streaming' must extract as velocity=both."""
+    brief = _write_brief(vs=[
+        ("Velocity", "Mostly batch, some streaming needs", "high", "User confirmed"),
+    ])
+    result = _extract_signals_from_brief(brief)
+    assert result["velocity"] == "both"
+
+
+def test_storage_both_velocity_resolves_lakehouse():
+    """velocity=both should resolve storage to Lakehouse (batch-primary), NOT Eventhouse."""
+    d = resolve_storage({"velocity": "both"})
+    assert d.choice == "Lakehouse", f"Expected Lakehouse, got {d.choice}"
+    assert d.confidence == "high"
+
+
+def test_storage_both_velocity_with_large_volume():
+    """velocity=both + volume=large should resolve to Lakehouse."""
+    result = resolve_all({"velocity": "both", "volume": "large"})
+    assert result["decisions"]["storage"]["choice"] == "Lakehouse"
+
+
+def test_ingestion_both_velocity_large_volume_uses_pipeline():
+    """velocity=both + volume=large should resolve ingestion to Pipeline, NOT Eventstream."""
+    d = resolve_ingestion({"velocity": "both", "volume": "large"})
+    assert "Pipeline" in d.choice, f"Expected Pipeline, got {d.choice}"
+    assert d.choice != "Eventstream"
+
+
+def test_ingestion_both_velocity_code_first_uses_pipeline_notebook():
+    """velocity=both + code-first team should resolve to Pipeline + Notebook."""
+    d = resolve_ingestion({"velocity": "both", "volume": "large", "skillset": "python"})
+    assert "Pipeline" in d.choice and "Notebook" in d.choice, f"Expected Pipeline + Notebook, got {d.choice}"
+
+
+def test_ingestion_pure_streaming_still_uses_eventstream():
+    """Pure real-time velocity should still resolve to Eventstream."""
+    d = resolve_ingestion({"velocity": "real-time"})
+    assert d.choice == "Eventstream"
+
+
+def test_onesource_signals_end_to_end():
+    """OneSource scenario: batch+RT, large volume, mixed team → Lakehouse + Pipeline."""
+    brief = _write_brief(
+        signals=[
+            ("Semantic Governance", "Unified definitions", "**High**", "departments disagree"),
+        ],
+        vs=[
+            ("Volume", "Millions of records, 10+ sources", "high", "User confirmed"),
+            ("Velocity", "Batch primary, near-real-time secondary", "high", "User confirmed"),
+            ("Variety", "CRM, ERP, spreadsheets, APIs", "high", "Problem statement"),
+            ("Versatility", "Mixed — engineers build, analysts consume", "high", "User confirmed"),
+        ],
+    )
+    signals = _extract_signals_from_brief(brief)
+    assert signals["velocity"] == "both", f"Velocity should be 'both', got '{signals.get('velocity')}'"
+
+    result = resolve_all(signals)
+    assert result["decisions"]["storage"]["choice"] == "Lakehouse", \
+        f"Storage should be Lakehouse, got {result['decisions']['storage']['choice']}"
+    assert "Eventstream" not in (result["decisions"]["ingestion"]["choice"] or ""), \
+        f"Ingestion should NOT be Eventstream, got {result['decisions']['ingestion']['choice']}"
+
+
 # ── Rationale field tests ────────────────────────────────────────────────
 
 

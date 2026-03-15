@@ -33,11 +33,6 @@ from registry_loader import load_registry
 REGISTRY_DIR = REPO_ROOT / "_shared" / "registry"
 
 
-def _load_item_registry() -> dict:
-    """Load item type registry for manual step identification."""
-    return load_registry()
-
-
 def _load_validation_checklists() -> dict:
     """Load task-flow-specific validation checklists."""
     path = REGISTRY_DIR / "validation-checklists.json"
