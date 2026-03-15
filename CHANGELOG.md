@@ -2,6 +2,33 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.0.2] — 2026-03-15
+
+### Fixed
+
+- **Dataflow deployment failure** — Root cause: `queryMetadata.json` (required by Fabric API) was completely missing from the Dataflow definition. fabric-cicd sent raw Power Query M code where JSON was expected → `"Unexpected character encountered while parsing value: s"`. Added the required metadata file.
+- **◄OR► branches in diagrams** — Decision resolver lacked default fallback rules; filter matching was one-directional; alternative group keys were inconsistent. Fixed all three: added defaults, bidirectional matching, consistent group keys.
+- **Deploy script SyntaxError** — f-string template used `newline="\n"` inside an f-string (unterminated string literal). Escaped to `\\n`.
+- **Report semantic model binding** — `depends_on` contained string names but lookup expected integer IDs. Added normalized key resolution.
+- **Empty edges in taskflow JSON** — `depends_on` has string names ("Lakehouse Bronze") but code expected integer IDs. Added normalized name→ID lookup.
+- **Manual Environment publish wait** — `wait_for_environment_publish()` used `input()` to block execution. Removed — fabric-cicd handles polling internally.
+
+### Added
+
+- **`_shared/templates/`** — Empty-state item definition files for all 19 deployable Fabric item types, sourced from [Microsoft's REST API docs](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/item-definition-overview). These are the single source of truth — byte-for-byte what fabric-cicd will base64-encode and POST to the Fabric Items API.
+- **`_load_template_files()`** in deploy-script-gen.py — Reads definition files directly from `_shared/templates/{ItemType}/` directory instead of inline code or JSON templates.
+- **Decision resolver defaults** — `--task-flow` CLI arg, `_default()` helper, `_load_task_flow_defaults()` for deterministic fallback when signals are ambiguous.
+- **`◄OR►` validation warning** in diagram-gen.py — Flags unresolved alternatives in generated diagrams.
+- **Dataflow `queryMetadata.json`** — Added to `cicd-templates.json` and `item-type-registry.json` `cicd.files`.
+- **Eventstream** — Added required `operators` and `streams` arrays to template.
+- **SparkJobDefinition / GraphQLApi** — Completed all API-required fields in templates.
+
+### Changed
+
+- **Item content is now template-driven** — `_gen_item_definitions()` loads from `_shared/templates/` as primary source, with `cicd-templates.json` as fallback. Only Notebook, Report, and SQLDatabase use code-based generation (they need runtime values).
+- **Project scaffold trimmed** — Cut from 17 files to 3 files; removed all empty template placeholders.
+- **862 tests** (up from 557), all passing.
+
 ## [1.0.1] — 2026-03-10
 
 ### Fixed
