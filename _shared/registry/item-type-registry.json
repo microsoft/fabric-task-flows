@@ -83,7 +83,11 @@
   "types": {
     "Lakehouse": {
       "display_name": "Lakehouse",
-      "aliases": [],
+      "aliases": [
+        "lh",
+        "lake house",
+        "fabric lakehouse"
+      ],
       "availability": "ga",
       "phase": "Foundation",
       "task_type": "store",
@@ -115,7 +119,12 @@
     },
     "Warehouse": {
       "display_name": "Warehouse",
-      "aliases": [],
+      "aliases": [
+        "wh",
+        "dw",
+        "data warehouse",
+        "fabric warehouse"
+      ],
       "availability": "ga",
       "phase": "Foundation",
       "task_type": "store",
@@ -143,7 +152,10 @@
     },
     "Eventhouse": {
       "display_name": "Eventhouse",
-      "aliases": [],
+      "aliases": [
+        "eh",
+        "event house"
+      ],
       "availability": "ga",
       "phase": "Foundation",
       "task_type": "store",
@@ -172,7 +184,10 @@
     "KQLDatabase": {
       "display_name": "KQL Database",
       "aliases": [
-        "kql database"
+        "kql database",
+        "kqldb",
+        "kusto database",
+        "kusto db"
       ],
       "availability": "ga",
       "phase": "Foundation",
@@ -197,7 +212,9 @@
     "SQLDatabase": {
       "display_name": "SQL Database",
       "aliases": [
-        "sql database"
+        "sql database",
+        "sqldb",
+        "fabric sql database"
       ],
       "availability": "ga",
       "phase": "Foundation",
@@ -228,7 +245,9 @@
       "display_name": "SQL Endpoint",
       "aliases": [
         "sql endpoint",
-        "sql analytics endpoint"
+        "sql analytics endpoint",
+        "sql ep",
+        "lakehouse sql endpoint"
       ],
       "availability": "ga",
       "phase": "Foundation",
@@ -252,7 +271,9 @@
     },
     "Datamart": {
       "display_name": "Datamart",
-      "aliases": [],
+      "aliases": [
+        "data mart"
+      ],
       "availability": "ga",
       "phase": "Foundation",
       "task_type": "store",
@@ -276,7 +297,8 @@
     "MirroredWarehouse": {
       "display_name": "Mirrored Warehouse",
       "aliases": [
-        "mirrored warehouse"
+        "mirrored warehouse",
+        "mirrored wh"
       ],
       "availability": "ga",
       "phase": "Foundation",
@@ -301,7 +323,9 @@
     "MirroredDatabase": {
       "display_name": "Mirrored Database",
       "aliases": [
-        "mirrored database"
+        "mirrored database",
+        "mirrored db",
+        "database mirroring"
       ],
       "availability": "ga",
       "phase": "Foundation",
@@ -351,7 +375,11 @@
     },
     "Environment": {
       "display_name": "Environment",
-      "aliases": [],
+      "aliases": [
+        "env",
+        "spark environment",
+        "runtime environment"
+      ],
       "availability": "ga",
       "phase": "Environment",
       "task_type": "develop",
@@ -373,7 +401,9 @@
     "CopyJob": {
       "display_name": "Copy Job",
       "aliases": [
-        "copy job"
+        "copy job",
+        "copy activity",
+        "copy task"
       ],
       "availability": "ga",
       "phase": "Ingestion",
@@ -401,7 +431,9 @@
       "display_name": "Data Pipeline",
       "aliases": [
         "pipeline",
-        "data pipeline"
+        "data pipeline",
+        "fabric pipeline",
+        "orchestration pipeline"
       ],
       "availability": "ga",
       "phase": "Ingestion",
@@ -428,7 +460,9 @@
     },
     "Eventstream": {
       "display_name": "Eventstream",
-      "aliases": [],
+      "aliases": [
+        "event stream"
+      ],
       "availability": "ga",
       "phase": "Ingestion",
       "task_type": "ingest",
@@ -453,7 +487,11 @@
     },
     "Notebook": {
       "display_name": "Notebook",
-      "aliases": [],
+      "aliases": [
+        "nb",
+        "spark notebook",
+        "fabric notebook"
+      ],
       "availability": "ga",
       "phase": "Transformation",
       "task_type": "prepare",
@@ -479,7 +517,9 @@
       "display_name": "Spark Job Definition",
       "aliases": [
         "spark job def",
-        "spark job definition"
+        "spark job definition",
+        "sjd",
+        "spark job"
       ],
       "availability": "ga",
       "phase": "Transformation",
@@ -505,7 +545,9 @@
     "KQLQueryset": {
       "display_name": "KQL Queryset",
       "aliases": [
-        "kql queryset"
+        "kql queryset",
+        "kusto queryset",
+        "kusto query set"
       ],
       "availability": "ga",
       "phase": "Transformation",
@@ -531,7 +573,10 @@
     "SemanticModel": {
       "display_name": "Semantic Model",
       "aliases": [
-        "semantic model"
+        "semantic model",
+        "dataset",
+        "power bi dataset",
+        "tabular model"
       ],
       "availability": "ga",
       "phase": "Visualization",
@@ -557,7 +602,11 @@
     },
     "Report": {
       "display_name": "Report",
-      "aliases": [],
+      "aliases": [
+        "power bi report",
+        "pbi report",
+        "pbir"
+      ],
       "availability": "ga",
       "phase": "Visualization",
       "task_type": "visualize",
@@ -582,7 +631,10 @@
     "PaginatedReport": {
       "display_name": "Paginated Report",
       "aliases": [
-        "paginated report"
+        "paginated report",
+        "rdl",
+        "ssrs report",
+        "paginated"
       ],
       "availability": "ga",
       "phase": "Visualization",
@@ -604,7 +656,10 @@
     },
     "Dashboard": {
       "display_name": "Dashboard",
-      "aliases": [],
+      "aliases": [
+        "power bi dashboard",
+        "pbi dashboard"
+      ],
       "availability": "ga",
       "phase": "Visualization",
       "task_type": "visualize",
@@ -628,7 +683,10 @@
       "aliases": [
         "real-time dashboard",
         "realtimedashboard",
-        "real-time dash"
+        "real-time dash",
+        "kql dashboard",
+        "kusto dashboard",
+        "rt dashboard"
       ],
       "availability": "ga",
       "phase": "Visualization",
@@ -655,7 +713,8 @@
       "display_name": "ML Experiment",
       "aliases": [
         "ml experiment",
-        "experiment"
+        "experiment",
+        "machine learning experiment"
       ],
       "availability": "ga",
       "phase": "ML",
@@ -678,7 +737,8 @@
     "MLModel": {
       "display_name": "ML Model",
       "aliases": [
-        "ml model"
+        "ml model",
+        "machine learning model"
       ],
       "availability": "ga",
       "phase": "ML",
@@ -701,7 +761,10 @@
     "Reflex": {
       "display_name": "Activator",
       "aliases": [
-        "activator"
+        "activator",
+        "data activator",
+        "alerts",
+        "trigger"
       ],
       "availability": "ga",
       "phase": "Visualization",
@@ -725,7 +788,9 @@
       "display_name": "GraphQL API",
       "aliases": [
         "graphql api",
-        "api for graphql"
+        "api for graphql",
+        "graphql",
+        "graphql endpoint"
       ],
       "availability": "ga",
       "phase": "Visualization",
@@ -748,7 +813,9 @@
     "VariableLibrary": {
       "display_name": "Variable Library",
       "aliases": [
-        "variable library"
+        "variable library",
+        "variable lib",
+        "vars"
       ],
       "availability": "ga",
       "phase": "Environment",
@@ -770,7 +837,10 @@
     },
     "Ontology": {
       "display_name": "Ontology",
-      "aliases": [],
+      "aliases": [
+        "business ontology",
+        "vocabulary"
+      ],
       "availability": "pupr",
       "phase": "IQ",
       "task_type": "govern",
@@ -793,7 +863,9 @@
       "display_name": "Data Agent",
       "aliases": [
         "data agent",
-        "fabric data agent"
+        "fabric data agent",
+        "ai agent",
+        "copilot agent"
       ],
       "availability": "ga",
       "phase": "IQ",
@@ -845,7 +917,9 @@
       "display_name": "Snowflake Database",
       "aliases": [
         "snowflake database",
-        "snowflake mirroring"
+        "snowflake mirroring",
+        "snowflake",
+        "snowflake mirror"
       ],
       "availability": "ga",
       "phase": "Ingestion",
@@ -869,7 +943,8 @@
       "display_name": "Graph Model",
       "aliases": [
         "graph model",
-        "knowledge graph model"
+        "knowledge graph model",
+        "knowledge graph"
       ],
       "availability": "ga",
       "phase": "Visualization",
@@ -893,7 +968,9 @@
       "display_name": "Mirrored Azure Databricks Catalog",
       "aliases": [
         "mirrored azure databricks catalog",
-        "mirrored databricks catalog"
+        "mirrored databricks catalog",
+        "databricks catalog",
+        "databricks mirror"
       ],
       "availability": "ga",
       "phase": "Ingestion",
@@ -918,7 +995,8 @@
       "aliases": [
         "cosmos db database",
         "cosmos db",
-        "cosmosdb"
+        "cosmosdb",
+        "nosql database"
       ],
       "availability": "ga",
       "phase": "Foundation",
@@ -949,7 +1027,10 @@
       "display_name": "Dataflow Gen2",
       "aliases": [
         "dataflow gen2",
-        "dataflowgen2"
+        "dataflowgen2",
+        "power query",
+        "pq",
+        "dataflow gen 2"
       ],
       "availability": "ga",
       "phase": "Ingestion",
@@ -978,7 +1059,10 @@
       "aliases": [
         "user data function",
         "user data functions",
-        "userdatafunctions"
+        "userdatafunctions",
+        "udf",
+        "fabric function",
+        "serverless function"
       ],
       "availability": "ga",
       "phase": "Transformation",
@@ -1003,7 +1087,10 @@
       "aliases": [
         "real-time map",
         "realtimemap",
-        "real time map"
+        "real time map",
+        "fabric map",
+        "geo map",
+        "geospatial"
       ],
       "availability": "ga",
       "phase": "Visualization",
@@ -1027,7 +1114,8 @@
       "display_name": "Graph Queryset",
       "aliases": [
         "graph query set",
-        "graph queryset"
+        "graph queryset",
+        "graph queries"
       ],
       "availability": "ga",
       "phase": "Visualization",
@@ -1050,7 +1138,8 @@
     "AnomalyDetector": {
       "display_name": "Anomaly Detector",
       "aliases": [
-        "anomaly detector"
+        "anomaly detector",
+        "anomaly detection"
       ],
       "availability": "pupr",
       "phase": "ML",
@@ -1073,7 +1162,8 @@
     "DigitalTwinBuilder": {
       "display_name": "Digital Twin Builder",
       "aliases": [
-        "digital twin builder"
+        "digital twin builder",
+        "digital twin"
       ],
       "availability": "pupr",
       "phase": "Transformation",
@@ -1096,7 +1186,8 @@
     "DigitalTwinBuilderFlow": {
       "display_name": "Digital Twin Builder Flow",
       "aliases": [
-        "digital twin builder flow"
+        "digital twin builder flow",
+        "twin builder flow"
       ],
       "availability": "pupr",
       "phase": "Transformation",
@@ -1119,7 +1210,9 @@
     "EventSchemaSet": {
       "display_name": "Event Schema Set",
       "aliases": [
-        "event schema set"
+        "event schema set",
+        "schema set",
+        "event schema"
       ],
       "availability": "pupr",
       "phase": "Ingestion",
@@ -1142,7 +1235,8 @@
     "OperationsAgent": {
       "display_name": "Operations Agent",
       "aliases": [
-        "operations agent"
+        "operations agent",
+        "ops agent"
       ],
       "availability": "pupr",
       "phase": "IQ",
@@ -1189,7 +1283,9 @@
     "WarehouseSnapshot": {
       "display_name": "Warehouse Snapshot",
       "aliases": [
-        "warehouse snapshot"
+        "warehouse snapshot",
+        "snapshot",
+        "wh snapshot"
       ],
       "availability": "pupr",
       "phase": "Foundation",
