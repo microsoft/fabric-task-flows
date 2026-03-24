@@ -2,7 +2,6 @@
   "$schema": "Fabric Task Flows Item Type Registry",
   "$schema_version": "1.0.0",
   "$version": "2026-03-23",
-  "$cli_version": "0.1.10",
   "$description": "Single source of truth for all Fabric item type metadata. All scripts MUST import from this file — do NOT maintain separate item type dictionaries. ⚠️ AGENTS: Do NOT read this file directly — use registry_loader.build_*() instead. See CONTRIBUTING.md.",
   "$fields": {
     "display_name": "Human-readable name shown in Fabric portal",
@@ -17,7 +16,7 @@
     "api.path": "REST API URL segment (e.g. 'lakehouses' → /workspaces/{id}/lakehouses)",
     "api.creatable": "Whether the item can be created via REST API (boolean)",
     "api.definition": "Whether the item supports definition GET/update via REST API (boolean)",
-    "api.fab_type": "CLI type name when it differs from the registry key (rare — only ApacheAirflowJob)",
+    "api.fab_type": "Fabric platform type name when it differs from the registry key (rare — only ApacheAirflowJob)",
     "api.name": "API-specific name when it differs from the registry key (rare)",
     "cicd": "Deployment metadata for fabric-cicd integration",
     "cicd.strategy": "Deployment approach — see $cicd_strategy legend",

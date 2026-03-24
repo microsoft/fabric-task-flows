@@ -91,7 +91,7 @@ def diff(registry: dict, cli_types: dict[str, str], format_map: dict[str, str]) 
     return {
         "in_cli_not_registry": sorted(in_cli_not_registry),
         "in_registry_not_cli": sorted(in_registry_not_cli),
-        "cli_version": registry.get("$cli_version", "unknown"),
+        "cli_version": registry.get("$cli_version", "N/A"),
         "registry_type_count": len(reg_types),
         "cli_type_count": len(cli_types),
     }

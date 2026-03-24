@@ -67,7 +67,6 @@ def _scaffold_repo(tmp_path, flows=None):
     item_reg = reg_dir / "item-type-registry.json"
     item_data = {
         "$version": "1.0",
-        "$cli_version": "0.1",
         "types": {
             "lakehouse": {
                 "fab_type": "Lakehouse",
@@ -75,7 +74,7 @@ def _scaffold_repo(tmp_path, flows=None):
                 "aliases": [],
                 "phase": "Foundation",
                 "phase_order": 1,
-                "task_type": "store data",
+                "task_type": "store",
                 "rest_api": True,
                 "availability": "GA",
             },
@@ -85,7 +84,7 @@ def _scaffold_repo(tmp_path, flows=None):
                 "aliases": [],
                 "phase": "Transformation",
                 "phase_order": 3,
-                "task_type": "prepare data",
+                "task_type": "prepare",
                 "rest_api": True,
                 "availability": "GA",
             },

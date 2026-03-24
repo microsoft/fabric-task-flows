@@ -428,8 +428,6 @@ def check_registry_references(dc: DriftChecker):
     # Registry should have version metadata
     dc.check("registry has $version field",
              "$version" in registry, "Missing $version in registry")
-    dc.check("registry has $cli_version field",
-             "$cli_version" in registry, "Missing $cli_version in registry")
 
 
 def check_integration_first(dc: DriftChecker):
