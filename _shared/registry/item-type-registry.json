@@ -1,13 +1,13 @@
 {
   "$schema": "Fabric Task Flows Item Type Registry",
   "$schema_version": "1.0.0",
-  "$version": "2026-03-14",
+  "$version": "2026-03-23",
   "$cli_version": "0.1.10",
   "$description": "Single source of truth for all Fabric item type metadata. All scripts MUST import from this file — do NOT maintain separate item type dictionaries. ⚠️ AGENTS: Do NOT read this file directly — use registry_loader.build_*() instead. See CONTRIBUTING.md.",
   "$fields": {
     "display_name": "Human-readable name shown in Fabric portal",
     "aliases": "Alternative names for matching and search (array, always present)",
-    "availability": "Release status: 'general availability' or 'public preview'",
+    "availability": "Release status: 'ga', 'pupr', or 'prpr' — see $availability legend",
     "phase": "Deployment wave category — order derived from $phase legend key position",
     "task_type": "What the item does — see $task_type legend",
     "skillset": "Who uses it — see $skillset legend (array of LC/CF/Portal/auto)",
@@ -45,8 +45,9 @@
     "auto": "Auto-provisioned — created automatically by the platform as a dependency"
   },
   "$availability": {
-    "general availability": "GA — fully supported, SLA-backed, production-ready",
-    "public preview": "Public Preview — available to all tenants, no SLA, may have breaking changes"
+    "ga": "General Availability — fully supported, SLA-backed, production-ready",
+    "pupr": "Public Preview — available to all tenants, no SLA, may have breaking changes",
+    "prpr": "Private Preview — invite-only, no SLA, may have breaking changes"
   },
   "$phase": {
     "Foundation": "Storage and compute foundations — deployed first (wave 1-2)",
@@ -59,16 +60,16 @@
     "IQ": "Intelligence and AI agents — overlay on existing data assets"
   },
   "$task_type": {
-    "store data": "Persists data at rest (Lakehouse, Warehouse, Eventhouse, SQL Database)",
-    "get data": "Moves data from source to destination (CopyJob, Pipeline, Eventstream)",
-    "mirror data": "Replicates external data into Fabric (MirroredDatabase, MirroredWarehouse)",
-    "prepare data": "Transforms and enriches data (Notebook, SparkJobDefinition, Dataflow)",
-    "analyze and train data": "ML experimentation and model training (MLExperiment, MLModel)",
-    "track data": "Monitors data quality and triggers (Reflex, AnomalyDetector)",
+    "store": "Persists data at rest (Lakehouse, Warehouse, Eventhouse, SQL Database)",
+    "ingest": "Moves data from source to destination (CopyJob, Pipeline, Eventstream)",
+    "mirror": "Replicates external data into Fabric (MirroredDatabase, MirroredWarehouse)",
+    "prepare": "Transforms and enriches data (Notebook, SparkJobDefinition, Dataflow)",
+    "train": "ML experimentation and model training (MLExperiment, MLModel)",
+    "track": "Monitors data quality and triggers (Reflex, AnomalyDetector)",
     "visualize": "Presents data to users (Report, Dashboard, KQLDashboard)",
-    "distribute data": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction)",
+    "distribute": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction)",
     "develop": "Development tooling and runtime config (Environment, VariableLibrary)",
-    "govern data": "Metadata, ontology, and AI governance (Ontology, DataAgent)"
+    "govern": "Metadata, ontology, and AI governance (Ontology, DataAgent)"
   },
   "$cicd_strategy": {
     "content": "Item definition + content files deployed via fabric-cicd (full version control)",
@@ -89,9 +90,9 @@
     "Lakehouse": {
       "display_name": "Lakehouse",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "LC"
       ],
@@ -131,9 +132,9 @@
     "Warehouse": {
       "display_name": "Warehouse",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "LC"
       ],
@@ -168,9 +169,9 @@
     "Eventhouse": {
       "display_name": "Eventhouse",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "LC"
       ],
@@ -207,9 +208,9 @@
       "aliases": [
         "kql database"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "LC"
       ],
@@ -242,9 +243,9 @@
       "aliases": [
         "sql database"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "LC"
       ],
@@ -283,9 +284,9 @@
         "sql endpoint",
         "sql analytics endpoint"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "auto"
       ],
@@ -313,9 +314,9 @@
     "Datamart": {
       "display_name": "Datamart",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "LC"
       ],
@@ -337,16 +338,16 @@
         "verified": false,
         "supports_item_reference": false
       },
-      "notes": "Legacy item type; still valid in CLI"
+      "notes": null
     },
     "MirroredWarehouse": {
       "display_name": "Mirrored Warehouse",
       "aliases": [
         "mirrored warehouse"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "mirror data",
+      "task_type": "mirror",
       "skillset": [
         "LC"
       ],
@@ -376,9 +377,9 @@
       "aliases": [
         "mirrored database"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "mirror data",
+      "task_type": "mirror",
       "skillset": [
         "LC"
       ],
@@ -405,7 +406,7 @@
         "notes": "From sample: MirroredDatabase_1",
         "supports_item_reference": false
       },
-      "notes": "API creatable but requires source database connection/config. Initial setup recommended via Fabric Portal. SAMI permissions needed for Azure SQL sources."
+      "notes": "API creatable but requires source database connection/config. Initial setup recommended via Fabric Portal. SAMI permissions needed for Azure SQL sources. GA sources include Azure SQL, Azure SQL MI, Azure Cosmos DB, SAP (via SAP Datasphere, March 2026), Oracle (March 2026). Preview sources include Azure Database for MySQL, SharePoint List (March 2026). Supports up to 1000 tables."
     },
     "MountedDataFactory": {
       "display_name": "Mounted Data Factory",
@@ -414,9 +415,9 @@
         "azure data factory",
         "adf"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "get data",
+      "task_type": "ingest",
       "skillset": [
         "LC",
         "CF"
@@ -445,7 +446,7 @@
     "Environment": {
       "display_name": "Environment",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Environment",
       "task_type": "develop",
       "skillset": [
@@ -477,9 +478,9 @@
       "aliases": [
         "copy job"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "get data",
+      "task_type": "ingest",
       "skillset": [
         "LC"
       ],
@@ -515,9 +516,9 @@
         "pipeline",
         "data pipeline"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "get data",
+      "task_type": "ingest",
       "skillset": [
         "LC",
         "CF"
@@ -550,9 +551,9 @@
     "Eventstream": {
       "display_name": "Eventstream",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "get data",
+      "task_type": "ingest",
       "skillset": [
         "LC"
       ],
@@ -581,14 +582,14 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "notes": null
+      "notes": "SQL Operator GA as of March 2026 (multi-destination routing, event ordering). DeltaFlow (Preview) enables CDC from operational databases with automatic schema management."
     },
     "Notebook": {
       "display_name": "Notebook",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Transformation",
-      "task_type": "prepare data",
+      "task_type": "prepare",
       "skillset": [
         "CF"
       ],
@@ -623,9 +624,9 @@
         "spark job def",
         "spark job definition"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Transformation",
-      "task_type": "prepare data",
+      "task_type": "prepare",
       "skillset": [
         "CF"
       ],
@@ -659,9 +660,9 @@
       "aliases": [
         "kql queryset"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Transformation",
-      "task_type": "prepare data",
+      "task_type": "prepare",
       "skillset": [
         "CF"
       ],
@@ -694,7 +695,7 @@
       "aliases": [
         "semantic model"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
       "task_type": "visualize",
       "skillset": [
@@ -730,7 +731,7 @@
     "Report": {
       "display_name": "Report",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
       "task_type": "visualize",
       "skillset": [
@@ -766,7 +767,7 @@
       "aliases": [
         "paginated report"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
       "task_type": "visualize",
       "skillset": [
@@ -793,7 +794,7 @@
     "Dashboard": {
       "display_name": "Dashboard",
       "aliases": [],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
       "task_type": "visualize",
       "skillset": [
@@ -824,9 +825,9 @@
         "realtimedashboard",
         "real-time dash"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
-      "task_type": "track data",
+      "task_type": "track",
       "skillset": [
         "LC"
       ],
@@ -852,7 +853,7 @@
         "notes": "Content file causes parser error in fabric-cicd",
         "supports_item_reference": false
       },
-      "notes": "CLI type is KQLDashboard; display name is Real-Time Dashboard"
+      "notes": null
     },
     "MLExperiment": {
       "display_name": "ML Experiment",
@@ -860,9 +861,9 @@
         "ml experiment",
         "experiment"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "ML",
-      "task_type": "analyze and train data",
+      "task_type": "train",
       "skillset": [
         "CF"
       ],
@@ -893,9 +894,9 @@
       "aliases": [
         "ml model"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "ML",
-      "task_type": "analyze and train data",
+      "task_type": "train",
       "skillset": [
         "CF"
       ],
@@ -924,9 +925,9 @@
       "aliases": [
         "activator"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
-      "task_type": "track data",
+      "task_type": "track",
       "skillset": [
         "LC"
       ],
@@ -949,7 +950,7 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "notes": "CLI type is Reflex; commonly known as Activator. Portal-only creation."
+      "notes": null
     },
     "GraphQLApi": {
       "display_name": "GraphQL API",
@@ -957,9 +958,9 @@
         "graphql api",
         "api for graphql"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
-      "task_type": "distribute data",
+      "task_type": "distribute",
       "skillset": [
         "LC"
       ],
@@ -990,9 +991,9 @@
       "aliases": [
         "variable library"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Environment",
-      "task_type": "govern data",
+      "task_type": "govern",
       "skillset": [
         "LC"
       ],
@@ -1021,9 +1022,9 @@
     "Ontology": {
       "display_name": "Ontology",
       "aliases": [],
-      "availability": "public preview",
+      "availability": "pupr",
       "phase": "IQ",
-      "task_type": "govern data",
+      "task_type": "govern",
       "skillset": [
         "LC"
       ],
@@ -1048,11 +1049,12 @@
     "DataAgent": {
       "display_name": "Data Agent",
       "aliases": [
-        "data agent"
+        "data agent",
+        "fabric data agent"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "IQ",
-      "task_type": "govern data",
+      "task_type": "govern",
       "skillset": [
         "LC"
       ],
@@ -1064,18 +1066,19 @@
       "api": {
         "path": "dataAgents",
         "creatable": true,
-        "definition": false
+        "definition": true
       },
       "cicd": {
-        "strategy": "platform_only",
+        "strategy": "content",
         "files": [
-          ".platform"
+          ".platform",
+          "dataAgent-content.json"
         ],
         "verified": false,
-        "notes": "Not in sample",
+        "notes": "Git integration and deployment pipelines GA as of March 2026. File pattern needs verification.",
         "supports_item_reference": false
       },
-      "notes": null
+      "notes": "GA March 2026. Supports Lakehouse, Warehouse, semantic models, Eventhouse, SQL databases, and mirrored databases as data sources. Includes ALM support (Git integration, deployment pipelines, diagnostics)."
     },
     "ApacheAirflowJob": {
       "display_name": "Apache Airflow Job",
@@ -1085,9 +1088,9 @@
         "airflow job",
         "airflow"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "get data",
+      "task_type": "ingest",
       "skillset": [
         "CF"
       ],
@@ -1114,7 +1117,7 @@
         "notes": "From sample",
         "supports_item_reference": false
       },
-      "notes": "Commented out in CLI v0.1.10 ItemType enum; portal-only"
+      "notes": null
     },
     "SnowflakeDatabase": {
       "display_name": "Snowflake Database",
@@ -1122,9 +1125,9 @@
         "snowflake database",
         "snowflake mirroring"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "mirror data",
+      "task_type": "mirror",
       "skillset": [
         "LC"
       ],
@@ -1152,9 +1155,9 @@
         "graph model",
         "knowledge graph model"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
-      "task_type": "govern data",
+      "task_type": "govern",
       "skillset": [
         "LC"
       ],
@@ -1182,9 +1185,9 @@
         "mirrored azure databricks catalog",
         "mirrored databricks catalog"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "mirror data",
+      "task_type": "mirror",
       "skillset": [
         "LC"
       ],
@@ -1213,9 +1216,9 @@
         "cosmos db",
         "cosmosdb"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "LC"
       ],
@@ -1250,9 +1253,9 @@
         "dataflow gen2",
         "dataflowgen2"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "get data",
+      "task_type": "ingest",
       "skillset": [
         "LC"
       ],
@@ -1272,7 +1275,11 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [".platform", "queryMetadata.json", "mashup.pq"],
+        "files": [
+          ".platform",
+          "queryMetadata.json",
+          "mashup.pq"
+        ],
         "verified": true,
         "supports_item_reference": false,
         "notes": null
@@ -1286,9 +1293,9 @@
         "user data functions",
         "userdatafunctions"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Transformation",
-      "task_type": "distribute data",
+      "task_type": "distribute",
       "skillset": [
         "CF"
       ],
@@ -1323,9 +1330,9 @@
         "realtimemap",
         "real time map"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
-      "task_type": "track data",
+      "task_type": "track",
       "skillset": [
         "LC"
       ],
@@ -1353,9 +1360,9 @@
         "graph query set",
         "graph queryset"
       ],
-      "availability": "general availability",
+      "availability": "ga",
       "phase": "Visualization",
-      "task_type": "govern data",
+      "task_type": "govern",
       "skillset": [
         "Portal"
       ],
@@ -1382,9 +1389,9 @@
       "aliases": [
         "anomaly detector"
       ],
-      "availability": "public preview",
+      "availability": "pupr",
       "phase": "ML",
-      "task_type": "analyze and train data",
+      "task_type": "train",
       "skillset": [
         "LC"
       ],
@@ -1404,16 +1411,16 @@
         "verified": false,
         "supports_item_reference": false
       },
-      "notes": null
+      "notes": "March 2026: New full-item experience — single canvas for configuration, analysis, and results. Can be added as a source in Eventstream for real-time anomaly pipelines."
     },
     "DigitalTwinBuilder": {
       "display_name": "Digital Twin Builder",
       "aliases": [
         "digital twin builder"
       ],
-      "availability": "public preview",
+      "availability": "pupr",
       "phase": "Transformation",
-      "task_type": "prepare data",
+      "task_type": "prepare",
       "skillset": [
         "LC"
       ],
@@ -1440,9 +1447,9 @@
       "aliases": [
         "digital twin builder flow"
       ],
-      "availability": "public preview",
+      "availability": "pupr",
       "phase": "Transformation",
-      "task_type": "prepare data",
+      "task_type": "prepare",
       "skillset": [
         "LC"
       ],
@@ -1469,9 +1476,9 @@
       "aliases": [
         "event schema set"
       ],
-      "availability": "public preview",
+      "availability": "pupr",
       "phase": "Ingestion",
-      "task_type": "get data",
+      "task_type": "ingest",
       "skillset": [
         "LC"
       ],
@@ -1498,9 +1505,9 @@
       "aliases": [
         "operations agent"
       ],
-      "availability": "public preview",
+      "availability": "pupr",
       "phase": "IQ",
-      "task_type": "govern data",
+      "task_type": "govern",
       "skillset": [
         "LC"
       ],
@@ -1520,7 +1527,7 @@
         "verified": false,
         "supports_item_reference": false
       },
-      "notes": null
+      "notes": "March 2026: Improved playbook generation — better field mapping to Eventhouse data, string comparison rules, count-over-time rules, and clearer error messages when playbook generation fails."
     },
     "RealTimeIntelligence": {
       "display_name": "Real-Time Intelligence",
@@ -1528,7 +1535,7 @@
         "real-time intelligence",
         "rti"
       ],
-      "availability": "public preview",
+      "availability": "pupr",
       "phase": "Monitoring",
       "task_type": "visualize",
       "skillset": [
@@ -1557,9 +1564,9 @@
       "aliases": [
         "warehouse snapshot"
       ],
-      "availability": "public preview",
+      "availability": "pupr",
       "phase": "Foundation",
-      "task_type": "store data",
+      "task_type": "store",
       "skillset": [
         "LC"
       ],
@@ -1624,6 +1631,6 @@
       "rejects_hyphens": true,
       "allowed_pattern": "[a-zA-Z0-9_ ]"
     },
-    "availability": "general availability"
+    "availability": "ga"
   }
 }
