@@ -25,8 +25,7 @@
     "cicd.files": "File patterns included in fabric-cicd workspace (array)",
     "cicd.verified": "Whether deployment has been tested end-to-end (boolean)",
     "cicd.supports_item_reference": "Whether fabric-cicd can reference this item by name (boolean)",
-    "cicd.notes": "Deployment-specific notes (optional)",
-    "notes": "Free-text clarifications (null if none)"
+    "cicd.notes": "Deployment-specific notes (optional)"
   },
   "$connection_protocols": {
     "tds": "SQL wire protocol (ODBC/JDBC/TDS) — supports ActiveDirectoryServicePrincipal, ActiveDirectoryInteractive, ActiveDirectoryPassword auth modes",
@@ -236,7 +235,7 @@
         "notes": "Nested in Eventhouse .children/",
         "supports_item_reference": false
       },
-      "notes": "Requires eventhouseId parameter"
+      "notes": null
     },
     "SQLDatabase": {
       "display_name": "SQL Database",
@@ -309,7 +308,7 @@
         "verified": false,
         "supports_item_reference": false
       },
-      "notes": "Auto-created with Lakehouse; read-only in CLI"
+      "notes": null
     },
     "Datamart": {
       "display_name": "Datamart",
@@ -406,7 +405,7 @@
         "notes": "From sample: MirroredDatabase_1",
         "supports_item_reference": false
       },
-      "notes": "API creatable but requires source database connection/config. Initial setup recommended via Fabric Portal. SAMI permissions needed for Azure SQL sources. GA sources include Azure SQL, Azure SQL MI, Azure Cosmos DB, SAP (via SAP Datasphere, March 2026), Oracle (March 2026). Preview sources include Azure Database for MySQL, SharePoint List (March 2026). Supports up to 1000 tables."
+      "notes": null
     },
     "MountedDataFactory": {
       "display_name": "Mounted Data Factory",
@@ -441,7 +440,7 @@
         "notes": "Not in sample. API: create without def = NO",
         "supports_item_reference": false
       },
-      "notes": "Azure Data Factory pipeline mounted into Fabric"
+      "notes": null
     },
     "Environment": {
       "display_name": "Environment",
@@ -471,7 +470,7 @@
         "verified": true,
         "supports_item_reference": true
       },
-      "notes": "Has publish step — may take 20+ minutes after creation"
+      "notes": null
     },
     "CopyJob": {
       "display_name": "Copy Job",
@@ -508,7 +507,7 @@
         "notes": "From sample: Hello Copy Job.CopyJob",
         "supports_item_reference": false
       },
-      "notes": "Commented out in CLI ItemType enum (v0.1.10); works via generic items API but not officially supported"
+      "notes": null
     },
     "DataPipeline": {
       "display_name": "Data Pipeline",
@@ -582,7 +581,7 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "notes": "SQL Operator GA as of March 2026 (multi-destination routing, event ordering). DeltaFlow (Preview) enables CDC from operational databases with automatic schema management."
+      "notes": null
     },
     "Notebook": {
       "display_name": "Notebook",
@@ -616,7 +615,7 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "notes": "Supports lakehouse binding and environment binding via fab set"
+      "notes": null
     },
     "SparkJobDefinition": {
       "display_name": "Spark Job Definition",
@@ -760,7 +759,7 @@
         "verified": true,
         "supports_item_reference": false
       },
-      "notes": "Accepts -P semanticModelId=<id> to bind to a semantic model"
+      "notes": null
     },
     "PaginatedReport": {
       "display_name": "Paginated Report",
@@ -1078,7 +1077,7 @@
         "notes": "Git integration and deployment pipelines GA as of March 2026. File pattern needs verification.",
         "supports_item_reference": false
       },
-      "notes": "GA March 2026. Supports Lakehouse, Warehouse, semantic models, Eventhouse, SQL databases, and mirrored databases as data sources. Includes ALM support (Git integration, deployment pipelines, diagnostics)."
+      "notes": null
     },
     "ApacheAirflowJob": {
       "display_name": "Apache Airflow Job",
@@ -1147,7 +1146,7 @@
         "verified": false,
         "supports_item_reference": false
       },
-      "notes": "Snowflake mirrored into Fabric via Mirroring"
+      "notes": null
     },
     "GraphModel": {
       "display_name": "Graph Model",
@@ -1411,7 +1410,7 @@
         "verified": false,
         "supports_item_reference": false
       },
-      "notes": "March 2026: New full-item experience — single canvas for configuration, analysis, and results. Can be added as a source in Eventstream for real-time anomaly pipelines."
+      "notes": null
     },
     "DigitalTwinBuilder": {
       "display_name": "Digital Twin Builder",
@@ -1527,7 +1526,7 @@
         "verified": false,
         "supports_item_reference": false
       },
-      "notes": "March 2026: Improved playbook generation — better field mapping to Eventhouse data, string comparison rules, count-over-time rules, and clearer error messages when playbook generation fails."
+      "notes": null
     },
     "RealTimeIntelligence": {
       "display_name": "Real-Time Intelligence",

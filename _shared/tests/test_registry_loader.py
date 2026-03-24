@@ -19,15 +19,14 @@ from registry_loader import (
     build_availability_map,
     build_deploy_method_map,
     build_test_method_map,
-    build_item_notes_map,
     build_skillset_map,
     validate_registry,
 )
 
 VALID_TASK_TYPES = {
-    "get data", "mirror data", "store data", "prepare data",
-    "analyze and train data", "track data", "visualize",
-    "distribute data", "develop", "govern data",
+    "ingest", "mirror", "store", "prepare",
+    "train", "track", "visualize",
+    "distribute", "develop", "govern",
 }
 
 VALID_PHASES = {
@@ -166,7 +165,7 @@ def test_api_name_remap_returns_dict():
             f"Remap entry {fab_type} maps to itself — should only contain mismatches"
 
 
-VALID_AVAILABILITY = {"general availability", "public preview"}
+VALID_AVAILABILITY = {"ga", "pupr", "prpr"}
 
 
 def test_availability_values_are_valid():
@@ -276,19 +275,6 @@ def test_test_method_map_definition_check_only_when_supported():
         else:
             assert val["definition_check"] is None, \
                 f"{key} has definition_check but supports_definition is False"
-
-
-# ── Item notes map tests ──────────────────────────────────────────────────
-
-def test_build_item_notes_map_returns_dict():
-    nm = build_item_notes_map()
-    assert isinstance(nm, dict)
-
-
-def test_item_notes_map_excludes_empty():
-    nm = build_item_notes_map()
-    for key, val in nm.items():
-        assert val, f"{key} has empty notes but should be excluded"
 
 
 # ── build_skillset_map ──────────────────────────────────────────────

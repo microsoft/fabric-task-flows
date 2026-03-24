@@ -255,9 +255,9 @@ def build_api_name_remap() -> dict[str, str]:
 
 
 def build_availability_map() -> dict[str, str]:
-    """Map type-name variants → availability status (``'general availability'`` or ``'public preview'``)."""
+    """Map type-name variants → availability status (``'ga'``, ``'pupr'``, or ``'prpr'``)."""
     def _value(_c: str, data: dict) -> str:
-        return data.get("availability", "general availability")
+        return data.get("availability", "ga")
 
     return _build_variant_map(_value, include_capitalized_aliases=True)
 
@@ -335,7 +335,7 @@ def build_deploy_method_map() -> dict[str, dict]:
         cicd = data.get("cicd", {})
         strategy = cicd.get("strategy")
         verified = cicd.get("verified", False)
-        availability = data.get("availability", "general availability")
+        availability = data.get("availability", "ga")
 
         if strategy in ("content", "platform_only"):
             method = "cicd"
@@ -361,7 +361,7 @@ def build_test_method_map() -> dict[str, dict]:
 
     Each value contains ``verify_method``, ``definition_check``,
     ``manual_fallback``, ``api_path``, ``supports_definition``,
-    ``is_portal_only``, ``phase``, ``phase_order``, and ``notes``.
+    ``is_portal_only``, ``phase``, and ``phase_order``.
     """
     def _value(_c: str, data: dict) -> dict:
         creatable = data.get("rest_api", {}).get("creatable", False)
@@ -369,7 +369,6 @@ def build_test_method_map() -> dict[str, dict]:
         api_path = data.get("api_path", "items")
         phase = data.get("phase", "Other")
         phase_order = data.get("phase_order", 99)
-        notes = data.get("notes", "")
 
         if creatable and has_def:
             verify = f"REST API GET /{api_path} | verify {{item}} exists"
@@ -390,17 +389,7 @@ def build_test_method_map() -> dict[str, dict]:
             "is_portal_only": not creatable,
             "phase": phase,
             "phase_order": phase_order,
-            "notes": notes,
         }
-
-    return _build_variant_map(_value)
-
-
-def build_item_notes_map() -> dict[str, str]:
-    """Map type-name variants → notes string.  Empty-notes entries skipped."""
-    def _value(_c: str, data: dict) -> str | None:
-        notes = data.get("notes", "")
-        return notes if notes else None
 
     return _build_variant_map(_value)
 
@@ -447,9 +436,9 @@ def validate_registry() -> list[str]:
         "ML", "Monitoring", "Transformation", "Visualization", "TBD",
     }
     _VALID_TASK_TYPES = {
-        "get data", "mirror data", "store data", "prepare data",
-        "analyze and train data", "track data", "visualize",
-        "distribute data", "develop", "govern data", "TBD", "",
+        "ingest", "mirror", "store", "prepare",
+        "train", "track", "visualize",
+        "distribute", "develop", "govern", "TBD", "",
     }
 
     for name, data in registry.items():

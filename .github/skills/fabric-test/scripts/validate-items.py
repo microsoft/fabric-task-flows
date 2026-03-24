@@ -134,7 +134,7 @@ def _parse_handoff(path: str) -> tuple[str, str, str, list[dict]]:
 
         # End of items block
         if in_items and stripped and not stripped.startswith("-") and not stripped.startswith("#") and ":" in stripped:
-            if stripped.split(":")[0].strip() not in ("name", "item_name", "type", "item_type", "wave", "status", "command", "notes", "deployment_time"):
+            if stripped.split(":")[0].strip() not in ("name", "item_name", "type", "item_type", "wave", "status", "command", "deployment_time"):
                 in_items = False
 
     if current:

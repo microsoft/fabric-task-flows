@@ -37,7 +37,6 @@ from registry_loader import (
     build_deploy_method_map,
     build_test_method_map,
     build_phase_map,
-    build_item_notes_map,
 )
 from yaml_utils import (
     extract_and_parse_yaml_blocks,
@@ -48,7 +47,6 @@ from yaml_utils import (
 DEPLOY_METHODS: dict[str, dict] = build_deploy_method_map()
 TEST_METHODS: dict[str, dict] = build_test_method_map()
 PHASE_MAP: dict[str, tuple[str, int]] = build_phase_map()
-ITEM_NOTES: dict[str, str] = build_item_notes_map()
 
 KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
@@ -495,7 +493,6 @@ def _check_deploy_feasibility(items: list[dict]) -> tuple[list[dict], list[dict]
 
         dm = DEPLOY_METHODS.get(item_type) or DEPLOY_METHODS.get(item_type.title())
         tm = TEST_METHODS.get(item_type) or TEST_METHODS.get(item_type.title())
-        notes = ITEM_NOTES.get(item_type) or ITEM_NOTES.get(item_type.title()) or ""
 
         if not dm:
             findings.append({
@@ -512,14 +509,12 @@ def _check_deploy_feasibility(items: list[dict]) -> tuple[list[dict], list[dict]
             "deploy_method": dm["method"],
             "strategy": dm.get("strategy"),
             "verified": dm.get("verified", False),
-            "availability": dm.get("availability", "general availability"),
+            "availability": dm.get("availability", "ga"),
             "test_method": (tm or {}).get("verify_method", "").replace("{item}", item_name),
             "has_definition": dm.get("has_definition", False),
             "phase": (tm or {}).get("phase", "Other"),
             "phase_order": (tm or {}).get("phase_order", 99),
         }
-        if notes:
-            entry["notes"] = notes
         deploy_entries.append(entry)
 
         # Portal-only: cannot be created via REST API
@@ -541,7 +536,7 @@ def _check_deploy_feasibility(items: list[dict]) -> tuple[list[dict], list[dict]
             })
 
         # Preview feature
-        if dm.get("availability") == "public preview":
+        if dm.get("availability") == "pupr":
             findings.append({
                 "area": "Deploy feasibility",
                 "severity": "yellow",
