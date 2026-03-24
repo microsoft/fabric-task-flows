@@ -12,7 +12,6 @@
     "task_type": "What the item does — see $task_type legend",
     "skillset": "Who uses it — see $skillset legend (array of LC/CF/Portal/auto)",
     "query_language": "Supported query/scripting languages — see $query_language legend (array, empty if N/A)",
-    "connection_protocols": "Wire protocols for data access — see $connection_protocols legend (array)",
     "alternatives": "Substitute or related item types for the same use case (array)",
     "api": "Fabric REST API metadata — path, creatable, definition support",
     "api.path": "REST API URL segment (e.g. 'lakehouses' → /workspaces/{id}/lakehouses)",
@@ -22,10 +21,7 @@
     "api.name": "API-specific name when it differs from the registry key (rare)",
     "cicd": "Deployment metadata for fabric-cicd integration",
     "cicd.strategy": "Deployment approach — see $cicd_strategy legend",
-    "cicd.files": "File patterns included in fabric-cicd workspace (array)",
-    "cicd.verified": "Whether deployment has been tested end-to-end (boolean)",
-    "cicd.supports_item_reference": "Whether fabric-cicd can reference this item by name (boolean)",
-    "cicd.notes": "Deployment-specific notes (optional)"
+    "cicd.verified": "Whether deployment has been tested end-to-end (boolean)"
   },
   "$connection_protocols": {
     "tds": "SQL wire protocol (ODBC/JDBC/TDS) — supports ActiveDirectoryServicePrincipal, ActiveDirectoryInteractive, ActiveDirectoryPassword auth modes",
@@ -102,11 +98,6 @@
         "scala",
         "sql-readonly"
       ],
-      "connection_protocols": [
-        "tds",
-        "abfss",
-        "livy"
-      ],
       "alternatives": [
         "Warehouse",
         "Eventhouse",
@@ -120,13 +111,8 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "files": [
-          ".platform"
-        ],
-        "verified": true,
-        "supports_item_reference": true
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "Warehouse": {
       "display_name": "Warehouse",
@@ -139,10 +125,6 @@
       ],
       "query_language": [
         "t-sql"
-      ],
-      "connection_protocols": [
-        "tds",
-        "abfss"
       ],
       "alternatives": [
         "Lakehouse",
@@ -157,13 +139,8 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "files": [
-          ".platform"
-        ],
-        "verified": true,
-        "supports_item_reference": true
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "Eventhouse": {
       "display_name": "Eventhouse",
@@ -176,9 +153,6 @@
       ],
       "query_language": [
         "kql"
-      ],
-      "connection_protocols": [
-        "rest"
       ],
       "alternatives": [
         "Lakehouse",
@@ -193,14 +167,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "EventhouseProperties.json"
-        ],
-        "verified": true,
-        "supports_item_reference": true
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "KQLDatabase": {
       "display_name": "KQL Database",
@@ -216,10 +184,6 @@
       "query_language": [
         "kql"
       ],
-      "connection_protocols": [
-        "kusto",
-        "abfss"
-      ],
       "alternatives": [],
       "api": {
         "path": "kqlDatabases",
@@ -228,14 +192,8 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "files": [
-          ".platform"
-        ],
-        "verified": false,
-        "notes": "Nested in Eventhouse .children/",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "SQLDatabase": {
       "display_name": "SQL Database",
@@ -251,9 +209,6 @@
       "query_language": [
         "t-sql"
       ],
-      "connection_protocols": [
-        "tds"
-      ],
       "alternatives": [
         "Lakehouse",
         "Warehouse",
@@ -267,15 +222,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "{name}.sqlproj"
-        ],
-        "verified": false,
-        "notes": "From sample: Hello db.SQLDatabase",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "SQLEndpoint": {
       "display_name": "SQL Endpoint",
@@ -292,10 +240,6 @@
       "query_language": [
         "t-sql"
       ],
-      "connection_protocols": [
-        "tds",
-        "abfss"
-      ],
       "alternatives": [],
       "api": {
         "path": "sqlEndpoints",
@@ -304,11 +248,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "Datamart": {
       "display_name": "Datamart",
@@ -322,9 +263,6 @@
       "query_language": [
         "t-sql"
       ],
-      "connection_protocols": [
-        "tds"
-      ],
       "alternatives": [],
       "api": {
         "path": "datamarts",
@@ -333,11 +271,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "MirroredWarehouse": {
       "display_name": "Mirrored Warehouse",
@@ -351,10 +286,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "tds",
-        "abfss"
-      ],
       "alternatives": [
         "MirroredDatabase"
       ],
@@ -365,11 +296,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "MirroredDatabase": {
       "display_name": "Mirrored Database",
@@ -383,10 +311,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "tds",
-        "abfss"
-      ],
       "alternatives": [
         "MirroredWarehouse"
       ],
@@ -397,15 +321,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "mirroring.json"
-        ],
-        "verified": false,
-        "notes": "From sample: MirroredDatabase_1",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "MountedDataFactory": {
       "display_name": "Mounted Data Factory",
@@ -422,9 +339,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "mounteddatafactories",
@@ -433,14 +347,8 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "files": [
-          ".platform"
-        ],
-        "verified": false,
-        "notes": "Not in sample. API: create without def = NO",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "Environment": {
       "display_name": "Environment",
@@ -452,9 +360,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "environments",
@@ -463,14 +368,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "Setting/Sparkcompute.yml"
-        ],
-        "verified": true,
-        "supports_item_reference": true
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "CopyJob": {
       "display_name": "Copy Job",
@@ -484,9 +383,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [
         "DataPipeline",
         "Dataflow",
@@ -499,15 +395,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "copyjob-content.json"
-        ],
-        "verified": false,
-        "notes": "From sample: Hello Copy Job.CopyJob",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "DataPipeline": {
       "display_name": "Data Pipeline",
@@ -523,9 +412,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [
         "CopyJob",
         "Dataflow",
@@ -538,14 +424,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "pipeline-content.json"
-        ],
-        "verified": true,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "Eventstream": {
       "display_name": "Eventstream",
@@ -557,10 +437,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "kafka",
-        "rest"
-      ],
       "alternatives": [
         "CopyJob",
         "DataPipeline",
@@ -573,15 +449,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "eventstream.json",
-          "eventstreamProperties.json"
-        ],
-        "verified": true,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "Notebook": {
       "display_name": "Notebook",
@@ -593,10 +462,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "livy",
-        "rest"
-      ],
       "alternatives": [
         "SparkJobDefinition",
         "KQLQueryset"
@@ -608,14 +473,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "notebook-content.py"
-        ],
-        "verified": true,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "SparkJobDefinition": {
       "display_name": "Spark Job Definition",
@@ -630,10 +489,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "livy",
-        "rest"
-      ],
       "alternatives": [
         "Notebook",
         "KQLQueryset"
@@ -645,14 +500,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "SparkJobDefinitionV1.json"
-        ],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "KQLQueryset": {
       "display_name": "KQL Queryset",
@@ -666,9 +515,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "kusto"
-      ],
       "alternatives": [
         "Notebook",
         "SparkJobDefinition"
@@ -680,14 +526,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "RealTimeQueryset.json"
-        ],
-        "verified": true,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "SemanticModel": {
       "display_name": "Semantic Model",
@@ -702,10 +542,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "xmla",
-        "rest"
-      ],
       "alternatives": [
         "Report",
         "KQLDashboard"
@@ -717,15 +553,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "definition.pbism",
-          "definition/model.tmdl"
-        ],
-        "verified": true,
-        "supports_item_reference": true
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "Report": {
       "display_name": "Report",
@@ -737,9 +566,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [
         "SemanticModel",
         "KQLDashboard"
@@ -751,15 +577,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "definition.pbir",
-          "report.json"
-        ],
-        "verified": true,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "PaginatedReport": {
       "display_name": "Paginated Report",
@@ -773,9 +592,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "paginatedReports",
@@ -784,11 +600,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "Dashboard": {
       "display_name": "Dashboard",
@@ -800,9 +613,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "dashboards",
@@ -811,11 +621,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "KQLDashboard": {
       "display_name": "Real-Time Dashboard",
@@ -831,9 +638,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [
         "SemanticModel",
         "Report"
@@ -845,14 +649,8 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "files": [
-          ".platform"
-        ],
-        "verified": true,
-        "notes": "Content file causes parser error in fabric-cicd",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "MLExperiment": {
       "display_name": "ML Experiment",
@@ -867,10 +665,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "livy",
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "mlExperiments",
@@ -879,14 +673,8 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "files": [
-          ".platform"
-        ],
-        "verified": true,
-        "notes": "Definition not supported by API",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "MLModel": {
       "display_name": "ML Model",
@@ -900,10 +688,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "livy",
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "mlModels",
@@ -912,12 +696,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": true,
-        "notes": "Not supported by fabric-cicd",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "Reflex": {
       "display_name": "Activator",
@@ -931,9 +711,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "reflexes",
@@ -942,14 +719,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "ReflexEntities.json"
-        ],
-        "verified": true,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "GraphQLApi": {
       "display_name": "GraphQL API",
@@ -964,9 +735,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "graphql"
-      ],
       "alternatives": [],
       "api": {
         "path": "graphqlapis",
@@ -975,15 +743,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "graphql-definition.json"
-        ],
-        "verified": false,
-        "notes": "From sample: Sample.GraphQLApi",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "VariableLibrary": {
       "display_name": "Variable Library",
@@ -997,9 +758,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "variableLibraries",
@@ -1008,15 +766,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "variables.json",
-          "settings.json"
-        ],
-        "verified": true,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "Ontology": {
       "display_name": "Ontology",
@@ -1028,9 +779,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "ontologies",
@@ -1039,11 +787,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "DataAgent": {
       "display_name": "Data Agent",
@@ -1058,9 +803,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "dataAgents",
@@ -1069,15 +811,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "dataAgent-content.json"
-        ],
-        "verified": false,
-        "notes": "Git integration and deployment pipelines GA as of March 2026. File pattern needs verification.",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "ApacheAirflowJob": {
       "display_name": "Apache Airflow Job",
@@ -1094,9 +829,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "apacheAirflowJobs",
@@ -1107,16 +839,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "apacheairflowjob-content.json",
-          "dags/dag1.py"
-        ],
-        "verified": false,
-        "notes": "From sample",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "SnowflakeDatabase": {
       "display_name": "Snowflake Database",
@@ -1131,9 +855,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "snowflakeDatabases",
@@ -1142,11 +863,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "GraphModel": {
       "display_name": "Graph Model",
@@ -1161,9 +879,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "graphModels",
@@ -1172,11 +887,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "MirroredAzureDatabricksCatalog": {
       "display_name": "Mirrored Azure Databricks Catalog",
@@ -1191,9 +903,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "mirroredAzureDatabricksCatalogs",
@@ -1202,11 +911,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "CosmosDBDatabase": {
       "display_name": "Cosmos DB Database",
@@ -1224,9 +930,6 @@
       "query_language": [
         "nosql"
       ],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [
         "Lakehouse",
         "Warehouse",
@@ -1240,11 +943,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "Dataflow": {
       "display_name": "Dataflow Gen2",
@@ -1259,9 +959,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [
         "CopyJob",
         "DataPipeline",
@@ -1274,16 +971,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "queryMetadata.json",
-          "mashup.pq"
-        ],
-        "verified": true,
-        "supports_item_reference": false,
-        "notes": null
-      },
-      "notes": null
+        "verified": true
+      }
     },
     "UserDataFunction": {
       "display_name": "User Data Functions",
@@ -1299,9 +988,6 @@
         "CF"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "userDataFunctions",
@@ -1310,17 +996,8 @@
       },
       "cicd": {
         "strategy": "content",
-        "files": [
-          ".platform",
-          "function_app.py",
-          "definitions.json",
-          ".resources/functions.json"
-        ],
-        "verified": false,
-        "notes": "From sample",
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "Map": {
       "display_name": "Map",
@@ -1336,9 +1013,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "maps",
@@ -1347,11 +1021,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "GraphQuerySet": {
       "display_name": "Graph Queryset",
@@ -1366,9 +1037,6 @@
         "Portal"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "graphQuerySets",
@@ -1377,11 +1045,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "AnomalyDetector": {
       "display_name": "Anomaly Detector",
@@ -1395,9 +1060,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "anomalyDetectors",
@@ -1406,11 +1068,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "DigitalTwinBuilder": {
       "display_name": "Digital Twin Builder",
@@ -1424,9 +1083,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "digitalTwinBuilders",
@@ -1435,11 +1091,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "DigitalTwinBuilderFlow": {
       "display_name": "Digital Twin Builder Flow",
@@ -1453,9 +1106,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "digitalTwinBuilderFlows",
@@ -1464,11 +1114,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "EventSchemaSet": {
       "display_name": "Event Schema Set",
@@ -1482,9 +1129,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "eventSchemasets",
@@ -1493,11 +1137,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "OperationsAgent": {
       "display_name": "Operations Agent",
@@ -1511,9 +1152,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "operationsAgents",
@@ -1522,11 +1160,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "RealTimeIntelligence": {
       "display_name": "Real-Time Intelligence",
@@ -1541,9 +1176,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "rest"
-      ],
       "alternatives": [],
       "api": {
         "path": "realTimeIntelligence",
@@ -1552,11 +1184,8 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     },
     "WarehouseSnapshot": {
       "display_name": "Warehouse Snapshot",
@@ -1570,10 +1199,6 @@
         "LC"
       ],
       "query_language": [],
-      "connection_protocols": [
-        "tds",
-        "abfss"
-      ],
       "alternatives": [],
       "api": {
         "path": "warehouseSnapshots",
@@ -1582,54 +1207,11 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "files": [],
-        "verified": false,
-        "supports_item_reference": false
-      },
-      "notes": null
+        "verified": false
+      }
     }
   },
-  "cicd_type_remap": {
-    "Activator": "Reflex",
-    "Real-Time Dashboard": "KQLDashboard",
-    "KQL Dashboard": "KQLDashboard",
-    "ML Experiment": "MLExperiment",
-    "ML Model": "MLExperiment",
-    "Dashboard": null,
-    "Variable Library": "VariableLibrary"
-  },
-  "cicd_supported_types": [
-    "ApacheAirflowJob",
-    "CopyJob",
-    "DataAgent",
-    "DataPipeline",
-    "Dataflow",
-    "Environment",
-    "Eventhouse",
-    "Eventstream",
-    "GraphQLApi",
-    "KQLDashboard",
-    "KQLDatabase",
-    "KQLQueryset",
-    "Lakehouse",
-    "MLExperiment",
-    "MirroredDatabase",
-    "MountedDataFactory",
-    "Notebook",
-    "Reflex",
-    "Report",
-    "SQLDatabase",
-    "SemanticModel",
-    "SparkJobDefinition",
-    "UserDataFunction",
-    "VariableLibrary",
-    "Warehouse"
-  ],
   "$defaults": {
-    "naming": {
-      "rejects_hyphens": true,
-      "allowed_pattern": "[a-zA-Z0-9_ ]"
-    },
     "availability": "ga"
   }
 }

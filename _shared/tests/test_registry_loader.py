@@ -12,14 +12,9 @@ from registry_loader import (
     build_display_names,
     build_phase_map,
     build_task_type_map,
-    build_portal_only_items,
     build_fab_type_map,
-    build_api_creatable_items,
-    build_api_name_remap,
-    build_availability_map,
     build_deploy_method_map,
     build_test_method_map,
-    build_skillset_map,
     validate_registry,
 )
 
@@ -120,49 +115,11 @@ def test_build_phase_map_returns_tuples():
         assert isinstance(phase_order, int)
 
 
-def test_portal_only_excludes_api_creatable():
-    registry = load_registry()
-    portal_only = build_portal_only_items()
-    for name, data in registry.items():
-        if data.get("rest_api", {}).get("creatable", False):
-            assert name.lower() not in portal_only, \
-                f"{name} is REST API creatable but appears in portal_only"
-
-
 def test_fab_type_map_covers_canonical():
     registry = load_registry()
     fab_map = build_fab_type_map()
     for name in registry:
         assert name in fab_map, f"Canonical type {name} missing from fab_type_map"
-
-
-def test_api_creatable_items_returns_set():
-    creatable = build_api_creatable_items()
-    assert isinstance(creatable, set)
-    assert len(creatable) > 0
-    # Lakehouse and Warehouse should always be API-creatable
-    assert "Lakehouse" in creatable
-    assert "Warehouse" in creatable
-    # DataAgent is confirmed API-creatable
-    assert "DataAgent" in creatable
-
-
-def test_api_creatable_excludes_non_creatable():
-    registry = load_registry()
-    creatable = build_api_creatable_items()
-    for name, data in registry.items():
-        if not data.get("rest_api", {}).get("creatable", False):
-            assert data["fab_type"] not in creatable, \
-                f"{name} marked not creatable but appears in build_api_creatable_items()"
-
-
-def test_api_name_remap_returns_dict():
-    remap = build_api_name_remap()
-    assert isinstance(remap, dict)
-    # Known mismatches should be present
-    for fab_type, api_name in remap.items():
-        assert fab_type != api_name, \
-            f"Remap entry {fab_type} maps to itself — should only contain mismatches"
 
 
 VALID_AVAILABILITY = {"ga", "pupr", "prpr"}
@@ -173,22 +130,6 @@ def test_availability_values_are_valid():
     for name, data in registry.items():
         avail = data["availability"]
         assert avail in VALID_AVAILABILITY, f"{name} has invalid availability: {avail}"
-
-
-def test_build_availability_map_returns_dict():
-    avail_map = build_availability_map()
-    assert isinstance(avail_map, dict)
-    assert len(avail_map) > 0
-    # All values should be valid availability strings
-    for key, val in avail_map.items():
-        assert val in VALID_AVAILABILITY, f"Invalid availability for {key}: {val}"
-
-
-def test_build_availability_map_covers_canonical():
-    registry = load_registry()
-    avail_map = build_availability_map()
-    for name in registry:
-        assert name in avail_map, f"Canonical type {name} missing from availability_map"
 
 
 # ── Deploy method map tests ───────────────────────────────────────────────
@@ -277,39 +218,7 @@ def test_test_method_map_definition_check_only_when_supported():
                 f"{key} has definition_check but supports_definition is False"
 
 
-# ── build_skillset_map ──────────────────────────────────────────────
-
-
-def test_build_skillset_map_returns_dict():
-    sm = build_skillset_map()
-    assert isinstance(sm, dict)
-    assert len(sm) > 0
-
-
-def test_skillset_map_values_are_lists():
-    sm = build_skillset_map()
-    for key, val in sm.items():
-        assert isinstance(val, list), f"{key} skillset is not a list: {val}"
-
-
-VALID_SKILLSETS = {"LC", "CF", "auto", "Portal"}
-
-
-def test_skillset_map_valid_tags():
-    sm = build_skillset_map()
-    for key, val in sm.items():
-        for tag in val:
-            assert tag in VALID_SKILLSETS, f"{key} has invalid skillset tag: {tag}"
-
-
-def test_skillset_map_known_items():
-    sm = build_skillset_map()
-    assert sm.get("Notebook") == ["CF"]
-    assert sm.get("Lakehouse") == ["LC"]
-    assert "LC" in sm.get("Data Pipeline", []) or "LC" in sm.get("DataPipeline", [])
-
-
-# ── validate_registry ─────────────────────────────────────────────────────
+# ── validate_registry─────────────────────────────────────────────────────
 
 
 def test_validate_registry_returns_no_errors():

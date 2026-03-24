@@ -31,7 +31,7 @@ _cache: dict | None = None
 def load_registry() -> dict[str, dict]:
     """Load the item type registry.  Returns the ``types`` dict.
 
-    Applies ``$defaults`` (naming, availability) and reconstructs derived
+    Applies ``$defaults`` (availability) and reconstructs derived
     fields (``fab_type`` defaults to key name, ``rest_api`` from flat booleans,
     auto-generated lowercase alias) so downstream code sees the full shape.
 
@@ -52,9 +52,6 @@ def load_registry() -> dict[str, dict]:
         defaults = data.get("$defaults", {})
         types = data["types"]
         for name, item in types.items():
-            # Apply naming default
-            if "naming" not in item and "naming" in defaults:
-                item["naming"] = defaults["naming"].copy()
             # Apply availability default
             if "availability" not in item and "availability" in defaults:
                 item["availability"] = defaults["availability"]
@@ -217,51 +214,6 @@ def build_task_type_map() -> dict[str, str]:
     return _build_variant_map(_value, include_capitalized_aliases=True)
 
 
-def build_portal_only_items() -> dict[str, str]:
-    """Map lowercase name → ``fab_type`` for portal-only items.
-
-    Items that *can* be created via the REST API are excluded.
-    """
-    registry = load_registry()
-    result: dict[str, str] = {}
-    for canonical, data in registry.items():
-        if not data.get("rest_api", {}).get("creatable", False):
-            fab = data.get("fab_type", canonical)
-            result[canonical.lower()] = fab
-            result[data.get("display_name", canonical).lower()] = fab
-            for alias in data.get("aliases", []):
-                result[alias.lower()] = fab
-    return result
-
-
-def build_api_creatable_items() -> set[str]:
-    """Return ``fab_type`` values creatable via the Fabric REST API."""
-    registry = load_registry()
-    return {
-        data.get("fab_type", name)
-        for name, data in registry.items()
-        if data.get("rest_api", {}).get("creatable", False)
-    }
-
-
-def build_api_name_remap() -> dict[str, str]:
-    """Map ``fab_type`` → REST API name where they differ."""
-    registry = load_registry()
-    return {
-        data.get("fab_type", name): data["rest_api"]["api_name"]
-        for name, data in registry.items()
-        if "api_name" in data.get("rest_api", {})
-    }
-
-
-def build_availability_map() -> dict[str, str]:
-    """Map type-name variants → availability status (``'ga'``, ``'pupr'``, or ``'prpr'``)."""
-    def _value(_c: str, data: dict) -> str:
-        return data.get("availability", "ga")
-
-    return _build_variant_map(_value, include_capitalized_aliases=True)
-
-
 def build_fab_type_map() -> dict[str, str]:
     """Map display-name variants → ``fab_type``.
 
@@ -390,14 +342,6 @@ def build_test_method_map() -> dict[str, dict]:
             "phase": phase,
             "phase_order": phase_order,
         }
-
-    return _build_variant_map(_value)
-
-
-def build_skillset_map() -> dict[str, list[str]]:
-    """Map type-name variants → skillset list (e.g. ``["LC"]``)."""
-    def _value(_c: str, data: dict) -> list[str]:
-        return data.get("skillset", [])
 
     return _build_variant_map(_value)
 

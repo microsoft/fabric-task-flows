@@ -1,6 +1,6 @@
 # Deployment Gotchas — Operational Reference
 
-> Item API capabilities and deployment methods are in `registry_loader.build_api_creatable_items()` and `build_deploy_method_map()`. This file contains only hard-won operational learnings.
+> Item API capabilities and deployment methods are in `registry_loader.build_deploy_method_map()`. This file contains only hard-won operational learnings.
 
 ## Key Learnings (Do Not Repeat These Mistakes)
 
