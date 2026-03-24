@@ -61,9 +61,9 @@
     "train": "ML experimentation and model training (MLExperiment, MLModel)",
     "track": "Monitors data quality and triggers (Reflex, AnomalyDetector)",
     "visualize": "Presents data to users (Report, Dashboard, KQLDashboard)",
-    "distribute": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction)",
+    "distribute": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction, DataAgent)",
     "develop": "Development tooling and runtime config (Environment, VariableLibrary)",
-    "govern": "Metadata, ontology, and AI governance (Ontology, DataAgent)"
+    "govern": "Metadata and ontology governance (Ontology)"
   },
   "$cicd_strategy": {
     "content": "Item definition + content files deployed via fabric-cicd (full version control)",
@@ -752,7 +752,7 @@
       ],
       "availability": "ga",
       "phase": "Environment",
-      "task_type": "govern",
+      "task_type": "develop",
       "skillset": [
         "LC"
       ],
@@ -797,7 +797,7 @@
       ],
       "availability": "ga",
       "phase": "IQ",
-      "task_type": "govern",
+      "task_type": "distribute",
       "skillset": [
         "LC"
       ],
@@ -873,7 +873,7 @@
       ],
       "availability": "ga",
       "phase": "Visualization",
-      "task_type": "govern",
+      "task_type": "prepare",
       "skillset": [
         "LC"
       ],
@@ -1031,7 +1031,7 @@
       ],
       "availability": "ga",
       "phase": "Visualization",
-      "task_type": "govern",
+      "task_type": "prepare",
       "skillset": [
         "Portal"
       ],
@@ -1146,7 +1146,7 @@
       ],
       "availability": "pupr",
       "phase": "IQ",
-      "task_type": "govern",
+      "task_type": "track",
       "skillset": [
         "LC"
       ],
