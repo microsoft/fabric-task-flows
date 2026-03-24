@@ -30,3 +30,6 @@ desktop.ini
 
 # Projects (per-customer data — local only)
 projects/
+
+# Session-local learnings (not committed)
+_shared/learnings.md

@@ -54,7 +54,6 @@ Pipeline utilities live in `_shared/scripts/`. Shared library modules live in `_
 | `text_utils.py` | `_shared/lib/` | Shared module — slugify and text utilities |
 | `deployment_loader.py` | `_shared/lib/` | Shared module — deployment order registry loader |
 | `banner.py` | `_shared/lib/` | Shared module — branded banner art for generated scripts |
-| `logging_utils.py` | `_shared/lib/` | Shared module — structured logging helpers |
 | `paths.py` | `_shared/lib/` | Shared module — canonical path resolution |
 
 **Registries:** All canonical registry files live in `_shared/registry/`:
