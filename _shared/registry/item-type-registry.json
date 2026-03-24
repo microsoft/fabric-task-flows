@@ -59,8 +59,8 @@
     "mirror": "Replicates external data into Fabric (MirroredDatabase, MirroredWarehouse)",
     "prepare": "Transforms and enriches data (Notebook, SparkJobDefinition, Dataflow)",
     "train": "ML experimentation and model training (MLExperiment, MLModel)",
-    "track": "Monitors data quality and triggers (Reflex, AnomalyDetector)",
-    "visualize": "Presents data to users (Report, Dashboard, KQLDashboard)",
+    "track": "Monitors data quality and triggers (Reflex)",
+    "visualize": "Presents data to users (Report, Dashboard, Real-Time Dashboard, KQLDashboard, Map)",
     "distribute": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction, DataAgent)",
     "develop": "Development tooling and runtime config (Environment, VariableLibrary)",
     "govern": "Metadata and ontology governance (Ontology)"
@@ -632,7 +632,7 @@
       ],
       "availability": "ga",
       "phase": "Visualization",
-      "task_type": "track",
+      "task_type": "visualize",
       "skillset": [
         "LC"
       ],
@@ -1007,7 +1007,7 @@
       ],
       "availability": "ga",
       "phase": "Visualization",
-      "task_type": "track",
+      "task_type": "visualize",
       "skillset": [
         "LC"
       ],
