@@ -269,31 +269,6 @@
         "verified": false
       }
     },
-    "Datamart": {
-      "display_name": "Datamart",
-      "aliases": [
-        "data mart"
-      ],
-      "availability": "ga",
-      "phase": "Foundation",
-      "task_type": "store",
-      "skillset": [
-        "LC"
-      ],
-      "query_language": [
-        "t-sql"
-      ],
-      "alternatives": [],
-      "api": {
-        "path": "datamarts",
-        "creatable": true,
-        "definition": false
-      },
-      "cicd": {
-        "strategy": "unsupported",
-        "verified": false
-      }
-    },
     "MirroredWarehouse": {
       "display_name": "Mirrored Warehouse",
       "aliases": [
