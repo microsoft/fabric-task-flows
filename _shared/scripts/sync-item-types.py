@@ -85,13 +85,10 @@ def diff(registry: dict, cli_types: dict[str, str], format_map: dict[str, str]) 
     in_cli_not_registry = cli_values - reg_fab_types
     in_registry_not_cli = reg_fab_types - cli_values
 
-    # Check for types where we say cli_supported=true but CLI doesn't have them
-    # (Removed — cli_supported field deprecated)
 
     return {
         "in_cli_not_registry": sorted(in_cli_not_registry),
         "in_registry_not_cli": sorted(in_registry_not_cli),
-        "cli_version": registry.get("$cli_version", "N/A"),
         "registry_type_count": len(reg_types),
         "cli_type_count": len(cli_types),
     }
@@ -101,7 +98,6 @@ def print_diff(report: dict) -> None:
     """Print a human-readable diff report."""
     print(f"Registry types: {report['registry_type_count']}")
     print(f"CLI types:      {report['cli_type_count']}")
-    print(f"Registry CLI version: {report['cli_version']}")
     print()
 
     if report["in_cli_not_registry"]:

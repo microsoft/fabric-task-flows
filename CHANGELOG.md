@@ -27,7 +27,7 @@ All notable changes to this project are documented in this file.
 
 - **Item content is now template-driven** — `_gen_item_definitions()` loads from `_shared/templates/` as primary source, with `cicd-templates.json` as fallback. Only Notebook, Report, and SQLDatabase use code-based generation (they need runtime values).
 - **Project scaffold trimmed** — Cut from 17 files to 3 files; removed all empty template placeholders.
-- **862 tests** (up from 557), all passing.
+- **838 tests** (up from 557), all passing.
 
 ## [1.0.1] — 2026-03-10
 

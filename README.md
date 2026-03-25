@@ -24,7 +24,7 @@ The pipeline runner generates agent prompts — paste each into Copilot chat. Us
 
 ## Item Type Registry
 
-The **[Item Type Registry](_shared/registry/item-type-registry.json)** is the single source of truth for all Fabric item types — 25+ items with metadata including API paths, CI/CD deployment strategies, and wave ordering. This registry drives task flows, deployment scripts, and decision resolution.
+The **[Item Type Registry](_shared/registry/item-type-registry.json)** is the single source of truth for all Fabric item types — 45 items with metadata including API paths, CI/CD deployment strategies, and wave ordering. This registry drives task flows, deployment scripts, and decision resolution.
 
 ## Item Definition Templates
 
@@ -72,7 +72,7 @@ _shared/registry/       → Canonical JSON registries (item types, deployment or
 _shared/templates/      → Empty-state item definition files (source of truth for fabric-cicd)
 _shared/lib/            → Shared Python modules
 _shared/scripts/        → Pipeline CLI (run-pipeline, new-project, fleet-runner)
-_shared/tests/          → Test suite (862 tests)
+_shared/tests/          → Test suite (838 tests)
 _projects/              → Per-project workspaces (gitignored)
 ```
 

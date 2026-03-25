@@ -60,7 +60,7 @@
     "prepare": "Transforms and enriches data (Notebook, SparkJobDefinition, Dataflow)",
     "train": "ML experimentation and model training (MLExperiment, MLModel)",
     "track": "Monitors data quality and triggers (Reflex)",
-    "visualize": "Presents data to users (Report, Dashboard, Real-Time Dashboard, KQLDashboard, Map)",
+    "visualize": "Presents data to users (Report, Dashboard, Scorecard, Real-Time Dashboard, KQLDashboard, Map)",
     "distribute": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction, DataAgent)",
     "develop": "Development tooling and runtime config (Environment, VariableLibrary)",
     "govern": "Metadata and ontology governance (Ontology)"
@@ -1272,6 +1272,35 @@
       "alternatives": [],
       "api": {
         "path": "warehouseSnapshots",
+        "creatable": true,
+        "definition": false
+      },
+      "cicd": {
+        "strategy": "unsupported",
+        "verified": false
+      }
+    },
+    "Scorecard": {
+      "display_name": "Metrics Scorecard",
+      "aliases": [
+        "metrics scorecard",
+        "scorecard",
+        "kpi scorecard",
+        "goals"
+      ],
+      "availability": "ga",
+      "phase": "Visualization",
+      "task_type": "visualize",
+      "skillset": [
+        "LC"
+      ],
+      "query_language": [],
+      "alternatives": [
+        "Report",
+        "Dashboard"
+      ],
+      "api": {
+        "path": "scorecards",
         "creatable": true,
         "definition": false
       },

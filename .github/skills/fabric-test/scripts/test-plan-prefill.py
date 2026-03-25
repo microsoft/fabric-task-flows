@@ -259,7 +259,7 @@ def _build_test_method(
     _tm = TEST_METHOD_MAP.get(item_type) or TEST_METHOD_MAP.get(fab_type) or {}
 
     deploy_note = ""
-    if dm.get("availability") == "public preview":
+    if dm.get("availability") == "pupr":
         deploy_note = "Public preview feature — may have limited API support"
     if dm.get("method") == "cicd" and dm.get("verified"):
         cicd_note = f"fabric-cicd ({dm.get('strategy')}, verified)"

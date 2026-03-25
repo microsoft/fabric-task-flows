@@ -14,12 +14,10 @@ DEPLOY_SKILL = REPO_ROOT / ".github" / "skills" / "fabric-deploy"
 
 def test_deploy_script_gen_imports():
     """Verify deploy-script-gen.py's registry data loads correctly."""
-    from registry_loader import build_fab_commands, build_display_names
-    cmds = build_fab_commands()
+    from registry_loader import build_display_names
     names = build_display_names()
-    assert len(cmds) > 0, "FAB_COMMANDS should not be empty"
     assert len(names) > 0, "DISPLAY_NAMES should not be empty"
-    assert "lakehouse" in cmds, "Lakehouse should be in FAB_COMMANDS"
+    assert "lakehouse" in names, "Lakehouse should be in DISPLAY_NAMES"
 
 
 def test_generated_artifacts():

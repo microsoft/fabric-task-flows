@@ -8,7 +8,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 
 from registry_loader import (
     load_registry,
-    build_fab_commands,
     build_display_names,
     build_phase_map,
     build_task_type_map,
@@ -75,18 +74,6 @@ def test_aliases_are_lowercase():
     for name, data in registry.items():
         for alias in data["aliases"]:
             assert alias == alias.lower(), f"{name} alias not lowercase: {alias}"
-
-
-def test_build_fab_commands_returns_dict():
-    cmds = build_fab_commands()
-    assert isinstance(cmds, dict)
-    assert len(cmds) > 0
-    # Lakehouse should be REST API creatable
-    assert "lakehouse" in cmds
-    assert cmds["lakehouse"] is True
-    # Non-creatable items should be False
-    for key, val in cmds.items():
-        assert isinstance(val, bool), f"{key} should be bool, got {type(val)}"
 
 
 def test_build_display_names_returns_dict():

@@ -20,8 +20,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import importlib
-import importlib.util
 import json
 import os
 import re
@@ -46,12 +44,8 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 
 def parse_problem_file(path: str) -> list[dict]:
     """Parse problem-statements.md into [{id, category, text, name}]."""
-    # Import sanitize_name from new-project to match scaffold behavior
-    spec = importlib.util.spec_from_file_location(
-        "new_project", str(SCRIPTS_DIR / "new-project.py"))
-    np = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(np)
-    sanitize_name = np.sanitize_name
+    # Import sanitize_name via text_utils.slugify (matches scaffold behavior)
+    from text_utils import slugify as sanitize_name
 
     content = Path(path).read_text(encoding="utf-8")
     problems = []

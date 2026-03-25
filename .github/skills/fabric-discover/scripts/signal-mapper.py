@@ -458,13 +458,24 @@ def map_signals(text: str) -> dict:
     # so they must NOT inflate keyword_coverage.
     keyword_coverage = round(min(covered / total_words, 1.0), 2)
 
-    return {
+    advisory = None
+    if keyword_coverage < 0.05:
+        advisory = (
+            "Very low keyword coverage. The problem statement may use "
+            "domain-specific language not in the signal registry. "
+            "Ask more targeted follow-up questions to fill gaps."
+        )
+
+    result = {
         "signals": signals,
         "task_flow_candidates": candidates,
         "primary_velocity": primary_velocity,
         "ambiguous": ambiguous,
         "keyword_coverage": keyword_coverage,
     }
+    if advisory:
+        result["advisory"] = advisory
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -545,6 +556,8 @@ def _to_yaml(data: dict) -> str:
     lines.append(f"primary_velocity: {data['primary_velocity']}")
     lines.append(f"ambiguous: {'true' if data['ambiguous'] else 'false'}")
     lines.append(f"keyword_coverage: {data['keyword_coverage']}")
+    if "advisory" in data:
+        lines.append(f"advisory: \"{data['advisory']}\"")
 
     return "\n".join(lines) + "\n"
 

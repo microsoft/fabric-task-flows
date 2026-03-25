@@ -15,7 +15,7 @@ description: >
 
 ### Step 1: Read Pipeline Handoffs
 
-Read these files from `_projects/[name]/docs/` to gather all project data:
+Read these files **in parallel** from `_projects/[name]/docs/` (all are independent inputs):
 - `discovery-brief.md` — problem statement and signals
 - `architecture-handoff.md` — items, waves, decisions, trade-offs, diagram
 - `deployment-handoff.md` — what was deployed, config rationale, manual steps

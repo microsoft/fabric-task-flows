@@ -64,7 +64,7 @@ Pipeline utilities live in `_shared/scripts/`. Shared library modules live in `_
 - `_shared/registry/skills-registry.json` — Skill metadata for pipeline orchestration
 - `_shared/registry/validation-checklists.json` — Post-deployment manual steps and phases per task flow
 
-**Item templates:** `_shared/templates/` contains empty-state definition files for every Fabric item type (19 types). These are the single source of truth for `fabric-cicd` deployment — the deploy script generator copies them verbatim into each project's workspace directory. See [`_shared/templates/README.md`](_shared/templates/README.md) for the full inventory.
+**Item templates:** `_shared/templates/` contains empty-state definition files for 19 deployable Fabric item types (of 45 total in registry). These are the single source of truth for `fabric-cicd` deployment — the deploy script generator copies them verbatim into each project's workspace directory. See [`_shared/templates/README.md`](_shared/templates/README.md) for the full inventory.
 
 Update these JSON files when adding/modifying task flows — the markdown tables in diagram/validation files are for human visualization only.
 

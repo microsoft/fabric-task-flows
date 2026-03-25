@@ -158,24 +158,6 @@ def _build_variant_map(
     return result
 
 
-def build_fab_commands() -> dict[str, bool]:
-    """Map lowercase type variants → REST API creatability flag.
-
-    Returns ``{lowercase_alias: True/False}``.
-
-    .. deprecated:: Name kept for backward compatibility; now returns
-       REST API creatability flags, not CLI commands.
-    """
-    registry = load_registry()
-    result: dict[str, bool] = {}
-    for canonical, data in registry.items():
-        creatable = data.get("rest_api", {}).get("creatable", False)
-        result[canonical.lower()] = creatable
-        for alias in data.get("aliases", []):
-            result[alias.lower()] = creatable
-    return result
-
-
 def build_display_names() -> dict[str, str]:
     """Map lowercase type variants → display name."""
     registry = load_registry()

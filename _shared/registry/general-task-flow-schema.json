@@ -1,12 +1,12 @@
 {
     "tasks": [
         {
-            "type": "get data",
+            "type": "ingest",
             "id": "aa09917e-1065-5eb0-9393-c7309c4d382c",
             "name": "Ingest data"
         },
         {
-            "type": "store data",
+            "type": "store",
             "id": "8cae7bc7-ee80-5ea2-9ae4-e205ca62de29",
             "name": "Store data"
         },

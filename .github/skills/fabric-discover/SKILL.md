@@ -39,6 +39,8 @@ python _shared/scripts/run-pipeline.py start "Project Name" --problem "problem s
 
 Review the signal mapping output from the `start` command.
 
+> **⚠️ The `start` command already runs signal-mapper as pre-compute. Read the output above — do NOT run `signal-mapper.py` again manually.**
+
 ### Step 4: Assess 4 V's Gaps
 
 Only ask about gaps NOT already in the problem statement:
@@ -50,9 +52,11 @@ Only ask about gaps NOT already in the problem statement:
 | Variety | Sources: DBs, files, APIs, streaming |
 | Versatility | Low-code / code-first / mixed |
 
+> **Use the `ask_user` tool for EACH gap — one question per call.** Only ask about V's that are genuinely unknown from the problem statement. If the signal mapper generated follow-up questions (via `--intake` mode or low-coverage advisory), use them as question templates. Skip V's already answered.
+
 ### Step 5: Confirm with User
 
-Present inferred signals **and all 4 V's** conversationally. Get confirmation or corrections.
+Present a **single confirmatory summary** of inferred signals and all 4 V's using `ask_user`. This is NOT a re-ask — it's a confirmation of what you know (from problem statement + Step 4 answers).
 
 **You MUST present all 4 V's explicitly — no exceptions:**
 
@@ -61,20 +65,13 @@ Present inferred signals **and all 4 V's** conversationally. Get confirmation or
 3. **Variety** — sources (e.g., "two sources: Square API and your accounting CSV")
 4. **Versatility** — skill level (e.g., "low-code approach since your team prefers drag-and-drop")
 
-Example confirmation message:
-> *"Here's what I'm seeing from your problem statement:*
-> - **Volume:** Small data — daily loads under 10 GB
-> - **Velocity:** Batch — you mentioned end-of-day processing
-> - **Variety:** Two sources — Square POS and your accounting exports
-> - **Versatility:** Low-code — your team wants minimal scripting
->
-> *Does that match your situation, or should I adjust anything?"*
+> **Use `ask_user` once to confirm all V's together** — do NOT re-ask each V individually (that was Step 4's job).
 
 **Presentation rules — the user is a business stakeholder:**
 
 - Use **plain-language bullets** — NOT markdown tables (tables go only in the handoff file).
 - Use the user's own language: "your Square sales data" not "API-based ingestion pattern."
-- If a V is unknown or ambiguous, **ask** — don't skip it or guess.
+- If a V is still unknown after Step 4, state your best inference and ask for correction.
 
 ### Step 6: Produce Discovery Brief
 

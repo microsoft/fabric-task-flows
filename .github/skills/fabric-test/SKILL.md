@@ -33,7 +33,7 @@ For live workspace validation:
 python .github/skills/fabric-test/scripts/validate-items.py _projects/[name]/docs/deployment-handoff.md
 ```
 
-Follow the checklist from tool output. Write `_projects/[name]/docs/validation-report.md` with `status: passed | failed`.
+Follow the checklist from tool output. Write `_projects/[name]/docs/validation-report.md` with `status: passed | partial | failed`.
 
 ## Constraints
 
