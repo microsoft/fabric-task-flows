@@ -59,7 +59,8 @@ SCAFFOLD_TASK_NAMES: dict[str, str] = {
     "track": "Monitor & track",
     "distribute": "Distribute & serve",
     "develop": "Configure environment",
-    "govern": "Govern & catalog",
+    "model": "Model & define",
+    "query": "Query & analyze",
     "general": "General",
 }
 
@@ -264,7 +265,8 @@ _FINALIZE_VERB: dict[str, str] = {
     "track": "Monitor",
     "distribute": "Serve",
     "develop": "Configure",
-    "govern": "Govern",
+    "model": "Model",
+    "query": "Query",
     "general": "Process",
 }
 

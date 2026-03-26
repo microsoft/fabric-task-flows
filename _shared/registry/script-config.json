@@ -4,16 +4,17 @@
     "description": "Ordering of Fabric task types in generated task flows",
     "values": {
       "develop": 0,
-      "govern": 1,
+      "model": 1,
       "ingest": 2,
       "mirror": 3,
       "store": 4,
       "prepare": 5,
-      "train": 6,
-      "track": 7,
-      "visualize": 8,
-      "distribute": 9,
-      "general": 10
+      "query": 6,
+      "train": 7,
+      "track": 8,
+      "visualize": 9,
+      "distribute": 10,
+      "general": 11
     }
   },
   "category_rotation": {

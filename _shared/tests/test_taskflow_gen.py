@@ -16,7 +16,7 @@ SCHEMA_PATH = SHARED_DIR / "registry" / "general-task-flow-schema.json"
 VALID_TASK_TYPES = {
     "ingest", "mirror", "store", "prepare",
     "train", "track", "visualize",
-    "distribute", "develop", "govern", "general",
+    "distribute", "develop", "model", "query", "general",
 }
 
 

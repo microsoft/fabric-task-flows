@@ -48,22 +48,23 @@
     "Environment": "Runtime environments and configuration — deployed early (wave 2-3)",
     "Ingestion": "Data movement and acquisition — depends on storage foundations",
     "Transformation": "Data processing and enrichment — depends on ingestion layer",
-    "Visualization": "Reporting, dashboards, and semantic models — depends on transformed data",
+    "Visualization": "Reporting, dashboards, and scorecards — depends on transformed data",
     "ML": "Machine learning experiments and models — depends on prepared data",
     "Monitoring": "Alerting and real-time triggers — depends on data pipelines",
     "IQ": "Intelligence and AI agents — overlay on existing data assets"
   },
   "$task_type": {
-    "store": "Persists data at rest (Lakehouse, Warehouse, Eventhouse, SQL Database)",
-    "ingest": "Moves data from source to destination (CopyJob, Pipeline, Eventstream)",
-    "mirror": "Replicates external data into Fabric (MirroredDatabase, MirroredWarehouse)",
-    "prepare": "Transforms and enriches data (Notebook, SparkJobDefinition, Dataflow)",
-    "train": "ML experimentation and model training (MLExperiment, MLModel)",
-    "track": "Monitors data quality and triggers (Reflex)",
-    "visualize": "Presents data to users (Report, Dashboard, Scorecard, Real-Time Dashboard, KQLDashboard, Map)",
+    "store": "Persists data at rest (Lakehouse, Warehouse, Eventhouse, KQL Database, SQL Database, CosmosDB Database)",
+    "ingest": "Moves data from source to destination (CopyJob, DataPipeline, Eventstream, Dataflow)",
+    "mirror": "Replicates external data into Fabric (MirroredDatabase, MirroredWarehouse, SnowflakeDatabase)",
+    "prepare": "Transforms and enriches data (Notebook, SparkJobDefinition, DigitalTwinBuilder)",
+    "train": "ML experimentation and model training (MLExperiment, MLModel, AnomalyDetector)",
+    "track": "Monitors data quality and triggers (Reflex, OperationsAgent, RealTimeIntelligence)",
+    "visualize": "Presents data to users (Report, PaginatedReport, Dashboard, KQLDashboard, Scorecard, Map)",
     "distribute": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction, DataAgent)",
     "develop": "Development tooling and runtime config (Environment, VariableLibrary)",
-    "govern": "Metadata and ontology governance (Ontology)"
+    "model": "Defines semantic layers, relationships, and business meaning (SemanticModel, Ontology, GraphModel)",
+    "query": "Writes and executes queries for analysis (KQLQueryset, GraphQuerySet)"
   },
   "$cicd_strategy": {
     "content": "Item definition + content files deployed via fabric-cicd (full version control)",
@@ -75,9 +76,10 @@
     "sql-readonly": "SQL read-only access via SQL analytics endpoint (Lakehouse)",
     "kql": "Kusto Query Language — Eventhouse, KQL Database",
     "spark": "Apache Spark (PySpark, Spark SQL) — Lakehouse, Notebook",
-    "python": "Python scripting — Notebook, Spark environments",
+    "python": "Python scripting — Notebook, Spark environments, ML",
     "r": "R scripting — Notebook, Spark environments",
     "scala": "Scala — Notebook, Spark environments",
+    "dax": "Data Analysis Expressions — Semantic Model measures and calculations",
     "nosql": "NoSQL API — Cosmos DB Database"
   },
   "types": {
@@ -234,7 +236,7 @@
       "api": {
         "path": "sqlDatabases",
         "creatable": true,
-        "definition": false
+        "definition": true
       },
       "cicd": {
         "strategy": "content",
@@ -473,7 +475,12 @@
       "skillset": [
         "CF"
       ],
-      "query_language": [],
+      "query_language": [
+        "spark",
+        "python",
+        "r",
+        "scala"
+      ],
       "alternatives": [
         "SparkJobDefinition",
         "KQLQueryset"
@@ -502,7 +509,10 @@
       "skillset": [
         "CF"
       ],
-      "query_language": [],
+      "query_language": [
+        "spark",
+        "python"
+      ],
       "alternatives": [
         "Notebook",
         "KQLQueryset"
@@ -526,11 +536,13 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "prepare",
+      "task_type": "query",
       "skillset": [
         "CF"
       ],
-      "query_language": [],
+      "query_language": [
+        "kql"
+      ],
       "alternatives": [
         "Notebook",
         "SparkJobDefinition"
@@ -554,13 +566,15 @@
         "tabular model"
       ],
       "availability": "ga",
-      "phase": "Visualization",
-      "task_type": "visualize",
+      "phase": "Transformation",
+      "task_type": "model",
       "skillset": [
         "LC",
         "CF"
       ],
-      "query_language": [],
+      "query_language": [
+        "dax"
+      ],
       "alternatives": [
         "Report",
         "KQLDashboard"
@@ -591,7 +605,8 @@
       "query_language": [],
       "alternatives": [
         "SemanticModel",
-        "KQLDashboard"
+        "KQLDashboard",
+        "Scorecard"
       ],
       "api": {
         "path": "reports",
@@ -642,7 +657,9 @@
         "LC"
       ],
       "query_language": [],
-      "alternatives": [],
+      "alternatives": [
+        "Scorecard"
+      ],
       "api": {
         "path": "dashboards",
         "creatable": true,
@@ -697,7 +714,9 @@
       "skillset": [
         "CF"
       ],
-      "query_language": [],
+      "query_language": [
+        "python"
+      ],
       "alternatives": [],
       "api": {
         "path": "mlExperiments",
@@ -721,7 +740,9 @@
       "skillset": [
         "CF"
       ],
-      "query_language": [],
+      "query_language": [
+        "python"
+      ],
       "alternatives": [],
       "api": {
         "path": "mlModels",
@@ -730,7 +751,7 @@
       },
       "cicd": {
         "strategy": "unsupported",
-        "verified": true
+        "verified": false
       }
     },
     "Reflex": {
@@ -742,7 +763,7 @@
         "trigger"
       ],
       "availability": "ga",
-      "phase": "Visualization",
+      "phase": "Monitoring",
       "task_type": "track",
       "skillset": [
         "LC"
@@ -768,7 +789,7 @@
         "graphql endpoint"
       ],
       "availability": "ga",
-      "phase": "Visualization",
+      "phase": "Transformation",
       "task_type": "distribute",
       "skillset": [
         "LC"
@@ -818,7 +839,7 @@
       ],
       "availability": "pupr",
       "phase": "IQ",
-      "task_type": "govern",
+      "task_type": "model",
       "skillset": [
         "LC"
       ],
@@ -879,7 +900,7 @@
       "api": {
         "path": "apacheAirflowJobs",
         "creatable": true,
-        "definition": false,
+        "definition": true,
         "fab_type": "ApacheAirflowProject",
         "name": "ApacheAirflowJob"
       },
@@ -897,7 +918,7 @@
         "snowflake mirror"
       ],
       "availability": "ga",
-      "phase": "Ingestion",
+      "phase": "Foundation",
       "task_type": "mirror",
       "skillset": [
         "LC"
@@ -922,8 +943,8 @@
         "knowledge graph"
       ],
       "availability": "ga",
-      "phase": "Visualization",
-      "task_type": "prepare",
+      "phase": "Transformation",
+      "task_type": "model",
       "skillset": [
         "LC"
       ],
@@ -1050,7 +1071,7 @@
       "api": {
         "path": "userDataFunctions",
         "creatable": true,
-        "definition": false
+        "definition": true
       },
       "cicd": {
         "strategy": "content",
@@ -1093,8 +1114,8 @@
         "graph queries"
       ],
       "availability": "ga",
-      "phase": "Visualization",
-      "task_type": "prepare",
+      "phase": "Transformation",
+      "task_type": "query",
       "skillset": [
         "Portal"
       ],
@@ -1239,7 +1260,7 @@
       ],
       "availability": "pupr",
       "phase": "Monitoring",
-      "task_type": "visualize",
+      "task_type": "track",
       "skillset": [
         "LC"
       ],

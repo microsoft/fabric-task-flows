@@ -364,7 +364,7 @@ def validate_registry() -> list[str]:
     _VALID_TASK_TYPES = {
         "ingest", "mirror", "store", "prepare",
         "train", "track", "visualize",
-        "distribute", "develop", "govern", "TBD", "",
+        "distribute", "develop", "model", "query", "TBD", "",
     }
 
     for name, data in registry.items():

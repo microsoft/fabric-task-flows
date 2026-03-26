@@ -20,7 +20,7 @@ from registry_loader import (
 VALID_TASK_TYPES = {
     "ingest", "mirror", "store", "prepare",
     "train", "track", "visualize",
-    "distribute", "develop", "govern",
+    "distribute", "develop", "model", "query",
 }
 
 VALID_PHASES = {
@@ -212,3 +212,60 @@ def test_validate_registry_returns_no_errors():
     """The live registry should pass all validation checks."""
     errors = validate_registry()
     assert errors == [], f"Registry validation errors:\n" + "\n".join(errors)
+
+
+# ── Cross-field consistency tests ─────────────────────────────────────────
+
+
+def test_cicd_content_requires_definition():
+    """If cicd.strategy is 'content', api.definition must be true."""
+    registry = load_registry()
+    for name, data in registry.items():
+        strategy = data.get("cicd", {}).get("strategy")
+        definition = data.get("rest_api", {}).get("definition", False)
+        if strategy == "content":
+            assert definition, (
+                f"{name}: cicd.strategy='content' but api.definition=False — "
+                "content deployment requires definition support"
+            )
+
+
+def test_cicd_verified_requires_supported_strategy():
+    """If cicd.verified is true, strategy must not be 'unsupported'."""
+    registry = load_registry()
+    for name, data in registry.items():
+        cicd = data.get("cicd", {})
+        if cicd.get("verified") is True:
+            assert cicd.get("strategy") != "unsupported", (
+                f"{name}: cicd.verified=True but strategy='unsupported' — "
+                "cannot verify an unsupported deployment strategy"
+            )
+
+
+def test_code_first_items_have_query_language():
+    """Code-first items (skillset includes 'CF') should have query_language populated."""
+    registry = load_registry()
+    for name, data in registry.items():
+        skillset = data.get("skillset", [])
+        if "CF" in skillset and data.get("task_type") in ("prepare", "train", "model", "query"):
+            ql = data.get("query_language", [])
+            assert len(ql) > 0, (
+                f"{name}: skillset includes 'CF' with task_type "
+                f"'{data['task_type']}' but query_language is empty"
+            )
+
+
+def test_alternatives_are_symmetric():
+    """If item A lists B as an alternative, B should list A back."""
+    registry = load_registry()
+    for name, data in registry.items():
+        for alt in data.get("alternatives", []):
+            alt_data = registry.get(alt)
+            assert alt_data is not None, (
+                f"{name}: alternative '{alt}' does not exist in registry"
+            )
+            alt_alternatives = alt_data.get("alternatives", [])
+            assert name in alt_alternatives, (
+                f"{name} lists {alt} as alternative but {alt} "
+                f"does not list {name} back"
+            )
