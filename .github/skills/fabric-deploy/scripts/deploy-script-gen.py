@@ -47,12 +47,6 @@ REGISTRY_TYPES: dict = load_registry()
 # will base64-encode and POST to the Fabric Items API.
 _TEMPLATES_DIR = SHARED_DIR / "templates"
 
-# Fallback: cicd-templates.json (kept in sync but templates/ directory takes precedence)
-_CICD_TEMPLATES_PATH = SHARED_DIR / "registry" / "cicd-templates.json"
-_CICD_TEMPLATES: dict[str, dict[str, object]] = {}
-if _CICD_TEMPLATES_PATH.exists():
-    _CICD_TEMPLATES = json.loads(_CICD_TEMPLATES_PATH.read_text(encoding="utf-8")).get("templates", {})
-
 
 def _load_template_files(cicd_type: str) -> dict[str, str] | None:
     """Load definition files from _shared/templates/{cicd_type}/.
@@ -1137,17 +1131,6 @@ def _gen_item_definitions(
     tpl = _load_template_files(cicd_type)
     if tpl:
         return tpl
-
-    # Fallback: cicd-templates.json (kept in sync)
-    template = _CICD_TEMPLATES.get(cicd_type)
-    if template:
-        result: dict[str, str] = {}
-        for filename, content in template.items():
-            if isinstance(content, str):
-                result[filename] = content
-            else:
-                result[filename] = json.dumps(content, indent=2)
-        return result
 
     # Types with no definition files (e.g. KQLDashboard, Lakehouse platform-only)
     return {}

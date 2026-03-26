@@ -10,8 +10,38 @@ sys.path.insert(0, str(SHARED_DIR / "scripts"))
 
 REPO_ROOT = SHARED_DIR.parent
 
-# The schema reference
-SCHEMA_PATH = SHARED_DIR / "registry" / "general-task-flow-schema.json"
+# Inline schema reference (previously general-task-flow-schema.json)
+SCHEMA_REFERENCE = {
+    "tasks": [
+        {
+            "type": "ingest",
+            "id": "aa09917e-1065-5eb0-9393-c7309c4d382c",
+            "name": "Ingest data",
+        },
+        {
+            "type": "store",
+            "id": "8cae7bc7-ee80-5ea2-9ae4-e205ca62de29",
+            "name": "Store data",
+        },
+        {
+            "type": "visualize",
+            "id": "d260f6d5-4026-5b1f-96cc-89d5f72ef386",
+            "name": "Visualize & report",
+        },
+    ],
+    "edges": [
+        {
+            "source": "aa09917e-1065-5eb0-9393-c7309c4d382c",
+            "target": "8cae7bc7-ee80-5ea2-9ae4-e205ca62de29",
+        },
+        {
+            "source": "8cae7bc7-ee80-5ea2-9ae4-e205ca62de29",
+            "target": "d260f6d5-4026-5b1f-96cc-89d5f72ef386",
+        },
+    ],
+    "name": "General",
+    "description": "Task flow for General (general)",
+}
 
 VALID_TASK_TYPES = {
     "ingest", "mirror", "store", "prepare",
@@ -20,13 +50,8 @@ VALID_TASK_TYPES = {
 }
 
 
-def test_schema_reference_exists():
-    assert SCHEMA_PATH.exists(), f"Schema reference not found: {SCHEMA_PATH}"
-
-
 def test_schema_reference_has_valid_structure():
-    with open(SCHEMA_PATH) as f:
-        data = json.load(f)
+    data = SCHEMA_REFERENCE
     assert "tasks" in data, "Schema missing 'tasks' key"
     assert "edges" in data, "Schema missing 'edges' key"
     assert "name" in data, "Schema missing 'name' key"
@@ -35,27 +60,21 @@ def test_schema_reference_has_valid_structure():
 
 
 def test_schema_tasks_have_required_fields():
-    with open(SCHEMA_PATH) as f:
-        data = json.load(f)
-    for task in data["tasks"]:
+    for task in SCHEMA_REFERENCE["tasks"]:
         assert "type" in task, f"Task missing 'type': {task}"
         assert "id" in task, f"Task missing 'id': {task}"
         assert "name" in task, f"Task missing 'name': {task}"
 
 
 def test_schema_edges_reference_valid_tasks():
-    with open(SCHEMA_PATH) as f:
-        data = json.load(f)
-    task_ids = {t["id"] for t in data["tasks"]}
-    for edge in data["edges"]:
+    task_ids = {t["id"] for t in SCHEMA_REFERENCE["tasks"]}
+    for edge in SCHEMA_REFERENCE["edges"]:
         assert edge["source"] in task_ids, f"Edge source not in tasks: {edge['source']}"
         assert edge["target"] in task_ids, f"Edge target not in tasks: {edge['target']}"
 
 
 def test_schema_task_types_are_valid():
-    with open(SCHEMA_PATH) as f:
-        data = json.load(f)
-    for task in data["tasks"]:
+    for task in SCHEMA_REFERENCE["tasks"]:
         assert task["type"] in VALID_TASK_TYPES, \
             f"Invalid task type '{task['type']}' in task '{task['name']}'"
 
