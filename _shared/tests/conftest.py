@@ -35,7 +35,7 @@ def mock_repo(tmp_path):
                 "api_path": "lakehouses",
                 "phase": "Foundation",
                 "phase_order": 1,
-                "task_type": "store",
+                "task_type": "store data",
                 "aliases": ["lakehouse"],
                 "rest_api": {"creatable": True, "definition": True},
                 "availability": "ga"
@@ -46,7 +46,7 @@ def mock_repo(tmp_path):
                 "api_path": "notebooks",
                 "phase": "Processing",
                 "phase_order": 3,
-                "task_type": "prepare",
+                "task_type": "prepare data",
                 "aliases": ["notebook", "spark notebook"],
                 "rest_api": {"creatable": True, "definition": True},
                 "availability": "ga"

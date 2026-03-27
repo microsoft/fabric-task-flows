@@ -150,8 +150,8 @@ def _resolve_task_type(item_type: str) -> str:
 
 
 def _generate_task_id() -> str:
-    """Generate a task ID in the Fabric format: task-{uuid4}."""
-    return f"task-{uuid.uuid4()}"
+    """Generate a task ID as a plain UUID4 string."""
+    return str(uuid.uuid4())
 
 
 def generate_taskflow_json(data: HandoffData, project_name: str = "") -> dict:

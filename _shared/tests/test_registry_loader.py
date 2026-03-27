@@ -18,9 +18,9 @@ from registry_loader import (
 )
 
 VALID_TASK_TYPES = {
-    "ingest", "mirror", "store", "prepare",
-    "train", "track", "visualize",
-    "distribute", "develop", "model", "query",
+    "get data", "mirror data", "store data", "prepare data",
+    "analyze and train data", "track data", "visualize",
+    "distribute data", "develop data",
 }
 
 VALID_PHASES = {

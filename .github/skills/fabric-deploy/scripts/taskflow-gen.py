@@ -50,17 +50,15 @@ ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()
 # ── Scaffold-mode generic task names ──────────────────────────────────────
 
 SCAFFOLD_TASK_NAMES: dict[str, str] = {
-    "ingest": "Ingest data",
-    "mirror": "Mirror data",
-    "store": "Store data",
-    "prepare": "Transform & prepare",
-    "train": "Train & analyze",
+    "get data": "Ingest data",
+    "mirror data": "Mirror data",
+    "store data": "Store data",
+    "prepare data": "Transform & prepare",
+    "analyze and train data": "Train & analyze",
     "visualize": "Visualize & report",
-    "track": "Monitor & track",
-    "distribute": "Distribute & serve",
-    "develop": "Configure environment",
-    "model": "Model & define",
-    "query": "Query & analyze",
+    "track data": "Monitor & track",
+    "distribute data": "Distribute & serve",
+    "develop data": "Configure environment",
     "general": "General",
 }
 
@@ -241,8 +239,8 @@ def _resolve_task_type(item_type: str) -> str | None:
 # ── Scaffold mode name refinement ─────────────────────────────────────────
 
 def _scaffold_task_name(task_type: str, item_types: list[str]) -> str:
-    storage_types = {t for t in item_types if _resolve_task_type(t) == "store"}
-    if task_type == "store" and storage_types:
+    storage_types = {t for t in item_types if _resolve_task_type(t) == "store data"}
+    if task_type == "store data" and storage_types:
         bases = set()
         for st in storage_types:
             base = st.split()[0] if " " in st else st
@@ -256,17 +254,15 @@ def _scaffold_task_name(task_type: str, item_types: list[str]) -> str:
 # ── Finalize mode descriptive names ───────────────────────────────────────
 
 _FINALIZE_VERB: dict[str, str] = {
-    "ingest": "Ingest",
-    "mirror": "Mirror",
-    "store": "Store",
-    "prepare": "Transform",
-    "train": "Train",
+    "get data": "Ingest",
+    "mirror data": "Mirror",
+    "store data": "Store",
+    "prepare data": "Transform",
+    "analyze and train data": "Train",
     "visualize": "Visualize",
-    "track": "Monitor",
-    "distribute": "Serve",
-    "develop": "Configure",
-    "model": "Model",
-    "query": "Query",
+    "track data": "Monitor",
+    "distribute data": "Serve",
+    "develop data": "Configure",
     "general": "Process",
 }
 
@@ -315,9 +311,9 @@ def _fuzzy_resolve_task_type(ref: str, known_item_types: list[str]) -> str | Non
 
 def _orient_edge(source: str, target: str) -> tuple[str, str] | None:
     """Ensure data-flow direction. Returns None to drop non-data-flow edges."""
-    if source == "store" and target == "ingest":
-        return ("ingest", "store")
-    if target == "develop":
+    if source == "store data" and target == "get data":
+        return ("get data", "store data")
+    if target == "develop data":
         return None
     return (source, target)
 
@@ -406,15 +402,15 @@ def _build_edges_from_handoff(
     present_types = set(task_map.keys())
     if len(edge_pairs) < 2:
         standard_flow = [
-            ("ingest", "store"),
-            ("store", "prepare"),
-            ("store", "visualize"),
-            ("store", "train"),
-            ("store", "track"),
-            ("prepare", "visualize"),
-            ("prepare", "train"),
-            ("develop", "prepare"),
-            ("develop", "train"),
+            ("get data", "store data"),
+            ("store data", "prepare data"),
+            ("store data", "visualize"),
+            ("store data", "analyze and train data"),
+            ("store data", "track data"),
+            ("prepare data", "visualize"),
+            ("prepare data", "analyze and train data"),
+            ("develop data", "prepare data"),
+            ("develop data", "analyze and train data"),
         ]
         for src, tgt in standard_flow:
             if src in present_types and tgt in present_types:
@@ -440,8 +436,8 @@ def _pairs_to_edges(
 
 def _minimal_task_flow(project: str, task_flow: str) -> dict:
     tasks_info = [
-        TaskInfo("ingest", _deterministic_uuid(task_flow, "ingest"), "Ingest data"),
-        TaskInfo("store", _deterministic_uuid(task_flow, "store"), "Store data"),
+        TaskInfo("get data", _deterministic_uuid(task_flow, "get data"), "Ingest data"),
+        TaskInfo("store data", _deterministic_uuid(task_flow, "store data"), "Store data"),
         TaskInfo("visualize", _deterministic_uuid(task_flow, "visualize"), "Visualize & report"),
     ]
     return {

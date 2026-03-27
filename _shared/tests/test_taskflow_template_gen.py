@@ -241,9 +241,9 @@ class TestGenerateTaskflowJson:
 
     def test_task_ids_are_uuid_format(self):
         result = generate_taskflow_json(self._sample_data(), "Test Project")
+        import uuid as _uuid
         for task in result["tasks"]:
-            assert task["id"].startswith("task-")
-            assert len(task["id"]) > 5
+            _uuid.UUID(task["id"])  # raises ValueError if not valid UUID
 
     def test_task_names_match_items(self):
         result = generate_taskflow_json(self._sample_data(), "Test Project")

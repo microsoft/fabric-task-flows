@@ -14,12 +14,12 @@ REPO_ROOT = SHARED_DIR.parent
 SCHEMA_REFERENCE = {
     "tasks": [
         {
-            "type": "ingest",
+            "type": "get data",
             "id": "aa09917e-1065-5eb0-9393-c7309c4d382c",
             "name": "Ingest data",
         },
         {
-            "type": "store",
+            "type": "store data",
             "id": "8cae7bc7-ee80-5ea2-9ae4-e205ca62de29",
             "name": "Store data",
         },
@@ -44,9 +44,9 @@ SCHEMA_REFERENCE = {
 }
 
 VALID_TASK_TYPES = {
-    "ingest", "mirror", "store", "prepare",
-    "train", "track", "visualize",
-    "distribute", "develop", "model", "query", "general",
+    "get data", "mirror data", "store data", "prepare data",
+    "analyze and train data", "track data", "visualize",
+    "distribute data", "develop data", "general",
 }
 
 
@@ -85,7 +85,7 @@ def test_taskflow_gen_imports():
     type_map = build_task_type_map()
     assert len(type_map) > 0, "Task type map should not be empty"
     assert "Lakehouse" in type_map, "Lakehouse should be in task type map"
-    assert type_map["Lakehouse"] == "store"
+    assert type_map["Lakehouse"] == "store data"
 
 
 # ── Import the module under test ──────────────────────────────────────────
@@ -178,7 +178,7 @@ def test_scaffold_produces_valid_json():
 @_requires_mod
 class TestResolveTaskType:
     def test_known_type(self):
-        assert _resolve_task_type("Lakehouse") == "store"
+        assert _resolve_task_type("Lakehouse") == "store data"
 
     def test_normalised_match(self):
         # Should find via stripping spaces/hyphens
@@ -278,25 +278,25 @@ class TestValidTaskTypes:
 @_requires_mod
 class TestScaffoldTaskName:
     def test_generic_fallback(self):
-        name = _scaffold_task_name("ingest", ["EventHouse"])
+        name = _scaffold_task_name("get data", ["EventHouse"])
         assert isinstance(name, str)
         assert len(name) > 0
 
     def test_single_storage_type(self):
-        name = _scaffold_task_name("store", ["Lakehouse"])
+        name = _scaffold_task_name("store data", ["Lakehouse"])
         assert "Lakehouse" in name
 
 
 @_requires_mod
 class TestFinalizeTaskName:
     def test_with_items(self):
-        name = _finalize_task_name("store", ["bronze-lh", "silver-lh"])
+        name = _finalize_task_name("store data", ["bronze-lh", "silver-lh"])
         assert "bronze-lh" in name
         assert "silver-lh" in name
 
     def test_many_items_truncated(self):
         items = [f"item-{i}" for i in range(6)]
-        name = _finalize_task_name("store", items)
+        name = _finalize_task_name("store data", items)
         assert "+2 more" in name
 
     def test_empty_items(self):
@@ -313,13 +313,13 @@ class TestFinalizeTaskName:
 @_requires_mod
 class TestOrientEdge:
     def test_normal_flow(self):
-        assert _orient_edge("ingest", "store") == ("ingest", "store")
+        assert _orient_edge("get data", "store data") == ("get data", "store data")
 
     def test_reversed_store_to_get(self):
-        assert _orient_edge("store", "ingest") == ("ingest", "store")
+        assert _orient_edge("store data", "get data") == ("get data", "store data")
 
     def test_drops_develop_target(self):
-        assert _orient_edge("store", "develop") is None
+        assert _orient_edge("store data", "develop data") is None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -330,13 +330,13 @@ class TestOrientEdge:
 @_requires_mod
 class TestDeterministicUuid:
     def test_same_input_same_output(self):
-        a = _deterministic_uuid("medallion", "store")
-        b = _deterministic_uuid("medallion", "store")
+        a = _deterministic_uuid("medallion", "store data")
+        b = _deterministic_uuid("medallion", "store data")
         assert a == b
 
     def test_different_input_different_output(self):
-        a = _deterministic_uuid("medallion", "store")
-        b = _deterministic_uuid("lambda", "store")
+        a = _deterministic_uuid("medallion", "store data")
+        b = _deterministic_uuid("lambda", "store data")
         assert a != b
 
 

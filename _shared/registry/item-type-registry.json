@@ -54,17 +54,15 @@
     "IQ": "Intelligence and AI agents — overlay on existing data assets"
   },
   "$task_type": {
-    "store": "Persists data at rest (Lakehouse, Warehouse, Eventhouse, KQL Database, SQL Database, CosmosDB Database)",
-    "ingest": "Moves data from source to destination (CopyJob, DataPipeline, Eventstream, Dataflow)",
-    "mirror": "Replicates external data into Fabric (MirroredDatabase, MirroredWarehouse, SnowflakeDatabase)",
-    "prepare": "Transforms and enriches data (Notebook, SparkJobDefinition, DigitalTwinBuilder)",
-    "train": "ML experimentation and model training (MLExperiment, MLModel, AnomalyDetector)",
-    "track": "Monitors data quality and triggers (Reflex, OperationsAgent, RealTimeIntelligence)",
+    "store data": "Persists data at rest (Lakehouse, Warehouse, Eventhouse, KQL Database, SQL Database, CosmosDB Database)",
+    "get data": "Moves data from source to destination (CopyJob, DataPipeline, Eventstream, Dataflow)",
+    "mirror data": "Replicates external data into Fabric (MirroredDatabase, MirroredWarehouse, SnowflakeDatabase)",
+    "prepare data": "Transforms and enriches data (Notebook, SparkJobDefinition, DigitalTwinBuilder, SemanticModel, Ontology, GraphModel, KQLQueryset, GraphQuerySet)",
+    "analyze and train data": "ML experimentation and model training (MLExperiment, MLModel, AnomalyDetector)",
+    "track data": "Monitors data quality and triggers (Reflex, OperationsAgent, RealTimeIntelligence)",
     "visualize": "Presents data to users (Report, PaginatedReport, Dashboard, KQLDashboard, Scorecard, Map)",
-    "distribute": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction, DataAgent)",
-    "develop": "Development tooling and runtime config (Environment, VariableLibrary)",
-    "model": "Defines semantic layers, relationships, and business meaning (SemanticModel, Ontology, GraphModel)",
-    "query": "Writes and executes queries for analysis (KQLQueryset, GraphQuerySet)"
+    "distribute data": "Exposes data via APIs or endpoints (GraphQLApi, UserDataFunction, DataAgent)",
+    "develop data": "Development tooling and runtime config (Environment, VariableLibrary)"
   },
   "$cicd_strategy": {
     "content": "Item definition + content files deployed via fabric-cicd (full version control)",
@@ -92,7 +90,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store",
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
@@ -129,7 +127,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store",
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
@@ -160,7 +158,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store",
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
@@ -193,7 +191,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store",
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
@@ -220,7 +218,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store",
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
@@ -253,7 +251,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store",
+      "task_type": "store data",
       "skillset": [
         "auto"
       ],
@@ -279,7 +277,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "mirror",
+      "task_type": "mirror data",
       "skillset": [
         "LC"
       ],
@@ -306,7 +304,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "mirror",
+      "task_type": "mirror data",
       "skillset": [
         "LC"
       ],
@@ -333,7 +331,7 @@
       ],
       "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "ingest",
+      "task_type": "get data",
       "skillset": [
         "LC",
         "CF"
@@ -359,7 +357,7 @@
       ],
       "availability": "ga",
       "phase": "Environment",
-      "task_type": "develop",
+      "task_type": "develop data",
       "skillset": [
         "CF"
       ],
@@ -384,7 +382,7 @@
       ],
       "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "ingest",
+      "task_type": "get data",
       "skillset": [
         "LC"
       ],
@@ -414,7 +412,7 @@
       ],
       "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "ingest",
+      "task_type": "get data",
       "skillset": [
         "LC",
         "CF"
@@ -442,7 +440,7 @@
       ],
       "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "ingest",
+      "task_type": "get data",
       "skillset": [
         "LC"
       ],
@@ -471,7 +469,7 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "prepare",
+      "task_type": "prepare data",
       "skillset": [
         "CF"
       ],
@@ -505,7 +503,7 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "prepare",
+      "task_type": "prepare data",
       "skillset": [
         "CF"
       ],
@@ -536,7 +534,7 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "query",
+      "task_type": "prepare data",
       "skillset": [
         "CF"
       ],
@@ -567,7 +565,7 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "model",
+      "task_type": "prepare data",
       "skillset": [
         "LC",
         "CF"
@@ -710,7 +708,7 @@
       ],
       "availability": "ga",
       "phase": "ML",
-      "task_type": "train",
+      "task_type": "analyze and train data",
       "skillset": [
         "CF"
       ],
@@ -736,7 +734,7 @@
       ],
       "availability": "ga",
       "phase": "ML",
-      "task_type": "train",
+      "task_type": "analyze and train data",
       "skillset": [
         "CF"
       ],
@@ -764,7 +762,7 @@
       ],
       "availability": "ga",
       "phase": "Monitoring",
-      "task_type": "track",
+      "task_type": "track data",
       "skillset": [
         "LC"
       ],
@@ -790,7 +788,7 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "distribute",
+      "task_type": "distribute data",
       "skillset": [
         "LC"
       ],
@@ -815,7 +813,7 @@
       ],
       "availability": "ga",
       "phase": "Environment",
-      "task_type": "develop",
+      "task_type": "develop data",
       "skillset": [
         "LC"
       ],
@@ -839,7 +837,7 @@
       ],
       "availability": "pupr",
       "phase": "IQ",
-      "task_type": "model",
+      "task_type": "prepare data",
       "skillset": [
         "LC"
       ],
@@ -865,7 +863,7 @@
       ],
       "availability": "ga",
       "phase": "IQ",
-      "task_type": "distribute",
+      "task_type": "distribute data",
       "skillset": [
         "LC"
       ],
@@ -891,7 +889,7 @@
       ],
       "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "ingest",
+      "task_type": "get data",
       "skillset": [
         "CF"
       ],
@@ -919,7 +917,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "mirror",
+      "task_type": "mirror data",
       "skillset": [
         "LC"
       ],
@@ -944,7 +942,7 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "model",
+      "task_type": "prepare data",
       "skillset": [
         "LC"
       ],
@@ -970,7 +968,7 @@
       ],
       "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "mirror",
+      "task_type": "mirror data",
       "skillset": [
         "LC"
       ],
@@ -996,7 +994,7 @@
       ],
       "availability": "ga",
       "phase": "Foundation",
-      "task_type": "store",
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
@@ -1030,7 +1028,7 @@
       ],
       "availability": "ga",
       "phase": "Ingestion",
-      "task_type": "ingest",
+      "task_type": "get data",
       "skillset": [
         "LC"
       ],
@@ -1062,7 +1060,7 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "distribute",
+      "task_type": "distribute data",
       "skillset": [
         "CF"
       ],
@@ -1115,7 +1113,7 @@
       ],
       "availability": "ga",
       "phase": "Transformation",
-      "task_type": "query",
+      "task_type": "prepare data",
       "skillset": [
         "Portal"
       ],
@@ -1139,7 +1137,7 @@
       ],
       "availability": "pupr",
       "phase": "ML",
-      "task_type": "train",
+      "task_type": "analyze and train data",
       "skillset": [
         "LC"
       ],
@@ -1163,7 +1161,7 @@
       ],
       "availability": "pupr",
       "phase": "Transformation",
-      "task_type": "prepare",
+      "task_type": "prepare data",
       "skillset": [
         "LC"
       ],
@@ -1187,7 +1185,7 @@
       ],
       "availability": "pupr",
       "phase": "Transformation",
-      "task_type": "prepare",
+      "task_type": "prepare data",
       "skillset": [
         "LC"
       ],
@@ -1212,7 +1210,7 @@
       ],
       "availability": "pupr",
       "phase": "Ingestion",
-      "task_type": "ingest",
+      "task_type": "get data",
       "skillset": [
         "LC"
       ],
@@ -1236,7 +1234,7 @@
       ],
       "availability": "pupr",
       "phase": "IQ",
-      "task_type": "track",
+      "task_type": "track data",
       "skillset": [
         "LC"
       ],
@@ -1260,7 +1258,7 @@
       ],
       "availability": "pupr",
       "phase": "Monitoring",
-      "task_type": "track",
+      "task_type": "track data",
       "skillset": [
         "LC"
       ],
@@ -1285,7 +1283,7 @@
       ],
       "availability": "pupr",
       "phase": "Foundation",
-      "task_type": "store",
+      "task_type": "store data",
       "skillset": [
         "LC"
       ],
