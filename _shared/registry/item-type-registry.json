@@ -147,7 +147,10 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "verified": true
+        "verified": true,
+        "files": [
+          "warehouse.metadata.json"
+        ]
       }
     },
     "Eventhouse": {
@@ -206,7 +209,11 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "verified": false
+        "verified": false,
+        "files": [
+          "DatabaseProperties.json",
+          "DatabaseSchema.kql"
+        ]
       }
     },
     "SQLDatabase": {
@@ -345,7 +352,10 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "verified": false
+        "verified": false,
+        "files": [
+          "MountedDataFactoryProperties.json"
+        ]
       }
     },
     "Environment": {
@@ -696,7 +706,10 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "verified": true
+        "verified": true,
+        "files": [
+          "RealTimeDashboard.json"
+        ]
       }
     },
     "MLExperiment": {
@@ -723,7 +736,10 @@
       },
       "cicd": {
         "strategy": "platform_only",
-        "verified": true
+        "verified": true,
+        "files": [
+          "MLExperimentProperties.json"
+        ]
       }
     },
     "MLModel": {
@@ -876,7 +892,11 @@
       },
       "cicd": {
         "strategy": "content",
-        "verified": false
+        "verified": false,
+        "files": [
+          "Config/data_agent.json",
+          "Config/draft/stage_config.json"
+        ]
       }
     },
     "ApacheAirflowJob": {

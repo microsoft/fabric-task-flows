@@ -1,0 +1,17 @@
+{
+  "autoRefresh": {
+    "enabled": false
+  },
+  "baseQueries": [],
+  "tiles": [],
+  "dataSources": [],
+  "pages": [
+    {
+      "name": "Page 1",
+      "id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "parameters": [],
+  "queries": [],
+  "schema_version": "52"
+}
