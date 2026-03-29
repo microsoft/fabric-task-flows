@@ -316,6 +316,14 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
             result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             if result.returncode == 0:
                 outputs.append(f"Signal mapper output:\n{result.stdout}")
+                # Cache signal-mapper JSON for deterministic task flow extraction
+                cache_path = REPO_ROOT / "_projects" / project / "docs" / ".signal-mapper-cache.json"
+                try:
+                    cache_data = json.loads(result.stdout)
+                    cache_path.write_text(json.dumps(cache_data, indent=2), encoding="utf-8")
+                    outputs.append("  📋 Signal mapper cache written → .signal-mapper-cache.json")
+                except (json.JSONDecodeError, OSError):
+                    pass  # Non-fatal — fallback to markdown parsing
             else:
                 outputs.append(f"Signal mapper warning: {result.stderr.strip()}")
         except Exception as e:
@@ -378,16 +386,32 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
 def _extract_top_task_flow(discovery_path: str) -> str | None:
     """Extract the highest-scoring task flow candidate from a discovery brief.
 
-    Supports table formats:
-      | Candidate | Score | Why It Fits |
-      | Candidate | Confidence | Why It Fits |
+    Reads from .signal-mapper-cache.json first (deterministic), then falls
+    back to parsing markdown tables in the discovery brief.
     """
+    discovery = Path(discovery_path)
+
+    # 1. Try JSON cache (written by pre-compute)
+    cache_path = discovery.parent / ".signal-mapper-cache.json"
+    if cache_path.exists():
+        try:
+            cache = json.loads(cache_path.read_text(encoding="utf-8"))
+            candidates = cache.get("task_flow_candidates", [])
+            if candidates:
+                # Candidates are sorted by score descending
+                top = candidates[0]
+                name = top if isinstance(top, str) else top.get("name", top.get("task_flow", ""))
+                if name:
+                    return name.lower()
+        except (json.JSONDecodeError, OSError, KeyError):
+            pass
+
+    # 2. Fallback: parse markdown tables
     try:
-        content = Path(discovery_path).read_text(encoding="utf-8")
+        content = discovery.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
         return None
 
-    # Look for any heading containing "Task Flow Candidates"
     in_table = False
     best_candidate = None
     best_score: float = -1
@@ -399,11 +423,9 @@ def _extract_top_task_flow(discovery_path: str) -> str | None:
             cells = [c.strip() for c in line.split("|") if c.strip()]
             if len(cells) >= 2:
                 candidate = cells[0]
-                # Check all non-candidate cells for "high" confidence label
                 other_cells = [c.lower() for c in cells[1:]]
                 if "high" in other_cells:
                     return candidate.lower()
-                # Try numeric score in second column
                 score_cell = cells[1]
                 try:
                     score = float(score_cell)
@@ -789,6 +811,40 @@ def _generate_validation_report(project: str) -> tuple[bool, list[str]]:
             f'    issue: ""'
         )
 
+    # Build phases from actual item types using registry layer map
+    layer_map = build_layer_map()
+
+    # Group items by layer (phase)
+    phase_items: dict[str, list[str]] = {}
+    for artifact in platform_items:
+        path_parts = artifact["path"].replace("\\", "/").split("/")
+        filename = path_parts[-1] if path_parts else "unknown"
+        name_type = filename.rsplit(".", 1)
+        item_name = name_type[0] if name_type else filename
+        item_type = name_type[1] if len(name_type) > 1 else "Unknown"
+        layer_label, _ = layer_map.get(item_type, ("Other", "📦"))
+        phase_items.setdefault(layer_label, []).append(item_name)
+
+    # Build phase entries from actual items
+    phase_yaml_parts: list[str] = []
+    for layer_label, item_names in phase_items.items():
+        count = len(item_names)
+        names_str = ", ".join(item_names[:3])
+        if count > 3:
+            names_str += f" (+{count - 3} more)"
+        phase_yaml_parts.append(
+            f"  - name: {layer_label}\n"
+            f"    status: pass\n"
+            f'    notes: "{count} item(s) validated: {names_str}"'
+        )
+    # Always add CI/CD Readiness
+    phase_yaml_parts.append(
+        f"  - name: CI/CD Readiness\n"
+        f"    status: pass\n"
+        f'    notes: "config.yml and deploy script generated"'
+    )
+    phases_block = "\n".join(phase_yaml_parts)
+
     content = (
         f"```yaml\n"
         f"project: {project}\n"
@@ -796,25 +852,7 @@ def _generate_validation_report(project: str) -> tuple[bool, list[str]]:
         f"date: {today}\n"
         f"status: passed\n"
         f"validation_mode: structural\n\n"
-        f"phases:\n"
-        f"  - name: Foundation\n"
-        f"    status: pass\n"
-        f'    notes: "All storage .platform files present"\n'
-        f"  - name: Environment\n"
-        f"    status: pass\n"
-        f'    notes: "Environment and config artifacts generated"\n'
-        f"  - name: Ingestion\n"
-        f"    status: pass\n"
-        f'    notes: "Pipeline .platform file present"\n'
-        f"  - name: Transformation\n"
-        f"    status: pass\n"
-        f'    notes: "Notebook .platform file present"\n'
-        f"  - name: Visualization\n"
-        f"    status: pass\n"
-        f'    notes: "Semantic model and report .platform files present"\n'
-        f"  - name: CI/CD Readiness\n"
-        f"    status: pass\n"
-        f'    notes: "config.yml and deploy script generated"\n\n'
+        f"phases:\n{phases_block}\n\n"
         f"items_validated:\n" + "\n".join(items_yaml) + "\n\n"
         f"manual_steps: []\n\n"
         f"issues: []\n\n"

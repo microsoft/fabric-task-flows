@@ -1506,11 +1506,12 @@ class TestFastForwardGenerators:
         # Status passed
         assert "status: passed" in content
 
-        # Phase entries present
-        assert "Foundation" in content
-        assert "Transformation" in content
-        assert "Visualization" in content
+        # Phase entries derived from architecture item types
+        assert "Store" in content       # Lakehouse → Foundation → Store
+        assert "Process" in content     # Notebook → Transformation → Process
+        assert "Visualize" in content   # Report → Visualization → Visualize
         assert "CI/CD Readiness" in content
+        assert "Ingestion" not in content  # no ingestion items in fixture
 
     def test_validation_report_missing_manifest(self, fast_forward_project):
         """Missing manifest returns (False, [warning])."""
@@ -1559,3 +1560,56 @@ class TestFastForwardGenerators:
 
         # Artifacts-only status label
         assert "VALIDATED" in content
+
+
+# ── Signal mapper cache tests ───────────────────────────────────────────
+
+
+class TestSignalMapperCache:
+    """Verify _extract_top_task_flow reads from JSON cache first."""
+
+    def test_reads_from_json_cache(self, tmp_path, monkeypatch):
+        """When .signal-mapper-cache.json exists, use it over markdown."""
+        monkeypatch.setattr(rp, "REPO_ROOT", tmp_path)
+        docs = tmp_path / "_projects" / "test" / "docs"
+        docs.mkdir(parents=True)
+        # Write JSON cache with candidates
+        cache = {
+            "task_flow_candidates": [
+                {"name": "medallion", "score": 0.9},
+                {"name": "lambda", "score": 0.5}
+            ]
+        }
+        (docs / ".signal-mapper-cache.json").write_text(json.dumps(cache), encoding="utf-8")
+        # Write discovery brief with DIFFERENT task flow in markdown
+        (docs / "discovery-brief.md").write_text(
+            "## Task Flow Candidates\n| Candidate | Confidence |\n|---|---|\n| lambda | high |",
+            encoding="utf-8"
+        )
+        result = rp._extract_top_task_flow(str(docs / "discovery-brief.md"))
+        assert result == "medallion"  # JSON cache wins
+
+    def test_falls_back_to_markdown(self, tmp_path, monkeypatch):
+        """When no cache exists, parse markdown table."""
+        monkeypatch.setattr(rp, "REPO_ROOT", tmp_path)
+        docs = tmp_path / "_projects" / "test" / "docs"
+        docs.mkdir(parents=True)
+        (docs / "discovery-brief.md").write_text(
+            "## Task Flow Candidates\n| Candidate | Confidence |\n|---|---|\n| lambda | high |",
+            encoding="utf-8"
+        )
+        result = rp._extract_top_task_flow(str(docs / "discovery-brief.md"))
+        assert result == "lambda"
+
+    def test_handles_invalid_cache_json(self, tmp_path, monkeypatch):
+        """Invalid JSON cache falls back to markdown."""
+        monkeypatch.setattr(rp, "REPO_ROOT", tmp_path)
+        docs = tmp_path / "_projects" / "test" / "docs"
+        docs.mkdir(parents=True)
+        (docs / ".signal-mapper-cache.json").write_text("not json", encoding="utf-8")
+        (docs / "discovery-brief.md").write_text(
+            "## Task Flow Candidates\n| Candidate | Confidence |\n|---|---|\n| batch | high |",
+            encoding="utf-8"
+        )
+        result = rp._extract_top_task_flow(str(docs / "discovery-brief.md"))
+        assert result == "batch"
