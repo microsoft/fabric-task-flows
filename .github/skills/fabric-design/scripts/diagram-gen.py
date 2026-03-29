@@ -22,9 +22,8 @@ import sys
 from pathlib import Path
 
 # Use shared YAML utilities — never import via another script's wrappers.
-_shared_lib = str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib")
-if _shared_lib not in sys.path:
-    sys.path.insert(0, _shared_lib)
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
+import bootstrap  # noqa: F401
 from yaml_utils import (
     extract_and_parse_yaml_blocks as _extract_yaml_blocks_raw,
     extract_frontmatter as _extract_frontmatter,

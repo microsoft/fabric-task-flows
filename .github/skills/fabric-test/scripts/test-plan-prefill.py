@@ -29,7 +29,8 @@ from pathlib import Path
 
 # Phase mapping — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
+import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 from registry_loader import (
     build_phase_map,

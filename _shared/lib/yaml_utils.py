@@ -54,6 +54,41 @@ def extract_frontmatter(text: str) -> dict[str, Any]:
     return parse_yaml(match.group(1))
 
 
+def extract_task_flow(content: str) -> str | None:
+    """Extract task_flow value from markdown content.
+
+    Searches YAML frontmatter first (``task_flow:`` or ``task-flow:`` or
+    ``taskflow:``), then falls back to body patterns like
+    ``**Task Flow:** value``.  Returns the lowercased value or ``None``.
+    """
+    # 1. Try YAML frontmatter (--- ... ---)
+    fm = FRONTMATTER_RE.match(content)
+    if fm:
+        m = re.search(r'(?:task[-_]?flow)\s*:\s*(\S+)', fm.group(1), re.IGNORECASE)
+        if m:
+            return m.group(1).strip().strip('"').strip("'").lower()
+
+    # 2. Try body: task_flow/task-flow/taskflow key anywhere in content
+    m = re.search(r'(?:task[-_]?flow)\s*:\s*(\S+)', content, re.IGNORECASE)
+    if m:
+        return m.group(1).strip().strip('"').strip("'").lower()
+
+    # 3. Fallback: **Task Flow:** value pattern
+    m = re.search(r'\*\*Task\s+[Ff]low:\*\*\s*(\S+)', content)
+    if m:
+        val = m.group(1).strip().lower()
+        # Take first word (might have extra description after)
+        val = re.split(r'\s*[\(\[]', val)[0].strip()
+        return val if val else None
+
+    # 4. Fallback: "Task Flow: `value`" or "Task Flow: value" in body
+    m = re.search(r'Task\s+Flow\s*:\s*`?(\S+?)`?(?:\s|$)', content)
+    if m:
+        return m.group(1).strip().lower()
+
+    return None
+
+
 def find_block(blocks: list[dict[str, Any]], key: str) -> dict[str, Any] | None:
     """Return the first parsed block that contains *key*."""
     for b in blocks:

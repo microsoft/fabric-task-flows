@@ -34,7 +34,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 # Add _shared/lib to path for registry_loader
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
+import bootstrap  # noqa: F401
 from registry_loader import load_stop_words
 
 # Universal English stop words — excluded from coverage denominator so the

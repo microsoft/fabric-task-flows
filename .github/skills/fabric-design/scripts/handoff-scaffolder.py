@@ -30,9 +30,10 @@ from pathlib import Path
 
 # Item type mappings — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
+import bootstrap  # noqa: F401
 from paths import REPO_ROOT
-from registry_loader import build_fab_type_map, load_registry, build_alternatives_map, build_display_names
+from registry_loader import build_fab_type_map, load_registry, build_alternatives_map, build_display_names, build_type_to_decision_map
 from deployment_loader import get_deployment_items
 
 FAB_TYPE_MAP: dict[str, str] = build_fab_type_map()
@@ -252,24 +253,10 @@ def _filter_by_decisions(items: list[DiagramItem], decisions: dict) -> list[Diag
     decs = decisions["decisions"]
 
     # Map item types to their governing decision key.
-    # Item types that appear as alternatives in deployment-order.json:
-    _ITEM_TYPE_TO_DECISION: dict[str, str] = {
-        # ingestion alternatives
-        "copy job":        "ingestion",
-        "pipeline":        "ingestion",
-        "dataflow gen2":   "ingestion",
-        "eventstream":     "ingestion",
-        # storage alternatives
-        "lakehouse":       "storage",
-        "warehouse":       "storage",
-        "sql database":    "storage",
-        "cosmos db":       "storage",
-        "lakehouse gold":  "storage",
-        "warehouse gold":  "storage",
-        # processing alternatives
-        "notebook":        "processing",
-        "spark job definition": "processing",
-    }
+    _ITEM_TYPE_TO_DECISION: dict[str, str] = build_type_to_decision_map()
+    # Manual extensions for qualified alternative names not in registry
+    _ITEM_TYPE_TO_DECISION.setdefault("lakehouse gold", "storage")
+    _ITEM_TYPE_TO_DECISION.setdefault("warehouse gold", "storage")
 
     # Collect choices with high or default confidence
     resolved: dict[str, str] = {}  # decision_key → choice string (lowered)

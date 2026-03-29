@@ -26,7 +26,8 @@ from pathlib import Path
 # Load registries
 # ---------------------------------------------------------------------------
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
+import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 from registry_loader import load_registry
 
@@ -147,7 +148,6 @@ def _parse_handoff(path: str) -> tuple[str, str, str, list[dict]]:
 # Banner
 # ---------------------------------------------------------------------------
 
-sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
 from banner import print_banner
 
 

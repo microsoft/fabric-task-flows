@@ -1328,3 +1328,234 @@ class TestPrecomputeFileWriting:
         written = test_plan_path.read_text(encoding="utf-8")
         assert "criteria_mapping" in written
         assert any("pre-filled" in o.lower() for o in outputs)
+
+
+# ── Fast-forward generator tests ─────────────────────────────────────────
+
+
+@pytest.fixture
+def fast_forward_project(tmp_path, monkeypatch):
+    """Set up a complete project directory for fast-forward generator tests."""
+    monkeypatch.setattr(rp, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(rp, "SKILLS_DIR", tmp_path / ".github" / "skills")
+
+    proj = "test-ff"
+    proj_dir = tmp_path / "_projects" / proj
+    docs_dir = proj_dir / "docs"
+    deploy_dir = proj_dir / "deploy"
+    docs_dir.mkdir(parents=True)
+    deploy_dir.mkdir(parents=True)
+    (tmp_path / "_shared" / "registry").mkdir(parents=True)
+    (tmp_path / "_shared" / "lib").mkdir(parents=True)
+
+    # pipeline-state.json
+    state = {
+        "project": proj,
+        "display_name": "Test FF",
+        "task_flow": "medallion",
+        "deploy_mode": "artifacts_only",
+        "current_phase": "3-deploy",
+        "phases": {
+            "0a-discovery": {"status": "complete"},
+            "1-design": {"status": "complete"},
+            "2a-test-plan": {"status": "complete"},
+            "2b-sign-off": {"status": "complete"},
+            "3-deploy": {"status": "in_progress"},
+            "4-validate": {"status": "pending"},
+            "5-document": {"status": "pending"},
+        },
+    }
+    (proj_dir / "pipeline-state.json").write_text(
+        json.dumps(state, indent=2), encoding="utf-8"
+    )
+
+    # .architecture-cache.json
+    cache = {
+        "project": proj,
+        "task_flow": "medallion",
+        "items": [
+            {"id": "bronze_lakehouse", "type": "Lakehouse", "wave": 1},
+            {"id": "transform_nb", "type": "Notebook", "wave": 2},
+            {"id": "sales_report", "type": "Report", "wave": 3},
+        ],
+        "waves": [
+            {"id": 1, "name": "Foundation"},
+            {"id": 2, "name": "Processing"},
+            {"id": 3, "name": "Visualization"},
+        ],
+    }
+    (docs_dir / ".architecture-cache.json").write_text(
+        json.dumps(cache, indent=2), encoding="utf-8"
+    )
+
+    # _deploy_manifest.json
+    manifest = {
+        "artifacts": [
+            {"type": "platform", "path": "workspace/Storage/bronze_lakehouse.Lakehouse"},
+            {"type": "platform", "path": "workspace/Processing/transform_nb.Notebook"},
+            {"type": "platform", "path": "workspace/Visualization/sales_report.Report"},
+        ]
+    }
+    (deploy_dir / "_deploy_manifest.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
+
+    # architecture-handoff.md
+    (docs_dir / "architecture-handoff.md").write_text(
+        "---\ntask_flow: medallion\n---\n# Architecture Handoff\n" + ("x" * 300),
+        encoding="utf-8",
+    )
+
+    # discovery-brief.md (with a blockquote problem statement)
+    (docs_dir / "discovery-brief.md").write_text(
+        "# Discovery Brief\n\n> Ingest IoT sensor data from 500 machines\n",
+        encoding="utf-8",
+    )
+
+    # test-plan.md
+    (docs_dir / "test-plan.md").write_text(
+        "# Test Plan\nedge_cases:\n  - \"Null timestamps in source\"\n",
+        encoding="utf-8",
+    )
+
+    # item-type-registry.json (minimal)
+    (tmp_path / "_shared" / "registry" / "item-type-registry.json").write_text(
+        json.dumps({"item_types": {}}), encoding="utf-8"
+    )
+
+    return tmp_path, proj
+
+
+class TestFastForwardGenerators:
+    """Regression tests for the deterministic fast-forward generators."""
+
+    # ── deployment handoff ───────────────────────────────────────────────
+
+    def test_generate_deployment_handoff(self, fast_forward_project):
+        """Deployment handoff is created with all items and correct statuses."""
+        tmp_path, proj = fast_forward_project
+        ok, report = rp._generate_deployment_handoff(proj)
+
+        assert ok is True
+        assert len(report) == 1
+        assert "deployment-handoff.md" in report[0].lower() or "deployment handoff" in report[0].lower()
+
+        handoff = (tmp_path / "_projects" / proj / "docs" / "deployment-handoff.md")
+        assert handoff.exists()
+        content = handoff.read_text(encoding="utf-8")
+
+        # All 3 items present
+        assert "bronze_lakehouse" in content
+        assert "transform_nb" in content
+        assert "sales_report" in content
+
+        # Correct types parsed from path
+        assert "Lakehouse" in content
+        assert "Notebook" in content
+        assert "Report" in content
+
+        # artifacts_only → status: planned
+        assert "status: planned" in content
+
+        # Task flow and project name
+        assert "medallion" in content
+        assert "test-ff" in content
+
+    def test_deployment_handoff_wave_ordering(self, fast_forward_project):
+        """Items in wave 1 appear before items in wave 2 in the output."""
+        tmp_path, proj = fast_forward_project
+        rp._generate_deployment_handoff(proj)
+
+        content = (tmp_path / "_projects" / proj / "docs" / "deployment-handoff.md").read_text(encoding="utf-8")
+
+        pos_w1 = content.index("bronze_lakehouse")
+        pos_w2 = content.index("transform_nb")
+        pos_w3 = content.index("sales_report")
+        assert pos_w1 < pos_w2 < pos_w3
+
+    def test_deployment_handoff_missing_manifest(self, fast_forward_project):
+        """Missing manifest returns (False, [warning])."""
+        tmp_path, proj = fast_forward_project
+        manifest = tmp_path / "_projects" / proj / "deploy" / "_deploy_manifest.json"
+        manifest.unlink()
+
+        ok, report = rp._generate_deployment_handoff(proj)
+        assert ok is False
+        assert any("manifest" in m.lower() or "⚠" in m for m in report)
+
+    # ── validation report ────────────────────────────────────────────────
+
+    def test_generate_validation_report(self, fast_forward_project):
+        """Validation report is created with all items and passing status."""
+        tmp_path, proj = fast_forward_project
+        ok, report = rp._generate_validation_report(proj)
+
+        assert ok is True
+        assert len(report) == 1
+        assert "validation-report.md" in report[0].lower() or "validation report" in report[0].lower()
+
+        vr = (tmp_path / "_projects" / proj / "docs" / "validation-report.md")
+        assert vr.exists()
+        content = vr.read_text(encoding="utf-8")
+
+        # All 3 items present
+        assert "bronze_lakehouse" in content
+        assert "transform_nb" in content
+        assert "sales_report" in content
+
+        # Status passed
+        assert "status: passed" in content
+
+        # Phase entries present
+        assert "Foundation" in content
+        assert "Transformation" in content
+        assert "Visualization" in content
+        assert "CI/CD Readiness" in content
+
+    def test_validation_report_missing_manifest(self, fast_forward_project):
+        """Missing manifest returns (False, [warning])."""
+        tmp_path, proj = fast_forward_project
+        manifest = tmp_path / "_projects" / proj / "deploy" / "_deploy_manifest.json"
+        manifest.unlink()
+
+        ok, report = rp._generate_validation_report(proj)
+        assert ok is False
+        assert any("manifest" in m.lower() or "⚠" in m for m in report)
+
+    # ── project brief ────────────────────────────────────────────────────
+
+    def test_generate_project_brief(self, fast_forward_project):
+        """Project brief is created with project name, task flow, and content."""
+        tmp_path, proj = fast_forward_project
+        docs_dir = tmp_path / "_projects" / proj / "docs"
+
+        # Generators create these during normal flow; create stubs for brief
+        (docs_dir / "deployment-handoff.md").write_text(
+            "# Deployment Handoff\n" + ("x" * 300), encoding="utf-8"
+        )
+        (docs_dir / "validation-report.md").write_text(
+            "# Validation Report\n" + ("x" * 300), encoding="utf-8"
+        )
+
+        ok, report = rp._generate_project_brief(proj)
+
+        assert ok is True
+        assert len(report) == 1
+        assert "project-brief.md" in report[0].lower() or "project brief" in report[0].lower()
+
+        brief = docs_dir / "project-brief.md"
+        assert brief.exists()
+        content = brief.read_text(encoding="utf-8")
+
+        # Project display name and task flow
+        assert "Test FF" in content
+        assert "medallion" in content
+
+        # Problem statement extracted from discovery-brief.md
+        assert "IoT sensor data" in content
+
+        # Items from architecture cache
+        assert "3 items" in content or "3" in content
+
+        # Artifacts-only status label
+        assert "VALIDATED" in content

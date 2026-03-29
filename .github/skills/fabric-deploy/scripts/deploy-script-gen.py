@@ -33,10 +33,11 @@ SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-depl
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
 _SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"
 
-sys.path.insert(0, str(_SHARED_DIR))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
+import bootstrap  # noqa: F401
 from registry_loader import load_registry
 from banner import BANNER_ART
-from yaml_utils import extract_yaml_blocks, parse_yaml_value, split_list, parse_inline_mapping
+from yaml_utils import extract_yaml_blocks, extract_task_flow, parse_yaml_value, split_list, parse_inline_mapping
 from text_utils import slugify, escape_for_python_string
 
 # REST API creation support map loaded from registry
@@ -104,20 +105,8 @@ _extract_yaml_blocks = extract_yaml_blocks
 
 
 def _extract_task_flow(markdown: str) -> str:
-    """Extract task_flow from YAML frontmatter."""
-    fm = re.match(r"^---\s*\n(.*?)\n---", markdown, re.DOTALL)
-    if fm:
-        m = re.search(r"^task_flow:\s*(.+)$", fm.group(1), re.MULTILINE)
-        if m:
-            return m.group(1).strip()
-    # Fallback: look in body
-    m = re.search(r"\*\*Task [Ff]low:\*\*\s*(.+)", markdown)
-    if m:
-        val = m.group(1).strip()
-        # Take first word/phrase (might have extra description after)
-        val = re.split(r"\s*[\(\[]", val)[0].strip()
-        return val
-    return "unknown"
+    """Extract task_flow from YAML frontmatter or body content."""
+    return extract_task_flow(markdown) or "unknown"
 
 
 _parse_yaml_value = parse_yaml_value

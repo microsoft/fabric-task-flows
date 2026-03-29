@@ -35,7 +35,8 @@ import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 from banner import print_banner  # noqa: E402
 

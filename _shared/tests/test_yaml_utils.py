@@ -4,6 +4,7 @@ from lib.yaml_utils import (
     extract_yaml_blocks,
     extract_and_parse_yaml_blocks,
     extract_frontmatter,
+    extract_task_flow,
     find_block,
     split_list,
     parse_yaml_value,
@@ -126,6 +127,50 @@ def test_extract_frontmatter_decision_guide_style():
     fm = extract_frontmatter(text)
     assert fm["id"] == "compute-selection"
     assert fm["quick_decision"] == "Use Spark for big data, SQL for warehousing"
+
+
+# ── extract_task_flow ────────────────────────────────────────────────────
+
+def test_extract_task_flow_frontmatter_underscore():
+    text = "---\ntask_flow: medallion\ntitle: Test\n---\n# Body"
+    assert extract_task_flow(text) == "medallion"
+
+
+def test_extract_task_flow_frontmatter_hyphen():
+    text = "---\ntask-flow: lambda\ntitle: Test\n---\n# Body"
+    assert extract_task_flow(text) == "lambda"
+
+
+def test_extract_task_flow_body_key():
+    text = "# Architecture\n\ntask_flow: batch-processing\n"
+    assert extract_task_flow(text) == "batch-processing"
+
+
+def test_extract_task_flow_body_bold_pattern():
+    text = "# Overview\n\n**Task Flow:** medallion\n\nSome description."
+    assert extract_task_flow(text) == "medallion"
+
+
+def test_extract_task_flow_returns_lowercase():
+    text = "---\ntask_flow: Medallion\n---\n# Body"
+    assert extract_task_flow(text) == "medallion"
+
+
+def test_extract_task_flow_returns_none_when_missing():
+    text = "# No task flow here\n\nJust some content."
+    assert extract_task_flow(text) is None
+
+
+def test_extract_task_flow_strips_quotes():
+    text = '---\ntask_flow: "medallion"\n---\n# Body'
+    assert extract_task_flow(text) == "medallion"
+    text_single = "---\ntask_flow: 'lambda'\n---\n# Body"
+    assert extract_task_flow(text_single) == "lambda"
+
+
+def test_extract_task_flow_no_separator_variant():
+    text = "---\ntaskflow: medallion\n---\n# Body"
+    assert extract_task_flow(text) == "medallion"
 
 
 # ── find_block ───────────────────────────────────────────────────────────

@@ -29,13 +29,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 
 SCRIPTS_DIR = REPO_ROOT / "_shared" / "scripts"
 PROJECTS_DIR = REPO_ROOT / "_projects"
-
-sys.path.insert(0, str(SCRIPTS_DIR))
 
 
 # ---------------------------------------------------------------------------

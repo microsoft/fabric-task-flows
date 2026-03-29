@@ -14,6 +14,8 @@ from registry_loader import (
     build_fab_type_map,
     build_deploy_method_map,
     build_test_method_map,
+    build_layer_map,
+    build_type_to_decision_map,
     validate_registry,
 )
 
@@ -269,3 +271,112 @@ def test_alternatives_are_symmetric():
                 f"{name} lists {alt} as alternative but {alt} "
                 f"does not list {name} back"
             )
+
+
+# ── Layer map tests ───────────────────────────────────────────────────────
+
+EXPECTED_LAYERS = {
+    "Lakehouse":    ("Store",     "🗄️"),
+    "Warehouse":    ("Store",     "🗄️"),
+    "Notebook":     ("Process",   "⚙️"),
+    "DataPipeline": ("Ingest",    "📥"),
+    "MLModel":      ("AI / ML",   "🤖"),
+    "Reflex":       ("Alert",     "🔔"),
+    "Environment":  ("Config",    "🔧"),
+}
+
+
+def test_build_layer_map_returns_dict():
+    lm = build_layer_map()
+    assert isinstance(lm, dict)
+    assert len(lm) > 0
+
+
+def test_layer_map_known_types():
+    """Known canonical types map to the correct (layer, emoji) tuples."""
+    lm = build_layer_map()
+    for canonical, expected in EXPECTED_LAYERS.items():
+        assert lm.get(canonical) == expected, (
+            f"{canonical}: expected {expected}, got {lm.get(canonical)}"
+        )
+
+
+def test_layer_map_resolves_aliases():
+    """Aliases and fab_type variants resolve to the same layer."""
+    lm = build_layer_map()
+    # Lakehouse aliases
+    assert lm.get("lh") == ("Store", "🗄️")
+    assert lm.get("lake house") == ("Store", "🗄️")
+    # Notebook aliases
+    assert lm.get("nb") == ("Process", "⚙️")
+    # DataPipeline aliases
+    assert lm.get("pipeline") == ("Ingest", "📥")
+
+
+def test_layer_map_values_are_tuples():
+    """Every value in the layer map is a (str, str) tuple."""
+    lm = build_layer_map()
+    for key, val in lm.items():
+        assert isinstance(val, tuple) and len(val) == 2, (
+            f"{key}: expected 2-tuple, got {val!r}"
+        )
+        assert isinstance(val[0], str) and isinstance(val[1], str)
+
+
+def test_layer_map_covers_canonical():
+    """Every canonical registry type appears in the layer map."""
+    registry = load_registry()
+    lm = build_layer_map()
+    for name in registry:
+        assert name in lm, f"Canonical type {name} missing from layer_map"
+
+
+# ── Type-to-decision map tests ───────────────────────────────────────────
+
+EXPECTED_DECISIONS = {
+    "lakehouse":    "storage",
+    "warehouse":    "storage",
+    "notebook":     "processing",
+    "datapipeline": "ingestion",
+}
+
+
+def test_build_type_to_decision_map_returns_dict():
+    dm = build_type_to_decision_map()
+    assert isinstance(dm, dict)
+    assert len(dm) > 0
+
+
+def test_decision_map_known_types():
+    """Known types map to the correct decision category."""
+    dm = build_type_to_decision_map()
+    for key, expected in EXPECTED_DECISIONS.items():
+        assert dm.get(key) == expected, (
+            f"{key}: expected {expected!r}, got {dm.get(key)!r}"
+        )
+
+
+def test_decision_map_keys_are_lowercase():
+    """All keys in the decision map must be lowercase."""
+    dm = build_type_to_decision_map()
+    for key in dm:
+        assert key == key.lower(), f"Key {key!r} is not lowercase"
+
+
+def test_decision_map_resolves_aliases():
+    """Aliases resolve correctly in the decision map."""
+    dm = build_type_to_decision_map()
+    assert dm.get("lh") == "storage"
+    assert dm.get("nb") == "processing"
+    assert dm.get("pipeline") == "ingestion"
+
+
+def test_decision_map_excludes_unmapped_phases():
+    """Types with ML, IQ, Monitoring, or Environment phases are excluded."""
+    dm = build_type_to_decision_map()
+    # MLModel has phase=ML → no decision mapping
+    assert "mlmodel" not in dm
+    # Reflex has phase=Monitoring → no decision mapping
+    assert "reflex" not in dm
+    # Environment has phase=Environment → no decision mapping
+    assert "environment" not in dm

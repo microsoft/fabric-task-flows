@@ -40,9 +40,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 from banner import print_banner
+from registry_loader import build_layer_map, build_type_to_decision_map
+from yaml_utils import extract_task_flow as _shared_extract_task_flow
 
 SKILLS_DIR = REPO_ROOT / ".github" / "skills"
 VERSION = "1.0.0"
@@ -1105,15 +1108,7 @@ def _extract_task_flow(project: str) -> str | None:
     if not handoff.exists():
         return None
     content = handoff.read_text(encoding="utf-8")
-    # Try YAML frontmatter: task-flow: medallion or task_flow: medallion
-    match = re.search(r'(?:task[-_]flow|taskflow)\s*:\s*(\S+)', content, re.IGNORECASE)
-    if match:
-        return match.group(1).strip().strip('"').strip("'").lower()
-    # Fallback: look for "Task Flow: medallion" in body
-    match = re.search(r'Task\s+Flow\s*:\s*`?(\S+?)`?(?:\s|$)', content)
-    if match:
-        return match.group(1).strip().lower()
-    return None
+    return _shared_extract_task_flow(content)
 
 
 def _generate_architecture_summary(project: str) -> None:
@@ -1148,7 +1143,6 @@ def _generate_architecture_summary(project: str) -> None:
     waves = []
     acs = []
     try:
-        sys.path.insert(0, str(REPO_ROOT / "_shared" / "lib"))
         from yaml_utils import extract_and_parse_yaml_blocks
         blocks = extract_and_parse_yaml_blocks(content)
         for block in blocks:
@@ -1186,6 +1180,7 @@ def _generate_architecture_summary(project: str) -> None:
     # Fallback: extract items from markdown wave tables if YAML blocks yielded nothing.
     # Matches tables like: | item_id | Type | Purpose |
     if not items:
+        print("⚠ YAML extraction empty — falling back to markdown table parser", file=sys.stderr)
         wave_num = 0
         in_wave_table = False
         wave_name = ""
@@ -1242,6 +1237,7 @@ def _generate_architecture_summary(project: str) -> None:
     # Fallback: extract acceptance criteria from markdown checklists
     # Matches lines like: - [ ] All three sources land in Bronze daily
     if not acs:
+        print("⚠ No ACs from YAML blocks — falling back to markdown checklist parser", file=sys.stderr)
         ac_idx = 0
         in_ac_section = False
         for line in content.splitlines():
@@ -1707,30 +1703,8 @@ def _extract_diagram(handoff_path: Path) -> str | None:
     return None
 
 
-# Item type → user-friendly layer label + emoji
-_LAYER_LABELS: dict[str, tuple[str, str]] = {
-    "Eventhouse":      ("Store",     "🗄️"),
-    "Lakehouse":       ("Store",     "🗄️"),
-    "Warehouse":       ("Store",     "🗄️"),
-    "SQLDatabase":     ("Store",     "🗄️"),
-    "Eventstream":     ("Ingest",    "📥"),
-    "DataPipeline":    ("Ingest",    "📥"),
-    "CopyJob":         ("Ingest",    "📥"),
-    "DataflowGen2":    ("Ingest",    "📥"),
-    "KQLQueryset":     ("Process",   "⚙️"),
-    "Notebook":        ("Process",   "⚙️"),
-    "SparkJobDefinition": ("Process", "⚙️"),
-    "KQLDashboard":    ("Visualize", "📊"),
-    "Report":          ("Visualize", "📊"),
-    "SemanticModel":   ("Visualize", "📊"),
-    "DataAgent":       ("AI / ML",   "🤖"),
-    "Ontology":        ("AI / ML",   "🤖"),
-    "MLExperiment":    ("AI / ML",   "🤖"),
-    "MLModel":         ("AI / ML",   "🤖"),
-    "Reflex":          ("Alert",     "🔔"),
-    "VariableLibrary": ("Config",    "🔧"),
-    "Environment":     ("Config",    "🔧"),
-}
+# Item type → user-friendly layer label + emoji (derived from registry)
+_LAYER_LABELS: dict[str, tuple[str, str]] = build_layer_map()
 
 
 def _extract_decisions_from_handoff(text: str) -> dict:
@@ -1917,17 +1891,8 @@ def _print_signoff_summary(project: str) -> None:
             handoff_text = handoff_path.read_text(encoding="utf-8")
         except OSError:
             pass
-    # Map known Fabric types back to decision categories
-    _TYPE_TO_DECISION: dict[str, str] = {
-        "warehouse": "storage", "lakehouse": "storage", "eventhouse": "storage",
-        "sql database": "storage", "cosmos db database": "storage",
-        "copy job": "ingestion", "eventstream": "ingestion",
-        "data pipeline": "ingestion", "pipeline": "ingestion",
-        "dataflow gen2": "processing", "notebook": "processing",
-        "kql queryset": "processing",
-        "semantic model": "visualization", "report": "visualization",
-        "real-time dashboard": "visualization", "kql dashboard": "visualization",
-    }
+    # Map known Fabric types back to decision categories (derived from registry)
+    _TYPE_TO_DECISION: dict[str, str] = build_type_to_decision_map()
     for line in handoff_text.splitlines():
         lower = line.lower()
         if any(phrase in lower for phrase in (

@@ -34,8 +34,8 @@ from pathlib import Path
 _SKILL_DIR = Path(__file__).resolve().parent.parent
 
 _SHARED_DIR = _SKILL_DIR.parent.parent.parent / "_shared" / "lib"
-if str(_SHARED_DIR) not in sys.path:
-    sys.path.insert(0, str(_SHARED_DIR))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
+import bootstrap  # noqa: F401
 
 # ── Item type → Fabric task type mapping ──────────────────────────────────────
 

@@ -328,6 +328,55 @@ def build_test_method_map() -> dict[str, dict]:
     return _build_variant_map(_value)
 
 
+_PHASE_TO_LAYER: dict[str, tuple[str, str]] = {
+    "Foundation":      ("Store",     "🗄️"),
+    "Ingestion":       ("Ingest",    "📥"),
+    "Transformation":  ("Process",   "⚙️"),
+    "Visualization":   ("Visualize", "📊"),
+    "ML":              ("AI / ML",   "🤖"),
+    "IQ":              ("AI / ML",   "🤖"),
+    "Monitoring":      ("Alert",     "🔔"),
+    "Environment":     ("Config",    "🔧"),
+}
+
+_LAYER_DEFAULT: tuple[str, str] = ("Other", "📦")
+
+
+def build_layer_map() -> dict[str, tuple[str, str]]:
+    """Map type-name variants → ``(layer_label, emoji)``.
+
+    Derived from each registry entry's ``phase`` field.  Entries with
+    unknown or TBD phases map to ``("Other", "📦")``.
+    """
+    def _value(_c: str, data: dict) -> tuple[str, str]:
+        phase = data.get("phase", "")
+        return _PHASE_TO_LAYER.get(phase, _LAYER_DEFAULT)
+
+    return _build_variant_map(_value)
+
+
+_PHASE_TO_DECISION: dict[str, str] = {
+    "Foundation":     "storage",
+    "Ingestion":      "ingestion",
+    "Transformation": "processing",
+    "Visualization":  "visualization",
+}
+
+
+def build_type_to_decision_map() -> dict[str, str]:
+    """Map type-name variants (lowercased) → decision category string.
+
+    Only entries whose ``phase`` maps to a known decision category are
+    included.
+    """
+    def _value(_c: str, data: dict) -> str | None:
+        phase = data.get("phase", "")
+        return _PHASE_TO_DECISION.get(phase)
+
+    raw = _build_variant_map(_value, include_capitalized_aliases=True)
+    return {k.lower(): v for k, v in raw.items()}
+
+
 def build_alternatives_map() -> dict[str, list[str]]:
     """Map canonical type name → list of alternative item type names.
 
