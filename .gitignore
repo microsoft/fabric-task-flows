@@ -43,3 +43,6 @@ presentations/dist/
 # Presentations (local only)
 presentations/
 marp.config.mjs
+
+# Demo video (local only — embedded in README via GitHub user-attachments)
+task-flows-video.mp4
