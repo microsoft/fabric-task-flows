@@ -6,7 +6,7 @@
 
 **From problem to production in minutes. Less guessing. More building.**
 
-https://github.com/microsoft/fabric-task-flows/raw/main/task-flows-video.mp4
+<video src="https://github.com/microsoft/fabric-task-flows/raw/main/task-flows-video.mp4" controls width="100%"></video>
 
 ---
 
