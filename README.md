@@ -1,16 +1,16 @@
 # Task Flows for Microsoft Fabric
 
 [![CI](https://github.com/microsoft/fabric-task-flows/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/fabric-task-flows/actions/workflows/ci.yml)
+
+
+
+
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **From problem to production in minutes. Less guessing. More building.**
 
-[![Watch the demo](./task-flows-video-thumbnail.png)](https://github.com/microsoft/fabric-task-flows/raw/main/task-flows-video.mp4)
-
-> ▶️ [Click to watch the demo](https://github.com/microsoft/fabric-task-flows/raw/main/task-flows-video.mp4)
-
----
+https://github.com/user-attachments/assets/3dd74ad6-c634-4b05-b276-d2d1242254a2
 
 It starts the same way every time — a messy whiteboard and a simple question: *"What can we build?"*
 
