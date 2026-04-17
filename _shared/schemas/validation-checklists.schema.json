@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Validation Checklists Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "description",
+    "shared",
+    "task_flows"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "shared": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ai_governance_checklist",
+        "variable_library_checklist"
+      ],
+      "properties": {
+        "ai_governance_checklist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "variable_library_checklist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "task_flows": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/taskFlowChecklist"
+      }
+    }
+  },
+  "definitions": {
+    "taskFlowChecklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "has_shared_ai_governance",
+        "manual_steps",
+        "phases"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "has_shared_ai_governance": {
+          "type": "boolean"
+        },
+        "ai_governance_checklist_override": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "manual_steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "item_type",
+              "action"
+            ],
+            "properties": {
+              "item_type": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "phases": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/definitions/phaseChecklistValue"
+          }
+        }
+      }
+    },
+    "phaseChecklistValue": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/definitions/phaseChecklistGroup"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "phaseChecklistGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sub_items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "options"
+          ]
+        },
+        {
+          "required": [
+            "sub_items"
+          ]
+        }
+      ]
+    }
+  }
+}

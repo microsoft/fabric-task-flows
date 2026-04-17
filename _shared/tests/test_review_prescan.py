@@ -8,8 +8,8 @@ SHARED_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SHARED_DIR / "lib"))
 
 REPO_ROOT = SHARED_DIR.parent
-DESIGN_SKILL = REPO_ROOT / ".github" / "skills" / "fabric-design"
-SCRIPT_PATH = DESIGN_SKILL / "scripts" / "review-prescan.py"
+HEAL_SKILL = REPO_ROOT / ".github" / "skills" / "fabric-heal"
+SCRIPT_PATH = HEAL_SKILL / "scripts" / "review-prescan.py"
 
 # Import the module from its hyphenated filename
 spec = importlib.util.spec_from_file_location("review_prescan", str(SCRIPT_PATH))

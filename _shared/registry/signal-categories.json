@@ -126,6 +126,7 @@
           "historical",
           "reports",
           "dashboard",
+          "operational dashboards",
           "KPI",
           "chart",
           "visualization",
@@ -302,7 +303,10 @@
           "regression",
           "inference",
           "feature engineering",
-          "anomaly detection"
+          "anomaly detection",
+          "customer churn",
+          "churn prediction",
+          "predictive maintenance"
         ],
         "weak": [
           "detect",
@@ -404,9 +408,14 @@
         ],
         "moderate": [
           "compliance",
+          "regulatory compliance",
           "encryption",
           "access control",
           "audit",
+          "audit trail",
+          "regulatory reporting",
+          "compliance reporting",
+          "regulatory deadline",
           "AML",
           "KYC"
         ],
@@ -448,6 +457,11 @@
           "pattern": "(ISO \\d+|SOC ?[12]|FedRAMP|NIST|CMMC)",
           "weight": 3,
           "label": "Compliance standard"
+        },
+        {
+          "pattern": "(regulatory|compliance).{0,20}(deadline|due|timeline|audit)",
+          "weight": 2,
+          "label": "Compliance timeline pressure"
         },
         {
           "pattern": "(discover|find|identify|classify).{0,15}(PII|sensitive|personal).{0,15}data",
@@ -563,15 +577,24 @@
           "files",
           "JSON",
           "documents",
-          "images"
+          "images",
+          "databricks",
+          "snowflake",
+          "azure databricks",
+          "delta lake",
+          "adls gen2",
+          "unity catalog",
+          "onelake shortcut",
+          "databricks and adls",
+          "snowflake and on-prem sql"
         ],
         "weak": [
           "logs",
           "XML",
           "CSV",
           "videos",
-          "databricks",
-          "snowflake"
+          "external tables",
+          "stage files"
         ]
       },
       "signals": [
@@ -645,13 +668,27 @@
           "data catalog",
           "consolidate",
           "standardize",
-          "lakehouse"
+          "lakehouse",
+          "on-prem sql server",
+          "integration runtime",
+          "data gateway",
+          "governance policy",
+          "retention policy",
+          "erp and crm",
+          "from erp",
+          "data from erp",
+          "sap",
+          "salesforce"
         ],
         "weak": [
           "data silos",
           "migrate",
           "entity resolution",
-          "deduplication"
+          "deduplication",
+          "single source",
+          "self-hosted integration runtime",
+          "onelake shortcut",
+          "on-prem sql"
         ]
       },
       "signals": [
@@ -704,6 +741,11 @@
           "pattern": "(manual|manually).{0,15}(reconcil|consolidat|aggregat)",
           "weight": 2,
           "label": "Manual data wrangling"
+        },
+        {
+          "pattern": "(erp|crm|pos|legacy).{0,25}(and|with|plus).{0,25}(erp|crm|pos|legacy)",
+          "weight": 2,
+          "label": "Cross-system harmonization"
         }
       ],
       "examples": [
@@ -743,13 +785,17 @@
         "moderate": [
           "frontend",
           "backend",
-          "chatbot"
+          "chatbot",
+          "sql only",
+          "non-technical team"
         ],
         "weak": [
           "app",
           "mobile",
           "web app",
-          "SaaS"
+          "SaaS",
+          "some code",
+          "mixed code"
         ]
       },
       "signals": [
@@ -822,11 +868,17 @@
         ],
         "moderate": [
           "conversational AI",
-          "document store"
+          "document store",
+          "self-service analytics"
         ],
         "weak": [
           "schema-less",
-          "flexible schema"
+          "flexible schema",
+          "adls",
+          "flat files",
+          "on-prem SQL",
+          "document lake",
+          "vector index"
         ]
       },
       "signals": [

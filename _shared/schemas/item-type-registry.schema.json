@@ -1,0 +1,243 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Item Type Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "$schema_version",
+    "$version",
+    "$description",
+    "$fields",
+    "$connection_protocols",
+    "$skillset",
+    "$availability",
+    "$phase",
+    "$task_type",
+    "$cicd_strategy",
+    "$query_language",
+    "types",
+    "$defaults"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$schema_version": {
+      "type": "string"
+    },
+    "$version": {
+      "type": "string"
+    },
+    "$description": {
+      "type": "string"
+    },
+    "$fields": {
+      "$ref": "#/definitions/stringLegend"
+    },
+    "$connection_protocols": {
+      "$ref": "#/definitions/stringLegend"
+    },
+    "$skillset": {
+      "$ref": "#/definitions/stringLegend"
+    },
+    "$availability": {
+      "$ref": "#/definitions/stringLegend"
+    },
+    "$phase": {
+      "$ref": "#/definitions/stringLegend"
+    },
+    "$task_type": {
+      "$ref": "#/definitions/stringLegend"
+    },
+    "$cicd_strategy": {
+      "$ref": "#/definitions/stringLegend"
+    },
+    "$query_language": {
+      "$ref": "#/definitions/stringLegend"
+    },
+    "$defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "availability"
+      ],
+      "properties": {
+        "availability": {
+          "type": "string",
+          "enum": [
+            "ga",
+            "pupr",
+            "prpr"
+          ]
+        }
+      }
+    },
+    "types": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/itemType"
+      }
+    }
+  },
+  "definitions": {
+    "stringLegend": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "itemType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "display_name",
+        "aliases",
+        "availability",
+        "phase",
+        "task_type",
+        "skillset",
+        "query_language",
+        "alternatives",
+        "api",
+        "cicd"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "availability": {
+          "type": "string",
+          "enum": [
+            "ga",
+            "pupr",
+            "prpr"
+          ]
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "Foundation",
+            "Environment",
+            "Ingestion",
+            "Transformation",
+            "Visualization",
+            "ML",
+            "Monitoring",
+            "IQ"
+          ]
+        },
+        "task_type": {
+          "type": "string",
+          "enum": [
+            "store data",
+            "get data",
+            "mirror data",
+            "prepare data",
+            "analyze and train data",
+            "track data",
+            "visualize",
+            "distribute data",
+            "develop data"
+          ]
+        },
+        "skillset": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "LC",
+              "CF",
+              "Portal",
+              "auto"
+            ]
+          }
+        },
+        "query_language": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "t-sql",
+              "sql-readonly",
+              "kql",
+              "spark",
+              "python",
+              "r",
+              "scala",
+              "dax",
+              "nosql"
+            ]
+          }
+        },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "api": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "creatable",
+            "definition"
+          ],
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "creatable": {
+              "type": "boolean"
+            },
+            "definition": {
+              "type": "boolean"
+            },
+            "fab_type": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "cicd": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "strategy",
+            "verified"
+          ],
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": [
+                "content",
+                "platform_only",
+                "unsupported"
+              ]
+            },
+            "verified": {
+              "type": "boolean"
+            },
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

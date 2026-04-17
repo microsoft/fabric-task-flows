@@ -14,17 +14,7 @@ pre-compute: [test-plan-prefill]
 
 ## Mode 1: Architecture Review + Test Plan (Phase 2a)
 
-> **⚡ Fast-forward:** This phase is auto-completed by `run-pipeline.py` fast-forward. The test plan is pre-filled by `test-plan-prefill.py`. This skill is only invoked if fast-forward fails or the user requests manual review.
-
-### Step 1: Review Pre-Filled Test Plan
-
-The test plan at `_projects/[name]/docs/test-plan.md` is pre-generated. Review for:
-- Testability concerns (`red` blockers, `yellow` warnings)
-- Missing edge cases or expected results
-
-Enhance if needed; do not rewrite from scratch.
-
-Set `review_outcome`: `approved` (no red) or `concerns` (has red).
+The runner pre-generates `test-plan.md` via `test-plan-prefill.py` before this skill is invoked. Your job: (1) verify each acceptance criterion maps to the correct items/waves from the architecture handoff, (2) add edge cases and expected results where missing, (3) replace every `<!-- AGENT: FILL -->` marker with real content. Set `review_outcome`: `approved` (no red blockers) or `concerns` (has red). Do NOT rewrite from scratch — edit in place.
 
 ## Mode 2: Post-Deployment Validation (Phase 3)
 
@@ -33,7 +23,9 @@ For live workspace validation:
 python .github/skills/fabric-test/scripts/validate-items.py _projects/[name]/docs/deployment-handoff.md
 ```
 
-Follow the checklist from tool output. Write `_projects/[name]/docs/validation-report.md` with `status: passed | partial | failed`.
+`validate-items.py` emits a manual validation checklist (it does not call the Fabric REST API). Follow the checklist from tool output. Write `_projects/[name]/docs/validation-report.md` with `status: passed | partial | failed`.
+
+If any finding is `routed_to: engineer`, also write `remediation-log.md` per the schema at `.github/skills/fabric-test/schemas/remediation-log.md`.
 
 ## Constraints
 
@@ -42,10 +34,4 @@ Follow the checklist from tool output. Write `_projects/[name]/docs/validation-r
 
 ## Handoff
 
-After producing the output file, advance:
-```bash
-python _shared/scripts/run-pipeline.py advance --project <project-name> -q
-```
-
-If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
-Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.
+> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

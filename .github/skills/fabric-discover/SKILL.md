@@ -41,9 +41,12 @@ Review the signal mapping output from the `start` command.
 
 > **⚠️ The `start` command already runs signal-mapper as pre-compute. Read the output above — do NOT run `signal-mapper.py` again manually.**
 
-### Step 4: Assess 4 V's Gaps
+### Step 4: Close 4 V's Gaps (loop until confidence floor met)
 
-Only ask about gaps NOT already in the problem statement:
+For each V that is **not already stated in the problem statement**, ask the user
+**one at a time** via `ask_user`. Continue asking until every V has either a
+concrete user-stated value OR the user has explicitly told you to use your
+inferred best guess. **Do NOT proceed to Step 5 with any V still unknown.**
 
 | V | What to Assess |
 |---|---------------|
@@ -52,26 +55,45 @@ Only ask about gaps NOT already in the problem statement:
 | Variety | Sources: DBs, files, APIs, streaming |
 | Versatility | Low-code / code-first / mixed |
 
-> **Use the `ask_user` tool for EACH gap — one question per call.** Only ask about V's that are genuinely unknown from the problem statement. If the signal mapper generated follow-up questions (via `--intake` mode or low-coverage advisory), use them as question templates. Skip V's already answered.
+If the signal mapper generated follow-up questions (via `--intake` mode or
+low-coverage advisory), use them as question templates.
 
-### Step 5: Confirm with User
+Once all four V's are resolved, persist the confirmed values:
 
-Present a **single confirmatory summary** of inferred signals and all 4 V's using `ask_user`. This is NOT a re-ask — it's a confirmation of what you know (from problem statement + Step 4 answers).
+```bash
+python .github/skills/fabric-discover/scripts/intake-writer.py \
+  --project <project> \
+  --volume "<value>"       --volume-source user|inferred \
+  --velocity "<value>"     --velocity-source user|inferred \
+  --variety "<value>"      --variety-source user|inferred \
+  --versatility "<value>"  --versatility-source user|inferred
+```
 
-**You MUST present all 4 V's explicitly — no exceptions:**
+Use `--*-source user` when the user stated the value outright, `inferred` when
+the user deferred to your best guess. Omit (or pass empty string) for anything
+still unknown — but the writer will warn if `confidence_floor_met` is false,
+which means you must loop back and ask more questions.
 
-1. **Volume** — data size (e.g., "looks like small daily loads under 10 GB")
-2. **Velocity** — timing (e.g., "daily batch refresh, not real-time")
-3. **Variety** — sources (e.g., "two sources: Square API and your accounting CSV")
-4. **Versatility** — skill level (e.g., "low-code approach since your team prefers drag-and-drop")
+### Step 5: Render the Deterministic Discovery Summary
 
-> **Use `ask_user` once to confirm all V's together** — do NOT re-ask each V individually (that was Step 4's job).
+Run the deterministic renderer — this reads `.signal-mapper-cache.json` and
+`.discovery-intake.json` and prints a stable, stakeholder-facing recap:
 
-**Presentation rules — the user is a business stakeholder:**
+```bash
+python _shared/scripts/run-pipeline.py discovery-summary --project <project>
+```
 
-- Use **plain-language bullets** — NOT markdown tables (tables go only in the handoff file).
-- Use the user's own language: "your Square sales data" not "API-based ingestion pattern."
-- If a V is still unknown after Step 4, state your best inference and ask for correction.
+**You MUST copy-paste the ENTIRE rendered block into your chat response as a
+fenced code block (```).** The user cannot see tool output directly — your
+response text is the only thing they see. Do not abbreviate, summarize, or
+paraphrase the block.
+
+After the block, issue a single `ask_user` with three choices:
+
+- **Confirm** — proceed to write the Discovery Brief (Step 6).
+- **Correct** — capture free-text corrections; re-run `intake-writer.py` with
+  the updated values, then re-render (Step 5 again).
+- **Restart** — abandon and re-collect the problem statement.
 
 ### Step 6: Produce Discovery Brief
 
@@ -100,6 +122,8 @@ Write to `_projects/[name]/docs/discovery-brief.md`:
 ## Constraints
 
 - Use `signal-mapper.py` for all signal lookups — do not access registry files directly
+- Use `intake-writer.py` to persist 4 V's — do not hand-edit `.discovery-intake.json`
+- Step 5 recap MUST be rendered via `run-pipeline.py discovery-summary` — never improvise the block
 - Discovery Brief: max 60 lines
 - Signal table cells: max 15 words
 - Architectural Judgment Calls: max 20 words each
@@ -108,10 +132,4 @@ Write to `_projects/[name]/docs/discovery-brief.md`:
 
 ## Handoff
 
-After producing the output file, advance:
-```bash
-python _shared/scripts/run-pipeline.py advance --project <project-name> -q
-```
-
-If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
-Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.
+> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

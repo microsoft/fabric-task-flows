@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Deployment Order Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "description",
+    "taskFlows"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "taskFlows": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/taskFlowDefinition"
+      }
+    }
+  },
+  "definitions": {
+    "taskFlowDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primaryStorage",
+        "items"
+      ],
+      "properties": {
+        "primaryStorage": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/deploymentItem"
+          }
+        }
+      }
+    },
+    "deploymentItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "order",
+        "itemType",
+        "dependsOn",
+        "requiredFor"
+      ],
+      "properties": {
+        "order": {
+          "type": "string",
+          "pattern": "^[0-9]+[a-z]?$"
+        },
+        "itemType": {
+          "type": "string"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requiredFor": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "alternativeGroup": {
+          "type": "string"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

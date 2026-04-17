@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "powershell": ".github/hooks/scripts/session-start.ps1",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "powershell": ".github/hooks/scripts/prompt-audit.ps1",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "powershell": ".github/hooks/scripts/posttool-audit.ps1",
+        "cwd": ".",
+        "timeoutSec": 8
+      }
+    ],
+    "errorOccurred": [
+      {
+        "type": "command",
+        "powershell": ".github/hooks/scripts/error-audit.ps1",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ],
+    "sessionEnd": [
+      {
+        "type": "command",
+        "powershell": ".github/hooks/scripts/session-end.ps1",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

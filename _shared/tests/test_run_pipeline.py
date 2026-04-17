@@ -1613,3 +1613,269 @@ class TestSignalMapperCache:
         )
         result = rp._extract_top_task_flow(str(docs / "discovery-brief.md"))
         assert result == "batch"
+
+
+# ── Discovery summary renderer ───────────────────────────────────────────
+
+
+class TestPrintDiscoverySummary:
+    """_print_discovery_summary reads caches and emits a deterministic block."""
+
+    def _write_caches(self, tmp_path, project, *, state_problem="Track IoT sensors in real time",
+                      signals=None, candidates=None, intake=None):
+        proj_dir = tmp_path / "_projects" / project
+        docs = proj_dir / "docs"
+        docs.mkdir(parents=True, exist_ok=True)
+        state = _make_state(project=project, display_name="Sensor Hub", problem=state_problem)
+        (proj_dir / "pipeline-state.json").write_text(json.dumps(state), encoding="utf-8")
+        if signals is not None or candidates is not None:
+            cache = {
+                "signals": signals or [],
+                "task_flow_candidates": candidates or [],
+                "primary_velocity": "real-time",
+                "ambiguous": False,
+                "keyword_coverage": 0.42,
+            }
+            (docs / ".signal-mapper-cache.json").write_text(json.dumps(cache), encoding="utf-8")
+        if intake is not None:
+            (docs / ".discovery-intake.json").write_text(json.dumps(intake), encoding="utf-8")
+
+    def test_full_caches_renders_all_sections(self, tmp_path, monkeypatch, capsys):
+        _patch_repo(monkeypatch, tmp_path)
+        self._write_caches(
+            tmp_path, "sensor-hub",
+            signals=[
+                {"signal": "real-time", "value": "streaming", "confidence": "high",
+                 "source_keywords": ["real-time", "sensor"]},
+                {"signal": "ml", "value": "predictive", "confidence": "medium",
+                 "source_keywords": ["predict"]},
+            ],
+            candidates=[
+                {"id": "real-time-analytics", "score": 7, "signals": ["real-time"]},
+                {"id": "lambda", "score": 4, "signals": ["real-time", "batch"]},
+            ],
+            intake={
+                "volume": {"value": "50 GB/day", "source": "user"},
+                "velocity": {"value": "real-time", "source": "user"},
+                "variety": {"value": "MQTT + Kafka", "source": "user"},
+                "versatility": {"value": "code-first", "source": "inferred"},
+                "confidence_floor_met": True,
+            },
+        )
+        rp._print_discovery_summary("sensor-hub")
+        out = capsys.readouterr().out
+        assert "DISCOVERY REVIEW" in out
+        assert "Sensor Hub" in out
+        assert "Track IoT sensors in real time" in out
+        assert "4 V's ASSESSMENT" in out
+        assert "50 GB/day" in out and "(user)" in out
+        assert "INFERRED SIGNALS" in out
+        assert "high" in out
+        assert "CANDIDATE TASK FLOWS" in out
+        assert "real-time-analytics" in out and "score 7" in out
+        # High-confidence signal must appear before medium-confidence one
+        assert out.index("confidence: high") < out.index("confidence: medium")
+
+    def test_missing_intake_shows_placeholder(self, tmp_path, monkeypatch, capsys):
+        _patch_repo(monkeypatch, tmp_path)
+        self._write_caches(
+            tmp_path, "sensor-hub",
+            signals=[{"signal": "batch", "value": "nightly", "confidence": "low",
+                      "source_keywords": ["nightly"]}],
+            candidates=[{"id": "medallion", "score": 2, "signals": ["batch"]}],
+            intake=None,
+        )
+        rp._print_discovery_summary("sensor-hub")
+        out = capsys.readouterr().out
+        assert "not yet captured" in out
+        assert "(unknown)" in out
+        assert "medallion" in out
+
+    def test_missing_signal_cache_shows_placeholder(self, tmp_path, monkeypatch, capsys):
+        _patch_repo(monkeypatch, tmp_path)
+        self._write_caches(
+            tmp_path, "sensor-hub",
+            signals=None, candidates=None,
+            intake={
+                "volume": {"value": "small", "source": "user"},
+                "velocity": {"value": "batch", "source": "user"},
+                "variety": {"value": "CSV", "source": "user"},
+                "versatility": {"value": "low-code", "source": "user"},
+                "confidence_floor_met": True,
+            },
+        )
+        rp._print_discovery_summary("sensor-hub")
+        out = capsys.readouterr().out
+        assert "signal mapper cache not available" in out
+        assert "no candidates yet" in out
+        assert "small" in out and "CSV" in out
+
+    def test_missing_state_renders_gracefully(self, tmp_path, monkeypatch, capsys):
+        _patch_repo(monkeypatch, tmp_path)
+        (tmp_path / "_projects" / "ghost" / "docs").mkdir(parents=True)
+        rp._print_discovery_summary("ghost")
+        out = capsys.readouterr().out
+        assert "DISCOVERY REVIEW" in out
+        assert "ghost" in out
+        assert "not captured" in out
+
+
+
+
+
+# =============================================================================
+# New tests for review fixes: DV-O5, DV-O7/CV-3, CV-1 deploy-mode, CV-8 cache
+# =============================================================================
+
+
+class TestStartPipelineSetsDiscoveryInProgress:
+    """DV-O5: start_pipeline marks 0a-discovery as in_progress."""
+
+    def test_discovery_marked_in_progress(self, tmp_path, monkeypatch):
+        _patch_repo(monkeypatch, tmp_path)
+        project = "sensor-hub"
+
+        # Write a minimal new-project.py stub at the expected REPO_ROOT path
+        # so start_pipeline's dynamic importlib.util load succeeds.
+        scripts_dir = tmp_path / "_shared" / "scripts"
+        scripts_dir.mkdir(parents=True, exist_ok=True)
+        stub = (
+            "import json\n"
+            "from pathlib import Path\n"
+            f"PROJECT = {project!r}\n"
+            "def sanitize_name(name):\n"
+            "    return PROJECT\n"
+            "def scaffold(repo_root, display_name, task_flow=None):\n"
+            "    proj = Path(repo_root) / '_projects' / PROJECT\n"
+            "    (proj / 'docs').mkdir(parents=True, exist_ok=True)\n"
+            "    initial = {\n"
+            "        'project': PROJECT,\n"
+            "        'current_phase': '0a-discovery',\n"
+            "        'phases': {p: {'status': 'pending'} for p in "
+            f"{PHASE_ORDER!r}" + "},\n"
+            "        'transitions': [],\n"
+            "    }\n"
+            "    (proj / 'pipeline-state.json').write_text(\n"
+            "        json.dumps(initial), encoding='utf-8'\n"
+            "    )\n"
+        )
+        (scripts_dir / "new-project.py").write_text(stub, encoding="utf-8")
+
+        rp.start_pipeline("Sensor Hub")
+        state = rp._load_state(project)
+        assert state["phases"]["0a-discovery"]["status"] == "in_progress"
+
+
+class TestVerifyOutputAgentFillMarker:
+    """CV-3: _verify_output blocks advance when <!-- AGENT: FILL --> is present."""
+
+    def test_agent_fill_marker_blocks_verify(self, tmp_path, monkeypatch):
+        _patch_repo(monkeypatch, tmp_path)
+        proj_dir = tmp_path / "_projects" / "af1"
+        (proj_dir / "docs").mkdir(parents=True)
+        content = "# Brief\n<!-- AGENT: FILL -->\n" + ("x" * 300)
+        (proj_dir / "docs" / "discovery-brief.md").write_text(content, encoding="utf-8")
+        ok, msg = rp._verify_output("0a-discovery", "af1")
+        assert ok is False
+        assert "template" in msg.lower() or "placeholder" in msg.lower()
+
+
+class TestAdvanceDeployMode:
+    """CV-1: --deploy-mode flag writes deploy_mode into state."""
+
+    def test_advance_with_deploy_mode_live_persists(self, tmp_path, monkeypatch):
+        """Simulate dvance --project p --approve --deploy-mode live CLI path."""
+        _patch_repo(monkeypatch, tmp_path)
+        state = _make_state(project="dm1", current="2b-sign-off")
+        state["transitions"] = [{"from": "2b-sign-off", "auto": False}]
+        _write_state(tmp_path, "dm1", state)
+
+        # Mirror the CLI flow: persist the flag, then call advance(approved=True).
+        loaded = rp._load_state("dm1")
+        loaded["deploy_mode"] = "live"
+        rp._save_state("dm1", loaded)
+
+        # Stub out deploy-artifact generation so we only exercise state I/O.
+        monkeypatch.setattr(rp, "_generate_deploy_artifacts",
+                            lambda project: (True, ["stubbed"]))
+        monkeypatch.setattr(rp, "_generate_deployment_handoff",
+                            lambda project: (True, ["stubbed"]))
+
+        rp.advance("dm1", approved=True)
+        final = rp._load_state("dm1")
+        assert final["deploy_mode"] == "live"
+
+    def test_advance_without_flag_defaults_to_artifacts_only(self, tmp_path, monkeypatch):
+        _patch_repo(monkeypatch, tmp_path)
+        state = _make_state(project="dm2", current="2b-sign-off")
+        state["transitions"] = [{"from": "2b-sign-off", "auto": False}]
+        _write_state(tmp_path, "dm2", state)
+
+        monkeypatch.setattr(rp, "_generate_deploy_artifacts",
+                            lambda project: (True, ["stubbed"]))
+        monkeypatch.setattr(rp, "_generate_deployment_handoff",
+                            lambda project: (True, ["stubbed"]))
+        monkeypatch.setattr(rp, "_generate_validation_report",
+                            lambda project: (True, ["stubbed"]))
+        monkeypatch.setattr(rp, "_generate_project_brief",
+                            lambda project: (True, ["stubbed"]))
+
+        rp.advance("dm2", approved=True)
+        final = rp._load_state("dm2")
+        assert final.get("deploy_mode") == "artifacts_only"
+
+
+class TestPrecomputeSignalMapperCacheHit:
+    """CV-8: _run_precompute skips signal-mapper when cache matches problem."""
+
+    def test_cache_hit_skips_subprocess(self, tmp_path, monkeypatch):
+        _patch_repo(monkeypatch, tmp_path)
+        proj_dir = tmp_path / "_projects" / "cache-hit"
+        (proj_dir / "docs").mkdir(parents=True)
+        cache = {
+            "problem_statement": "Same problem as state",
+            "signals": [],
+            "task_flow_candidates": [],
+        }
+        (proj_dir / "docs" / ".signal-mapper-cache.json").write_text(
+            json.dumps(cache), encoding="utf-8"
+        )
+        state = _make_state(project="cache-hit", problem="Same problem as state")
+
+        called = {"n": 0}
+        import subprocess as _sp
+
+        def fake_run(*a, **kw):
+            called["n"] += 1
+            return type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+        monkeypatch.setattr(_sp, "run", fake_run)
+        outputs = rp._run_precompute("0a-discovery", "cache-hit", state)
+        assert called["n"] == 0
+        assert any("cache hit" in o.lower() for o in outputs)
+
+    def test_cache_miss_runs_subprocess(self, tmp_path, monkeypatch):
+        _patch_repo(monkeypatch, tmp_path)
+        proj_dir = tmp_path / "_projects" / "cache-miss"
+        (proj_dir / "docs").mkdir(parents=True)
+        # Stale cache — different problem statement
+        cache = {"problem_statement": "OLD", "signals": []}
+        (proj_dir / "docs" / ".signal-mapper-cache.json").write_text(
+            json.dumps(cache), encoding="utf-8"
+        )
+        state = _make_state(project="cache-miss", problem="NEW")
+
+        called = {"n": 0}
+        import subprocess as _sp
+
+        def fake_run(*a, **kw):
+            called["n"] += 1
+            return type("R", (), {
+                "returncode": 0,
+                "stdout": json.dumps({"signals": [], "task_flow_candidates": []}),
+                "stderr": "",
+            })()
+
+        monkeypatch.setattr(_sp, "run", fake_run)
+        rp._run_precompute("0a-discovery", "cache-miss", state)
+        assert called["n"] == 1

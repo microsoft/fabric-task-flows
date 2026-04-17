@@ -1,0 +1,149 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Signal Categories Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "version",
+    "description",
+    "categories"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/category"
+      }
+    }
+  },
+  "definitions": {
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "velocity",
+        "use_case",
+        "task_flow_candidates",
+        "keywords",
+        "signals",
+        "examples",
+        "exclusions",
+        "relationships"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "velocity": {
+          "type": "string"
+        },
+        "use_case": {
+          "type": "string"
+        },
+        "task_flow_candidates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "keywords": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "strong",
+            "moderate",
+            "weak"
+          ],
+          "properties": {
+            "strong": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "moderate": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "weak": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pattern",
+              "weight",
+              "label"
+            ],
+            "properties": {
+              "pattern": {
+                "type": "string"
+              },
+              "weight": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "label": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relationships": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

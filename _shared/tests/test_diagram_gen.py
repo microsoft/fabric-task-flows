@@ -330,12 +330,6 @@ class TestLayerMapCoverage:
 
     def test_all_item_types_mapped(self):
         """Every item type in task-flow definitions must have a LAYER_MAP entry."""
-        import json
-
-        config_path = REPO_ROOT / "_shared" / "registry" / "script-config.json"
-        config = json.loads(config_path.read_text(encoding="utf-8"))
-        layer_map = config.get("layer_map", {}).get("values", {})
-
         task_flows_dir = REPO_ROOT / "_shared" / "registry" / "task-flows"
         if not task_flows_dir.exists():
             pytest.skip("No task-flows directory found")
@@ -347,11 +341,12 @@ class TestLayerMapCoverage:
                 r'^\s*type:\s*["\']?(\w+)["\']?', content, re.MULTILINE
             ):
                 item_type = match.group(1)
-                if item_type not in layer_map:
+                if item_type not in LAYER_MAP:
                     unmapped_types.add(item_type)
 
         assert not unmapped_types, (
-            f"Item types missing from LAYER_MAP in script-config.json: "
+            f"Item types missing from LAYER_MAP (derived from registry): "
             f"{sorted(unmapped_types)}. "
-            f"Add these to layer_map.values in _shared/registry/script-config.json."
+            f"Add these to _shared/registry/item-type-registry.json "
+            f"with an appropriate phase value."
         )

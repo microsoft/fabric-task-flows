@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Skills Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "$version",
+    "$description",
+    "phases",
+    "phase_order",
+    "standalone_skills",
+    "fallback"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$version": {
+      "type": "string"
+    },
+    "$description": {
+      "type": "string"
+    },
+    "phases": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/phaseConfig"
+      }
+    },
+    "phase_order": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "standalone_skills": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "constraint"
+        ],
+        "properties": {
+          "constraint": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_phase_match",
+        "out_of_scope"
+      ],
+      "properties": {
+        "no_phase_match": {
+          "type": "string"
+        },
+        "out_of_scope": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "phaseConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output"
+      ],
+      "properties": {
+        "skill": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "gate": {
+          "type": "string"
+        },
+        "output": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "constraint": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

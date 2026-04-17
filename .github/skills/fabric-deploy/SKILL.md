@@ -11,7 +11,7 @@ pre-compute: [deploy-script-gen]
 
 # Fabric Deployment
 
-> **⚡ Fast-forward:** After sign-off approval, `run-pipeline.py advance --approve` auto-generates deployment artifacts: workspace/ with .platform files, config.yml, deploy script, and taskflow JSON. The agent creates `deployment-handoff.md` and `phase-progress.md` during this phase.
+> **⚡ Pre-generated handoff:** The runner writes `deployment-handoff.md` with every item in `status: not_started` and `<!-- AGENT: FILL -->` markers before this skill is invoked, alongside `deploy/workspace/`, `config.yml`, the deploy script, and the taskflow JSON. Your job after running (or choosing to skip) deployment is to update each item's status to `deployed` / `failed` and replace every `<!-- AGENT: FILL -->` marker with real content. Do NOT rewrite the handoff from scratch — edit in place.
 
 ## Deployment Mode
 
@@ -37,15 +37,15 @@ python deploy-[name].py
 ```
 The script handles: workspace creation, capacity assignment, fabric-cicd deployment, and Variable Library population — all interactively. The user must have Azure credentials (`az login`).
 
-After the user confirms deployment is complete, write `deployment-handoff.md` with items in `deployed` status.
+After the user confirms deployment is complete, update each item in `deployment-handoff.md` to `status: deployed` (or `failed` with a reason), and replace every `<!-- AGENT: FILL -->` marker.
 
 **If deploy_mode is `artifacts_only`:**
 
-Review the generated artifacts. Present a summary of what would be deployed (items, waves, script location). Write `deployment-handoff.md` with:
+Review the generated artifacts. Present a summary of what would be deployed (items, waves, script location). Update `deployment-handoff.md`:
 - `deployment_mode: artifacts_only`
-- All items with `status: planned`
-- Implementation Notes (deviations only)
-- Configuration Rationale table
+- All items set to `status: planned`
+- Fill in Implementation Notes (deviations only) and the Configuration Rationale table
+- Replace every `<!-- AGENT: FILL -->` marker
 
 ## Constraints
 
@@ -83,10 +83,4 @@ Max 3 remediation iterations.
 
 ## Handoff
 
-After producing the output file, advance:
-```bash
-python _shared/scripts/run-pipeline.py advance --project <project-name> -q
-```
-
-If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
-Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.
+> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

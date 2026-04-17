@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "powershell": ".github/hooks/scripts/pretool-policy.ps1",
+        "cwd": ".",
+        "timeoutSec": 8
+      }
+    ]
+  }
+}

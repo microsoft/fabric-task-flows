@@ -32,6 +32,7 @@ import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 
 SCRIPTS_DIR = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts"
+HEAL_SCRIPTS_DIR = REPO_ROOT / ".github" / "skills" / "fabric-heal" / "scripts"
 PROJECTS_DIR = REPO_ROOT / "_projects"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
 
@@ -118,7 +119,7 @@ def analyze_prescans(projects: list[Path]) -> list[str]:
         if "task_flow: TBD" in content and "items: 0" in content:
             continue
 
-        cmd = [sys.executable, str(SCRIPTS_DIR / "review-prescan.py"),
+        cmd = [sys.executable, str(HEAL_SCRIPTS_DIR / "review-prescan.py"),
                "--handoff", str(handoff), "--format", "json"]
         try:
             env = os.environ.copy()

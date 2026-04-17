@@ -37,20 +37,7 @@ Run `decision-resolver.py --help` for signal keys and fallback options.
 
 Write to `_projects/[name]/docs/architecture-handoff.md`.
 
-> **File editing:** This file is pre-scaffolded. Replace the **entire file contents** using the `edit` tool — use the full existing file as `old_str` and the completed handoff as `new_str`. Do NOT use `create` (the file already exists) or pass an empty `old_str`.
-
-> **⚡ Fast-forward mode:** When advancing from discovery, the pipeline may auto-generate the complete handoff (items, waves, ACs, decisions, diagram) and fast-forward directly to sign-off. In this case, the agent reviews the pre-generated content rather than writing from scratch.
-
-If the handoff file is **already populated** (has YAML frontmatter with real `task_flow`, filled items/waves/ACs):
-- **Review** the pre-generated content for accuracy
-- **Enhance** with project-specific rationale, trade-offs, and deployment strategy
-- **Verify** the architecture diagram is present and correct
-
-If the handoff file is **still a template** (contains `task_flow: TBD` or `items: []`):
-- Write the complete handoff from scratch using the scaffolded template structure
-- Include YAML frontmatter with `task_flow`
-
-In either case, fill in the `> Summary:` line with a ≤20-word summary of the problem statement from the discovery brief.
+The runner pre-generates `architecture-handoff.md` (items, waves, ACs, decisions, diagram) before this skill is invoked. Your job: (1) verify accuracy against the discovery brief and decision-resolver output, (2) add project-specific rationale, trade-offs, and deployment strategy, (3) replace the `<!-- AGENT: FILL -->` marker in the `## Summary` line (and anywhere else it appears) with a ≤20-word summary of the problem statement. Do NOT rewrite the pre-generated YAML blocks from scratch — edit in place using the `edit` tool.
 
 ## Constraints
 
@@ -60,10 +47,4 @@ In either case, fill in the `> Summary:` line with a ≤20-word summary of the p
 
 ## Handoff
 
-After producing the output file, advance:
-```bash
-python _shared/scripts/run-pipeline.py advance --project <project-name> -q
-```
-
-If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
-Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.
+> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

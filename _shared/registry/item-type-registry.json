@@ -92,7 +92,8 @@
       "phase": "Foundation",
       "task_type": "store data",
       "skillset": [
-        "LC"
+        "LC",
+        "CF"
       ],
       "query_language": [
         "spark",
@@ -894,8 +895,8 @@
         "strategy": "content",
         "verified": false,
         "files": [
-          "Config/data_agent.json",
-          "Config/draft/stage_config.json"
+          "Files/Config/data_agent.json",
+          "Files/Config/draft/stage_config.json"
         ]
       }
     },
@@ -987,7 +988,7 @@
         "databricks mirror"
       ],
       "availability": "ga",
-      "phase": "Ingestion",
+      "phase": "Foundation",
       "task_type": "mirror data",
       "skillset": [
         "LC"
@@ -1301,7 +1302,7 @@
         "snapshot",
         "wh snapshot"
       ],
-      "availability": "pupr",
+      "availability": "ga",
       "phase": "Foundation",
       "task_type": "store data",
       "skillset": [

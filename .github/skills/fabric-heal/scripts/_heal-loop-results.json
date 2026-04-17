@@ -2,16 +2,135 @@
   "iterations": [
     {
       "iteration": 1,
-      "problems": 5,
-      "coverage_before": 0.4766666666666667,
+      "problems": 25,
+      "coverage_before": 0.586,
+      "coverage_after": null,
       "zero_candidates": 0,
-      "lambda_suggested": 1,
-      "uncovered_terms": []
+      "lambda_suggested": 9,
+      "uncovered_terms": [
+        "python and sql",
+        "customer",
+        "prediction",
+        "customer churn prediction",
+        "fortune",
+        "dashboards",
+        "scada",
+        "iot sensors",
+        "sensors and",
+        "and scada"
+      ]
+    },
+    {
+      "iteration": 2,
+      "problems": 25,
+      "coverage_before": 0.57,
+      "coverage_after": null,
+      "zero_candidates": 0,
+      "lambda_suggested": 14,
+      "uncovered_terms": [
+        "python and sql",
+        "mid size",
+        "dashboards",
+        "deadline",
+        "files and",
+        "and apis",
+        "data needs",
+        "analytics for",
+        "team skill",
+        "skill level"
+      ]
+    },
+    {
+      "iteration": 3,
+      "problems": 25,
+      "coverage_before": 0.6344,
+      "coverage_after": null,
+      "zero_candidates": 0,
+      "lambda_suggested": 9,
+      "uncovered_terms": [
+        "python and sql",
+        "files and",
+        "and apis",
+        "flat files and",
+        "files and apis",
+        "regional",
+        "customer",
+        "prediction",
+        "python",
+        "customer churn prediction"
+      ]
     }
   ],
   "distribution": {
-    "suggestion_counts": {},
-    "top_counts": {},
-    "total_problems": 5
-  }
+    "suggestion_counts": {
+      "medallion": 37,
+      "basic-data-analytics": 41,
+      "basic-machine-learning-models": 17,
+      "sensitive-data-insights": 20,
+      "event-medallion": 32,
+      "event-analytics": 29,
+      "data-analytics-sql-endpoint": 18,
+      "app-backend": 14,
+      "conversational-analytics": 7,
+      "lambda": 3
+    },
+    "top_counts": {
+      "medallion": 15,
+      "sensitive-data-insights": 8,
+      "event-medallion": 24,
+      "basic-data-analytics": 10,
+      "data-analytics-sql-endpoint": 7,
+      "event-analytics": 7,
+      "app-backend": 4
+    },
+    "uncovered_term_counts": {
+      "python and sql": 3,
+      "customer": 2,
+      "prediction": 2,
+      "customer churn prediction": 2,
+      "fortune": 1,
+      "dashboards": 2,
+      "scada": 1,
+      "iot sensors": 1,
+      "sensors and": 1,
+      "and scada": 1,
+      "iot sensors and": 1,
+      "sensors and scada": 1,
+      "deadline": 3,
+      "python": 2,
+      "data needs": 3,
+      "mid size": 1,
+      "files and": 2,
+      "and apis": 2,
+      "analytics for": 2,
+      "team skill": 2,
+      "skill level": 1,
+      "flat files and": 2,
+      "files and apis": 2,
+      "team skill level": 1,
+      "regional": 1,
+      "startup": 1
+    },
+    "pattern_counts": {
+      "Batch": 96,
+      "ML": 17,
+      "Governance": 20,
+      "Hybrid (Batch+Streaming)": 35,
+      "Streaming": 29,
+      "App/API": 14,
+      "AI/Conversational": 7
+    },
+    "flow_skillset_counts": {
+      "Mixed LC/CF": 218
+    },
+    "item_skillset_counts": {
+      "CF": 843,
+      "LC": 2153,
+      "auto": 18
+    },
+    "total_problems": 75
+  },
+  "recommendations": [
+    "Coverage and distribution look balanced; continue periodic healing runs and track trends in _heal-loop-results.json."
+  ]
 }

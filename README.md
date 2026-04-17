@@ -6,6 +6,8 @@
 
 **From problem to production in minutes. Less guessing. More building.**
 
+https://github.com/microsoft/fabric-task-flows/raw/main/task-flows-video.mp4
+
 ---
 
 It starts the same way every time — a messy whiteboard and a simple question: *"What can we build?"*
@@ -22,14 +24,16 @@ With the `@fabric-advisor` agent, you describe the problem. After a few prompts,
 
 ## How it works
 
-The agent walks you through six phases that chain together automatically:
+The agent walks you through seven pipeline phases that chain together automatically, with two moments where you stay in the driver's seat:
 
 | Phase | What happens |
 |-------|-------------|
 | **Discover** | You describe your problem — the agent asks questions and recommends an architecture |
 | **Design** | A detailed architecture, with decision records explaining every trade-off |
 | **Test** | A test plan validates against your acceptance criteria |
-| **Deploy** | The agent generates dependency-ordered scripts, CI/CD-ready |
+| **Sign-Off** | 🛑 You review the architecture + test plan and either approve or request revisions (max 3 cycles) |
+| **Deploy** | The agent generates dependency-ordered scripts, CI/CD-ready — you pick live deployment or artifacts-only |
+| **Validate** | Post-deployment checks against the test plan, with a remediation loop for any findings |
 | **Document** | Everything synthesizes into a human-readable brief |
 
 ## What you get
@@ -53,6 +57,17 @@ python _shared/scripts/run-pipeline.py start "My Project" --problem "describe yo
 ```
 
 The pipeline runner generates agent prompts — paste each into Copilot chat. Use `advance` and `next` to progress through phases. See [`_shared/workflow-guide.md`](_shared/workflow-guide.md) for the full pipeline reference.
+
+## Copilot hooks (policy + observability)
+
+This repository includes optional GitHub Copilot hooks in `.github/hooks/` to enforce pipeline guardrails and capture runtime audit events.
+
+- `01-policy.json` — `preToolUse` policy checks (for example, blocks direct `pipeline-state.json` edits and destructive commands)
+- `02-observability.json` — `sessionStart`, `userPromptSubmitted`, `postToolUse`, `errorOccurred`, `sessionEnd` logging
+- Hook scripts live in `.github/hooks/scripts/`
+- Runtime logs are written to `.github/hooks/logs/` (gitignored)
+
+These hooks complement, but do not replace, CI checks in `.github/workflows/ci.yml`.
 
 ## What's inside
 

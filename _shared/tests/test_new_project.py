@@ -83,40 +83,22 @@ class TestTemplateGenerators:
         assert "my-proj" in brief
         assert "Discovery Brief" in brief
 
+    def test_discovery_brief_has_4v_and_confirmation(self):
+        brief = np.discovery_brief("my-proj")
+        assert "4 V's Assessment" in brief
+        assert "Confirmed with User" in brief
+        # Inferred Signals must now be 4-column
+        assert "| Signal | Value | Confidence | Source |" in brief
+
     def test_architecture_handoff_yaml_frontmatter(self):
         doc = np.architecture_handoff("test-proj")
         assert doc.startswith("---")
         assert "project: test-proj" in doc
-
-    def test_engineer_review_contains_project(self):
-        doc = np.engineer_review("proj-x")
-        assert "proj-x" in doc
-        assert "Engineer Review" in doc
-
-    def test_tester_review_contains_project(self):
-        doc = np.tester_review("proj-y")
-        assert "proj-y" in doc
-        assert "Tester Review" in doc
-
-    def test_test_plan_contains_project(self):
-        doc = np.test_plan("proj-z")
-        assert "proj-z" in doc
-        assert "Test Plan" in doc
-
-    def test_deployment_handoff_contains_project(self):
-        doc = np.deployment_handoff("dep-proj")
-        assert "dep-proj" in doc
-        assert "Deployment Handoff" in doc
-
-    def test_validation_report_phases(self):
-        doc = np.validation_report("val-proj")
-        for phase in ("Foundation", "Ingestion", "Transformation", "Visualization"):
-            assert phase in doc
-
-    def test_status_md_display_name(self):
-        doc = np.status_md("my-proj", "My Project")
-        assert "My Project" in doc
-        assert "my-proj" in doc
+        # DV-O7: items must be a list marker, not a count
+        assert "items: []" in doc
+        assert "items: 0" not in doc
+        # Summary has the AGENT: FILL marker
+        assert "<!-- AGENT: FILL -->" in doc
 
 
 # ── pipeline_state ───────────────────────────────────────────────────────
@@ -205,28 +187,4 @@ class TestScaffold:
         assert "0a-discovery" in state
 
 
-# ── update_projects_md ───────────────────────────────────────────────────
-
-
-class TestUpdateProjectsMd:
-    """Verify PROJECTS.md row insertion."""
-
-    def test_adds_new_row(self, tmp_path):
-        pm = tmp_path / "PROJECTS.md"
-        pm.write_text("# Projects\n\n> Project rows\n", encoding="utf-8")
-        np.update_projects_md(str(tmp_path), "new-proj")
-        content = pm.read_text(encoding="utf-8")
-        assert "new-proj" in content
-
-    def test_skips_duplicate(self, tmp_path, capsys):
-        pm = tmp_path / "PROJECTS.md"
-        pm.write_text("| existing |\n> Project rows\n", encoding="utf-8")
-        np.update_projects_md(str(tmp_path), "existing")
-        out = capsys.readouterr().out
-        assert "already exists" in out
-
-    def test_missing_projects_md(self, tmp_path, capsys):
-        """Should print a warning and not crash."""
-        np.update_projects_md(str(tmp_path), "ghost")
-        out = capsys.readouterr().out
-        assert "not found" in out
+# ── update_projects_md removed — function deleted (CV-6) ────────────────

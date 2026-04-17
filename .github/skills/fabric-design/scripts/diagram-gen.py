@@ -41,16 +41,33 @@ def _find_block(blocks: list[dict], key: str):
 
 
 # ---------------------------------------------------------------------------
-# Item type → architectural layer mapping (loaded from shared config)
+# Item type → architectural layer mapping (derived from registry via registry_loader)
 # ---------------------------------------------------------------------------
 
-import json as _json
+from registry_loader import build_layer_map
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
-_SCRIPT_CONFIG_PATH = _REPO_ROOT / "_shared" / "registry" / "script-config.json"
-with open(_SCRIPT_CONFIG_PATH, encoding="utf-8") as _f:
-    _script_config = _json.load(_f)
-LAYER_MAP: dict[str, str] = _script_config["layer_map"]["values"]
+# Translate the registry's (display, emoji) layer tuple into the uppercase
+# diagram-layer key used for grouping/ordering. Keeps the existing diagram
+# output stable while letting the registry own the underlying phase → layer
+# assignment.
+_LAYER_KEY: dict[str, str] = {
+    "Ingest":    "INGESTION",
+    "Store":     "STORAGE",
+    "Config":    "COMPUTE",
+    "Process":   "PROCESSING",
+    "Visualize": "SERVING",
+    "AI / ML":   "AI_ML",
+    "Alert":     "ALERTING",
+    "Other":     "PROCESSING",  # unknown → default group
+}
+
+_LAYER_TUPLE_MAP = build_layer_map()
+LAYER_MAP: dict[str, str] = {
+    k: _LAYER_KEY.get(v[0], "PROCESSING")
+    for k, v in _LAYER_TUPLE_MAP.items()
+}
+for _k in list(LAYER_MAP.keys()):
+    LAYER_MAP.setdefault(_k.title(), LAYER_MAP[_k])
 
 LAYER_ORDER = ["INGESTION", "STORAGE", "COMPUTE", "PROCESSING", "SERVING", "AI_ML", "ALERTING"]
 LAYER_LABELS = {

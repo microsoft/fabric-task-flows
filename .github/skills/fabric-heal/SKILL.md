@@ -39,12 +39,28 @@ Use 5-8 categories per batch, 3-5 problems per category.
 Orchestrator passes `--mode heal` with benchmark results (coverage %, zero-candidate count, uncovered terms).
 
 1. Map uncovered terms to signal categories (1-11)
-2. Edit `signal-mapper.py` keyword tuples (max 15 new per category per iteration)
+2. Update `_shared/registry/signal-categories.json` using `signal-categories-cli.py` (max 15 new keywords per category per iteration)
 3. Log changes to `_shared/learnings.md`
+
+## Orchestrator Reporting (Verbose Distribution)
+
+`heal-orchestrator.py` prints a verbose, deterministic distribution report with ASCII bar charts:
+
+- Task flow suggestion rate
+- Top candidate distribution
+- Pattern-category distribution (batch/streaming/hybrid/governance/app-api)
+- Skillset distribution (LC/CF/mixed tendencies)
+- Item type frequency across suggested flows
+- Recommendations derived from benchmark thresholds and recurring uncovered terms
+
+Detailed analytics are persisted to:
+
+- `.github/skills/fabric-heal/scripts/_heal-loop-results.json`
 
 ### Constraints
 
-- Use `signal-mapper.py` for all signal lookups — do not access registry files directly (raw JSON wastes context)
+- Use `signal-mapper.py` for all signal lookups.
+- For keyword maintenance, use `_shared/scripts/signal-categories-cli.py` (add/remove/move/list) instead of manual raw JSON edits.
 - Never remove existing keywords or modify the matching algorithm
 - Clean up generated files: delete `problem-statements-batch*.md` after each loop completes
 - Prefer specific terms over generic ones
@@ -52,6 +68,7 @@ Orchestrator passes `--mode heal` with benchmark results (coverage %, zero-candi
 ## References
 
 - `.github/skills/fabric-discover/scripts/signal-mapper.py` — current keyword categories
+- `_shared/scripts/signal-categories-cli.py` — safe keyword maintenance helper for signal categories registry
 - `problem-statements.md` — existing format (in this skill's folder)
 - `_shared/learnings.md` — healing history
 - `task-flows.md` — task flow descriptions

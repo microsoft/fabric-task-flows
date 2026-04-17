@@ -1,15 +1,17 @@
 ﻿# Workflow Guide
 
-> The Fabric pipeline runs as a continuous flow. You start by mentioning `@fabric-advisor` — everything else chains automatically via skills. Your only required intervention is **Phase 2b: Sign-Off**, where you approve the architecture before deployment begins.
+> The Fabric pipeline runs as a continuous flow. You start by mentioning `@fabric-advisor`, which routes to `/fabric-discover` to collect the project name, problem statement, and the 4 V's (Volume, Velocity, Variety, Versatility). From there the pipeline chains automatically through Design → Test Plan → Sign-Off → Deploy → Validate → Document. Two moments require you: **Phase 2b Sign-Off** (approve the architecture or request revisions, max 3 cycles) and the immediately-following **deploy-mode choice** (deploy live to a Fabric workspace, or generate artifacts only). Everything else advances via `run-pipeline.py advance && next`.
 
 ## Overview
 
 ```
-@fabric-advisor ──► /fabric-design ──► /fabric-test (Test Plan)
-                                                       │
-                                                  YOU (Sign-Off)
-                                                       │
-                                                  /fabric-deploy ──► /fabric-test (Validate) ──► /fabric-document
+@fabric-advisor ──► /fabric-discover ──► /fabric-design ──► /fabric-test (Test Plan)
+                                                                          │
+                                                                     YOU (Sign-Off)
+                                                                          │
+                                                                YOU (live or artifacts-only?)
+                                                                          │
+                                                                     /fabric-deploy ──► /fabric-test (Validate) ──► /fabric-document
 ```
 
 ---
@@ -59,15 +61,9 @@ python _shared/scripts/run-pipeline.py advance --project my-project --reconcile
 
 ### Shell Unavailable Fallback
 
-When shell access is lost mid-session, agents may enter **degraded mode** — editing `pipeline-state.json` directly via file edit tool.
+If the shell is unavailable mid-session, agents enter a **read-only degraded mode**: they may inspect `pipeline-state.json` and project `docs/` files to report status to the user, but they MUST NOT write to `pipeline-state.json` — the top-of-file rule against direct state edits applies without exception. Any phase transition that would normally run through `advance` must be deferred until the shell returns; escalate to the user if forward progress is blocked.
 
-**Activation:** Shell confirmed unavailable + output file written + passes content checks (non-template, >200 bytes).
-
-**Permitted edits** (mirrors `advance` exactly): set current phase status→`"complete"`, next phase→`"in_progress"`, update `current_phase`. After Phase 1 (Design): extract `task_flow` from handoff.
-
-**Prohibited:** Skipping phases, bypassing human gate, modifying transition definitions.
-
-**Recovery:** Log in STATUS.md, instruct next agent to run `reconcile --project [name]` when shell returns.
+**Recovery:** Note the blocked transition in `STATUS.md` (if present) and instruct the next agent to run `reconcile --project [name]` once the shell is back, so state is rebuilt from file evidence rather than hand-edited.
 
 ---
 
@@ -77,7 +73,7 @@ See `@fabric-advisor` agent instructions for the phase-to-skill mapping. Key out
 
 | Phase | Produces | Key Detail |
 |-------|----------|------------|
-| 0a Discovery | `docs/discovery-brief.md` | Infers signals, suggests task flow candidates |
+| 0a Discovery | `docs/discovery-brief.md` | Infers signals, suggests task flow candidates. Before the brief is written, the skill renders a deterministic 4 V's + signals + candidate task-flows recap via `run-pipeline.py discovery-summary --project <p>` (reads `.signal-mapper-cache.json` + `.discovery-intake.json`) so the user confirms inputs, not prose. |
 | 1 Design | `docs/architecture-handoff.md` | Architecture handoff with decisions inline (not separate ADR files) |
 | 2a Test Plan | `docs/test-plan.md` | Maps each AC to validation check |
 | 2b Sign-Off | — | `advance --approve` or `--revise --feedback "..."` (max 3 cycles). See [Sign-Off Guide](sign-off-guide.md) |
@@ -109,20 +105,20 @@ All phase transitions are automatic via `run-pipeline.py advance && next` — th
 |---|-----------|----------|---------|------|
 | 1 | 0a — Discovery (Brief produced) | 1 — Design | Discovery Brief saved to `docs/discovery-brief.md` | 🟢 `advance && next` |
 | 2 | 1 — Design (handoff produced) | 2a — Test Plan | Architecture handoff saved to `docs/architecture-handoff.md` | 🟢 `advance && next` |
-| 3 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `docs/test-plan.md` | 🛑 **HUMAN GATE** — `advance --approve` required |
-| 3a | 2b — Sign-Off (`revise`) | 1 — Design (revise) | User runs `advance --revise --feedback "..."` | 🔄 Iterative (max 3 cycles, then must approve) |
-| 4 | 2b — Sign-Off (user approved) | 2c — Deploy | User runs `advance --approve`. Orchestrator asks: deploy live or artifacts only? | 🟡 **DEPLOY MODE GATE** — ask user before proceeding |
-| 5 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved to `docs/deployment-handoff.md` | 🟢 `advance && next` |
-| 5a | 3 — Validate (issues found) | 2c — Remediate | Remediation log created with `routed_to: engineer` issues | 🔄 Iterative (max 3 cycles, then escalate) |
-| 5b | 3 — Validate (design issues) | ESCALATE | `category: design` issues in remediation log | 🛑 **ESCALATION GATE** — human/architect intervention |
-| 6 | 3 — Validate (PASSED) | 4 — Document | Validation Report saved with `status: passed` | 🟢 `advance && next` |
-| 7 | 4 — Document (docs produced) | Complete | Project brief saved | 🟢 `advance` (final) |
+| 3 | 2a — Test Plan (plan produced) | 2b — Sign-Off | Test Plan saved to `docs/test-plan.md` | 🟢 `advance && next` (auto-advances into the 2b holding state) |
+| 3a | 2b — Sign-Off (holding) | 2c — Deploy | User runs `advance --approve --deploy-mode {live,artifacts_only}` | 🛑 **HUMAN GATE + DEPLOY MODE** — `--approve` required; default is `artifacts_only` if flag omitted |
+| 3b | 2b — Sign-Off (`revise`) | 1 — Design (revise) | User runs `advance --revise --feedback "..."` | 🔄 Iterative (max 3 cycles, then must approve) |
+| 4 | 2c — Deploy (deployment complete) | 3 — Validate | Deployment Handoff saved to `docs/deployment-handoff.md` | 🟢 `advance && next` |
+| 4a | 3 — Validate (issues found) | 2c — Remediate | Remediation log created with `routed_to: engineer` issues | 🔄 Iterative (max 3 cycles, then escalate) |
+| 4b | 3 — Validate (design issues) | ESCALATE | `category: design` issues in remediation log | 🛑 **ESCALATION GATE** — human/architect intervention |
+| 5 | 3 — Validate (PASSED) | 4 — Document | Validation Report saved with `status: passed` | 🟢 `advance && next` |
+| 6 | 4 — Document (docs produced) | Complete | Project brief saved | 🟢 `advance` (final) |
 
-**Key principle:** Rules #5 and #6 stop for user input. Rule #5 is the architecture sign-off (approve or revise). Rule #6 is the deployment mode choice (live or artifacts-only). All other transitions use `run-pipeline.py advance && next` — run immediately without asking.
+> **Note:** `2b-sign-off` is itself a holding state, not a transition. The pipeline auto-advances *into* 2b after the test plan is produced; the human gate is the transition *out* of 2b (row 3a), which requires `advance --approve` (or `--revise`).
 
 ### Deployment Mode
 
-After sign-off approval, the orchestrator presents generated artifacts and asks the user whether to deploy live or review artifacts only. This sets `deploy_mode` in `pipeline-state.json` which controls Phase 2c/3/4 behavior:
+The deploy mode is selected at the 2b sign-off gate via the `--deploy-mode` flag on `advance --approve`. Default (no flag) is `artifacts_only`. This sets `deploy_mode` in `pipeline-state.json` (via the runner — never by direct file edit) and controls Phase 2c/3/4 behavior:
 
 | Mode | Phase 2c | Phase 3 | Phase 4 |
 |------|----------|---------|---------|
@@ -158,7 +154,7 @@ Each agent reads the previous agent's output from the project folder. The orches
 | /fabric-design | `docs/discovery-brief.md` | `_projects/[name]/docs/architecture-handoff.md` | Markdown + YAML data blocks |
 | /fabric-test (plan) | `docs/architecture-handoff.md` | `_projects/[name]/docs/test-plan.md` | YAML schema |
 | /fabric-deploy | `docs/architecture-handoff.md` + `docs/test-plan.md` | `_projects/[name]/docs/deployment-handoff.md` + `docs/phase-progress.md` | YAML schema |
-| /fabric-test (validate) | `docs/deployment-handoff.md` + validation checklists (via `validate-items.py`) | `_projects/[name]/docs/validation-report.md` + `docs/remediation-log.md` | YAML schema |
+| /fabric-test (validate) | `docs/deployment-handoff.md` + manual validation checklist (via `validate-items.py`) | `_projects/[name]/docs/validation-report.md` + `docs/remediation-log.md` | YAML schema |
 | /fabric-deploy (remediate) | `docs/remediation-log.md` | `docs/remediation-log.md` (updated) + `docs/phase-progress.md` | YAML schema |
 | /fabric-document | All handoffs in `docs/` | `_projects/[name]/docs/project-brief.md` | Markdown (synthesized brief) |
 
@@ -194,3 +190,20 @@ All agents follow these constraints:
 - **Architecture Handoff: max 220 lines** — uses YAML data blocks for items, ACs, waves
 - **Prose sections have explicit word limits** — documented in each schema file
 - The documenter reads structured YAML and produces a single human-readable project brief
+
+---
+
+## Handoff
+
+Every skill ends its work the same way: after writing its output file to `_projects/[name]/docs/`, the skill invokes the pipeline runner to advance the phase and surface the next step.
+
+```bash
+python _shared/scripts/run-pipeline.py advance --project <project-name> -q
+```
+
+Interpret the runner's output:
+
+- `🟢 AUTO-CHAIN → <skill>` — the next skill was printed; invoke it immediately. Do NOT stop and ask the user.
+- `🛑 HUMAN GATE` — Phase 2b sign-off (the only human gate in the pipeline outside the deploy-mode choice). Present the sign-off to the user and wait for `--approve` or `--revise --feedback "..."`.
+
+Skills never write to `pipeline-state.json` and never call the next skill directly — the runner is the sole orchestrator. If `advance` exits non-zero, stop and escalate to the user.

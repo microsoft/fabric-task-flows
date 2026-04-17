@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 import bootstrap  # noqa: F401
+from paths import REPO_ROOT
 from text_utils import slugify
 
 
@@ -43,12 +44,25 @@ def discovery_brief(project: str) -> str:
 
 ### Problem Statement
 
-> <!-- Filled by /fabric-discover from the user's problem description -->
+> <!-- AGENT: FILL --> Filled by /fabric-discover from the user's problem description
+
+### 4 V's Assessment
+
+<!-- AGENT: FILL -->
+Populated by `intake-writer.py` after the user confirms each V. Each entry has
+a value and a source (`user`, `inferred`, or `unknown`).
+
+| V | Value | Source |
+|---|-------|--------|
+| Volume | — | unknown |
+| Velocity | — | unknown |
+| Variety | — | unknown |
+| Versatility | — | unknown |
 
 ### Inferred Signals
 
-| Signal | Confidence | Source |
-|--------|------------|--------|
+| Signal | Value | Confidence | Source |
+|--------|-------|------------|--------|
 
 ### Task Flow Candidates
 
@@ -57,7 +71,14 @@ def discovery_brief(project: str) -> str:
 
 ### Architectural Judgment Calls
 
-- <!-- Filled by /fabric-discover -->
+- <!-- AGENT: FILL --> Filled by /fabric-discover
+
+### Confirmed with User
+
+<!-- AGENT: FILL -->
+Echo back the problem statement, 4 V's, top signals, and candidate task flows
+so the user can confirm before design begins. See
+`fabric-discover/SKILL.md` Step 6.
 """
 
 
@@ -66,227 +87,19 @@ def architecture_handoff(project: str) -> str:
 project: {project}
 task_flow: TBD
 created: {today()}
-items: 0
+items: []
 deployment_waves: 0
 ---
 
 # Architecture Handoff — {project}
 
+## Summary
+
+<!-- AGENT: FILL -->
+
 <!-- This file is overwritten by handoff-scaffolder.py during the Design phase.
      Run: python .github/skills/fabric-design/scripts/handoff-scaffolder.py \\
           --task-flow <id> --project {project} --output docs/architecture-handoff.md -->
-"""
-
-
-def engineer_review(project: str) -> str:
-    return f"""```yaml
-# Engineer Review — /fabric-deploy Mode 0
-# Schema: _shared/schemas/engineer-review.md
-project: {project}
-task_flow: TBD
-review_date: {today()}
-architecture_version: draft
-
-findings: []
-  # - id: F-1
-  #   area: ""
-  #   severity: green
-  #   finding: ""
-  #   suggestion: ""
-
-wave_optimization:
-  current_waves: 0
-  proposed_waves: 0
-  changes: []
-
-cli_verification: []
-
-prerequisites: []
-
-assessment: pending  # ready | needs-changes | blocked
-must_fix: []
-should_fix: []
-no_change: []
-```
-"""
-
-
-def tester_review(project: str) -> str:
-    return f"""```yaml
-# Tester Review — /fabric-test Mode 0
-# Schema: _shared/schemas/tester-review.md
-project: {project}
-task_flow: TBD
-review_date: {today()}
-
-findings: []
-  # - id: T-1
-  #   area: ""
-  #   severity: green
-  #   finding: ""
-  #   suggestion: ""
-
-untestable_criteria: []
-missing_coverage: []
-
-blockers:
-  architecture: []
-  deployment: []
-
-assessment: pending  # testable | needs-refinement | major-gaps
-must_fix: []
-should_fix: []
-```
-"""
-
-
-def test_plan(project: str) -> str:
-    return f"""```yaml
-# Test Plan — /fabric-test Mode 1
-# Schema: .github/skills/fabric-test/schemas/test-plan.md
-project: {project}
-task_flow: TBD
-architecture_date: {today()}
-test_plan_date: ""
-
-criteria_mapping: []
-  # - ac_id: AC-1
-  #   type: structural
-  #   checklist_ref: ""
-  #   test_method: ""
-
-critical_verification: []
-edge_cases: []
-
-blockers:
-  architecture: []
-  deployment: []
-```
-"""
-
-
-def deployment_handoff(project: str) -> str:
-    return f"""```yaml
-# Deployment Handoff — /fabric-deploy
-# Schema: .github/skills/fabric-deploy/schemas/deployment-handoff.md
-project: {project}
-task_flow: TBD
-validation_checklist: ""
-deployment_tool: fabric-cicd
-parameterization: none
-
-items: []
-  # - name: ""
-  #   type: ""
-  #   wave: 1
-  #   status: deployed
-  #   command: ""
-  #   notes: ""
-
-waves: []
-
-manual_steps:
-  completed: []
-  pending: []
-
-known_issues: []
-cicd_notes: []
-```
-
-### Implementation Notes
-<!-- Max 150 words. Document ONLY deviations from the architecture handoff. -->
-
-### Configuration Rationale
-
-| Item | Setting | Why |
-|------|---------|-----|
-| | | |
-"""
-
-
-def validation_report(project: str) -> str:
-    return f"""```yaml
-# Validation Report — /fabric-test Mode 2
-# Schema: .github/skills/fabric-test/schemas/validation-report.md
-project: {project}
-task_flow: TBD
-date: ""
-status: pending  # passed | partial | failed
-
-phases:
-  - name: Foundation
-    status: pending
-    notes: ""
-  - name: Environment
-    status: pending
-    notes: ""
-  - name: Ingestion
-    status: pending
-    notes: ""
-  - name: Transformation
-    status: pending
-    notes: ""
-  - name: Visualization
-    status: pending
-    notes: ""
-  - name: CI/CD Readiness
-    status: na
-    notes: ""
-
-items_validated: []
-manual_steps: []
-issues: []
-next_steps: []
-```
-
-### Validation Context
-<!-- Max 100 words. What successful validation means for this project. -->
-
-### Future Considerations
-<!-- Max 100 words. Operational learnings. -->
-"""
-
-
-def status_md(project: str, display_name: str) -> str:
-    return f"""# {display_name} — Project Status
-
-**Project ID:** {project}
-**Created:** {today()}
-
-## Current State
-
-| Field | Value |
-|-------|-------|
-| Phase | Discovery |
-| Task Flow | TBD |
-| Blockers | None |
-| Next Action | Architecture Design (Phase 1a) |
-
-## Phase Progression
-
-| Phase | Date | Notes |
-|-------|------|-------|
-| Discovery | {today()} | Discovery Brief produced |
-
-## Blockers
-
-None.
-
-## Wave Progress
-
-<!-- Updated by /fabric-deploy during deployment -->
-
-| Wave | Items | Status |
-|------|-------|--------|
-| | | |
-
-## Manual Steps
-
-<!-- Updated by /fabric-deploy during deployment -->
-
-| ID | Description | Status |
-|----|-------------|--------|
-| | | |
 """
 
 
@@ -319,51 +132,6 @@ def pipeline_state(project: str) -> str:
         ]
     }
     return json.dumps(state, indent=2)
-
-
-# ---------------------------------------------------------------------------
-# PROJECTS.md updater
-# ---------------------------------------------------------------------------
-
-def update_projects_md(repo_root: str, project: str):
-    """Add a row to PROJECTS.md."""
-    projects_path = os.path.join(repo_root, "PROJECTS.md")
-    if not os.path.exists(projects_path):
-        print(f"  ⚠ PROJECTS.md not found at {projects_path}, skipping")
-        return
-
-    with open(projects_path, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    new_row = (
-        f"| {project} | TBD | Discovery | "
-        f"Scaffolded — awaiting Discovery Brief | None | "
-        f"Discovery (Phase 0a) |"
-    )
-
-    if project in content:
-        print(f"  ⚠ Project '{project}' already exists in PROJECTS.md, skipping")
-        return
-
-    # Insert before the phase legend section
-    marker = "\n> Project rows"
-    if marker in content:
-        content = content.replace(marker, f"\n{new_row}{marker}")
-    else:
-        # Fallback: insert after the last table row
-        lines = content.split("\n")
-        insert_idx = None
-        for i, line in enumerate(lines):
-            if line.startswith("|") and "---" not in line and "Project" not in line:
-                insert_idx = i + 1
-        if insert_idx:
-            lines.insert(insert_idx, new_row)
-            content = "\n".join(lines)
-
-    with open(projects_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(content)
-
-    print("  ✅ Added row to PROJECTS.md")
 
 
 # ---------------------------------------------------------------------------
@@ -430,9 +198,7 @@ def main():
     )
     args = parser.parse_args()
 
-    # Find repo root (look for task-flows.md)
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    repo_root = os.path.dirname(script_dir)
+    repo_root = str(REPO_ROOT)
 
     if not os.path.exists(os.path.join(repo_root, "task-flows.md")):
         print(f"❌ Cannot find task-flows.md in {repo_root}")

@@ -31,9 +31,12 @@ import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
+import bootstrap  # noqa: F401
 from paths import REPO_ROOT
+from heal_keyword_utils import find_uncovered_keywords
 
 SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts" / "signal-mapper.py"
 SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-heal/
@@ -86,6 +89,15 @@ _FALLBACK_FILLS = {
 # Problem parsing (reuse from self-heal.py)
 # ---------------------------------------------------------------------------
 
+
+def _resolve_benchmark_project() -> str | None:
+    """Pick a scaffolded project for discovery-mode mapper benchmarking."""
+    projects_dir = REPO_ROOT / "_projects"
+    if not projects_dir.is_dir():
+        return None
+    candidates = sorted(p.name for p in projects_dir.iterdir() if p.is_dir())
+    return candidates[0] if candidates else None
+
 def parse_problems(path: Path) -> list[dict]:
     """Parse problem-statements.md into [{id, category, text}]."""
     content = path.read_text(encoding="utf-8")
@@ -121,9 +133,14 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
     tf_suggestion_counts: Counter = Counter()
     tf_top_counts: Counter = Counter()
 
+    benchmark_project = _resolve_benchmark_project()
+
     for p in problems:
-        cmd = [sys.executable, str(SIGNAL_MAPPER_PATH),
-               "--text", p["text"], "--format", "json", "--intake"]
+        cmd = [sys.executable, str(SIGNAL_MAPPER_PATH), "--text", p["text"], "--format", "json"]
+        if benchmark_project:
+            cmd.extend(["--project", benchmark_project])
+        else:
+            cmd.append("--intake")
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
         try:
@@ -131,27 +148,16 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
                                timeout=30, encoding="utf-8", env=env)
             if r.returncode == 0 and r.stdout.strip():
                 data = json.loads(r.stdout)
-                # Intake mode: derive coverage from signals_detected
-                signals = data.get("signals_detected", [])
+                # Native mapper mode returns full signal objects.
+                signals = data.get("signals", [])
                 candidates = data.get("task_flow_candidates", [])
                 cov = data.get("keyword_coverage", 0)
-
-                # Intake mode has no keyword_coverage — estimate from signal count and confidence
+                # Defensive fallback if intake-shaped payload appears.
+                if not signals and data.get("signals_detected"):
+                    signals = data.get("signals_detected", [])
                 if not cov and signals:
                     conf_scores = {"high": 1.0, "medium": 0.5, "low": 0.2}
                     cov = sum(conf_scores.get(s.get("confidence", "low"), 0.1) for s in signals) / max(len(signals), 1)
-
-                # Intake mode embeds candidate names in candidate_tie_questions
-                if not candidates:
-                    for tq in data.get("candidate_tie_questions", []):
-                        reason = tq.get("reason", "")
-                        question = tq.get("question", "")
-                        for tf_name in re.findall(r"[\w-]+", question):
-                            if tf_name in ("basic-data-analytics", "medallion", "lambda",
-                                           "event-analytics", "sensitive-data-insights",
-                                           "data-analytics-sql-endpoint", "conversational-analytics",
-                                           "translytical", "app-backend", "event-medallion"):
-                                candidates.append({"id": tf_name})
 
                 coverage_scores.append(cov)
                 category_coverage.setdefault(p["category"], []).append(cov)
@@ -208,40 +214,168 @@ def benchmark_signal_mapper(problems: list[dict]) -> dict:
 # ---------------------------------------------------------------------------
 
 DEPLOYMENT_REGISTRY = REPO_ROOT / "_shared" / "registry" / "deployment-order.json"
+ITEM_TYPE_REGISTRY = REPO_ROOT / "_shared" / "registry" / "item-type-registry.json"
 _BAR_CHAR = "\u2588"  # █
+
+FLOW_PATTERN_MAP = {
+    "app-backend": "App/API",
+    "basic-data-analytics": "Batch",
+    "basic-machine-learning-models": "ML",
+    "conversational-analytics": "AI/Conversational",
+    "data-analytics-sql-endpoint": "Batch",
+    "event-analytics": "Streaming",
+    "event-medallion": "Hybrid (Batch+Streaming)",
+    "lambda": "Hybrid (Batch+Streaming)",
+    "medallion": "Batch",
+    "semantic-governance": "Governance",
+    "sensitive-data-insights": "Governance",
+    "translytical": "App/API",
+}
+
+
+def _normalize_item_type(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", name.lower())
+
+
+def _bar_for_pct(pct: float) -> str:
+    return _BAR_CHAR * int(pct / 2)
+
+
+def _print_counter_table(title: str, label: str, counter: Counter,
+                         total: int, top_n: int = 12) -> None:
+    print(f"\n  {title}  [{total} samples]")
+    print(f"  {label:<35} {'Count':>5} {'Rate':>7}  Distribution")
+    print(f"  {'-' * 35} {'-' * 5} {'-' * 7}  {'-' * 36}")
+    for key, cnt in counter.most_common(top_n):
+        pct = cnt / total * 100 if total else 0
+        print(f"  {key:<35} {cnt:>5} {pct:>6.1f}%  {_bar_for_pct(pct)}")
+
+
+def _load_item_type_skillset_map() -> dict[str, list[str]]:
+    """Build normalized item-type -> skillset mapping from registry metadata."""
+    mapping: dict[str, list[str]] = {}
+    try:
+        reg = json.loads(ITEM_TYPE_REGISTRY.read_text(encoding="utf-8"))
+        for type_key, meta in reg.get("types", {}).items():
+            skillset = [str(s) for s in meta.get("skillset", [])]
+            names = {type_key, meta.get("display_name", "")}
+            names.update(meta.get("aliases", []))
+            for n in names:
+                if n:
+                    mapping[_normalize_item_type(str(n))] = skillset
+    except Exception as e:
+        print(f"⚠ item-type-registry load failed: {e}", file=sys.stderr)
+    return mapping
 
 
 def _load_item_details() -> dict[str, dict]:
     """Load item/wave/storage details per task flow from deployment registry."""
     details: dict[str, dict] = {}
+    skillset_map = _load_item_type_skillset_map()
     try:
         reg = json.loads(DEPLOYMENT_REGISTRY.read_text(encoding="utf-8"))
         for tf_id, tf_data in reg.get("taskFlows", {}).items():
             items = tf_data.get("items", [])
             waves: set[str] = set()
             item_types: list[str] = []
+            skillset_counts: Counter = Counter()
             for item in items:
                 order = item.get("order", "")
                 waves.add(re.sub(r"[a-z]$", "", order))
-                item_types.append(item.get("itemType", "?"))
+                item_type = item.get("itemType", "?")
+                item_types.append(item_type)
+                normalized = _normalize_item_type(item_type)
+                for skill in skillset_map.get(normalized, []):
+                    skillset_counts[skill] += 1
+
+            if {"LC", "CF"}.issubset(set(skillset_counts.keys())):
+                flow_skillset = "Mixed LC/CF"
+            elif skillset_counts.get("CF", 0) > 0 and skillset_counts.get("LC", 0) == 0:
+                flow_skillset = "Code-First"
+            elif skillset_counts.get("LC", 0) > 0 and skillset_counts.get("CF", 0) == 0:
+                flow_skillset = "Low-Code"
+            elif skillset_counts:
+                flow_skillset = "Portal/Auto"
+            else:
+                flow_skillset = "Unknown"
+
             details[tf_id] = {
                 "items": len(items),
                 "waves": len(waves),
                 "storage": tf_data.get("primaryStorage", "N/A"),
                 "item_types": item_types,
+                "skillset_counts": dict(skillset_counts),
+                "flow_skillset": flow_skillset,
+                "pattern": FLOW_PATTERN_MAP.get(tf_id, "Other"),
             }
     except Exception as e:
         print(f"⚠ deployment-registry load failed: {e}", file=sys.stderr)
     return details
 
 
+def _build_recommendations(
+    total_problems: int,
+    agg_suggestion: Counter,
+    agg_top: Counter,
+    agg_uncovered: Counter,
+    results: list[dict],
+) -> list[str]:
+    """Generate deterministic recommendations from benchmark distributions."""
+    recs: list[str] = []
+    if total_problems <= 0:
+        return ["No benchmark data available — run healer with at least one problem."]
+
+    if agg_top:
+        top_flow, top_count = agg_top.most_common(1)[0]
+        top_pct = top_count / total_problems
+        if top_pct >= 0.60:
+            recs.append(
+                f"Top-candidate skew is high ({top_flow} at {top_pct:.1%}); add contrasting keywords to improve pattern diversity."
+            )
+
+    if agg_suggestion and len(agg_suggestion) < 3:
+        recs.append("Only a few task flow patterns are surfacing; expand synonyms for ingestion, velocity, and governance signals.")
+
+    total_zeros = sum(r.get("zero_candidates", 0) for r in results)
+    zero_rate = total_zeros / total_problems
+    if zero_rate >= 0.10:
+        recs.append(
+            f"Zero-candidate rate is {zero_rate:.1%}; prioritize adding recurring uncovered terms to reduce unmapped prompts."
+        )
+
+    avg_cov = sum(r.get("coverage_before", 0.0) for r in results) / max(len(results), 1)
+    if avg_cov < 0.40:
+        recs.append(
+            f"Average coverage is {avg_cov:.1%}; increase signal keyword breadth for storage, processing, and distribution intent."
+        )
+
+    streaming_terms = {"stream", "streaming", "real-time", "event", "telemetry", "kafka"}
+    uncovered_tokens = {t.lower() for t, _ in agg_uncovered.most_common(20)}
+    if uncovered_tokens & streaming_terms:
+        recs.append("Streaming-related terms are frequently uncovered; expand event/streaming keyword aliases for hybrid routing.")
+
+    if not recs:
+        recs.append("Coverage and distribution look balanced; continue periodic healing runs and track trends in _heal-loop-results.json.")
+    return recs[:5]
+
+
 def print_distribution_report(
     total_problems: int,
     agg_suggestion: Counter,
     agg_top: Counter,
-) -> None:
+) -> dict[str, Any]:
     """Print the full task flow distribution report with item details."""
     item_details = _load_item_details()
+    pattern_counts: Counter = Counter()
+    flow_skillset_counts: Counter = Counter()
+    item_skillset_counts: Counter = Counter()
+
+    for tf, cnt in agg_suggestion.items():
+        d = item_details.get(tf, {})
+        pattern_counts[d.get("pattern", FLOW_PATTERN_MAP.get(tf, "Other"))] += cnt
+        flow_skillset_counts[d.get("flow_skillset", "Unknown")] += cnt
+        for skill, scount in d.get("skillset_counts", {}).items():
+            item_skillset_counts[skill] += scount * cnt
 
     print(f"\n{'═' * 90}")
     print("  TASK FLOW DISTRIBUTION REPORT")
@@ -264,8 +398,37 @@ def print_distribution_report(
     print(f"  {'-' * 35} {'-' * 5} {'-' * 7}  {'-' * 36}")
     for tf, cnt in agg_top.most_common():
         pct = cnt / total_problems * 100 if total_problems else 0
-        bar = _BAR_CHAR * int(pct / 2)
+        bar = _bar_for_pct(pct)
         print(f"  {tf:<35} {cnt:>5} {pct:>6.1f}%  {bar}")
+
+    # ── Pattern and skillset distributions ───────────────────────────────
+    if pattern_counts:
+        pattern_total = sum(pattern_counts.values())
+        _print_counter_table(
+            "PATTERN CATEGORY DISTRIBUTION (from suggested flows)",
+            "Pattern",
+            pattern_counts,
+            pattern_total,
+            top_n=10,
+        )
+    if flow_skillset_counts:
+        flow_skillset_total = sum(flow_skillset_counts.values())
+        _print_counter_table(
+            "FLOW SKILLSET DISTRIBUTION (from suggested flows)",
+            "Flow Skillset",
+            flow_skillset_counts,
+            flow_skillset_total,
+            top_n=8,
+        )
+    if item_skillset_counts:
+        weighted_total = sum(item_skillset_counts.values())
+        _print_counter_table(
+            "ITEM SKILLSET MIX (weighted by suggestions)",
+            "Skillset",
+            item_skillset_counts,
+            weighted_total,
+            top_n=8,
+        )
 
     # ── Item details ───────────────────────────────────────────────────
     suggested_flows = set(agg_suggestion.keys()) | set(agg_top.keys())
@@ -297,55 +460,11 @@ def print_distribution_report(
                 print(f"  {it:<35} {cnt:>5}")
 
     print(f"\n{'═' * 90}")
-
-
-# ---------------------------------------------------------------------------
-# Gap analysis
-# ---------------------------------------------------------------------------
-
-_STOPWORDS = frozenset({
-    "we", "our", "the", "a", "an", "to", "and", "or", "in", "of",
-    "for", "is", "it", "that", "with", "on", "at", "from", "by",
-    "but", "not", "are", "was", "be", "have", "has", "had", "do",
-    "does", "did", "will", "can", "could", "should", "would", "may",
-    "might", "shall", "need", "want", "like", "just", "also",
-    "they", "them", "their", "this", "these", "those", "some",
-    "any", "all", "each", "every", "both", "either", "neither",
-    "i", "me", "my", "you", "your", "he", "she", "his", "her",
-    "its", "us", "we're", "don't", "can't", "won't", "doesn't",
-    "didn't", "isn't", "aren't", "haven't", "hasn't", "wasn't",
-    "weren't", "how", "what", "when", "where", "which", "who",
-    "re", "ve", "ll", "no", "yes", "so", "very", "too", "more",
-    "most", "much", "many", "few", "than", "then", "now",
-    "about", "into", "over", "after", "before", "between",
-    "through", "during", "without", "within", "across",
-    "per", "get", "gets", "getting", "been", "being",
-    "same", "new", "one", "two", "three", "first", "last",
-    "using", "use", "used", "currently", "current", "data",
-    "still", "already", "right", "back", "way", "keep",
-})
-
-
-def find_uncovered_keywords(problems: list[dict]) -> list[str]:
-    """Find words in problem texts that aren't matched by signal mapper."""
-    sm_content = SIGNAL_MAPPER_PATH.read_text(encoding="utf-8")
-    kw_matches = re.findall(r'"([^"]{2,})"', sm_content)
-    existing_kws = set(k.lower() for k in kw_matches)
-
-    word_freq: Counter = Counter()
-    for p in problems:
-        words = re.findall(r'\b[a-zA-Z]{3,}\b', p["text"].lower())
-        bigrams = [f"{words[i]} {words[i+1]}" for i in range(len(words) - 1)]
-        for w in words:
-            if w not in _STOPWORDS and w not in existing_kws:
-                word_freq[w] += 1
-        for b in bigrams:
-            if b not in existing_kws:
-                word_freq[b] += 1
-
-    uncovered = [word for word, count in word_freq.most_common(30)
-                 if count >= 2 and len(word) > 3]
-    return uncovered[:15]
+    return {
+        "pattern_counts": dict(pattern_counts),
+        "flow_skillset_counts": dict(flow_skillset_counts),
+        "item_skillset_counts": dict(item_skillset_counts),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -539,6 +658,7 @@ def main():
     all_results: list[dict] = []
     agg_suggestion: Counter = Counter()
     agg_top: Counter = Counter()
+    agg_uncovered: Counter = Counter()
 
     # Back up original problem statements
     if PROBLEMS_PATH.exists():
@@ -611,7 +731,9 @@ def main():
             continue
 
         # ── Step 3: Find gaps ──────────────────────────────────────────
-        uncovered = find_uncovered_keywords(problems)
+        uncovered = find_uncovered_keywords(problems, SIGNAL_MAPPER_PATH)
+        for term in uncovered:
+            agg_uncovered[term] += 1
         if uncovered:
             print(f"  🔍 Top uncovered: {', '.join(uncovered[:8])}")
         else:
@@ -698,9 +820,29 @@ def main():
               f"{total_zeros}/{total_problems}")
 
     # ── Distribution report ────────────────────────────────────────────
+    distribution_meta: dict[str, Any] = {}
     if all_results and agg_suggestion:
         total_problems = sum(r["problems"] for r in all_results)
-        print_distribution_report(total_problems, agg_suggestion, agg_top)
+        distribution_meta = print_distribution_report(total_problems, agg_suggestion, agg_top)
+
+    # ── Recommendations ─────────────────────────────────────────────────
+    recommendations = _build_recommendations(
+        total_problems=sum(r["problems"] for r in all_results),
+        agg_suggestion=agg_suggestion,
+        agg_top=agg_top,
+        agg_uncovered=agg_uncovered,
+        results=all_results,
+    )
+    print(f"\n{'═' * 70}")
+    print("  RECOMMENDATIONS")
+    print(f"{'═' * 70}")
+    for idx, rec in enumerate(recommendations, start=1):
+        print(f"  {idx}. {rec}")
+    if agg_uncovered:
+        print("\n  Frequent uncovered terms:")
+        for term, cnt in agg_uncovered.most_common(10):
+            pct = (cnt / max(len(all_results), 1)) * 100
+            print(f"  - {term:<24} {cnt:>2} loops ({pct:>5.1f}%)")
 
     # Log to learnings.md
     if not args.dry_run:
@@ -713,9 +855,14 @@ def main():
         "distribution": {
             "suggestion_counts": dict(agg_suggestion),
             "top_counts": dict(agg_top),
+            "uncovered_term_counts": dict(agg_uncovered),
+            "pattern_counts": distribution_meta.get("pattern_counts", {}),
+            "flow_skillset_counts": distribution_meta.get("flow_skillset_counts", {}),
+            "item_skillset_counts": distribution_meta.get("item_skillset_counts", {}),
             "total_problems": sum(r["problems"] for r in all_results)
                              if all_results else 0,
         },
+        "recommendations": recommendations,
     }
     with open(RESULTS_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)

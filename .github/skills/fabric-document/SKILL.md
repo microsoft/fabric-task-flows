@@ -11,6 +11,8 @@ description: >
 
 > **Goal:** Produce ONE deliverable — `docs/project-brief.md` — that a CTO can read in 10 minutes.
 
+> **⚡ Pre-generated brief:** The runner writes a structured `project-brief.md` synthesized from all handoffs before this skill is invoked, with `<!-- AGENT: FILL -->` markers where narrative polish is needed. Your job: (1) verify facts against the source handoffs, (2) add narrative polish so the brief reads like a CTO memo rather than a template, (3) replace every `<!-- AGENT: FILL -->` marker. Do NOT rewrite from scratch — edit in place.
+
 ## Instructions
 
 ### Step 1: Read Pipeline Handoffs
@@ -22,9 +24,9 @@ Read these files **in parallel** from `_projects/[name]/docs/` (all are independ
 - `test-plan.md` — acceptance criteria, edge cases
 - `validation-report.md` — pass/fail results
 
-### Step 2: Synthesize into `project-brief.md`
+### Step 2: Polish `project-brief.md`
 
-Write ONE file: `_projects/[name]/docs/project-brief.md`
+Edit `_projects/[name]/docs/project-brief.md` in place (it is pre-generated).
 
 Follow the template in `references/documentation-templates.md`. Key rules:
 1. **~1,500 words max** — every fact appears exactly once
@@ -49,10 +51,4 @@ The brief must answer these 5 questions:
 
 ## Handoff
 
-After producing the output file:
-```bash
-python _shared/scripts/run-pipeline.py advance --project <project-name> -q
-```
-
-If the output shows `🟢 AUTO-CHAIN → <skill>`, **invoke that skill immediately** — do NOT stop and ask the user.
-Only `🛑 HUMAN GATE` (Phase 2b sign-off) requires user action.
+> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

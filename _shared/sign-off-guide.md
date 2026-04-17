@@ -52,7 +52,7 @@ Walk through these before giving the go-ahead:
   python _shared/scripts/run-pipeline.py advance --project my-project --approve
   ```
 
-- **Request revisions:** If something doesn't look right, say "revise" with your feedback. The pipeline loops back to the architect (Phase 1c) to incorporate your changes, then regenerates the test plan and returns to sign-off.
+- **Request revisions:** If something doesn't look right, say "revise" with your feedback. The pipeline loops back to the architect (Phase 1-design (revision)) to incorporate your changes, then regenerates the test plan and returns to sign-off.
   ```bash
   python _shared/scripts/run-pipeline.py advance --project my-project --revise --feedback "Change storage from Lakehouse to Warehouse for the Silver layer"
   ```
@@ -67,10 +67,10 @@ Walk through these before giving the go-ahead:
                          🔄 Request Revisions (max 3 cycles)
                                 │
                                 ▼
-                    ┌───────────────────────┐
-                    │  Phase 1c: Finalize   │◄── Your feedback saved to
-                    │  (Architect revises)  │    docs/sign-off-feedback.md
-                    └───────────┬───────────┘
+                    ┌──────────────────────────────┐
+                    │ Phase 1-design (revision)    │◄── Your feedback saved to
+                    │ (Architect revises)          │    docs/sign-off-feedback.md
+                    └──────────────┬───────────────┘
                                 │
                                 ▼
                     ┌───────────────────────┐

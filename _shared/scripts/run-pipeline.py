@@ -153,7 +153,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
 
     prompts = {
         "0a-discovery": (
-            f"Use the /fabric-discover skill. Read the skill at .github/skills/fabric-discover/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-discover skill.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Problem statement from user: {state.get('problem_statement', '(see conversation history)')}\n\n"
             f"The project is already scaffolded at {pp}/. Edit the pre-existing files — do NOT create new ones.\n\n"
@@ -164,7 +164,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "1-design": (
-            f"Use the /fabric-design skill. Read the skill at .github/skills/fabric-design/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-design skill.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             + (
                 f"🔄 **SIGN-OFF REVISION {state.get('sign_off_revisions', 0)}/3** — The user requested changes at sign-off.\n"
@@ -179,12 +179,11 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"   - The file may be pre-filled with items/waves/ACs from the handoff-scaffolder\n"
             f"   - If pre-filled: ADD diagram, decision rationale, alternatives, trade-offs, deployment strategy\n"
             f"   - If not pre-filled: write the complete handoff from scratch\n"
-            f"   - Include `task-flow: <id>` in the YAML frontmatter so the pipeline runner can extract it\n\n"
-            f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
+            f"   - Include `task-flow: <id>` in the YAML frontmatter so the pipeline runner can extract it\n"
         ),
 
         "2a-test-plan": (
-            f"Use the /fabric-test skill (Mode 1: Architecture Review + Test Plan). Read the skill at .github/skills/fabric-test/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-test skill (Mode 1: Architecture Review + Test Plan).\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n\n"
             f"1. Read the FINAL Architecture Handoff from {pp}/docs/architecture-handoff.md\n"
@@ -195,8 +194,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
             f"   - The file may be pre-filled with criteria mapping from the test-plan-prefill script\n"
             f"   - If pre-filled: ADD edge cases, expected results, and critical verification steps\n"
             f"   - If not pre-filled: write the complete test plan from scratch\n\n"
-            f"Do NOT present a sign-off summary or wait for user approval — the pipeline auto-advances to Phase 2b (Sign-Off) where the user reviews both the architecture handoff and test plan.\n\n"
-            f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
+            f"Do NOT present a sign-off summary or wait for user approval — the pipeline auto-advances to Phase 2b (Sign-Off) where the user reviews both the architecture handoff and test plan."
         ),
 
         "2b-sign-off": (
@@ -223,7 +221,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
         ),
 
         "2c-deploy": (
-            f"Use the /fabric-deploy skill. Read the skill at .github/skills/fabric-deploy/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-deploy skill.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n"
             f"Deploy mode: {state.get('deploy_mode', 'artifacts_only')}\n\n"
@@ -235,7 +233,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
                 f"3. The user must run it — it requires Azure credentials (az login)\n"
                 f"4. After the user confirms deployment is complete, write:\n"
                 f"   - {pp}/docs/deployment-handoff.md (items with status: deployed)\n"
-                f"   - {pp}/docs/phase-progress.md (all waves completed)\n\n"
+                f"   - {pp}/docs/phase-progress.md (all waves completed)\n"
                 if state.get("deploy_mode") == "live" else
                 # ── ARTIFACTS ONLY MODE ──
                 f"Deploy mode is ARTIFACTS ONLY — no live workspace deployment.\n\n"
@@ -245,13 +243,12 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
                 f"3. Write {pp}/docs/deployment-handoff.md with:\n"
                 f"   - deployment_mode: artifacts_only\n"
                 f"   - All items with status: planned (not deployed)\n"
-                f"4. Write {pp}/docs/phase-progress.md with all items status: planned\n\n"
+                f"4. Write {pp}/docs/phase-progress.md with all items status: planned\n"
             )
-            + f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
         "3-validate": (
-            f"Use the /fabric-test skill (Mode 2: Validate). Read the skill at .github/skills/fabric-test/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-test skill (Mode 2: Validate).\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n"
             f"Deploy mode: {state.get('deploy_mode', 'artifacts_only')}\n\n"
@@ -264,7 +261,7 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
                 f"3. Run smoke tests (query data, trigger pipeline, render report)\n"
                 f"4. Write the Validation Report to {pp}/docs/validation-report.md\n"
                 f"   - status: passed (all config confirmed + smoke tests pass)\n"
-                f"   - status: failed (critical config issues)\n\n"
+                f"   - status: failed (critical config issues)\n"
                 if state.get("deploy_mode") == "live" else
                 # ── ARTIFACTS ONLY MODE ──
                 f"No live workspace — structural validation only.\n\n"
@@ -273,23 +270,21 @@ def _prompt_for_phase(phase: str, project: str, state: dict) -> str:
                 f"3. Write the Validation Report to {pp}/docs/validation-report.md with:\n"
                 f"   - status: passed (structural — all artifacts verified)\n"
                 f"   - validation_mode: structural\n"
-                f"   - Note: live validation deferred until workspace deployment\n\n"
+                f"   - Note: live validation deferred until workspace deployment\n"
             )
-            + f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
         ),
 
         "4-document": (
-            f"Use the /fabric-document skill. Read the skill at .github/skills/fabric-document/SKILL.md for instructions.\n\n"
+            f"Use the /fabric-document skill.\n\n"
             f"Project: {display_name} (folder: {pp})\n"
             f"Task flow: {task_flow}\n"
             f"Deploy mode: {state.get('deploy_mode', 'artifacts_only')}\n\n"
             f"1. Read all pipeline handoffs from {pp}/docs/:\n"
             f"   - discovery-brief.md, architecture-handoff.md, deployment-handoff.md, test-plan.md, validation-report.md\n"
             f"2. Synthesize into ONE file: {pp}/docs/project-brief.md\n"
-            f"3. Do NOT create separate README.md, architecture.md, deployment-log.md, or decisions/*.md files\n"
-            + (f"4. In the 'How to Deploy' section, note that artifacts are ready but deployment is pending\n\n"
-               if state.get("deploy_mode") != "live" else "\n")
-            + f"⚠️ Do NOT modify {pp}/pipeline-state.json — the pipeline runner manages state transitions."
+            f"3. Do NOT create separate README.md, architecture.md, deployment-log.md, or decisions/*.md files"
+            + (f"\n4. In the 'How to Deploy' section, note that artifacts are ready but deployment is pending"
+               if state.get("deploy_mode") != "live" else "")
         ),
     }
 
@@ -309,6 +304,18 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
     outputs: list[str] = []
 
     if phase == "0a-discovery" and state.get("problem_statement"):
+        cache_path = REPO_ROOT / "_projects" / project / "docs" / ".signal-mapper-cache.json"
+        # CV-8: short-circuit if cache is fresh (same problem statement).
+        if cache_path.exists():
+            try:
+                cached = json.loads(cache_path.read_text(encoding="utf-8"))
+                cached_problem = (cached.get("problem_statement") or "").strip()
+                if cached_problem and cached_problem == state["problem_statement"].strip():
+                    outputs.append("📋 Signal mapper cache hit → skipping regeneration")
+                    return outputs
+            except (json.JSONDecodeError, OSError):
+                pass  # fall through to regenerate
+
         # Run signal mapper
         cmd = [sys.executable, str(SKILLS_DIR / "fabric-discover" / "scripts" / "signal-mapper.py"),
                "--project", project, "--text", state["problem_statement"], "--format", "json"]
@@ -317,9 +324,10 @@ def _run_precompute(phase: str, project: str, state: dict) -> list[str]:
             if result.returncode == 0:
                 outputs.append(f"Signal mapper output:\n{result.stdout}")
                 # Cache signal-mapper JSON for deterministic task flow extraction
-                cache_path = REPO_ROOT / "_projects" / project / "docs" / ".signal-mapper-cache.json"
                 try:
                     cache_data = json.loads(result.stdout)
+                    # Embed the problem statement so cache freshness can be checked next time.
+                    cache_data["problem_statement"] = state["problem_statement"]
                     cache_path.write_text(json.dumps(cache_data, indent=2), encoding="utf-8")
                     outputs.append("  📋 Signal mapper cache written → .signal-mapper-cache.json")
                 except (json.JSONDecodeError, OSError):
@@ -1085,37 +1093,16 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
 
     # Generate architecture diagram for sign-off phase
     if phase == "2b-sign-off" and "{{DIAGRAM_PLACEHOLDER}}" in prompt:
-        handoff_path = str(REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md")
-        if os.path.exists(handoff_path):
-            try:
-                env = os.environ.copy()
-                env["PYTHONIOENCODING"] = "utf-8"
-                cmd = [sys.executable, str(SKILLS_DIR / "fabric-design" / "scripts" / "diagram-gen.py"),
-                       "--handoff", handoff_path]
-                result = subprocess.run(cmd, capture_output=True, text=True,
-                                        timeout=30, encoding="utf-8", env=env)
-                if result.returncode == 0 and (result.stdout or "").strip():
-                    prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}", (result.stdout or '').strip())
-                else:
-                    # Fallback: use reference diagram from diagrams/{task-flow}.md
-                    tf = _extract_task_flow(project)
-                    ref_diagram = ""
-                    if tf:
-                        ref_path = REPO_ROOT / "diagrams" / f"{tf}.md"
-                        if ref_path.exists():
-                            ref_content = ref_path.read_text(encoding="utf-8")
-                            # Extract the code block from the reference diagram
-                            code_match = re.search(r'```\n(.*?)```', ref_content, re.DOTALL)
-                            if code_match:
-                                ref_diagram = code_match.group(1).strip()
-                    if ref_diagram:
-                        prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}", ref_diagram)
-                    else:
-                        prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
-                                                "(Diagram generation failed — review handoff directly)")
-            except Exception as e:
-                print(f"⚠ diagram generation failed: {e}", file=sys.stderr)
-                # Fallback: use reference diagram
+        handoff_path = REPO_ROOT / "_projects" / project / "docs" / "architecture-handoff.md"
+        if handoff_path.exists():
+            # DV-S2: _generate_complete_handoff already inserted the diagram into
+            # the handoff file during fast-forward, so read it back rather than
+            # re-running diagram-gen.py as a subprocess.
+            diagram = _extract_diagram(handoff_path)
+            if diagram and diagram.strip():
+                prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}", diagram.strip())
+            else:
+                # Fallback: use reference diagram from diagrams/{task-flow}.md
                 tf = _extract_task_flow(project)
                 ref_diagram = ""
                 if tf:
@@ -1132,7 +1119,7 @@ def get_next_prompt(project: str) -> tuple[str, str | None, str, bool]:
                     prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}", ref_diagram)
                 else:
                     prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
-                                            "(Diagram generation unavailable — review handoff directly)")
+                                            "(Diagram unavailable — review handoff directly)")
         else:
             prompt = prompt.replace("{{DIAGRAM_PLACEHOLDER}}",
                                     "(Architecture handoff not found)")
@@ -1329,7 +1316,12 @@ def _verify_output(phase: str, project: str) -> tuple[bool, str]:
     project_dir = REPO_ROOT / "_projects" / project
     missing = []
     unfilled = []
-    template_markers = ["task_flow: TBD", "items: []", "<!-- AGENT: FILL"]
+    template_markers = [
+        "task_flow: TBD",
+        "items: []",
+        "<!-- AGENT: FILL -->",
+        "<!-- AGENT: FILL",
+    ]
 
     for rel_path in expected:
         full_path = project_dir / rel_path
@@ -1416,6 +1408,8 @@ def advance(project: str, approved: bool = False, revise: bool = False,
 
     # Fast-forward: when leaving discovery, auto-generate all files to sign-off
     if current == "0a-discovery":
+        # Note: the discovery recap is rendered by the fabric-discover skill via
+        # `run-pipeline.py discovery-summary` — do NOT re-render it here (CV-8).
         _save_state(project, state)
         ok, ff_report = _fast_forward_to_signoff(project)
         for line in ff_report:
@@ -1599,6 +1593,8 @@ def start_pipeline(display_name: str, problem: str | None = None) -> dict:
     state["display_name"] = display_name
     if problem:
         state["problem_statement"] = problem
+    # DV-O5: discovery phase is now actively awaiting the discover skill
+    state["phases"]["0a-discovery"]["status"] = "in_progress"
     _save_state(project, state)
 
     return state
@@ -1810,6 +1806,112 @@ def _extract_decisions_from_handoff(text: str) -> dict:
     return decisions
 
 
+_CONFIDENCE_RANK: dict[str, int] = {"high": 3, "medium": 2, "low": 1}
+
+
+def _print_discovery_summary(project: str) -> None:
+    """Print a deterministic, stakeholder-friendly recap of discovery inputs.
+
+    Mirrors ``_print_signoff_summary``: reads only from on-disk caches
+    (pipeline-state, signal-mapper cache, discovery-intake) — never
+    re-computes. Shows problem echo → 4 V's → top signals → task-flow
+    candidates. Degrades gracefully when a cache file is absent.
+    """
+    docs_dir = REPO_ROOT / "_projects" / project / "docs"
+    signal_cache_path = docs_dir / ".signal-mapper-cache.json"
+    intake_path = docs_dir / ".discovery-intake.json"
+
+    # ── Load caches ──
+    state: dict = {}
+    try:
+        state = _load_state(project)
+    except FileNotFoundError:
+        pass
+
+    signal_cache: dict = {}
+    if signal_cache_path.exists():
+        try:
+            signal_cache = json.loads(signal_cache_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    intake: dict = {}
+    if intake_path.exists():
+        try:
+            intake = json.loads(intake_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    display_name = state.get("display_name", project)
+    problem = (state.get("problem_statement") or "").strip()
+
+    # ── Header ──
+    print(_separator(f"DISCOVERY REVIEW — {display_name}"))
+
+    # ── Problem echo ──
+    if problem:
+        print(f"  Problem: {problem}")
+    else:
+        print("  Problem: — not captured —")
+    print()
+
+    # ── 4 V's Assessment ──
+    print(_separator("4 V's ASSESSMENT"))
+    v_meta = [
+        ("volume", "📦 Volume     "),
+        ("velocity", "⏱️  Velocity   "),
+        ("variety", "🔀 Variety    "),
+        ("versatility", "🛠️  Versatility"),
+    ]
+    for key, label in v_meta:
+        entry = intake.get(key) if isinstance(intake.get(key), dict) else None
+        if entry and entry.get("value"):
+            value = entry["value"]
+            source = entry.get("source", "inferred")
+            print(f"  {label}  {value}  ({source})")
+        else:
+            print(f"  {label}  — not yet captured —  (unknown)")
+    print()
+
+    # ── Inferred Signals (top 5 by confidence then order) ──
+    signals = list(signal_cache.get("signals", []) or [])
+    if signals:
+        signals_sorted = sorted(
+            signals,
+            key=lambda s: _CONFIDENCE_RANK.get(s.get("confidence", "low"), 0),
+            reverse=True,
+        )[:5]
+        print(_separator("INFERRED SIGNALS"))
+        for s in signals_sorted:
+            name = s.get("signal", "unknown")
+            value = s.get("value", "")
+            conf = s.get("confidence", "low")
+            kws = s.get("source_keywords") or []
+            kw_str = ", ".join(kws[:3]) if kws else "(inferred)"
+            print(f"  • {name} — {value}  (confidence: {conf}, keywords: {kw_str})")
+        print()
+    else:
+        print(_separator("INFERRED SIGNALS"))
+        print("  — signal mapper cache not available —")
+        print()
+
+    # ── Candidate Task Flows (top 3) ──
+    candidates = list(signal_cache.get("task_flow_candidates", []) or [])
+    if candidates:
+        print(_separator("CANDIDATE TASK FLOWS"))
+        for i, c in enumerate(candidates[:3], 1):
+            tf_id = c.get("id") or c.get("name") or c.get("task_flow") or "unknown"
+            score = c.get("score", 0)
+            sigs = c.get("signals", []) or []
+            sigs_str = ", ".join(sigs) if sigs else "—"
+            print(f"  {i}. {tf_id}   score {score}   signals: {sigs_str}")
+        print()
+    else:
+        print(_separator("CANDIDATE TASK FLOWS"))
+        print("  — no candidates yet (signal mapper may not have run) —")
+        print()
+
+
 def _print_signoff_summary(project: str) -> None:
     """Print a user-friendly architecture summary for the sign-off gate.
 
@@ -1990,6 +2092,9 @@ def main() -> None:
                        help="Feedback text for --revise (saved to docs/sign-off-feedback.md)")
     adv_p.add_argument("--reconcile", action="store_true",
                        help="Run reconcile before advancing to heal any state drift")
+    adv_p.add_argument("--deploy-mode", choices=["live", "artifacts_only"], default=None,
+                       help="Deployment mode to record when approving sign-off "
+                            "(default: artifacts_only if state has no deploy_mode set)")
     adv_p.add_argument("-q", "--quiet", action="store_true",
                        help="Suppress printing completed phase output files and diagrams (use for agent/CI mode)")
 
@@ -2008,6 +2113,13 @@ def main() -> None:
     batch_p.add_argument("--problem", required=True, help="Problem statement text")
     batch_p.add_argument("--through", default="2b-sign-off",
                          help="Phase to fast-forward through (default: 2b-sign-off)")
+
+    # discovery-summary — render deterministic discovery recap
+    disc_p = sub.add_parser(
+        "discovery-summary",
+        help="Render a deterministic 4V's + signals recap for user confirmation",
+    )
+    disc_p.add_argument("--project", required=True, help="Project folder name")
 
     args = parser.parse_args()
 
@@ -2046,6 +2158,9 @@ def main() -> None:
         )
         _print_status(state)
 
+    elif args.command == "discovery-summary":
+        _print_discovery_summary(args.project)
+
     elif args.command == "advance":
         if args.reconcile:
             _, recon_report = reconcile(args.project)
@@ -2053,7 +2168,15 @@ def main() -> None:
             for line in recon_report:
                 print(line)
             print()
-        prev_phase = _load_state(args.project)["current_phase"]
+        prev_state = _load_state(args.project)
+        prev_phase = prev_state["current_phase"]
+
+        # CV-1: Persist deploy_mode before advancing from 2b-sign-off with approval.
+        if (prev_phase == "2b-sign-off" and args.approve
+                and getattr(args, "deploy_mode", None) is not None):
+            prev_state["deploy_mode"] = args.deploy_mode
+            _save_state(args.project, prev_state)
+
         state = advance(args.project, approved=args.approve,
                         revise=args.revise, feedback=args.feedback)
         _print_status(state)
