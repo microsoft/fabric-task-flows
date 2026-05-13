@@ -476,8 +476,71 @@ _deployment_order_cache: dict | None = None
 _DEPLOYMENT_ORDER_PATH = REGISTRY_DIR / "deployment-order.json"
 
 
+def _compute_waves(items: list[dict]) -> list[dict]:
+    """Compute deployment wave order from dependsOn via topological sort.
+
+    Items with no dependencies get wave 1. Each subsequent item gets
+    max(dependency waves) + 1. Items within the same wave get letter
+    suffixes (a, b, c...) for parallel deployment.
+    """
+    from collections import defaultdict, deque
+
+    item_names = {item["itemType"] for item in items}
+    # Build dep graph (only consider deps within this flow)
+    deps_map: dict[str, set[str]] = {}
+    for item in items:
+        itype = item["itemType"]
+        deps_map[itype] = {d for d in item.get("dependsOn", []) if d in item_names}
+
+    # Compute wave via BFS (longest path from roots)
+    waves: dict[str, int] = {}
+    in_degree = {k: len(v) for k, v in deps_map.items()}
+    queue = deque()
+    for name, degree in in_degree.items():
+        if degree == 0:
+            waves[name] = 1
+            queue.append(name)
+
+    dependents: dict[str, set[str]] = defaultdict(set)
+    for name, item_deps in deps_map.items():
+        for d in item_deps:
+            dependents[d].add(name)
+
+    while queue:
+        current = queue.popleft()
+        for dependent in dependents[current]:
+            dep_waves = [waves.get(d, 0) for d in deps_map[dependent]]
+            if all(w > 0 for w in dep_waves):
+                waves[dependent] = max(dep_waves) + 1
+                queue.append(dependent)
+
+    # Assign order strings: wave number + letter suffix for parallel items
+    wave_groups: dict[int, list[str]] = defaultdict(list)
+    for name, wave in sorted(waves.items(), key=lambda x: x[1]):
+        wave_groups[wave].append(name)
+
+    order_map: dict[str, str] = {}
+    for wave, names in sorted(wave_groups.items()):
+        if len(names) == 1:
+            order_map[names[0]] = str(wave)
+        else:
+            for i, name in enumerate(names):
+                order_map[name] = f"{wave}{chr(97 + i)}"  # 1a, 1b, 1c...
+
+    # Inject computed order into items
+    result = []
+    for item in items:
+        enriched = dict(item)
+        enriched["order"] = order_map.get(item["itemType"], "0")
+        result.append(enriched)
+    return result
+
+
 def get_deployment_items(task_flow: str) -> list[dict]:
     """Get deployment items for a task flow from the deployment-order registry.
+
+    The ``order`` field is computed at runtime via topological sort of
+    ``dependsOn`` edges — it is not stored in the JSON file.
 
     Args:
         task_flow: Task flow ID (e.g., 'medallion', 'lambda').
@@ -494,4 +557,7 @@ def get_deployment_items(task_flow: str) -> list[dict]:
             data = json.loads(_DEPLOYMENT_ORDER_PATH.read_text(encoding="utf-8"))
             _deployment_order_cache = data.get("taskFlows", {})
     flow_data = _deployment_order_cache.get(task_flow.lower(), {})
-    return flow_data.get("items", [])
+    items = flow_data.get("items", [])
+    if not items:
+        return []
+    return _compute_waves(items)

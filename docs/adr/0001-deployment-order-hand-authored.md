@@ -21,7 +21,7 @@ The `phase` field in item-type-registry correctly predicts deployment wave order
 Keep the file hand-authored with these irreducible fields per item:
 
 - **`itemType`** — role-qualified display name (consumed by 4 scripts for rendering)
-- **`order`** — wave code, derivable from phase but kept for readability
+- **`order`** — now computed at runtime via topological sort of `dependsOn` (removed from JSON)
 - **`dependsOn`** — the DAG edges (15 same-phase + 3 violations prove these are irreducible)
 - **`requiredFor`** — used by `_purpose_from()` in handoff-scaffolder for purpose generation (96/134 values are descriptive text, not just item names)
 - **`alternativeGroup`** — which items are interchangeable (consumed by decision-resolver)
@@ -41,7 +41,7 @@ Keep the file hand-authored with these irreducible fields per item:
 ## Future Considerations
 
 - **Normalize `itemType` to registry keys** — 19 names are just display_name/alias variants (e.g., "Copy Job" = `CopyJob`). Scripts could resolve display names at render time. Deferred: requires updating 4 consumer scripts + test assertions.
-- **Derive `order` from `phase` at runtime** — **NOT VIABLE**. Testing showed 90/148 items (61%) have `order` values that diverge from `phase`-derived waves. Each task flow defines its own relative ordering (e.g., GraphQL API is wave 2 in `app-backend` but `phase=Transformation` would place it at wave 4). The `order` field is irreducible task-flow-specific knowledge.
+- **Derive `order` from `dependsOn` at runtime** — **IMPLEMENTED**. Topological sort of `dependsOn` edges produces correct deployment waves. Items with no deps = wave 1; each subsequent item = max(dep waves) + 1. The `order` field was removed from the JSON; `registry_loader.get_deployment_items()` computes it on the fly. Phase-based derivation failed (90/148 mismatch) because phase is a universal category, but dependsOn captures flow-specific structural truth.
 
 ## Consequences
 

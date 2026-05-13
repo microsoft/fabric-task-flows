@@ -1,13 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "version": "1.0.0",
-  "description": "Canonical deployment order registry for all Fabric task flows. ⚠️ AGENTS: Do NOT read this file directly — use deployment_loader.get_deployment_items() instead.",
+  "description": "Canonical deployment registry for all Fabric task flows. Wave ordering is computed at runtime from dependsOn via topological sort. ⚠️ AGENTS: Do NOT read this file directly — use registry_loader.get_deployment_items() instead.",
   "taskFlows": {
     "app-backend": {
       "primaryStorage": "SQL Database / Cosmos DB",
       "items": [
         {
-          "order": "1a",
           "itemType": "SQLDatabase",
           "dependsOn": [],
           "requiredFor": [
@@ -17,7 +16,6 @@
           "alternativeGroup": "foundation-storage"
         },
         {
-          "order": "1a",
           "itemType": "CosmosDBDatabase",
           "dependsOn": [],
           "requiredFor": [
@@ -27,7 +25,6 @@
           "alternativeGroup": "foundation-storage"
         },
         {
-          "order": "1b",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -36,7 +33,6 @@
           "optional": true
         },
         {
-          "order": "2a",
           "itemType": "GraphQLApi",
           "dependsOn": [
             "SQLDatabase",
@@ -47,7 +43,6 @@
           ]
         },
         {
-          "order": "2b",
           "itemType": "UserDataFunction",
           "dependsOn": [
             "SQLDatabase",
@@ -59,7 +54,6 @@
           ]
         },
         {
-          "order": "3",
           "itemType": "SemanticModel",
           "dependsOn": [
             "SQLDatabase",
@@ -71,7 +65,6 @@
           "optional": true
         },
         {
-          "order": "4a",
           "itemType": "Report",
           "dependsOn": [
             "SemanticModel"
@@ -82,7 +75,6 @@
           "optional": true
         },
         {
-          "order": "4b",
           "itemType": "DataAgent",
           "dependsOn": [
             "SQLDatabase",
@@ -94,7 +86,6 @@
           "optional": true
         },
         {
-          "order": "4c",
           "itemType": "Ontology",
           "dependsOn": [
             "SemanticModel"
@@ -110,7 +101,6 @@
       "primaryStorage": "Warehouse",
       "items": [
         {
-          "order": "1",
           "itemType": "Warehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -119,7 +109,6 @@
           ]
         },
         {
-          "order": "1",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -128,7 +117,6 @@
           "optional": true
         },
         {
-          "order": "2a",
           "itemType": "CopyJob",
           "dependsOn": [
             "Warehouse"
@@ -139,7 +127,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "2b",
           "itemType": "Dataflow",
           "dependsOn": [
             "Warehouse"
@@ -150,7 +137,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "2c",
           "itemType": "DataPipeline",
           "dependsOn": [
             "Warehouse"
@@ -161,7 +147,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "3",
           "itemType": "SemanticModel",
           "dependsOn": [
             "Warehouse"
@@ -171,7 +156,6 @@
           ]
         },
         {
-          "order": "4a",
           "itemType": "Report",
           "dependsOn": [
             "SemanticModel"
@@ -179,7 +163,6 @@
           "requiredFor": []
         },
         {
-          "order": "4b",
           "itemType": "PaginatedReport",
           "dependsOn": [
             "SemanticModel"
@@ -188,7 +171,6 @@
           "optional": true
         },
         {
-          "order": "5a",
           "itemType": "Scorecard",
           "dependsOn": [
             "SemanticModel"
@@ -197,7 +179,6 @@
           "optional": true
         },
         {
-          "order": "5b",
           "itemType": "Reflex",
           "dependsOn": [
             "SemanticModel",
@@ -209,7 +190,6 @@
           "optional": true
         },
         {
-          "order": "5c",
           "itemType": "Eventhouse",
           "dependsOn": [],
           "requiredFor": [
@@ -218,7 +198,6 @@
           "optional": true
         },
         {
-          "order": "6c",
           "itemType": "DataAgent",
           "dependsOn": [
             "Warehouse",
@@ -229,7 +208,6 @@
           "optional": true
         },
         {
-          "order": "6d",
           "itemType": "Ontology",
           "dependsOn": [
             "SemanticModel"
@@ -243,7 +221,6 @@
       "primaryStorage": "Lakehouse",
       "items": [
         {
-          "order": "1",
           "itemType": "Lakehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -252,7 +229,6 @@
           ]
         },
         {
-          "order": "2",
           "itemType": "Environment",
           "dependsOn": [],
           "requiredFor": [
@@ -260,7 +236,6 @@
           ]
         },
         {
-          "order": "2",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -269,7 +244,6 @@
           "optional": true
         },
         {
-          "order": "3",
           "itemType": "Notebook (explore)",
           "dependsOn": [
             "Lakehouse",
@@ -280,7 +254,6 @@
           ]
         },
         {
-          "order": "4",
           "itemType": "MLExperiment",
           "dependsOn": [
             "Lakehouse",
@@ -291,7 +264,6 @@
           ]
         },
         {
-          "order": "5",
           "itemType": "MLModel",
           "dependsOn": [
             "MLExperiment"
@@ -301,7 +273,6 @@
           ]
         },
         {
-          "order": "6",
           "itemType": "Notebook (predict)",
           "dependsOn": [
             "MLModel",
@@ -312,7 +283,6 @@
           ]
         },
         {
-          "order": "7",
           "itemType": "Report",
           "dependsOn": [
             "Lakehouse"
@@ -320,7 +290,6 @@
           "requiredFor": []
         },
         {
-          "order": "7a",
           "itemType": "DataAgent",
           "dependsOn": [
             "Lakehouse",
@@ -331,14 +300,12 @@
           "optional": true
         },
         {
-          "order": "7b",
           "itemType": "Ontology",
           "dependsOn": [],
           "requiredFor": [],
           "optional": true
         },
         {
-          "order": "8a",
           "itemType": "Reflex",
           "dependsOn": [
             "SemanticModel",
@@ -350,7 +317,6 @@
           "optional": true
         },
         {
-          "order": "8b",
           "itemType": "Eventhouse",
           "dependsOn": [],
           "requiredFor": [
@@ -364,7 +330,6 @@
       "primaryStorage": "Lakehouse or Warehouse",
       "items": [
         {
-          "order": "1",
           "itemType": "Lakehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -373,7 +338,6 @@
           "alternativeGroup": "foundation-storage"
         },
         {
-          "order": "1",
           "itemType": "Warehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -382,7 +346,6 @@
           "alternativeGroup": "foundation-storage"
         },
         {
-          "order": "1",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -391,7 +354,6 @@
           "optional": true
         },
         {
-          "order": "2",
           "itemType": "SemanticModel",
           "dependsOn": [
             "Lakehouse",
@@ -402,7 +364,6 @@
           ]
         },
         {
-          "order": "3",
           "itemType": "DataAgent",
           "dependsOn": [
             "SemanticModel"
@@ -410,14 +371,12 @@
           "requiredFor": []
         },
         {
-          "order": "4a",
           "itemType": "Ontology",
           "dependsOn": [],
           "requiredFor": [],
           "optional": true
         },
         {
-          "order": "4b",
           "itemType": "Reflex",
           "dependsOn": [
             "DataAgent",
@@ -432,7 +391,6 @@
       "primaryStorage": "Lakehouse (SQL endpoint)",
       "items": [
         {
-          "order": "1",
           "itemType": "Lakehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -441,7 +399,6 @@
           ]
         },
         {
-          "order": "1",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -450,7 +407,6 @@
           "optional": true
         },
         {
-          "order": "1a",
           "itemType": "SQLEndpoint",
           "dependsOn": [
             "Lakehouse"
@@ -460,7 +416,6 @@
           ]
         },
         {
-          "order": "2a",
           "itemType": "Notebook",
           "dependsOn": [
             "Lakehouse"
@@ -471,7 +426,6 @@
           "alternativeGroup": "processing"
         },
         {
-          "order": "2b",
           "itemType": "SparkJobDefinition",
           "dependsOn": [
             "Lakehouse"
@@ -482,7 +436,6 @@
           "alternativeGroup": "processing"
         },
         {
-          "order": "3",
           "itemType": "SemanticModel",
           "dependsOn": [
             "SQLEndpoint"
@@ -492,7 +445,6 @@
           ]
         },
         {
-          "order": "4a",
           "itemType": "Report",
           "dependsOn": [
             "SemanticModel"
@@ -500,7 +452,6 @@
           "requiredFor": []
         },
         {
-          "order": "4b",
           "itemType": "PaginatedReport",
           "dependsOn": [
             "SemanticModel"
@@ -509,7 +460,6 @@
           "optional": true
         },
         {
-          "order": "4c",
           "itemType": "Scorecard",
           "dependsOn": [
             "SemanticModel"
@@ -518,7 +468,6 @@
           "optional": true
         },
         {
-          "order": "4e",
           "itemType": "DataAgent",
           "dependsOn": [
             "SQLEndpoint",
@@ -529,7 +478,6 @@
           "optional": true
         },
         {
-          "order": "4f",
           "itemType": "Ontology",
           "dependsOn": [
             "SemanticModel"
@@ -538,7 +486,6 @@
           "optional": true
         },
         {
-          "order": "5a",
           "itemType": "Reflex",
           "dependsOn": [
             "SemanticModel",
@@ -550,7 +497,6 @@
           "optional": true
         },
         {
-          "order": "5b",
           "itemType": "Eventhouse",
           "dependsOn": [],
           "requiredFor": [
@@ -564,7 +510,6 @@
       "primaryStorage": "Eventhouse",
       "items": [
         {
-          "order": "1",
           "itemType": "Eventhouse",
           "dependsOn": [],
           "requiredFor": [
@@ -574,7 +519,6 @@
           ]
         },
         {
-          "order": "1b",
           "itemType": "Environment",
           "dependsOn": [],
           "requiredFor": [
@@ -583,7 +527,6 @@
           "optional": true
         },
         {
-          "order": "1b",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -592,7 +535,6 @@
           "optional": true
         },
         {
-          "order": "2a",
           "itemType": "Eventstream",
           "dependsOn": [
             "Eventhouse"
@@ -602,7 +544,6 @@
           ]
         },
         {
-          "order": "2b",
           "itemType": "CopyJob",
           "dependsOn": [
             "Eventhouse"
@@ -614,7 +555,6 @@
           "optional": true
         },
         {
-          "order": "2c",
           "itemType": "Dataflow",
           "dependsOn": [
             "Eventhouse"
@@ -626,7 +566,6 @@
           "optional": true
         },
         {
-          "order": "2d",
           "itemType": "DataPipeline",
           "dependsOn": [
             "Eventhouse"
@@ -638,7 +577,6 @@
           "optional": true
         },
         {
-          "order": "3",
           "itemType": "Reflex",
           "dependsOn": [
             "Eventstream",
@@ -650,7 +588,6 @@
           "optional": true
         },
         {
-          "order": "4a",
           "itemType": "KQLQueryset",
           "dependsOn": [
             "Eventhouse"
@@ -660,7 +597,6 @@
           ]
         },
         {
-          "order": "4b",
           "itemType": "Notebook",
           "dependsOn": [
             "Eventhouse",
@@ -672,7 +608,6 @@
           "optional": true
         },
         {
-          "order": "4c",
           "itemType": "MLExperiment",
           "dependsOn": [
             "Eventhouse",
@@ -684,7 +619,6 @@
           "optional": true
         },
         {
-          "order": "4d",
           "itemType": "MLModel",
           "dependsOn": [
             "MLExperiment"
@@ -695,7 +629,6 @@
           "optional": true
         },
         {
-          "order": "5a",
           "itemType": "KQLDashboard",
           "dependsOn": [
             "Eventhouse"
@@ -705,7 +638,6 @@
           ]
         },
         {
-          "order": "5b",
           "itemType": "Report",
           "dependsOn": [
             "Eventhouse",
@@ -717,7 +649,6 @@
           "optional": true
         },
         {
-          "order": "5d",
           "itemType": "DataAgent",
           "dependsOn": [
             "Eventhouse",
@@ -728,7 +659,6 @@
           "optional": true
         },
         {
-          "order": "5e",
           "itemType": "Ontology",
           "dependsOn": [
             "SemanticModel"
@@ -742,7 +672,6 @@
       "primaryStorage": "Eventhouse + Lakehouse",
       "items": [
         {
-          "order": "1",
           "itemType": "Eventhouse",
           "dependsOn": [],
           "requiredFor": [
@@ -750,7 +679,6 @@
           ]
         },
         {
-          "order": "1",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -759,7 +687,6 @@
           "optional": true
         },
         {
-          "order": "2a",
           "itemType": "Eventstream",
           "dependsOn": [
             "Eventhouse"
@@ -769,7 +696,6 @@
           ]
         },
         {
-          "order": "2b",
           "itemType": "CopyJob",
           "dependsOn": [
             "Eventhouse"
@@ -781,7 +707,6 @@
           "optional": true
         },
         {
-          "order": "2c",
           "itemType": "DataPipeline",
           "dependsOn": [
             "Eventhouse"
@@ -793,7 +718,6 @@
           "optional": true
         },
         {
-          "order": "3",
           "itemType": "KQLQueryset",
           "dependsOn": [
             "Eventhouse"
@@ -803,7 +727,6 @@
           ]
         },
         {
-          "order": "4a",
           "itemType": "KQLDashboard",
           "dependsOn": [
             "Eventhouse"
@@ -813,7 +736,6 @@
           ]
         },
         {
-          "order": "4b",
           "itemType": "Report",
           "dependsOn": [
             "Eventhouse"
@@ -824,7 +746,6 @@
           "optional": true
         },
         {
-          "order": "5",
           "itemType": "Reflex",
           "dependsOn": [
             "Eventstream",
@@ -836,7 +757,6 @@
           "optional": true
         },
         {
-          "order": "5a",
           "itemType": "DataAgent",
           "dependsOn": [
             "Eventhouse",
@@ -847,7 +767,6 @@
           "optional": true
         },
         {
-          "order": "5b",
           "itemType": "Ontology",
           "dependsOn": [],
           "requiredFor": [],
@@ -859,7 +778,6 @@
       "primaryStorage": "Lakehouse + Eventhouse + Warehouse",
       "items": [
         {
-          "order": "1a",
           "itemType": "Lakehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -867,7 +785,6 @@
           ]
         },
         {
-          "order": "1b",
           "itemType": "Warehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -875,7 +792,6 @@
           ]
         },
         {
-          "order": "1c",
           "itemType": "Eventhouse",
           "dependsOn": [],
           "requiredFor": [
@@ -883,7 +799,6 @@
           ]
         },
         {
-          "order": "2",
           "itemType": "Environment",
           "dependsOn": [
             "Lakehouse"
@@ -894,7 +809,6 @@
           ]
         },
         {
-          "order": "2",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -903,7 +817,6 @@
           "optional": true
         },
         {
-          "order": "3a",
           "itemType": "CopyJob",
           "dependsOn": [
             "Lakehouse"
@@ -914,7 +827,6 @@
           "alternativeGroup": "batch-ingestion"
         },
         {
-          "order": "3b",
           "itemType": "Dataflow",
           "dependsOn": [
             "Lakehouse"
@@ -925,7 +837,6 @@
           "alternativeGroup": "batch-ingestion"
         },
         {
-          "order": "3c",
           "itemType": "DataPipeline",
           "dependsOn": [
             "Lakehouse"
@@ -936,7 +847,6 @@
           "alternativeGroup": "batch-ingestion"
         },
         {
-          "order": "3d",
           "itemType": "Eventstream",
           "dependsOn": [
             "Eventhouse"
@@ -946,7 +856,6 @@
           ]
         },
         {
-          "order": "4a",
           "itemType": "Notebook",
           "dependsOn": [
             "Environment",
@@ -958,7 +867,6 @@
           "alternativeGroup": "batch-transform"
         },
         {
-          "order": "4b",
           "itemType": "SparkJobDefinition",
           "dependsOn": [
             "Environment",
@@ -970,7 +878,6 @@
           "alternativeGroup": "batch-transform"
         },
         {
-          "order": "4c",
           "itemType": "KQLQueryset",
           "dependsOn": [
             "Eventhouse"
@@ -980,7 +887,6 @@
           ]
         },
         {
-          "order": "5a",
           "itemType": "SemanticModel",
           "dependsOn": [
             "Warehouse",
@@ -991,7 +897,6 @@
           ]
         },
         {
-          "order": "5b",
           "itemType": "KQLDashboard",
           "dependsOn": [
             "Eventhouse"
@@ -1001,7 +906,6 @@
           ]
         },
         {
-          "order": "6",
           "itemType": "Report",
           "dependsOn": [
             "SemanticModel"
@@ -1009,7 +913,6 @@
           "requiredFor": []
         },
         {
-          "order": "7a",
           "itemType": "Reflex",
           "dependsOn": [
             "Eventstream",
@@ -1021,7 +924,6 @@
           "optional": true
         },
         {
-          "order": "7b",
           "itemType": "MLExperiment",
           "dependsOn": [
             "Lakehouse",
@@ -1033,7 +935,6 @@
           "optional": true
         },
         {
-          "order": "7c",
           "itemType": "MLModel",
           "dependsOn": [
             "MLExperiment"
@@ -1044,7 +945,6 @@
           "optional": true
         },
         {
-          "order": "7d",
           "itemType": "DataAgent",
           "dependsOn": [
             "Warehouse",
@@ -1056,7 +956,6 @@
           "optional": true
         },
         {
-          "order": "7e",
           "itemType": "Ontology",
           "dependsOn": [
             "SemanticModel"
@@ -1070,7 +969,6 @@
       "primaryStorage": "Lakehouse (Bronze/Silver/Gold)",
       "items": [
         {
-          "order": "1a",
           "itemType": "Lakehouse Bronze",
           "dependsOn": [],
           "requiredFor": [
@@ -1079,7 +977,6 @@
           ]
         },
         {
-          "order": "1b",
           "itemType": "Lakehouse Silver",
           "dependsOn": [],
           "requiredFor": [
@@ -1087,7 +984,6 @@
           ]
         },
         {
-          "order": "1c",
           "itemType": "Lakehouse Gold",
           "dependsOn": [],
           "requiredFor": [
@@ -1097,7 +993,6 @@
           "alternativeGroup": "gold-layer"
         },
         {
-          "order": "1c",
           "itemType": "Warehouse Gold",
           "dependsOn": [],
           "requiredFor": [
@@ -1107,7 +1002,6 @@
           "alternativeGroup": "gold-layer"
         },
         {
-          "order": "2",
           "itemType": "Environment",
           "dependsOn": [
             "Lakehouse Bronze",
@@ -1120,7 +1014,6 @@
           ]
         },
         {
-          "order": "2",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -1129,7 +1022,6 @@
           "optional": true
         },
         {
-          "order": "3a",
           "itemType": "CopyJob",
           "dependsOn": [
             "Lakehouse Bronze"
@@ -1140,7 +1032,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "3b",
           "itemType": "Dataflow",
           "dependsOn": [
             "Lakehouse Bronze"
@@ -1151,7 +1042,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "3c",
           "itemType": "DataPipeline",
           "dependsOn": [
             "Lakehouse Bronze"
@@ -1162,7 +1052,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "3d",
           "itemType": "Eventstream",
           "dependsOn": [
             "Lakehouse Bronze"
@@ -1174,7 +1063,6 @@
           "optional": true
         },
         {
-          "order": "4a",
           "itemType": "Notebook",
           "dependsOn": [
             "Environment",
@@ -1186,7 +1074,6 @@
           "alternativeGroup": "transformation"
         },
         {
-          "order": "4b",
           "itemType": "SparkJobDefinition",
           "dependsOn": [
             "Environment",
@@ -1198,7 +1085,6 @@
           "alternativeGroup": "transformation"
         },
         {
-          "order": "5",
           "itemType": "SemanticModel",
           "dependsOn": [
             "Lakehouse Gold",
@@ -1209,7 +1095,6 @@
           ]
         },
         {
-          "order": "6",
           "itemType": "Report",
           "dependsOn": [
             "SemanticModel"
@@ -1217,7 +1102,6 @@
           "requiredFor": []
         },
         {
-          "order": "7a",
           "itemType": "MLExperiment",
           "dependsOn": [
             "Lakehouse Gold",
@@ -1229,7 +1113,6 @@
           "optional": true
         },
         {
-          "order": "7b",
           "itemType": "MLModel",
           "dependsOn": [
             "MLExperiment"
@@ -1243,7 +1126,6 @@
       "primaryStorage": "Lakehouse",
       "items": [
         {
-          "order": "1",
           "itemType": "Lakehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -1252,7 +1134,6 @@
           ]
         },
         {
-          "order": "1",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -1261,7 +1142,6 @@
           "optional": true
         },
         {
-          "order": "2",
           "itemType": "SemanticModel",
           "dependsOn": [
             "Lakehouse",
@@ -1274,7 +1154,6 @@
           ]
         },
         {
-          "order": "3",
           "itemType": "Ontology",
           "dependsOn": [
             "SemanticModel"
@@ -1284,7 +1163,6 @@
           ]
         },
         {
-          "order": "4",
           "itemType": "GraphModel",
           "dependsOn": [
             "Ontology"
@@ -1294,7 +1172,6 @@
           ]
         },
         {
-          "order": "5",
           "itemType": "GraphQuerySet",
           "dependsOn": [
             "GraphModel"
@@ -1304,7 +1181,6 @@
           ]
         },
         {
-          "order": "6a",
           "itemType": "DataAgent",
           "dependsOn": [
             "SemanticModel",
@@ -1314,7 +1190,6 @@
           "optional": true
         },
         {
-          "order": "6b",
           "itemType": "Report",
           "dependsOn": [
             "SemanticModel"
@@ -1330,7 +1205,6 @@
       "primaryStorage": "Lakehouse",
       "items": [
         {
-          "order": "1a",
           "itemType": "Lakehouse (raw)",
           "dependsOn": [],
           "requiredFor": [
@@ -1338,7 +1212,6 @@
           ]
         },
         {
-          "order": "1b",
           "itemType": "Lakehouse (mask)",
           "dependsOn": [],
           "requiredFor": [
@@ -1346,7 +1219,6 @@
           ]
         },
         {
-          "order": "1c",
           "itemType": "Warehouse",
           "dependsOn": [],
           "requiredFor": [
@@ -1354,7 +1226,6 @@
           ]
         },
         {
-          "order": "2",
           "itemType": "Environment",
           "dependsOn": [
             "Lakehouse (raw)",
@@ -1366,7 +1237,6 @@
           ]
         },
         {
-          "order": "2",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -1375,7 +1245,6 @@
           "optional": true
         },
         {
-          "order": "3a",
           "itemType": "CopyJob",
           "dependsOn": [
             "Lakehouse (raw)"
@@ -1386,7 +1255,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "3b",
           "itemType": "Dataflow",
           "dependsOn": [
             "Lakehouse (raw)"
@@ -1397,7 +1265,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "3c",
           "itemType": "DataPipeline",
           "dependsOn": [
             "Lakehouse (raw)"
@@ -1408,7 +1275,6 @@
           "alternativeGroup": "ingestion"
         },
         {
-          "order": "4a",
           "itemType": "Notebook",
           "dependsOn": [
             "Environment",
@@ -1420,7 +1286,6 @@
           "alternativeGroup": "transformation"
         },
         {
-          "order": "4b",
           "itemType": "SparkJobDefinition",
           "dependsOn": [
             "Environment",
@@ -1432,7 +1297,6 @@
           "alternativeGroup": "transformation"
         },
         {
-          "order": "5",
           "itemType": "SemanticModel",
           "dependsOn": [
             "Warehouse"
@@ -1442,7 +1306,6 @@
           ]
         },
         {
-          "order": "6",
           "itemType": "Report",
           "dependsOn": [
             "SemanticModel"
@@ -1450,7 +1313,6 @@
           "requiredFor": []
         },
         {
-          "order": "6c",
           "itemType": "DataAgent",
           "dependsOn": [
             "Warehouse",
@@ -1461,7 +1323,6 @@
           "optional": true
         },
         {
-          "order": "6d",
           "itemType": "Ontology",
           "dependsOn": [
             "SemanticModel"
@@ -1470,7 +1331,6 @@
           "optional": true
         },
         {
-          "order": "7a",
           "itemType": "Reflex",
           "dependsOn": [
             "SemanticModel",
@@ -1482,7 +1342,6 @@
           "optional": true
         },
         {
-          "order": "7b",
           "itemType": "Eventhouse",
           "dependsOn": [],
           "requiredFor": [
@@ -1496,7 +1355,6 @@
       "primaryStorage": "SQL Database",
       "items": [
         {
-          "order": "1",
           "itemType": "SQLDatabase",
           "dependsOn": [],
           "requiredFor": [
@@ -1505,7 +1363,6 @@
           ]
         },
         {
-          "order": "1",
           "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
@@ -1514,7 +1371,6 @@
           "optional": true
         },
         {
-          "order": "2",
           "itemType": "SemanticModel",
           "dependsOn": [
             "SQLDatabase"
@@ -1524,7 +1380,6 @@
           ]
         },
         {
-          "order": "3",
           "itemType": "Report",
           "dependsOn": [
             "SemanticModel"
@@ -1534,7 +1389,6 @@
           ]
         },
         {
-          "order": "4",
           "itemType": "UserDataFunction",
           "dependsOn": [
             "SQLDatabase"
@@ -1544,7 +1398,6 @@
           ]
         },
         {
-          "order": "5a",
           "itemType": "DataAgent",
           "dependsOn": [
             "SQLDatabase",
@@ -1555,7 +1408,6 @@
           "optional": true
         },
         {
-          "order": "5b",
           "itemType": "Ontology",
           "dependsOn": [
             "SemanticModel"
