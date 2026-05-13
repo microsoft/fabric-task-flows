@@ -1,14 +1,47 @@
-# Keep deployment-order.json hand-authored
+# Keep deployment-order.json hand-authored (slimmed)
 
-We evaluated generating `_shared/registry/deployment-order.json` from `item-type-registry.json` + task flow definitions, and decided to keep it hand-authored. The file encodes role-qualified instance graphs (e.g., "Lakehouse Bronze → Lakehouse Silver → Lakehouse Gold") whose dependency relationships are task-flow-specific design decisions — not derivable from item-type metadata alone.
+We evaluated generating `_shared/registry/deployment-order.json` from `item-type-registry.json` and decided to keep it hand-authored — but slimmed to only irreducible fields.
+
+## Analysis
+
+| Metric | Value |
+|--------|-------|
+| Active code consumers | 4 scripts (handoff-scaffolder, taskflow-gen, decision-resolver, heal-orchestrator) |
+| Total items | 148 across 12 task flows |
+| Naming: display_name/alias variants | 19 of 37 unique types (not truly role-qualified) |
+| True role instances | 9 (Lakehouse ×5, Notebook ×2, Warehouse ×1) |
+| Phase predicts correct wave | 140/158 dependency edges |
+| Same-phase deps (need intra-wave info) | 15 |
+| Phase violations (reverse-direction deps) | 3 |
+
+The `phase` field in item-type-registry correctly predicts deployment wave ordering for 89% of edges, but 15 same-phase dependencies and 3 reverse-direction dependencies (e.g., Notebook→ML Model in `basic-machine-learning-models`) require explicit `dependsOn` that cannot be inferred.
+
+## Decision
+
+Keep the file hand-authored with these irreducible fields per item:
+
+- **`itemType`** — role-qualified display name (consumed by 4 scripts for rendering)
+- **`order`** — wave code, derivable from phase but kept for readability
+- **`dependsOn`** — the DAG edges (15 same-phase + 3 violations prove these are irreducible)
+- **`requiredFor`** — used by `_purpose_from()` in handoff-scaffolder for purpose generation (96/134 values are descriptive text, not just item names)
+- **`alternativeGroup`** — which items are interchangeable (consumed by decision-resolver)
+- **`optional`** — which items can be skipped
+
+**Removed** (dead fields with zero code consumers):
+- `notes` — 17 items had human-only annotations; no script reads them
 
 ## Considered Options
 
-1. **Generate from registry + per-flow YAML** — each task flow declares instances and dependencies in a source file; a script resolves types against the registry and emits deployment-order.json. Rejected: the "source YAML" would contain the same domain knowledge as the current JSON, just with an extra indirection layer and a build step.
+1. **Generate from registry + per-flow YAML** — Rejected: the "source YAML" would contain the same domain knowledge as the current JSON, just with an extra indirection layer and a build step.
 
-2. **Derive from item-type-registry `phase` field** — use the coarse wave ordering (Foundation → Ingestion → Transformation → Visualization) to auto-assign deployment waves. Rejected: `phase` gives wave buckets but not fine-grained inter-item dependencies (`dependsOn`, `requiredFor`, `alternativeGroup`, `optional`). Many items share a phase but have specific ordering constraints within it.
+2. **Derive entirely from `phase` field** — Rejected: phase gives wave buckets but not intra-wave deps (15 same-phase edges) or the 3 reverse-direction edges. Also cannot produce the 96 descriptive `requiredFor` values used for purpose generation.
 
-3. **Keep hand-authored** (chosen) — the 37KB file covers 12 task flows / 148 items. It changes only when task flows are added or restructured — roughly quarterly. The maintenance cost is low; the semantic richness (role-qualified names, alternative groups, optional flags, notes) cannot be mechanically inferred.
+3. **Keep hand-authored, slimmed** (chosen) — removed dead `notes` field; all remaining fields have active code consumers.
+
+## Future Considerations
+
+- **Normalize `itemType` to registry keys** — 19 names are just display_name/alias variants (e.g., "Copy Job" = `CopyJob`). Scripts could resolve display names at render time. Deferred: requires updating 4 consumer scripts + test assertions.
+- **Derive `order` from `phase` at runtime** — the letter suffixes (a, b, c) indicate parallelism within a wave, which is already implicit from `dependsOn`. Deferred: low-risk but requires script changes.
 
 ## Consequences
 
