@@ -7,6 +7,8 @@ description: >
   fabric-deploy) or architecture design (use fabric-design).
 ---
 
+> ⚠️ **Artifacts-only mode:** When `deploy_mode` is `artifacts_only`, this skill is NOT invoked — the pipeline runner handles this phase deterministically. The instructions below apply only when `deploy_mode` is `live`.
+
 # Fabric Documentation
 
 > **Goal:** Produce ONE deliverable — `docs/project-brief.md` — that a CTO can read in 10 minutes.

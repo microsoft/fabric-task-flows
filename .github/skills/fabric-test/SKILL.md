@@ -9,6 +9,8 @@ description: >
   or deployment (use fabric-deploy).
 ---
 
+> ⚠️ **Artifacts-only mode:** When `deploy_mode` is `artifacts_only`, Mode 2 (Post-Deployment Validation) is NOT invoked — the pipeline runner handles structural validation deterministically. Mode 1 (Test Plan) runs normally in all modes.
+
 # Fabric Testing & Validation (QA Role)
 
 ## Mode 1: Architecture Review + Test Plan (Phase 2a)

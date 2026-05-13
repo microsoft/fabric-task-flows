@@ -484,13 +484,12 @@ def _generate_complete_handoff(project: str) -> tuple[bool, list[str]]:
         result = subprocess.run(resolver_cmd, capture_output=True, text=True,
                                 encoding="utf-8", errors="replace", timeout=30)
         if result.returncode == 0 and (result.stdout or "").strip():
-            import json as _json
-            decisions_output = _json.loads(result.stdout)
+            decisions_output = json.loads(result.stdout)
             report.append(f"  📋 Decisions resolved ({len(decisions_output.get('decisions', {}))} decisions)")
             # Save decisions.json for sign-off phase to use directly
             decisions_json_path = REPO_ROOT / "_projects" / project / "docs" / "decisions.json"
             decisions_json_path.write_text(
-                _json.dumps(decisions_output, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n"
+                json.dumps(decisions_output, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n"
             )
         else:
             report.append(f"  ⚠️ Decision resolver returned exit {result.returncode}")
@@ -1485,7 +1484,7 @@ def reset_phase(project: str, phase: str) -> dict:
     return state
 
 
-def reconcile(project: str) -> dict:
+def reconcile(project: str) -> tuple[dict, list[str]]:
     """Rebuild pipeline state from file evidence. Heals drift from degraded-mode edits.
 
     Scans docs/ output files against registry to determine which phases

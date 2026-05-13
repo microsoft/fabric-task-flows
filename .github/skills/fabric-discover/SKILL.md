@@ -99,7 +99,7 @@ Write to `_projects/[name]/docs/discovery-brief.md` (file is pre-scaffolded — 
 
 - Use `signal-mapper.py` for all signal lookups — do not access registry files directly
 - Use `intake-writer.py` to persist 4 V's — do not hand-edit `.discovery-intake.json`
-- Step 5 recap MUST be rendered via `run-pipeline.py discovery-summary` — never improvise the block
+- Step 4 recap MUST be rendered via `run-pipeline.py discovery-summary` — never improvise the block
 - Discovery Brief: max 60 lines
 - Signal table cells: max 15 words
 - Architectural Judgment Calls: max 20 words each

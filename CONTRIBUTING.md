@@ -92,15 +92,11 @@ Each project has a `pipeline-state.json` (scaffolded by `new-project.py`) that t
 
 ## Agent boundaries
 
-Agents operate under strict deterministic-vs-reasoning boundaries. **Most pipeline phases have a pre-compute script that runs before the LLM adds judgment.** These rules are inlined into each skill's `SKILL.md`.
+See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) for the full set of agent conventions. Key rules summarized here for quick reference:
 
-Key rules:
 - **MUST** use `run-pipeline.py` to orchestrate — not ad-hoc agent chaining
-- **MUST** run pre-compute scripts before LLM reasoning (e.g., `signal-mapper.py` before discovery, `decision-resolver.py` before design, `deploy-script-gen.py` before deploy)
-- **MUST** use skill `schemas/` directories for handoff output format — `fabric-deploy` and `fabric-test` ship schema files that define the expected YAML structure
-- **MUST** use `fabric-cicd` as the sole deployment and validation dependency — do NOT introduce `ms-fabric-cli` (`fab`) or other CLI tools
+- **MUST** run pre-compute scripts before LLM reasoning
 - **MUST NOT** hand-write deployment scripts, handoff YAML structure, or pipeline state
-- **MUST NOT** skip pre-compute steps even if the LLM "knows" the answer
 
 > **Core principle:** If it's reproducible across 1,000 projects, a script does it — not an agent.
 

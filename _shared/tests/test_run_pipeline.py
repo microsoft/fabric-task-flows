@@ -1,6 +1,7 @@
 ﻿"""Tests for run-pipeline.py — verifies project-name guardrails in start_pipeline()."""
 
 import importlib.util
+import inspect
 import json
 import sys
 from pathlib import Path
@@ -1426,6 +1427,21 @@ def fast_forward_project(tmp_path, monkeypatch):
     return tmp_path, proj
 
 
+class TestRegressionGuards:
+    """Regression guards for run-pipeline implementation details and signatures."""
+
+    def test_reconcile_return_annotation_matches_tuple_result(self):
+        """reconcile() should advertise the tuple it actually returns."""
+        assert inspect.signature(rp.reconcile).return_annotation == "tuple[dict, list[str]]"
+
+    def test_generate_complete_handoff_uses_module_level_json(self):
+        """_generate_complete_handoff() should not shadow the module-level json import."""
+        source = inspect.getsource(rp._generate_complete_handoff)
+
+        assert "import json as _json" not in source
+        assert "json.loads(result.stdout)" in source
+
+
 class TestFastForwardGenerators:
     """Regression tests for the deterministic fast-forward generators."""
 
@@ -1522,6 +1538,37 @@ class TestFastForwardGenerators:
         ok, report = rp._generate_validation_report(proj)
         assert ok is False
         assert any("manifest" in m.lower() or "⚠" in m for m in report)
+
+    def test_generators_preserve_item_names_with_dots(self, fast_forward_project):
+        """Deployment and validation generators should split item names on the last dot only."""
+        tmp_path, proj = fast_forward_project
+        docs_dir = tmp_path / "_projects" / proj / "docs"
+        deploy_dir = tmp_path / "_projects" / proj / "deploy"
+
+        cache_path = docs_dir / ".architecture-cache.json"
+        cache = json.loads(cache_path.read_text(encoding="utf-8"))
+        cache["items"][2]["id"] = "sales.report.v2"
+        cache_path.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+
+        manifest_path = deploy_dir / "_deploy_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["artifacts"][2]["path"] = "workspace/Visualization/sales.report.v2.Report"
+        manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+        ok_deploy, _ = rp._generate_deployment_handoff(proj)
+        ok_validate, _ = rp._generate_validation_report(proj)
+
+        assert ok_deploy is True
+        assert ok_validate is True
+
+        deployment_content = (docs_dir / "deployment-handoff.md").read_text(encoding="utf-8")
+        validation_content = (docs_dir / "validation-report.md").read_text(encoding="utf-8")
+
+        assert "name: sales.report.v2" in deployment_content
+        assert "type: Report" in deployment_content
+        assert "items: [sales.report.v2]" in deployment_content
+        assert "name: sales.report.v2" in validation_content
+        assert "Visualize" in validation_content
 
     # ── project brief ────────────────────────────────────────────────────
 

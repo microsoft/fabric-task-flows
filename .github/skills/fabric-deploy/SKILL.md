@@ -8,6 +8,8 @@ description: >
   (use fabric-design) or testing (use fabric-test).
 ---
 
+> ⚠️ **Artifacts-only mode:** When `deploy_mode` is `artifacts_only`, this skill is NOT invoked — the pipeline runner handles this phase deterministically. The instructions below apply only when `deploy_mode` is `live`.
+
 # Fabric Deployment
 
 > **⚡ Pre-generated handoff:** The runner writes `deployment-handoff.md` with every item in `status: not_started` and `<!-- AGENT: FILL -->` markers before this skill is invoked, alongside `deploy/workspace/`, `config.yml`, the deploy script, and the taskflow JSON. Your job after running (or choosing to skip) deployment is to update each item's status to `deployed` / `failed` and replace every `<!-- AGENT: FILL -->` marker with real content.
