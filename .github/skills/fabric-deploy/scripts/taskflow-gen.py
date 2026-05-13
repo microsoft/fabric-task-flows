@@ -33,7 +33,6 @@ from pathlib import Path
 
 _SKILL_DIR = Path(__file__).resolve().parent.parent
 
-_SHARED_DIR = _SKILL_DIR.parent.parent.parent / "_shared" / "lib"
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
 
 # ── Item type → Fabric task type mapping ──────────────────────────────────────
@@ -59,10 +58,9 @@ SCAFFOLD_TASK_NAMES: dict[str, str] = {
     "develop data": "Configure environment",
     "general": "General",
 }
-
+# ── Canonical task-type ordering ──────────────────────────────────────────
 # ── Canonical task-type ordering ──────────────────────────────────────────
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 TASK_TYPE_ORDER: dict[str, int] = {
     "develop data": 0,
     "get data": 1,

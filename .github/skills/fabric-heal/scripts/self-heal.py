@@ -30,34 +30,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
 from paths import REPO_ROOT
+from heal_keyword_utils import parse_problems
 
 SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts" / "signal-mapper.py"
 LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
 DEFAULT_PROBLEMS = Path(__file__).resolve().parent.parent / "problem-statements.md"
-
-
-# ---------------------------------------------------------------------------
-# Problem parser
-# ---------------------------------------------------------------------------
-
-def parse_problems(path: Path) -> list[dict]:
-    """Parse problem-statements.md into [{id, category, text}]."""
-    content = path.read_text(encoding="utf-8")
-    problems = []
-    category = "Uncategorized"
-    for line in content.splitlines():
-        m = re.match(r"^##\s+(.+)", line)
-        if m:
-            category = m.group(1).strip()
-            continue
-        m = re.match(r'^\d+\.\s+"(.+)"', line)
-        if m:
-            problems.append({
-                "id": len(problems) + 1,
-                "category": category,
-                "text": m.group(1),
-            })
-    return problems
 
 
 # ---------------------------------------------------------------------------

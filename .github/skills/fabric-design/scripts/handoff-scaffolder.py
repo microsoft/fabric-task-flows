@@ -3,7 +3,7 @@
 Scaffolds an architecture handoff document from registry data.
 
 Loads deployment order from ``_shared/registry/deployment-order.json`` via
-``deployment_loader.get_deployment_items()``, maps items to Fabric types from the
+``registry_loader.get_deployment_items()``, maps items to Fabric types from the
 item-type registry, and generates a template-aligned architecture handoff document
 with YAML frontmatter, items, waves, and acceptance criteria.
 

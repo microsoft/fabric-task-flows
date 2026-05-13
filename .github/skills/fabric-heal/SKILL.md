@@ -70,4 +70,3 @@ Detailed analytics are persisted to:
 - `_shared/scripts/signal-categories-cli.py` — safe keyword maintenance helper for signal categories registry
 - `problem-statements.md` — existing format (in this skill's folder)
 - `task-flows.md` — task flow descriptions
-- `task-flows.md` — task flow descriptions

@@ -36,14 +36,10 @@ Run `decision-resolver.py --help` for signal keys and fallback options.
 
 Write to `_projects/[name]/docs/architecture-handoff.md`.
 
-The runner pre-generates `architecture-handoff.md` (items, waves, ACs, decisions, diagram) before this skill is invoked. Your job: (1) verify accuracy against the discovery brief and decision-resolver output, (2) add project-specific rationale, trade-offs, and deployment strategy, (3) replace the `<!-- AGENT: FILL -->` marker in the `## Summary` line (and anywhere else it appears) with a ≤20-word summary of the problem statement. Do NOT rewrite the pre-generated YAML blocks from scratch — edit in place using the `edit` tool.
+The runner pre-generates `architecture-handoff.md` (items, waves, ACs, decisions, diagram) before this skill is invoked. Your job: (1) verify accuracy against the discovery brief and decision-resolver output, (2) add project-specific rationale, trade-offs, and deployment strategy, (3) replace the `<!-- AGENT: FILL -->` marker in the `## Summary` line (and anywhere else it appears) with a ≤20-word summary of the problem statement.
 
 ## Constraints
 
 - **Preserve YAML code blocks** — `diagram-gen.py` parses `items:` and `waves:` blocks to generate the architecture diagram. Do NOT convert them to markdown tables.
 - Never deploy or create Fabric items
 - Never skip "Alternatives Considered" or "Trade-offs"
-
-## Handoff
-
-> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

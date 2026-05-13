@@ -23,7 +23,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared"
-SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-deploy/
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Item type → fab command mapping
@@ -31,12 +30,11 @@ SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-depl
 
 # Item type mappings — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
-_SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "_shared" / "lib"
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
 from registry_loader import load_registry
 from banner import BANNER_ART
-from yaml_utils import extract_yaml_blocks, extract_task_flow, parse_yaml_value, split_list, parse_inline_mapping
+from yaml_utils import extract_yaml_blocks, extract_task_flow, parse_inline_mapping
 from text_utils import slugify, escape_for_python_string
 
 # REST API creation support map loaded from registry
@@ -97,20 +95,7 @@ class HandoffData:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # YAML extraction — delegated to _shared/yaml_utils.py
-# Aliases kept for internal call-site compatibility.
 # ─────────────────────────────────────────────────────────────────────────────
-
-_extract_yaml_blocks = extract_yaml_blocks
-
-
-def _extract_task_flow(markdown: str) -> str:
-    """Extract task_flow from YAML frontmatter or body content."""
-    return extract_task_flow(markdown) or "unknown"
-
-
-_parse_yaml_value = parse_yaml_value
-_split_list = split_list
-_parse_inline_mapping = parse_inline_mapping
 
 
 def _parse_items_block(yaml_text: str) -> list[Item]:
@@ -122,7 +107,7 @@ def _parse_items_block(yaml_text: str) -> list[Item]:
         stripped = line.strip()
         if stripped.startswith("- {"):
             brace_start = stripped.index("{")
-            mapping = _parse_inline_mapping(stripped[brace_start:])
+            mapping = parse_inline_mapping(stripped[brace_start:])
             items.append(Item(
                 id=int(mapping.get("id", 0)),
                 name=str(mapping.get("name", mapping.get("item_name", ""))),
@@ -249,7 +234,7 @@ def _parse_waves_block(yaml_text: str) -> list[Wave]:
         stripped = line.strip()
         if stripped.startswith("- {"):
             brace_start = stripped.index("{")
-            mapping = _parse_inline_mapping(stripped[brace_start:])
+            mapping = parse_inline_mapping(stripped[brace_start:])
             waves.append(Wave(
                 id=int(mapping.get("id", mapping.get("wave_number", 0))),
                 items=[str(x) for x in (mapping.get("items") or [])],
@@ -312,7 +297,7 @@ def parse_handoff(path: str) -> HandoffData:
         return _parse_json_handoff(content, path)
 
     # Markdown format (architecture-handoff.md)
-    task_flow = _extract_task_flow(content)
+    task_flow = extract_task_flow(content) or "unknown"
 
     # Extract problem summary from handoff
     summary = ""
@@ -320,7 +305,7 @@ def parse_handoff(path: str) -> HandoffData:
     if m:
         summary = m.group(1).strip()
 
-    yaml_blocks = _extract_yaml_blocks(content)
+    yaml_blocks = extract_yaml_blocks(content)
 
     items: list[Item] = []
     waves: list[Wave] = []

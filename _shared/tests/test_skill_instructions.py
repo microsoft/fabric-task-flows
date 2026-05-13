@@ -61,34 +61,22 @@ class TestDiscoverRerunDetection:
 
 
 class TestAutoChainInstructions:
-    """Bug #2 regression: All 5 skill SKILL.md files must contain auto-chain
-    instructions in their Handoff section."""
+    """Bug #2 regression: Auto-chain handoff instructions must exist in the
+    shared copilot-instructions.md (injected into all skill contexts)."""
 
-    SKILLS = [
-        "fabric-discover",
-        "fabric-design",
-        "fabric-test",
-        "fabric-deploy",
-        "fabric-document",
-    ]
+    COPILOT_INSTRUCTIONS = (REPO_ROOT / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
 
-    @pytest.mark.parametrize("skill_name", SKILLS)
-    def test_auto_chain_instruction_present(self, skill_name):
-        content = _read_skill(skill_name)
-        assert "AUTO-CHAIN" in content, (
-            f"{skill_name}/SKILL.md must contain AUTO-CHAIN instruction in Handoff"
+    def test_auto_chain_instruction_present(self):
+        assert "AUTO-CHAIN" in self.COPILOT_INSTRUCTIONS, (
+            "copilot-instructions.md must contain AUTO-CHAIN instruction"
         )
 
-    @pytest.mark.parametrize("skill_name", SKILLS)
-    def test_human_gate_instruction_present(self, skill_name):
-        content = _read_skill(skill_name)
-        assert "HUMAN GATE" in content, (
-            f"{skill_name}/SKILL.md must reference HUMAN GATE in Handoff"
+    def test_human_gate_instruction_present(self):
+        assert "HUMAN GATE" in self.COPILOT_INSTRUCTIONS, (
+            "copilot-instructions.md must reference HUMAN GATE"
         )
 
-    @pytest.mark.parametrize("skill_name", SKILLS)
-    def test_advance_command_present(self, skill_name):
-        content = _read_skill(skill_name)
-        assert "run-pipeline.py advance" in content, (
-            f"{skill_name}/SKILL.md must include advance command in Handoff"
+    def test_advance_command_present(self):
+        assert "run-pipeline.py advance" in self.COPILOT_INSTRUCTIONS, (
+            "copilot-instructions.md must include advance command"
         )

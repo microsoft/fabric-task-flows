@@ -21,31 +21,23 @@ description: >
 
 ### Step 1: Collect Intake
 
-If the problem statement and project name are **already provided in the agent prompt** (e.g., from a pipeline re-run or auto-chain), use them directly — do NOT re-ask the user.
+If the problem statement and project name are already provided (e.g., from auto-chain), use them directly — do NOT re-ask.
 
 Otherwise, ask the user for:
-- **Project name** — Ask for a short, creative, and descriptive name. You MAY suggest examples (e.g., "Farm Fleet", "Energy Analytics"), but you MUST NOT proceed until the user explicitly provides or confirms a name. Never infer, synthesize, or assume a project name from context.
+- **Project name** — short, creative, descriptive. You MAY suggest examples, but MUST NOT proceed until the user explicitly confirms one.
 - **Problem statement** — "What problems does your project need to solve?"
 
-### Step 2: Scaffold the Project
+### Step 2: Scaffold and Review Signals
 
-Once you have both, run:
 ```bash
 python _shared/scripts/run-pipeline.py start "Project Name" --problem "problem statement text"
 ```
 
-### Step 3: Review Signal Mapper Output
+The `start` command runs `signal-mapper.py` as pre-compute — review its output above. Do NOT run `signal-mapper.py` again manually.
 
-Review the signal mapping output from the `start` command.
+### Step 3: Close 4 V's Gaps (loop until confidence floor met)
 
-> **⚠️ The `start` command already runs signal-mapper as pre-compute. Read the output above — do NOT run `signal-mapper.py` again manually.**
-
-### Step 4: Close 4 V's Gaps (loop until confidence floor met)
-
-For each V that is **not already stated in the problem statement**, ask the user
-**one at a time** via `ask_user`. Continue asking until every V has either a
-concrete user-stated value OR the user has explicitly told you to use your
-inferred best guess. **Do NOT proceed to Step 5 with any V still unknown.**
+For each V **not already stated in the problem statement**, ask the user one at a time via `ask_user`. Do NOT proceed to Step 4 with any V still unknown.
 
 | V | What to Assess |
 |---|---------------|
@@ -54,10 +46,9 @@ inferred best guess. **Do NOT proceed to Step 5 with any V still unknown.**
 | Variety | Sources: DBs, files, APIs, streaming |
 | Versatility | Low-code / code-first / mixed |
 
-If the signal mapper generated follow-up questions (via `--intake` mode or
-low-coverage advisory), use them as question templates.
+If the signal mapper generated follow-up questions, use them as templates.
 
-Once all four V's are resolved, persist the confirmed values:
+Once all four V's are resolved, persist them:
 
 ```bash
 python .github/skills/fabric-discover/scripts/intake-writer.py \
@@ -68,37 +59,24 @@ python .github/skills/fabric-discover/scripts/intake-writer.py \
   --versatility "<value>"  --versatility-source user|inferred
 ```
 
-Use `--*-source user` when the user stated the value outright, `inferred` when
-the user deferred to your best guess. Omit (or pass empty string) for anything
-still unknown — but the writer will warn if `confidence_floor_met` is false,
-which means you must loop back and ask more questions.
+Use `--*-source user` when the user stated the value, `inferred` when they deferred to your best guess. If `confidence_floor_met` is false in the output, loop back and ask more questions.
 
-### Step 5: Render the Deterministic Discovery Summary
-
-Run the deterministic renderer — this reads `.signal-mapper-cache.json` and
-`.discovery-intake.json` and prints a stable, stakeholder-facing recap:
+### Step 4: Render the Deterministic Discovery Summary
 
 ```bash
 python _shared/scripts/run-pipeline.py discovery-summary --project <project>
 ```
 
-**You MUST copy-paste the ENTIRE rendered block into your chat response as a
-fenced code block (```).** The user cannot see tool output directly — your
-response text is the only thing they see. Do not abbreviate, summarize, or
-paraphrase the block.
+Copy-paste the **entire** rendered block into your chat response as a fenced code block — the user cannot see tool output directly.
 
-After the block, issue a single `ask_user` with three choices:
-
-- **Confirm** — proceed to write the Discovery Brief (Step 6).
-- **Correct** — capture free-text corrections; re-run `intake-writer.py` with
-  the updated values, then re-render (Step 5 again).
+After the block, `ask_user` with three choices:
+- **Confirm** — proceed to write the Discovery Brief (Step 5).
+- **Correct** — capture corrections; re-run `intake-writer.py` with updated values, then re-render.
 - **Restart** — abandon and re-collect the problem statement.
 
-### Step 6: Produce Discovery Brief
+### Step 5: Produce Discovery Brief
 
-Write to `_projects/[name]/docs/discovery-brief.md`:
-
-> **File editing:** This file is pre-scaffolded with placeholder content. Replace the **entire file contents** using the `edit` tool — use the full existing file as `old_str` and the completed brief as `new_str`. Do NOT use `create` (the file already exists) or pass an empty `old_str`.
+Write to `_projects/[name]/docs/discovery-brief.md` (file is pre-scaffolded — replace full content via `edit` tool):
 
 ```markdown
 ## Problem Statement
@@ -106,7 +84,6 @@ Write to `_projects/[name]/docs/discovery-brief.md`:
 
 ### Inferred Signals
 | Signal | Value | Confidence | Source |
-| Data Velocity | batch/real-time/both | high/medium/low | quote |
 
 ### 4 V's Assessment
 | V | Value | Confidence | Source |
@@ -115,7 +92,7 @@ Write to `_projects/[name]/docs/discovery-brief.md`:
 - [confirmations/corrections]
 
 ### Architectural Judgment Calls
-- [design trade-offs requiring architect expertise — max 20 words each]
+- [max 20 words each]
 ```
 
 ## Constraints
@@ -128,7 +105,3 @@ Write to `_projects/[name]/docs/discovery-brief.md`:
 - Architectural Judgment Calls: max 20 words each
 - Integration-first: assume coexistence unless user says migrate
 - Never recommend a final task flow — suggest candidates only
-
-## Handoff
-
-> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

@@ -13,7 +13,7 @@ description: >
 
 ## Mode 1: Architecture Review + Test Plan (Phase 2a)
 
-The runner pre-generates `test-plan.md` via `test-plan-prefill.py` before this skill is invoked. Your job: (1) verify each acceptance criterion maps to the correct items/waves from the architecture handoff, (2) add edge cases and expected results where missing, (3) replace every `<!-- AGENT: FILL -->` marker with real content. Set `review_outcome`: `approved` (no red blockers) or `concerns` (has red). Do NOT rewrite from scratch — edit in place.
+The runner pre-generates `test-plan.md` via `test-plan-prefill.py` before this skill is invoked. Your job: (1) verify each acceptance criterion maps to the correct items/waves from the architecture handoff, (2) add edge cases and expected results where missing, (3) replace every `<!-- AGENT: FILL -->` marker with real content. Set `review_outcome`: `approved` (no red blockers) or `concerns` (has red).
 
 ## Mode 2: Post-Deployment Validation (Phase 3)
 
@@ -30,7 +30,3 @@ If any finding is `routed_to: engineer`, also write `remediation-log.md` per the
 
 - Never invent ACs not in the Architecture Handoff
 - Never modify Fabric items — validate only
-
-## Handoff
-
-> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

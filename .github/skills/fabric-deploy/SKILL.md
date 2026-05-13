@@ -10,7 +10,7 @@ description: >
 
 # Fabric Deployment
 
-> **⚡ Pre-generated handoff:** The runner writes `deployment-handoff.md` with every item in `status: not_started` and `<!-- AGENT: FILL -->` markers before this skill is invoked, alongside `deploy/workspace/`, `config.yml`, the deploy script, and the taskflow JSON. Your job after running (or choosing to skip) deployment is to update each item's status to `deployed` / `failed` and replace every `<!-- AGENT: FILL -->` marker with real content. Do NOT rewrite the handoff from scratch — edit in place.
+> **⚡ Pre-generated handoff:** The runner writes `deployment-handoff.md` with every item in `status: not_started` and `<!-- AGENT: FILL -->` markers before this skill is invoked, alongside `deploy/workspace/`, `config.yml`, the deploy script, and the taskflow JSON. Your job after running (or choosing to skip) deployment is to update each item's status to `deployed` / `failed` and replace every `<!-- AGENT: FILL -->` marker with real content.
 
 ## Deployment Mode
 
@@ -79,7 +79,3 @@ If `category: design` → set `outcome: escalated`, STOP. Cannot fix architectur
 Set `outcome: remediated` and advance pipeline to re-trigger QA validation.
 
 Max 3 remediation iterations.
-
-## Handoff
-
-> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

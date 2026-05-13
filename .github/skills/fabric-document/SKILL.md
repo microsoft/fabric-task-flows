@@ -11,7 +11,7 @@ description: >
 
 > **Goal:** Produce ONE deliverable — `docs/project-brief.md` — that a CTO can read in 10 minutes.
 
-> **⚡ Pre-generated brief:** The runner writes a structured `project-brief.md` synthesized from all handoffs before this skill is invoked, with `<!-- AGENT: FILL -->` markers where narrative polish is needed. Your job: (1) verify facts against the source handoffs, (2) add narrative polish so the brief reads like a CTO memo rather than a template, (3) replace every `<!-- AGENT: FILL -->` marker. Do NOT rewrite from scratch — edit in place.
+> **⚡ Pre-generated brief:** The runner writes a structured `project-brief.md` synthesized from all handoffs before this skill is invoked, with `<!-- AGENT: FILL -->` markers where narrative polish is needed. Your job: (1) verify facts against the source handoffs, (2) add narrative polish so the brief reads like a CTO memo rather than a template, (3) replace every `<!-- AGENT: FILL -->` marker.
 
 ## Instructions
 
@@ -48,7 +48,3 @@ The brief must answer these 5 questions:
 - Documents only — no architecture decisions or deployments
 - ONE output file: `project-brief.md`
 - Do NOT create README.md, architecture.md, deployment-log.md, or decisions/*.md
-
-## Handoff
-
-> Handoff: see [`_shared/workflow-guide.md`](../../../_shared/workflow-guide.md#handoff) — call `run-pipeline.py advance -q` after writing the output file; AUTO-CHAIN unless a HUMAN GATE fires.

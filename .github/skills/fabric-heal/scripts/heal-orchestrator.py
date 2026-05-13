@@ -35,7 +35,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
 from paths import REPO_ROOT
-from heal_keyword_utils import find_uncovered_keywords
+from heal_keyword_utils import find_uncovered_keywords, parse_problems
 
 SIGNAL_MAPPER_PATH = REPO_ROOT / ".github" / "skills" / "fabric-discover" / "scripts" / "signal-mapper.py"
 SKILL_DIR = Path(__file__).resolve().parent.parent  # .github/skills/fabric-heal/
@@ -104,25 +104,6 @@ def _resolve_benchmark_project() -> str | None:
         return None
     candidates = sorted(p.name for p in projects_dir.iterdir() if p.is_dir())
     return candidates[0] if candidates else None
-
-def parse_problems(path: Path) -> list[dict]:
-    """Parse problem-statements.md into [{id, category, text}]."""
-    content = path.read_text(encoding="utf-8")
-    problems = []
-    category = "Uncategorized"
-    for line in content.splitlines():
-        m = re.match(r"^##\s+(.+)", line)
-        if m:
-            category = m.group(1).strip()
-            continue
-        m = re.match(r'^\d+\.\s+"(.+)"', line)
-        if m:
-            problems.append({
-                "id": len(problems) + 1,
-                "category": category,
-                "text": m.group(1),
-            })
-    return problems
 
 
 # ---------------------------------------------------------------------------

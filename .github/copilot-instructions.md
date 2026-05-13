@@ -33,6 +33,14 @@ This is a **documentation-driven** knowledge base with supporting Python scripts
 
 > **Always use `encoding='utf-8'`** when reading or writing JSON, Markdown, and Python files. Windows defaults to `cp1252`, which silently corrupts Unicode.
 
+### Pre-Generated Content
+
+> Skills receive pre-generated output files from `run-pipeline.py`. **Edit in place** — never rewrite from scratch. Fill `<!-- AGENT: FILL -->` markers with judgment; leave structural YAML intact.
+
+### Skill Handoff
+
+> After writing output to `_projects/[name]/docs/`, call `run-pipeline.py advance --project <name> -q`. If output says `🟢 AUTO-CHAIN → <skill>`, invoke immediately. If `🛑 HUMAN GATE`, present sign-off to user.
+
 ### Contributor Guidelines
 
 > See [CONTRIBUTING.md](../CONTRIBUTING.md) for scripts, registries, and development workflow.
