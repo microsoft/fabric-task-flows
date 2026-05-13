@@ -34,7 +34,7 @@ _SKILL_DIR = Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
 
-from registry_loader import build_task_type_map, get_deployment_items
+from registry_loader import build_task_type_map, build_display_names, get_deployment_items
 from yaml_utils import (
     extract_task_flow as _shared_extract_task_flow,
     extract_yaml_blocks,
@@ -43,6 +43,12 @@ from yaml_utils import (
 )
 
 ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()
+_DISPLAY_NAMES: dict[str, str] = build_display_names()
+
+
+def _display_name(item_type: str) -> str:
+    """Resolve a registry key or role-qualified name to its display name."""
+    return _DISPLAY_NAMES.get(item_type.lower(), item_type)
 TASK_TYPE_MAP: dict[str, str] = ITEM_TO_TASK_TYPE
 
 SCAFFOLD_TASK_NAMES: dict[str, str] = {
@@ -304,8 +310,8 @@ def _parse_diagram(task_flow: str) -> list[DiagramItem]:
     for ji in json_items:
         items.append(DiagramItem(
             order=ji["order"],
-            item_type=ji["itemType"],
-            depends_on=", ".join(ji.get("dependsOn", [])),
+            item_type=_display_name(ji["itemType"]),
+            depends_on=", ".join(_display_name(d) for d in ji.get("dependsOn", [])),
             is_alternative="alternativeGroup" in ji,
         ))
     return items

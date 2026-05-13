@@ -10,7 +10,7 @@ We evaluated generating `_shared/registry/deployment-order.json` from `item-type
 | Total items | 148 across 12 task flows |
 | Naming: display_name/alias variants | 19 of 37 unique types (not truly role-qualified) |
 | True role instances | 9 (Lakehouse ×5, Notebook ×2, Warehouse ×1) |
-| Phase predicts correct wave | 140/158 dependency edges |
+| Phase predicts correct wave | Only 58/148 items (39%) — order is flow-specific |
 | Same-phase deps (need intra-wave info) | 15 |
 | Phase violations (reverse-direction deps) | 3 |
 
@@ -41,7 +41,7 @@ Keep the file hand-authored with these irreducible fields per item:
 ## Future Considerations
 
 - **Normalize `itemType` to registry keys** — 19 names are just display_name/alias variants (e.g., "Copy Job" = `CopyJob`). Scripts could resolve display names at render time. Deferred: requires updating 4 consumer scripts + test assertions.
-- **Derive `order` from `phase` at runtime** — the letter suffixes (a, b, c) indicate parallelism within a wave, which is already implicit from `dependsOn`. Deferred: low-risk but requires script changes.
+- **Derive `order` from `phase` at runtime** — **NOT VIABLE**. Testing showed 90/148 items (61%) have `order` values that diverge from `phase`-derived waves. Each task flow defines its own relative ordering (e.g., GraphQL API is wave 2 in `app-backend` but `phase=Transformation` would place it at wave 4). The `order` field is irreducible task-flow-specific knowledge.
 
 ## Consequences
 

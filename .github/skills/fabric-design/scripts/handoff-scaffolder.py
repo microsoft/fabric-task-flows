@@ -35,6 +35,7 @@ from paths import REPO_ROOT
 from registry_loader import build_fab_type_map, load_registry, build_alternatives_map, build_display_names, build_type_to_decision_map, get_deployment_items
 
 FAB_TYPE_MAP: dict[str, str] = build_fab_type_map()
+DISPLAY_NAMES: dict[str, str] = build_display_names()
 PORTAL_ONLY_TYPES: set[str] = {
     data["display_name"] for data in load_registry().values()
     if not data.get("rest_api", {}).get("creatable", False)
@@ -67,6 +68,11 @@ class DeployItem:
 
 
 # ── Naming helpers ────────────────────────────────────────────────────────
+
+def _display_name(item_type: str) -> str:
+    """Resolve a registry key or role-qualified name to its display name."""
+    return DISPLAY_NAMES.get(item_type.lower(), item_type)
+
 
 def _to_kebab(item_type: str) -> str:
     """Convert diagram Item Type to kebab-case item_name.
@@ -173,9 +179,9 @@ def parse_diagram(task_flow: str) -> list[DiagramItem]:
         
         items.append(DiagramItem(
             order=ji["order"],
-            item_type=ji["itemType"],
+            item_type=_display_name(ji["itemType"]),
             skillset=ji.get("skillset", "[LC]"),
-            depends_on=", ".join(ji.get("dependsOn", [])),
+            depends_on=", ".join(_display_name(d) for d in ji.get("dependsOn", [])),
             required_for=", ".join(ji.get("requiredFor", [])),
             is_alternative=is_alt,
             alternative_group=alt_group,

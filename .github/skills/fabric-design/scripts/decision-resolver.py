@@ -571,6 +571,20 @@ def _load_task_flow_defaults(task_flow: str) -> dict[str, str]:
     if not tf_data:
         return {}
 
+    # Build display-name lookup from item-type-registry for resolving keys
+    item_reg_path = registry_path.parent / "item-type-registry.json"
+    display_map: dict[str, str] = {}
+    try:
+        with open(item_reg_path, encoding="utf-8") as f:
+            item_reg = json.load(f)
+        for key, data in item_reg.get("types", {}).items():
+            display_map[key] = data.get("display_name", key)
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+
+    def _resolve(name: str) -> str:
+        return display_map.get(name, name)
+
     defaults: dict[str, str] = {}
 
     # Extract primary storage from template metadata
@@ -596,8 +610,8 @@ def _load_task_flow_defaults(task_flow: str) -> dict[str, str]:
         seen_groups.add(group)
         dec_key = _GROUP_TO_DECISION.get(group)
         if dec_key and dec_key not in defaults:
-            # Use the item type as the default choice
-            defaults[dec_key] = item["itemType"]
+            # Use the display name as the default choice
+            defaults[dec_key] = _resolve(item["itemType"])
 
     return defaults
 

@@ -8,27 +8,27 @@
       "items": [
         {
           "order": "1a",
-          "itemType": "SQL Database",
+          "itemType": "SQLDatabase",
           "dependsOn": [],
           "requiredFor": [
-            "GraphQL API",
-            "User Data Functions"
+            "GraphQLApi",
+            "UserDataFunction"
           ],
           "alternativeGroup": "foundation-storage"
         },
         {
           "order": "1a",
-          "itemType": "Cosmos DB",
+          "itemType": "CosmosDBDatabase",
           "dependsOn": [],
           "requiredFor": [
-            "GraphQL API",
-            "User Data Functions"
+            "GraphQLApi",
+            "UserDataFunction"
           ],
           "alternativeGroup": "foundation-storage"
         },
         {
           "order": "1b",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage config"
@@ -37,10 +37,10 @@
         },
         {
           "order": "2a",
-          "itemType": "GraphQL API",
+          "itemType": "GraphQLApi",
           "dependsOn": [
-            "SQL Database",
-            "Cosmos DB"
+            "SQLDatabase",
+            "CosmosDBDatabase"
           ],
           "requiredFor": [
             "App reads"
@@ -48,10 +48,10 @@
         },
         {
           "order": "2b",
-          "itemType": "User Data Functions",
+          "itemType": "UserDataFunction",
           "dependsOn": [
-            "SQL Database",
-            "Cosmos DB"
+            "SQLDatabase",
+            "CosmosDBDatabase"
           ],
           "requiredFor": [
             "App writes",
@@ -60,10 +60,10 @@
         },
         {
           "order": "3",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
-            "SQL Database",
-            "Cosmos DB"
+            "SQLDatabase",
+            "CosmosDBDatabase"
           ],
           "requiredFor": [
             "Report"
@@ -74,7 +74,7 @@
           "order": "4a",
           "itemType": "Report",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [
             "Admin dashboard"
@@ -83,10 +83,10 @@
         },
         {
           "order": "4b",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
-            "SQL Database",
-            "Cosmos DB"
+            "SQLDatabase",
+            "CosmosDBDatabase"
           ],
           "requiredFor": [
             "Conversational AI"
@@ -97,7 +97,7 @@
           "order": "4c",
           "itemType": "Ontology",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [
             "Cross-domain vocab"
@@ -115,12 +115,12 @@
           "dependsOn": [],
           "requiredFor": [
             "All ingestion",
-            "Semantic Model"
+            "SemanticModel"
           ]
         },
         {
           "order": "1",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -129,7 +129,7 @@
         },
         {
           "order": "2a",
-          "itemType": "Copy Job",
+          "itemType": "CopyJob",
           "dependsOn": [
             "Warehouse"
           ],
@@ -140,7 +140,7 @@
         },
         {
           "order": "2b",
-          "itemType": "Dataflow Gen2",
+          "itemType": "Dataflow",
           "dependsOn": [
             "Warehouse"
           ],
@@ -151,7 +151,7 @@
         },
         {
           "order": "2c",
-          "itemType": "Pipeline",
+          "itemType": "DataPipeline",
           "dependsOn": [
             "Warehouse"
           ],
@@ -162,7 +162,7 @@
         },
         {
           "order": "3",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
             "Warehouse"
           ],
@@ -174,15 +174,15 @@
           "order": "4a",
           "itemType": "Report",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": []
         },
         {
           "order": "4b",
-          "itemType": "Paginated Report",
+          "itemType": "PaginatedReport",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
@@ -191,16 +191,16 @@
           "order": "5a",
           "itemType": "Scorecard",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
         },
         {
           "order": "5b",
-          "itemType": "Activator",
+          "itemType": "Reflex",
           "dependsOn": [
-            "Semantic Model",
+            "SemanticModel",
             "Report"
           ],
           "requiredFor": [
@@ -219,10 +219,10 @@
         },
         {
           "order": "6c",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
             "Warehouse",
-            "Semantic Model",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -232,7 +232,7 @@
           "order": "6d",
           "itemType": "Ontology",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
@@ -261,7 +261,7 @@
         },
         {
           "order": "2",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -281,20 +281,20 @@
         },
         {
           "order": "4",
-          "itemType": "Experiment",
+          "itemType": "MLExperiment",
           "dependsOn": [
             "Lakehouse",
             "Environment"
           ],
           "requiredFor": [
-            "ML Model"
+            "MLModel"
           ]
         },
         {
           "order": "5",
-          "itemType": "ML Model",
+          "itemType": "MLModel",
           "dependsOn": [
-            "Experiment"
+            "MLExperiment"
           ],
           "requiredFor": [
             "Predictions"
@@ -304,7 +304,7 @@
           "order": "6",
           "itemType": "Notebook (predict)",
           "dependsOn": [
-            "ML Model",
+            "MLModel",
             "Lakehouse"
           ],
           "requiredFor": [
@@ -321,10 +321,10 @@
         },
         {
           "order": "7a",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
             "Lakehouse",
-            "Semantic Model",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -339,9 +339,9 @@
         },
         {
           "order": "8a",
-          "itemType": "Activator",
+          "itemType": "Reflex",
           "dependsOn": [
-            "Semantic Model",
+            "SemanticModel",
             "Report"
           ],
           "requiredFor": [
@@ -368,7 +368,7 @@
           "itemType": "Lakehouse",
           "dependsOn": [],
           "requiredFor": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "alternativeGroup": "foundation-storage"
         },
@@ -377,13 +377,13 @@
           "itemType": "Warehouse",
           "dependsOn": [],
           "requiredFor": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "alternativeGroup": "foundation-storage"
         },
         {
           "order": "1",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -392,20 +392,20 @@
         },
         {
           "order": "2",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
             "Lakehouse",
             "Warehouse"
           ],
           "requiredFor": [
-            "Data Agent"
+            "DataAgent"
           ]
         },
         {
           "order": "3",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": []
         },
@@ -418,10 +418,10 @@
         },
         {
           "order": "4b",
-          "itemType": "Activator",
+          "itemType": "Reflex",
           "dependsOn": [
-            "Data Agent",
-            "Semantic Model"
+            "DataAgent",
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
@@ -436,13 +436,13 @@
           "itemType": "Lakehouse",
           "dependsOn": [],
           "requiredFor": [
-            "SQL analytics endpoint",
+            "SQLEndpoint",
             "All processing"
           ]
         },
         {
           "order": "1",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -451,12 +451,12 @@
         },
         {
           "order": "1a",
-          "itemType": "SQL analytics endpoint",
+          "itemType": "SQLEndpoint",
           "dependsOn": [
             "Lakehouse"
           ],
           "requiredFor": [
-            "Semantic Model"
+            "SemanticModel"
           ]
         },
         {
@@ -472,7 +472,7 @@
         },
         {
           "order": "2b",
-          "itemType": "Spark Job Definition",
+          "itemType": "SparkJobDefinition",
           "dependsOn": [
             "Lakehouse"
           ],
@@ -483,9 +483,9 @@
         },
         {
           "order": "3",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
-            "SQL analytics endpoint"
+            "SQLEndpoint"
           ],
           "requiredFor": [
             "Report"
@@ -495,15 +495,15 @@
           "order": "4a",
           "itemType": "Report",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": []
         },
         {
           "order": "4b",
-          "itemType": "Paginated Report",
+          "itemType": "PaginatedReport",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
@@ -512,17 +512,17 @@
           "order": "4c",
           "itemType": "Scorecard",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
         },
         {
           "order": "4e",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
-            "SQL analytics endpoint",
-            "Semantic Model",
+            "SQLEndpoint",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -532,16 +532,16 @@
           "order": "4f",
           "itemType": "Ontology",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
         },
         {
           "order": "5a",
-          "itemType": "Activator",
+          "itemType": "Reflex",
           "dependsOn": [
-            "Semantic Model",
+            "SemanticModel",
             "Report"
           ],
           "requiredFor": [
@@ -584,7 +584,7 @@
         },
         {
           "order": "1b",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -603,7 +603,7 @@
         },
         {
           "order": "2b",
-          "itemType": "Copy Job",
+          "itemType": "CopyJob",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -615,7 +615,7 @@
         },
         {
           "order": "2c",
-          "itemType": "Dataflow Gen2",
+          "itemType": "Dataflow",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -627,7 +627,7 @@
         },
         {
           "order": "2d",
-          "itemType": "Pipeline",
+          "itemType": "DataPipeline",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -639,7 +639,7 @@
         },
         {
           "order": "3",
-          "itemType": "Activator",
+          "itemType": "Reflex",
           "dependsOn": [
             "Eventstream",
             "Eventhouse"
@@ -651,7 +651,7 @@
         },
         {
           "order": "4a",
-          "itemType": "KQL Queryset",
+          "itemType": "KQLQueryset",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -673,7 +673,7 @@
         },
         {
           "order": "4c",
-          "itemType": "Experiment",
+          "itemType": "MLExperiment",
           "dependsOn": [
             "Eventhouse",
             "Environment"
@@ -685,9 +685,9 @@
         },
         {
           "order": "4d",
-          "itemType": "ML Model",
+          "itemType": "MLModel",
           "dependsOn": [
-            "Experiment"
+            "MLExperiment"
           ],
           "requiredFor": [
             "Predictions"
@@ -696,7 +696,7 @@
         },
         {
           "order": "5a",
-          "itemType": "Real-Time Dashboard",
+          "itemType": "KQLDashboard",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -709,7 +709,7 @@
           "itemType": "Report",
           "dependsOn": [
             "Eventhouse",
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [
             "Analytics"
@@ -718,10 +718,10 @@
         },
         {
           "order": "5d",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
             "Eventhouse",
-            "Semantic Model",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -731,7 +731,7 @@
           "order": "5e",
           "itemType": "Ontology",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
@@ -751,7 +751,7 @@
         },
         {
           "order": "1",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -770,7 +770,7 @@
         },
         {
           "order": "2b",
-          "itemType": "Copy Job",
+          "itemType": "CopyJob",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -782,7 +782,7 @@
         },
         {
           "order": "2c",
-          "itemType": "Pipeline",
+          "itemType": "DataPipeline",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -794,7 +794,7 @@
         },
         {
           "order": "3",
-          "itemType": "KQL Queryset",
+          "itemType": "KQLQueryset",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -804,7 +804,7 @@
         },
         {
           "order": "4a",
-          "itemType": "Real-Time Dashboard",
+          "itemType": "KQLDashboard",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -825,7 +825,7 @@
         },
         {
           "order": "5",
-          "itemType": "Activator",
+          "itemType": "Reflex",
           "dependsOn": [
             "Eventstream",
             "Eventhouse"
@@ -837,10 +837,10 @@
         },
         {
           "order": "5a",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
             "Eventhouse",
-            "Semantic Model",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -890,12 +890,12 @@
           ],
           "requiredFor": [
             "Notebook",
-            "Spark Job Definition"
+            "SparkJobDefinition"
           ]
         },
         {
           "order": "2",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -904,7 +904,7 @@
         },
         {
           "order": "3a",
-          "itemType": "Copy Job",
+          "itemType": "CopyJob",
           "dependsOn": [
             "Lakehouse"
           ],
@@ -915,7 +915,7 @@
         },
         {
           "order": "3b",
-          "itemType": "Dataflow Gen2",
+          "itemType": "Dataflow",
           "dependsOn": [
             "Lakehouse"
           ],
@@ -926,7 +926,7 @@
         },
         {
           "order": "3c",
-          "itemType": "Pipeline",
+          "itemType": "DataPipeline",
           "dependsOn": [
             "Lakehouse"
           ],
@@ -959,7 +959,7 @@
         },
         {
           "order": "4b",
-          "itemType": "Spark Job Definition",
+          "itemType": "SparkJobDefinition",
           "dependsOn": [
             "Environment",
             "Lakehouse"
@@ -971,7 +971,7 @@
         },
         {
           "order": "4c",
-          "itemType": "KQL Queryset",
+          "itemType": "KQLQueryset",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -981,7 +981,7 @@
         },
         {
           "order": "5a",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
             "Warehouse",
             "Lakehouse"
@@ -992,7 +992,7 @@
         },
         {
           "order": "5b",
-          "itemType": "Real-Time Dashboard",
+          "itemType": "KQLDashboard",
           "dependsOn": [
             "Eventhouse"
           ],
@@ -1004,13 +1004,13 @@
           "order": "6",
           "itemType": "Report",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": []
         },
         {
           "order": "7a",
-          "itemType": "Activator",
+          "itemType": "Reflex",
           "dependsOn": [
             "Eventstream",
             "Report"
@@ -1022,21 +1022,21 @@
         },
         {
           "order": "7b",
-          "itemType": "Experiment",
+          "itemType": "MLExperiment",
           "dependsOn": [
             "Lakehouse",
             "Environment"
           ],
           "requiredFor": [
-            "ML Model"
+            "MLModel"
           ],
           "optional": true
         },
         {
           "order": "7c",
-          "itemType": "ML Model",
+          "itemType": "MLModel",
           "dependsOn": [
-            "Experiment"
+            "MLExperiment"
           ],
           "requiredFor": [
             "Predictions"
@@ -1045,11 +1045,11 @@
         },
         {
           "order": "7d",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
             "Warehouse",
             "Lakehouse",
-            "Semantic Model",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -1059,7 +1059,7 @@
           "order": "7e",
           "itemType": "Ontology",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
@@ -1091,7 +1091,7 @@
           "itemType": "Lakehouse Gold",
           "dependsOn": [],
           "requiredFor": [
-            "Semantic Model",
+            "SemanticModel",
             "ML"
           ],
           "alternativeGroup": "gold-layer"
@@ -1101,7 +1101,7 @@
           "itemType": "Warehouse Gold",
           "dependsOn": [],
           "requiredFor": [
-            "Semantic Model",
+            "SemanticModel",
             "BI"
           ],
           "alternativeGroup": "gold-layer"
@@ -1116,12 +1116,12 @@
           ],
           "requiredFor": [
             "Notebook",
-            "Spark Job Definition"
+            "SparkJobDefinition"
           ]
         },
         {
           "order": "2",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -1130,7 +1130,7 @@
         },
         {
           "order": "3a",
-          "itemType": "Copy Job",
+          "itemType": "CopyJob",
           "dependsOn": [
             "Lakehouse Bronze"
           ],
@@ -1141,7 +1141,7 @@
         },
         {
           "order": "3b",
-          "itemType": "Dataflow Gen2",
+          "itemType": "Dataflow",
           "dependsOn": [
             "Lakehouse Bronze"
           ],
@@ -1152,7 +1152,7 @@
         },
         {
           "order": "3c",
-          "itemType": "Pipeline",
+          "itemType": "DataPipeline",
           "dependsOn": [
             "Lakehouse Bronze"
           ],
@@ -1187,7 +1187,7 @@
         },
         {
           "order": "4b",
-          "itemType": "Spark Job Definition",
+          "itemType": "SparkJobDefinition",
           "dependsOn": [
             "Environment",
             "Lakehouse Bronze"
@@ -1199,7 +1199,7 @@
         },
         {
           "order": "5",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
             "Lakehouse Gold",
             "Warehouse Gold"
@@ -1212,27 +1212,27 @@
           "order": "6",
           "itemType": "Report",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": []
         },
         {
           "order": "7a",
-          "itemType": "Experiment",
+          "itemType": "MLExperiment",
           "dependsOn": [
             "Lakehouse Gold",
             "Environment"
           ],
           "requiredFor": [
-            "ML Model"
+            "MLModel"
           ],
           "optional": true
         },
         {
           "order": "7b",
-          "itemType": "ML Model",
+          "itemType": "MLModel",
           "dependsOn": [
-            "Experiment"
+            "MLExperiment"
           ],
           "requiredFor": [],
           "optional": true
@@ -1247,13 +1247,13 @@
           "itemType": "Lakehouse",
           "dependsOn": [],
           "requiredFor": [
-            "Semantic Model",
-            "Graph Model"
+            "SemanticModel",
+            "GraphModel"
           ]
         },
         {
           "order": "1",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -1262,42 +1262,42 @@
         },
         {
           "order": "2",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
             "Lakehouse",
             "Warehouse",
-            "SQL Database"
+            "SQLDatabase"
           ],
           "requiredFor": [
             "Ontology",
-            "Data Agent"
+            "DataAgent"
           ]
         },
         {
           "order": "3",
           "itemType": "Ontology",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [
-            "Graph Model"
+            "GraphModel"
           ]
         },
         {
           "order": "4",
-          "itemType": "Graph Model",
+          "itemType": "GraphModel",
           "dependsOn": [
             "Ontology"
           ],
           "requiredFor": [
-            "Graph Queryset"
+            "GraphQuerySet"
           ]
         },
         {
           "order": "5",
-          "itemType": "Graph Queryset",
+          "itemType": "GraphQuerySet",
           "dependsOn": [
-            "Graph Model"
+            "GraphModel"
           ],
           "requiredFor": [
             "Consumption"
@@ -1305,9 +1305,9 @@
         },
         {
           "order": "6a",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
-            "Semantic Model",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -1317,7 +1317,7 @@
           "order": "6b",
           "itemType": "Report",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [
             "Governance dashboards"
@@ -1362,12 +1362,12 @@
           ],
           "requiredFor": [
             "Notebook",
-            "Spark Job Definition"
+            "SparkJobDefinition"
           ]
         },
         {
           "order": "2",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -1376,7 +1376,7 @@
         },
         {
           "order": "3a",
-          "itemType": "Copy Job",
+          "itemType": "CopyJob",
           "dependsOn": [
             "Lakehouse (raw)"
           ],
@@ -1387,7 +1387,7 @@
         },
         {
           "order": "3b",
-          "itemType": "Dataflow Gen2",
+          "itemType": "Dataflow",
           "dependsOn": [
             "Lakehouse (raw)"
           ],
@@ -1398,7 +1398,7 @@
         },
         {
           "order": "3c",
-          "itemType": "Pipeline",
+          "itemType": "DataPipeline",
           "dependsOn": [
             "Lakehouse (raw)"
           ],
@@ -1421,7 +1421,7 @@
         },
         {
           "order": "4b",
-          "itemType": "Spark Job Definition",
+          "itemType": "SparkJobDefinition",
           "dependsOn": [
             "Environment",
             "Lakehouse (raw)"
@@ -1433,7 +1433,7 @@
         },
         {
           "order": "5",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
             "Warehouse"
           ],
@@ -1445,16 +1445,16 @@
           "order": "6",
           "itemType": "Report",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": []
         },
         {
           "order": "6c",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
             "Warehouse",
-            "Semantic Model",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -1464,16 +1464,16 @@
           "order": "6d",
           "itemType": "Ontology",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
         },
         {
           "order": "7a",
-          "itemType": "Activator",
+          "itemType": "Reflex",
           "dependsOn": [
-            "Semantic Model",
+            "SemanticModel",
             "Report"
           ],
           "requiredFor": [
@@ -1497,16 +1497,16 @@
       "items": [
         {
           "order": "1",
-          "itemType": "SQL Database",
+          "itemType": "SQLDatabase",
           "dependsOn": [],
           "requiredFor": [
-            "Semantic Model",
-            "User Data Functions"
+            "SemanticModel",
+            "UserDataFunction"
           ]
         },
         {
           "order": "1",
-          "itemType": "Variable Library",
+          "itemType": "VariableLibrary",
           "dependsOn": [],
           "requiredFor": [
             "Stage-specific config"
@@ -1515,9 +1515,9 @@
         },
         {
           "order": "2",
-          "itemType": "Semantic Model",
+          "itemType": "SemanticModel",
           "dependsOn": [
-            "SQL Database"
+            "SQLDatabase"
           ],
           "requiredFor": [
             "Report"
@@ -1527,7 +1527,7 @@
           "order": "3",
           "itemType": "Report",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [
             "User interactions"
@@ -1535,9 +1535,9 @@
         },
         {
           "order": "4",
-          "itemType": "User Data Functions",
+          "itemType": "UserDataFunction",
           "dependsOn": [
-            "SQL Database"
+            "SQLDatabase"
           ],
           "requiredFor": [
             "Writeback actions"
@@ -1545,10 +1545,10 @@
         },
         {
           "order": "5a",
-          "itemType": "Data Agent",
+          "itemType": "DataAgent",
           "dependsOn": [
-            "SQL Database",
-            "Semantic Model",
+            "SQLDatabase",
+            "SemanticModel",
             "Ontology"
           ],
           "requiredFor": [],
@@ -1558,7 +1558,7 @@
           "order": "5b",
           "itemType": "Ontology",
           "dependsOn": [
-            "Semantic Model"
+            "SemanticModel"
           ],
           "requiredFor": [],
           "optional": true
