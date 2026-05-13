@@ -1,5 +1,7 @@
 """Tests for registry_loader.py — verifies the item-type registry is valid."""
 
+import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -16,6 +18,7 @@ from registry_loader import (
     build_test_method_map,
     build_layer_map,
     build_type_to_decision_map,
+    load_stop_words,
     validate_registry,
 )
 
@@ -380,3 +383,29 @@ def test_decision_map_excludes_unmapped_phases():
     assert "reflex" not in dm
     # Environment has phase=Environment → no decision mapping
     assert "environment" not in dm
+
+
+# ── Stop words registry tests ───────────────────────────────────────────────
+
+GENERATOR_PATH = Path(__file__).resolve().parent.parent / "scripts" / "generate-stop-words.py"
+STOP_WORDS_PATH = Path(__file__).resolve().parent.parent / "registry" / "stop-words.json"
+
+
+def _load_stop_word_generator_module():
+    spec = importlib.util.spec_from_file_location("generate_stop_words", str(GENERATOR_PATH))
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_stop_words_registry_keeps_broad_floor():
+    stop_words = load_stop_words()
+    assert len(stop_words) >= 703
+    assert {"100", "analyst", "daily", "snowflake", "the"} <= stop_words
+
+
+def test_stop_word_generator_matches_checked_in_registry():
+    generator = _load_stop_word_generator_module()
+    expected = json.loads(STOP_WORDS_PATH.read_text(encoding="utf-8"))
+    assert generator.build_stop_words_payload() == expected

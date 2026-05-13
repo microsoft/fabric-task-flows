@@ -257,6 +257,23 @@ class TestPhaseOrdering:
         monkeypatch.setattr(rp, "_REGISTRY", SKILLS_REGISTRY)
         assert len(rp._phase_order()) == 7
 
+    def test_phase_order_refreshes_when_runtime_registry_cleared(self, tmp_path, monkeypatch):
+        """Clearing run_pipeline._REGISTRY should not leave a stale split-module cache."""
+        _patch_repo(monkeypatch, tmp_path)
+        assert rp._phase_order() == PHASE_ORDER
+
+        refreshed_registry = {
+            "phase_order": ["fresh-phase"],
+            "phases": {"fresh-phase": {"skill": "fresh-skill", "output": []}},
+            "standalone_skills": {},
+        }
+        (tmp_path / "_shared" / "registry" / "skills-registry.json").write_text(
+            json.dumps(refreshed_registry), encoding="utf-8"
+        )
+        monkeypatch.setattr(rp, "_REGISTRY", None)
+
+        assert rp._phase_order() == ["fresh-phase"]
+
 
 # ── Phase metadata helpers ──────────────────────────────────────────────
 
