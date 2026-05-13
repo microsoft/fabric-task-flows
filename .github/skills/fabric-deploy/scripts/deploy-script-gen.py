@@ -1328,12 +1328,12 @@ def main() -> None:
 
     # 5. Generate task flow JSON template
     try:
-        tf_gen_path = Path(__file__).resolve().parent / "taskflow-template-gen.py"
+        tf_gen_path = Path(__file__).resolve().parent / "taskflow-gen.py"
         if tf_gen_path.exists():
             import subprocess as _sp
             tf_path = out / f"taskflow-{slug}.json"
             _sp.run(
-                [sys.executable, str(tf_gen_path),
+                [sys.executable, str(tf_gen_path), "template",
                  "--handoff", args.handoff,
                  "--project", args.project,
                  "--output", str(tf_path)],

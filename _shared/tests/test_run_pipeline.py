@@ -925,13 +925,10 @@ class TestProblemStatementCache:
     """Optimization: problem_statement is persisted in pipeline-state.json."""
 
     def test_new_project_template_has_problem_field(self):
-        """new-project.py pipeline_state includes problem_statement."""
-        import importlib.util
-        np_path = REPO_ROOT / "_shared" / "scripts" / "new-project.py"
-        spec = importlib.util.spec_from_file_location("new_project", str(np_path))
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules["new_project_test"] = mod
-        spec.loader.exec_module(mod)
+        """new_project.pipeline_state includes problem_statement."""
+        import importlib
+
+        mod = importlib.import_module("new_project")
         state_json = mod.pipeline_state("test-proj")
         state = json.loads(state_json)
         assert "problem_statement" in state
@@ -1782,31 +1779,22 @@ class TestStartPipelineSetsDiscoveryInProgress:
         _patch_repo(monkeypatch, tmp_path)
         project = "sensor-hub"
 
-        # Write a minimal new-project.py stub at the expected REPO_ROOT path
-        # so start_pipeline's dynamic importlib.util load succeeds.
-        scripts_dir = tmp_path / "_shared" / "scripts"
-        scripts_dir.mkdir(parents=True, exist_ok=True)
-        stub = (
-            "import json\n"
-            "from pathlib import Path\n"
-            f"PROJECT = {project!r}\n"
-            "def sanitize_name(name):\n"
-            "    return PROJECT\n"
-            "def scaffold(repo_root, display_name, task_flow=None):\n"
-            "    proj = Path(repo_root) / '_projects' / PROJECT\n"
-            "    (proj / 'docs').mkdir(parents=True, exist_ok=True)\n"
-            "    initial = {\n"
-            "        'project': PROJECT,\n"
-            "        'current_phase': '0a-discovery',\n"
-            "        'phases': {p: {'status': 'pending'} for p in "
-            f"{PHASE_ORDER!r}" + "},\n"
-            "        'transitions': [],\n"
-            "    }\n"
-            "    (proj / 'pipeline-state.json').write_text(\n"
-            "        json.dumps(initial), encoding='utf-8'\n"
-            "    )\n"
-        )
-        (scripts_dir / "new-project.py").write_text(stub, encoding="utf-8")
+        monkeypatch.setattr(rp, "sanitize_name", lambda name: project)
+
+        def scaffold_stub(repo_root, display_name, task_flow=None):
+            proj = Path(repo_root) / "_projects" / project
+            (proj / "docs").mkdir(parents=True, exist_ok=True)
+            initial = {
+                "project": project,
+                "current_phase": "0a-discovery",
+                "phases": {p: {"status": "pending"} for p in PHASE_ORDER},
+                "transitions": [],
+            }
+            (proj / "pipeline-state.json").write_text(
+                json.dumps(initial), encoding="utf-8"
+            )
+
+        monkeypatch.setattr(rp, "scaffold", scaffold_stub)
 
         rp.start_pipeline("Sensor Hub")
         state = rp._load_state(project)

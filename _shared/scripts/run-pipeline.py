@@ -43,6 +43,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from paths import REPO_ROOT
 from banner import print_banner
+from new_project import sanitize_name, scaffold
 from registry_loader import build_layer_map, build_type_to_decision_map
 from yaml_utils import extract_task_flow as _shared_extract_task_flow
 
@@ -1569,13 +1570,6 @@ def start_pipeline(display_name: str, problem: str | None = None) -> dict:
             "Ask the user to provide a specific, descriptive project name "
             "(e.g., 'Shop Floor Monitor', 'Machine Health')."
         )
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("new_project", str(REPO_ROOT / "_shared" / "scripts" / "new-project.py"))
-    np = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(np)
-    sanitize_name = np.sanitize_name
-    scaffold = np.scaffold
-
     project = sanitize_name(display_name)
     state_path = _state_path(project)
 

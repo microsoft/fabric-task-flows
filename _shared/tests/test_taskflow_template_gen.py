@@ -1,4 +1,4 @@
-"""Tests for taskflow-template-gen.py — verifies Fabric Task Flow JSON generation."""
+"""Tests for merged taskflow generation helpers — verifies Fabric Task Flow JSON generation."""
 
 import importlib.util
 import json
@@ -10,7 +10,7 @@ sys.path.insert(0, str(SHARED_DIR / "lib"))
 
 REPO_ROOT = SHARED_DIR.parent
 SCRIPT_PATH = (
-    REPO_ROOT / ".github" / "skills" / "fabric-deploy" / "scripts" / "taskflow-template-gen.py"
+    REPO_ROOT / ".github" / "skills" / "fabric-deploy" / "scripts" / "taskflow-gen.py"
 )
 
 # Import the hyphenated module via importlib

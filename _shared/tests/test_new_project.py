@@ -1,6 +1,6 @@
-﻿"""Tests for new-project.py — verifies name sanitisation, scaffold structure,
-template content, pipeline state, and PROJECTS.md updates."""
+"""Tests for new_project module and legacy new-project.py wrapper."""
 
+import importlib
 import importlib.util
 import json
 import os
@@ -13,23 +13,34 @@ SHARED_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = SHARED_DIR.parent
 SCRIPT_PATH = SHARED_DIR / "scripts" / "new-project.py"
 
-# Ensure _shared/lib is importable (new-project.py imports text_utils).
+# Ensure _shared/lib is importable.
 sys.path.insert(0, str(SHARED_DIR / "lib"))
 
+np = importlib.import_module("new_project")
 
-def _load_module():
-    """Dynamically load new-project.py (hyphenated name requires importlib)."""
-    spec = importlib.util.spec_from_file_location("new_project", str(SCRIPT_PATH))
+
+def _load_wrapper_module():
+    """Dynamically load the legacy new-project.py wrapper."""
+    spec = importlib.util.spec_from_file_location("new_project_wrapper", str(SCRIPT_PATH))
     mod = importlib.util.module_from_spec(spec)
-    sys.modules["new_project"] = mod
     spec.loader.exec_module(mod)
     return mod
 
 
-np = _load_module()
+np_wrapper = _load_wrapper_module()
 
 
 # ── sanitize_name ────────────────────────────────────────────────────────
+
+
+class TestModuleCompatibility:
+    """Verify canonical module and legacy wrapper stay aligned."""
+
+    def test_wrapper_reexports_sanitize_name(self):
+        assert np_wrapper.sanitize_name is np.sanitize_name
+
+    def test_wrapper_reexports_scaffold(self):
+        assert np_wrapper.scaffold is np.scaffold
 
 
 class TestSanitizeName:

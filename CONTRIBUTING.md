@@ -41,8 +41,7 @@ Pipeline utilities live in `_shared/scripts/`. Shared library modules live in `_
 | `handoff-scaffolder.py` | `fabric-design/scripts/` | Pre-fills handoff template YAML from diagram metadata |
 | `review-prescan.py` | `fabric-heal/scripts/` | Standalone handoff pre-scan (used by heal skill only) |
 | `deploy-script-gen.py` | `fabric-deploy/scripts/` | Reads architecture handoff YAML, generates fabric-cicd artifacts and deploy scripts |
-| `taskflow-gen.py` | `fabric-deploy/scripts/` | Generates Fabric workspace task flow JSON for import |
-| `taskflow-template-gen.py` | `fabric-deploy/scripts/` | Generates task flow template JSON from handoff items |
+| `taskflow-gen.py` | `fabric-deploy/scripts/` | Generates Fabric workspace task flow JSON for import (`scaffold`, `finalize`, `template`) |
 | `diagram-gen.py` | `fabric-design/scripts/` | Generates validated ASCII architecture diagrams from handoff YAML |
 | `diagram-validator.py` | `fabric-design/scripts/` | Validates ASCII diagram structure (balanced boxes, edges) |
 | `test-plan-prefill.py` | `fabric-test/scripts/` | Prefills test plan from acceptance criteria |
