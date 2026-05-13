@@ -7,7 +7,6 @@ description: >
   about Fabric architecture patterns. Do NOT use for deployment (use
   fabric-deploy), testing (use fabric-test), or discovery (use
   fabric-discover).
-pre-compute: [decision-resolver, handoff-scaffolder]
 ---
 
 # Fabric Architecture Design (Architect Role)

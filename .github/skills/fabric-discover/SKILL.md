@@ -13,7 +13,6 @@ description: >
   or "what task flow fits my needs", but any description of a data problem
   qualifies. Do NOT use for architecture design (use fabric-design),
   deployment (use fabric-deploy), or validation (use fabric-test).
-pre-compute: [signal-mapper]
 ---
 
 # Fabric Discovery

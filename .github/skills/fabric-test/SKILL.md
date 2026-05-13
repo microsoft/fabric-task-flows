@@ -7,7 +7,6 @@ description: >
   "check items", "what should we test", or after architecture is finalized or
   deployment is complete. Do NOT use for architecture design (use fabric-design)
   or deployment (use fabric-deploy).
-pre-compute: [test-plan-prefill]
 ---
 
 # Fabric Testing & Validation (QA Role)

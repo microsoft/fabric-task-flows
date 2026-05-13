@@ -35,8 +35,6 @@ Pipeline utilities live in `_shared/scripts/`. Shared library modules live in `_
 |--------|----------|---------|
 | `run-pipeline.py` | `_shared/scripts/` | Pipeline orchestrator — `start`, `next`, `status`, `advance`, `reset` commands |
 | `new-project.py` | `_shared/scripts/` | Scaffolds a new project with all template files + `pipeline-state.json` |
-| `fleet-runner.py` | `_shared/scripts/` | Batch runner for multiple problem statements |
-| `sync-item-types.py` | `_shared/scripts/` | Syncs `_shared/registry/item-type-registry.json` against Fabric item types |
 | `signal-categories-cli.py` | `_shared/scripts/` | Safe keyword add/remove/move/list helper for `_shared/registry/signal-categories.json` |
 | `signal-mapper.py` | `fabric-discover/scripts/` | Maps problem signals to task flow candidates |
 | `decision-resolver.py` | `fabric-design/scripts/` | Resolves decision guide YAML frontmatter for agents |

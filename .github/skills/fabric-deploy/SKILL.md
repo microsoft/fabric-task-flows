@@ -6,7 +6,6 @@ description: >
   "create items", "run deployment", "fix deployment issues",
   "remediate", or after user sign-off is complete. Do NOT use for design
   (use fabric-design) or testing (use fabric-test).
-pre-compute: [deploy-script-gen]
 ---
 
 # Fabric Deployment

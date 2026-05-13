@@ -76,7 +76,7 @@ See `@fabric-advisor` agent instructions for the phase-to-skill mapping. Key out
 | 0a Discovery | `docs/discovery-brief.md` | Infers signals, suggests task flow candidates. Before the brief is written, the skill renders a deterministic 4 V's + signals + candidate task-flows recap via `run-pipeline.py discovery-summary --project <p>` (reads `.signal-mapper-cache.json` + `.discovery-intake.json`) so the user confirms inputs, not prose. |
 | 1 Design | `docs/architecture-handoff.md` | Architecture handoff with decisions inline (not separate ADR files) |
 | 2a Test Plan | `docs/test-plan.md` | Maps each AC to validation check |
-| 2b Sign-Off | — | `advance --approve` or `--revise --feedback "..."` (max 3 cycles). See [Sign-Off Guide](sign-off-guide.md) |
+| 2b Sign-Off | — | `advance --approve` or `--revise --feedback "..."` (max 3 cycles) |
 | 2c Deploy | `docs/deployment-handoff.md` | Live: skill-driven deployment. Artifacts-only: deterministic fast-forward (no skill invoked) |
 | 3 Validate | `docs/validation-report.md` + `docs/remediation-log.md` | Live: validate→remediate loop (max 3). Artifacts-only: deterministic structural validation (no skill invoked) |
 | 4 Document | `docs/project-brief.md` | Live: skill-driven synthesis. Artifacts-only: deterministic brief generation (no skill invoked) |

@@ -235,7 +235,7 @@ def main():
     # 5. Log to learnings.md
     if not args.dry_run:
         history_entry = log_healing_history(before, after)
-        content = LEARNINGS_PATH.read_text(encoding="utf-8")
+        content = LEARNINGS_PATH.read_text(encoding="utf-8") if LEARNINGS_PATH.exists() else ""
 
         # Remove old Healing History section if present
         content = re.sub(r"\n## Healing History\n.*", "", content, flags=re.DOTALL)

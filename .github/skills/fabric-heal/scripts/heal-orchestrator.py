@@ -45,11 +45,19 @@ LEARNINGS_PATH = REPO_ROOT / "_shared" / "learnings.md"
 RESULTS_PATH = SKILL_DIR / "scripts" / "_heal-loop-results.json"
 BACKUP_PATH = SKILL_DIR / "problem-statements.md.bak"
 
-# Category rotation for agent prompts — loaded from shared config
-_SCRIPT_CONFIG_PATH = REPO_ROOT / "_shared" / "registry" / "script-config.json"
-with open(_SCRIPT_CONFIG_PATH, encoding="utf-8") as _f:
-    _script_config = json.load(_f)
-CATEGORY_ROTATION: list[list[str]] = _script_config["category_rotation"]["values"]
+# Category rotation for agent prompts
+CATEGORY_ROTATION: list[list[str]] = [
+    ["Telecom", "Insurance", "Agriculture", "Legal", "Nonprofit"],
+    ["Aviation", "Maritime", "Pharmaceuticals", "Education", "Real Estate"],
+    ["Gaming", "Ad Tech", "Biotech", "Hospitality", "Public Safety"],
+    ["Supply Chain", "Fintech", "EdTech", "PropTech", "CleanTech"],
+    ["Defense", "Space / Satellite", "Automotive", "Food & Beverage", "Fashion / Retail"],
+    ["Mining", "Utilities", "Construction", "Sports Analytics", "Media / Entertainment"],
+    ["Government", "Healthcare", "Cybersecurity", "Logistics", "Renewable Energy"],
+    ["Banking", "Telecommunications", "Transportation", "Water Management", "Waste Management"],
+    ["E-Commerce", "Social Media", "Music / Audio", "Veterinary", "Forestry"],
+    ["Oil & Gas", "Chemicals", "Semiconductors", "Robotics", "Smart Cities"],
+]
 
 # Fallback templates for --no-agent mode (preserved from heal-loop.py)
 _FALLBACK_TEMPLATES = [
@@ -629,7 +637,7 @@ def log_summary(results: list[dict], dry_run: bool) -> None:
         entry += (f"- Coverage trend: {first_cov:.1%} (iter 1) → "
                   f"{last_cov:.1%} (iter {len(results)})\n")
 
-    content = LEARNINGS_PATH.read_text(encoding="utf-8")
+    content = LEARNINGS_PATH.read_text(encoding="utf-8") if LEARNINGS_PATH.exists() else ""
     content += entry
     LEARNINGS_PATH.write_text(content, encoding="utf-8")
 

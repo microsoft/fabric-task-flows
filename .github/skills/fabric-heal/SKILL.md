@@ -40,7 +40,6 @@ Orchestrator passes `--mode heal` with benchmark results (coverage %, zero-candi
 
 1. Map uncovered terms to signal categories (1-11)
 2. Update `_shared/registry/signal-categories.json` using `signal-categories-cli.py` (max 15 new keywords per category per iteration)
-3. Log changes to `_shared/learnings.md`
 
 ## Orchestrator Reporting (Verbose Distribution)
 
@@ -70,5 +69,5 @@ Detailed analytics are persisted to:
 - `.github/skills/fabric-discover/scripts/signal-mapper.py` — current keyword categories
 - `_shared/scripts/signal-categories-cli.py` — safe keyword maintenance helper for signal categories registry
 - `problem-statements.md` — existing format (in this skill's folder)
-- `_shared/learnings.md` — healing history
+- `task-flows.md` — task flow descriptions
 - `task-flows.md` — task flow descriptions

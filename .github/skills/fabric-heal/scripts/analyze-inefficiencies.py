@@ -551,7 +551,7 @@ def main():
             print("  [DRY RUN] Would append to _shared/learnings.md:")
             print(new_text)
         else:
-            current = LEARNINGS_PATH.read_text(encoding="utf-8")
+            current = LEARNINGS_PATH.read_text(encoding="utf-8") if LEARNINGS_PATH.exists() else ""
             section_header = "## Pipeline Inefficiencies"
             if section_header in current:
                 # Remove old section entirely before appending new one
