@@ -41,7 +41,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 from banner import print_banner
 from registry_loader import build_layer_map, build_type_to_decision_map

@@ -32,7 +32,6 @@ from pathlib import Path
 # Standard bootstrap: add _shared/lib to sys.path, then import canonical REPO_ROOT.
 _LIB = Path(__file__).resolve().parents[4] / "_shared" / "lib"
 sys.path.insert(0, str(_LIB))
-import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 
 VALID_SOURCES = ("user", "inferred", "unknown")

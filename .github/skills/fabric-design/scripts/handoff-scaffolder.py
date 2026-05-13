@@ -31,10 +31,8 @@ from pathlib import Path
 # Item type mappings — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain these dicts manually. See CONTRIBUTING.md.
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
-import bootstrap  # noqa: F401
 from paths import REPO_ROOT
-from registry_loader import build_fab_type_map, load_registry, build_alternatives_map, build_display_names, build_type_to_decision_map
-from deployment_loader import get_deployment_items
+from registry_loader import build_fab_type_map, load_registry, build_alternatives_map, build_display_names, build_type_to_decision_map, get_deployment_items
 
 FAB_TYPE_MAP: dict[str, str] = build_fab_type_map()
 PORTAL_ONLY_TYPES: set[str] = {

@@ -35,15 +35,13 @@ _SKILL_DIR = Path(__file__).resolve().parent.parent
 
 _SHARED_DIR = _SKILL_DIR.parent.parent.parent / "_shared" / "lib"
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
-import bootstrap  # noqa: F401
 
 # ── Item type → Fabric task type mapping ──────────────────────────────────────
 
 # Task type mapping — loaded from _shared/registry/item-type-registry.json
 # Do NOT maintain this dict manually. See CONTRIBUTING.md.
-from registry_loader import build_task_type_map
+from registry_loader import build_task_type_map, get_deployment_items
 from yaml_utils import extract_yaml_blocks
-from deployment_loader import get_deployment_items
 
 ITEM_TO_TASK_TYPE: dict[str, str] = build_task_type_map()
 

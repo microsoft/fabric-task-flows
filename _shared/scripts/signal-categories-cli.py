@@ -18,7 +18,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-import bootstrap  # noqa: F401
 from paths import REPO_ROOT  # noqa: E402
 
 REGISTRY_PATH = REPO_ROOT / "_shared" / "registry" / "signal-categories.json"

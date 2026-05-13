@@ -48,7 +48,7 @@ Review the generated artifacts. Present a summary of what would be deployed (ite
 
 ## Constraints
 
-- Do NOT read registry JSON files directly — use Python tools (`deploy-script-gen.py`, `deployment_loader`, `registry_loader`)
+- Do NOT read registry JSON files directly — use Python tools (`deploy-script-gen.py`, `registry_loader`)
 - Follow the architecture handoff exactly — no design decisions
 - Never proceed to next wave if current wave has failures
 

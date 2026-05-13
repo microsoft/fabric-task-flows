@@ -24,7 +24,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
-import bootstrap  # noqa: F401
 from paths import REPO_ROOT
 from yaml_utils import extract_frontmatter
 

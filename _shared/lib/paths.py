@@ -67,3 +67,13 @@ SHARED_DIR: Path = REPO_ROOT / "_shared"
 
 REGISTRY_DIR: Path = SHARED_DIR / "registry"
 """Absolute path to ``_shared/registry/``."""
+
+SCRIPTS_DIR: Path = SHARED_DIR / "scripts"
+"""Absolute path to ``_shared/scripts/``."""
+
+# ── Ensure _shared/lib and _shared/scripts are importable ───────────
+# Replaces the separate bootstrap.py module.
+for _dir in (_HERE, SCRIPTS_DIR):
+    _dir_str = str(_dir)
+    if _dir_str not in sys.path:
+        sys.path.insert(0, _dir_str)

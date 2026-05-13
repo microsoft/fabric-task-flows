@@ -466,3 +466,32 @@ def load_stop_words() -> frozenset[str]:
             data = json.load(f)
         _stop_words_cache = frozenset(data.get("words", []))
     return _stop_words_cache
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Deployment order loader
+# ─────────────────────────────────────────────────────────────────────────────
+
+_deployment_order_cache: dict | None = None
+_DEPLOYMENT_ORDER_PATH = REGISTRY_DIR / "deployment-order.json"
+
+
+def get_deployment_items(task_flow: str) -> list[dict]:
+    """Get deployment items for a task flow from the deployment-order registry.
+
+    Args:
+        task_flow: Task flow ID (e.g., 'medallion', 'lambda').
+                   Case-insensitive — normalized to lowercase internally.
+
+    Returns:
+        List of deployment items with order, itemType, dependsOn, etc.
+    """
+    global _deployment_order_cache
+    if _deployment_order_cache is None:
+        if not _DEPLOYMENT_ORDER_PATH.exists():
+            _deployment_order_cache = {}
+        else:
+            data = json.loads(_DEPLOYMENT_ORDER_PATH.read_text(encoding="utf-8"))
+            _deployment_order_cache = data.get("taskFlows", {})
+    flow_data = _deployment_order_cache.get(task_flow.lower(), {})
+    return flow_data.get("items", [])

@@ -33,7 +33,6 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "_shared" / "lib"))
-import bootstrap  # noqa: F401
 from registry_loader import (
     build_deploy_method_map,
     build_test_method_map,

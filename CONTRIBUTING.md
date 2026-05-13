@@ -48,12 +48,11 @@ Pipeline utilities live in `_shared/scripts/`. Shared library modules live in `_
 | `test-plan-prefill.py` | `fabric-test/scripts/` | Prefills test plan from acceptance criteria |
 | `check-drift.py` | `fabric-test/scripts/` | Documentation drift detection (26 cross-reference checks) |
 | `validate-items.py` | `fabric-test/scripts/` | Emits a manual validation checklist for the deployed task flow (parses `deployment-handoff.md` + `validation-checklists.json`); Fabric REST verification is not yet implemented |
-| `registry_loader.py` | `_shared/lib/` | Shared module — all scripts import item type metadata from here |
+| `registry_loader.py` | `_shared/lib/` | Shared module — all scripts import item type metadata and deployment order from here |
 | `yaml_utils.py` | `_shared/lib/` | Shared module — YAML extraction and parsing (consolidated from 6 scripts) |
 | `text_utils.py` | `_shared/lib/` | Shared module — slugify and text utilities |
-| `deployment_loader.py` | `_shared/lib/` | Shared module — deployment order registry loader |
 | `banner.py` | `_shared/lib/` | Shared module — branded banner art for generated scripts |
-| `paths.py` | `_shared/lib/` | Shared module — canonical path resolution |
+| `paths.py` | `_shared/lib/` | Shared module — canonical path resolution and sys.path setup |
 
 **Registries:** All canonical registry files live in `_shared/registry/`:
 - `_shared/registry/item-type-registry.json` — Single source of truth for item type metadata including skillset (LC/CF)
